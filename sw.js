@@ -1,4 +1,4 @@
-const CACHE_NAME = 'chassi-cache-v1';
+const CACHE_NAME = 'treino-cache-v2';
 const ASSETS = [
   './',
   './index.html',
