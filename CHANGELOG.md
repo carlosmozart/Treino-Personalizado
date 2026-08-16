@@ -6,6 +6,56 @@ Todas as mudanças relevantes do app ficam registradas aqui. Ao lançar uma nova
    atualizar o app instalado
 3. Adicione uma entrada aqui, nesse formato
 
+## [1.6.0] - 2026-08-16
+### Adicionado
+- **Exercícios de cárdio agora têm campos próprios**: tempo (min) e distância (km) no
+  lugar de séries/reps/carga. Ao escolher um exercício do grupo "Cardio" na base (Esteira,
+  Bicicleta Ergométrica, Elíptico, Escada, Remo), o tipo é detectado automaticamente; dá
+  para trocar manualmente entre Força/Cardio em qualquer exercício, inclusive customizados
+- Histórico e resumo do treino formatados de forma diferente para cárdio (ex: "Esteira:
+  30min | 5km") em vez do formato de séries/carga
+### Alterado
+- **Ícone do app redesenhado**: trocado o ícone de halteres por um ícone de barras
+  ascendentes com destaque dourado (tema de progresso/XP), mais legível em tamanhos
+  pequenos
+- Arquivos de ícone renomeados (`icon-192.png`/`icon-512.png` → `icon-192-v2.png`/
+  `icon-512-v2.png`) — essa troca de nome é proposital: é o que força o Android/Chrome a
+  buscar o ícone novo em quem já instalou o app, já que ícones de PWA instalados ficam
+  fortemente cacheados pelo sistema e raramente atualizam sozinhos com o mesmo nome de
+  arquivo
+
+## [1.5.0] - 2026-08-16
+### Adicionado
+- Campo "Sexo" no perfil (opcional, "prefiro não informar" disponível) — nota explícita
+  na UI de que a fórmula/classificação do IMC (OMS) é a mesma independente do sexo; o
+  campo existe para completude do perfil e possíveis métricas futuras
+- Campo "Peso Alvo (kg)" no perfil
+- **Roadmap de progresso** na aba Perfil: mostra peso inicial (primeiro registro do
+  histórico), peso atual e peso alvo, com barra de progresso e "faltam Xkg" — funciona
+  tanto para objetivos de perda quanto de ganho de peso
+
+## [1.4.0] - 2026-08-16
+### Adicionado
+- **Gestão de múltiplos Perfis de Treino** (aba "Planos"): criar, editar e excluir perfis
+  completos, cada um com nome, descrição, dias de treino por semana e ciclo semanal
+  próprio (Segunda a Domingo)
+- **Base de exercícios pré-cadastrados** (~70 exercícios em 10 grupos musculares) para
+  compor os dias de cada perfil por seleção rápida, além de campo livre para exercícios
+  personalizados
+- Limite de 10 exercícios por dia, com contador visual no editor
+- Seleção de perfil ativo, sempre lembrado entre sessões (mantém o último selecionado)
+- XP de check-in agora é calculado dinamicamente a partir dos dias/semana do perfil ativo
+  (pool semanal de 600 XP dividido pelos dias definidos)
+- Painel de IMC expandido: texto explicativo por faixa, tabela de referência (OMS) e
+  cálculo da faixa de peso "ideal" para a altura cadastrada, com aviso sobre a limitação
+  do IMC para quem treina musculação
+### Alterado
+- Removidos os placeholders com dados pessoais reais dos campos de perfil (idade, altura,
+  peso), substituídos por exemplos genéricos — o app foi pensado para ser compartilhado
+### Segurança / Anti-trapaça
+- Check-in agora só pode ser marcado/desmarcado no dia de hoje — dias passados e futuros
+  ficam bloqueados na grade semanal, prevenindo XP obtido de forma retroativa ou antecipada
+
 ## [1.3.0] - 2026-08-15
 ### Adicionado
 - **Sistema de XP e Níveis (1 a 100)**: barra de nível fixa no cabeçalho, XP calculado por
