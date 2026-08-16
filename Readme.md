@@ -1,8 +1,24 @@
-# Changelog — Treino Personalizado
+## [1.6.0] - 2026-08-16
+### Adicionado
+- **Exercícios de cárdio agora têm campos próprios**: tempo (min) e distância (km) no
+  lugar de séries/reps/carga. Ao escolher um exercício do grupo "Cardio" na base (Esteira,
+  Bicicleta Ergométrica, Elíptico, Escada, Remo), o tipo é detectado automaticamente; dá
+  para trocar manualmente entre Força/Cardio em qualquer exercício, inclusive customizados
+- Histórico e resumo do treino formatados de forma diferente para cárdio (ex: "Esteira:
+  30min | 5km") em vez do formato de séries/carga
+### Alterado
+- **Ícone do app redesenhado**: trocado o ícone de halteres por um ícone de barras
+  ascendentes com destaque dourado (tema de progresso/XP), mais legível em tamanhos
+  pequenos
+- Arquivos de ícone renomeados (`icon-192.png`/`icon-512.png` → `icon-192-v2.png`/
+  `icon-512-v2.png`) — essa troca de nome é proposital: é o que força o Android/Chrome a
+  buscar o ícone novo em quem já instalou o app, já que ícones de PWA instalados ficam
+  fortemente cacheados pelo sistema e raramente atualizam sozinhos com o mesmo nome de
+  arquivo
 
 ## [1.5.0] - 2026-08-16
 ### Adicionado
-- Campo "Sexo" no perfil — nota explícita
+- Campo "Sexo" no perfil (opcional, "prefiro não informar" disponível) — nota explícita
   na UI de que a fórmula/classificação do IMC (OMS) é a mesma independente do sexo; o
   campo existe para completude do perfil e possíveis métricas futuras
 - Campo "Peso Alvo (kg)" no perfil
