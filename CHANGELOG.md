@@ -1,11 +1,3 @@
-# Changelog — Treino Personalizado
-
-Todas as mudanças relevantes do app ficam registradas aqui. Ao lançar uma nova versão:
-1. Suba o número em `APP_VERSION` (dentro do `<script>` do `index.html`, exibido no rodapé)
-2. Suba o número em `CACHE_NAME` no `sw.js` (ex: `treino-cache-v3`) — isso força o Chrome a
-   atualizar o app instalado
-3. Adicione uma entrada aqui, nesse formato
-
 ## [1.6.0] - 2026-08-16
 ### Adicionado
 - **Exercícios de cárdio agora têm campos próprios**: tempo (min) e distância (km) no
