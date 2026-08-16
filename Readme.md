@@ -2,7 +2,7 @@
 
 ## [1.5.0] - 2026-08-16
 ### Adicionado
-- Campo "Sexo" no perfil (opcional, "prefiro não informar" disponível) — nota explícita
+- Campo "Sexo" no perfil — nota explícita
   na UI de que a fórmula/classificação do IMC (OMS) é a mesma independente do sexo; o
   campo existe para completude do perfil e possíveis métricas futuras
 - Campo "Peso Alvo (kg)" no perfil
