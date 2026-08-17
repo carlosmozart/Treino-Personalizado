@@ -1,3 +1,45 @@
+## [1.8.0] - 2026-08-17
+### Alterado
+- **Código dividido em múltiplos arquivos** para facilitar manutenção. Estrutura nova:
+  - `css/app.css` — todo o CSS (antes embutido no `<style>` do index.html)
+  - `js/01-data.js` — versão do app e banco de dados semente do perfil padrão
+  - `js/02-state.js` — persistência (localStorage), estado global, camada de dados dos
+    perfis de treino, base de exercícios
+  - `js/03-profiles.js` — listagem e editor de perfis de treino
+  - `js/04-checkin-nav.js` — check-in semanal, navegação entre abas, notificações toast
+  - `js/05-gamification.js` — XP, níveis e conquistas
+  - `js/06-health.js` — IMC, água, roadmap de peso, perfil de saúde
+  - `js/07-workout.js` — renderização dos exercícios do dia, ajuste de valores, geração
+    do resumo do treino, inicialização do app
+  - `index.html` caiu de ~132KB para ~27KB, referenciando os arquivos acima em ordem
+- `sw.js` atualizado para colocar todos os novos arquivos em cache (funciona offline
+  exatamente como antes)
+- Nenhuma mudança de comportamento — a divisão foi 100% mecânica; toda a suíte de testes
+  funcionais (perfis, check-in, XP, conquistas, água, IMC) foi reexecutada contra a versão
+  dividida servida via HTTP local e passou sem erros, idêntica à versão anterior
+
+## [1.7.0] - 2026-08-16
+### Adicionado
+- **Sistema de Conquistas estilo Steam** (nova aba 🏆): 16 conquistas cobrindo check-ins
+  totais, sequências, níveis, hidratação, perfis criados, registros de peso e refeições
+  livres. Bloqueadas mostram barra de progresso (ex: "23/50"), desbloqueadas mostram a
+  data
+- **Bônus de sequência**: +30% do XP de check-in cheio toda vez que o streak completa um
+  ciclo inteiro dos dias/semana do perfil ativo
+- **Prêmio de Refeição Livre**: ao completar 80% dos dias de treino planejados na semana
+  atual, libera o direito a uma refeição livre no fim de semana — com barra de progresso
+  semanal visível na tela de treino
+- Suporte a peso fracionado: incrementos de ±0,5kg, além de ±5kg, e digitação livre de
+  decimais nos campos de carga (treino e editor de perfil)
+### Alterado
+- Bônus de água mudou de valor fixo (+2 XP) para **10% do XP de check-in cheio**, escalando
+  com o perfil ativo
+- **Ícone do app trocado** pela imagem fornecida pelo usuário, com nome de arquivo
+  versionado (v3) para forçar atualização em quem já instalou
+### Corrigido
+- Campo de nome do exercício no editor de perfil estourava a largura do card em telas
+  estreitas (bug clássico de flexbox — faltava `min-width: 0` no input `flex-1`)
+
 ## [1.6.0] - 2026-08-16
 ### Adicionado
 - **Exercícios de cárdio agora têm campos próprios**: tempo (min) e distância (km) no
