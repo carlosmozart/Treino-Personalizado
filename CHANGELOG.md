@@ -6,6 +6,26 @@ Todas as mudanças relevantes do app ficam registradas aqui. Ao lançar uma nova
    atualizar o app instalado
 3. Adicione uma entrada aqui, nesse formato
 
+## [2.1.0] - 2026-08-18
+### Adicionado
+- **3 fórmulas validadas de TMB** com seletor visual na aba Perfil:
+  - **Mifflin-St Jeor** (padrão/recomendada) — considerada a mais precisa para a
+    população em geral pela literatura atual
+  - **Harris-Benedict** (revisão de 1984) — padrão histórico em nutrição clínica
+  - **Katch-McArdle** — baseada em massa magra, a mais precisa para quem treina
+    musculação e tem baixo percentual de gordura; exige o campo opcional de % de
+    gordura corporal (novo campo no perfil), com aviso quando não preenchido
+  - Cada fórmula tem uma explicação própria, escrita para ser compreensível a um
+    usuário comum mas tecnicamente precisa, trocando automaticamente ao alternar
+    a fórmula selecionada
+  - A escolha de fórmula é salva no perfil e persiste entre sessões
+### Alterado
+- **Todos os blocos de texto explicativos mais longos do app agora usam alinhamento
+  justificado** (`text-align: justify`): explicação do IMC, aviso sobre limitação do
+  IMC, explicação da TMB/TDEE, nota sobre sexo não alterar o cálculo do IMC, texto de
+  boas-vindas do onboarding, nota de privacidade do perfil, e dicas de exercícios
+  alternativos
+
 ## [2.0.0] - 2026-08-18
 ### Corrigido (bug crítico)
 - **Perda de progresso ao fechar o app**: exercícios marcados como "concluído" só eram
