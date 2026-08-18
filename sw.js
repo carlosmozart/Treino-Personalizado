@@ -1,4 +1,4 @@
-const CACHE_NAME = 'treino-cache-v10';
+const CACHE_NAME = 'treino-cache-v12';
 const ASSETS = [
   './',
   './index.html',
@@ -14,6 +14,12 @@ self.addEventListener('install', (event) => {
   self.skipWaiting();
 });
 
+self.addEventListener('message', (event) => {
+  if (event.data && event.data.type === 'SKIP_WAITING') {
+    self.skipWaiting();
+  }
+});
+
 self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches.keys().then((keys) =>
@@ -23,7 +29,28 @@ self.addEventListener('activate', (event) => {
   self.clients.claim();
 });
 
+// Estratégia: "network-first" para o documento HTML (navegação) — sempre tenta buscar a
+// versão mais nova primeiro, e só cai para o cache se estiver offline. Isso garante que
+// toda vez que o app for aberto com internet, a versão mais recente é usada.
+// Para os demais arquivos (ícones, manifest), usa cache-first, já que raramente mudam.
 self.addEventListener('fetch', (event) => {
+  const acceptHeader = event.request.headers.get('accept') || '';
+  const isNavigation = event.request.mode === 'navigate' ||
+    (event.request.method === 'GET' && acceptHeader.indexOf('text/html') !== -1);
+
+  if (isNavigation) {
+    event.respondWith(
+      fetch(event.request)
+        .then((response) => {
+          const copy = response.clone();
+          caches.open(CACHE_NAME).then((cache) => cache.put(event.request, copy));
+          return response;
+        })
+        .catch(() => caches.match(event.request).then((cached) => cached || caches.match('./index.html')))
+    );
+    return;
+  }
+
   event.respondWith(
     caches.match(event.request).then((cached) => {
       return cached || fetch(event.request).then((response) => {
