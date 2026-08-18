@@ -1,12 +1,4 @@
 ## [1.9.0] - 2026-08-17
-### Revertido
-- **Voltamos ao modelo de arquivo único.** A divisão em `css/app.css` + `js/*.js` da
-  v1.8.0 foi desfeita a pedido — o projeto agora é novamente um único `index.html`
-  autocontido (~144KB). A divisão só volta a acontecer se pedida explicitamente no
-  futuro. Durante a remesclagem, um bug foi encontrado e corrigido: o `re.sub` do
-  Python usado no script de remesclagem estava interpretando `\n` dentro do JS como
-  escape de regex e inserindo quebras de linha reais no meio de uma string — corrigido
-  trocando para concatenação direta de texto; sintaxe e testes funcionais revalidados
 ### Adicionado
 - **Onboarding obrigatório no primeiro acesso**: tela cheia, não-dispensável, pedindo
   nome, data de nascimento, altura, peso, sexo (opcional) e nível de atividade antes de
