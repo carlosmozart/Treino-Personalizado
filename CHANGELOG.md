@@ -6,6 +6,27 @@ Todas as mudanças relevantes do app ficam registradas aqui. Ao lançar uma nova
    atualizar o app instalado
 3. Adicione uma entrada aqui, nesse formato
 
+## [1.9.0] - 2026-08-17
+### Revertido
+- **Voltamos ao modelo de arquivo único.** A divisão em `css/app.css` + `js/*.js` da
+  v1.8.0 foi desfeita a pedido — o projeto agora é novamente um único `index.html`
+  autocontido (~144KB). A divisão só volta a acontecer se pedida explicitamente no
+  futuro. Durante a remesclagem, um bug foi encontrado e corrigido: o `re.sub` do
+  Python usado no script de remesclagem estava interpretando `\n` dentro do JS como
+  escape de regex e inserindo quebras de linha reais no meio de uma string — corrigido
+  trocando para concatenação direta de texto; sintaxe e testes funcionais revalidados
+### Adicionado
+- **Onboarding obrigatório no primeiro acesso**: tela cheia, não-dispensável, pedindo
+  nome, data de nascimento, altura, peso, sexo (opcional) e nível de atividade antes de
+  liberar o app. Reaproveita a lógica de `saveProfile()` para não duplicar código
+- **Data de nascimento** substitui o campo de idade — idade agora é sempre calculada
+  automaticamente a partir da data cadastrada, exibida junto ao campo
+- **Detecção de aniversário**: no dia do aniversário do usuário, mostra uma mensagem de
+  parabéns e desbloqueia a conquista "Mais um Ano de Treino" (uma vez por ano)
+- **Taxa Metabólica Basal (TMB) e Gasto Total Estimado (TDEE)**: novo card na aba Perfil,
+  usando a fórmula de Mifflin-St Jeor (peso, altura, idade, sexo) multiplicada pelo nível
+  de atividade cadastrado, com aviso de que é uma estimativa
+
 ## [1.8.0] - 2026-08-17
 ### Alterado
 - **Código dividido em múltiplos arquivos** para facilitar manutenção. Estrutura nova:

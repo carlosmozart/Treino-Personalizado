@@ -1,18 +1,10 @@
-const CACHE_NAME = 'treino-cache-v8';
+const CACHE_NAME = 'treino-cache-v10';
 const ASSETS = [
   './',
   './index.html',
   './manifest.json',
   './icons/icon-192-v3.png',
-  './icons/icon-512-v3.png',
-  './css/app.css',
-  './js/01-data.js',
-  './js/02-state.js',
-  './js/03-profiles.js',
-  './js/04-checkin-nav.js',
-  './js/05-gamification.js',
-  './js/06-health.js',
-  './js/07-workout.js'
+  './icons/icon-512-v3.png'
 ];
 
 self.addEventListener('install', (event) => {
