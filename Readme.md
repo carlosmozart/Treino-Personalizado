@@ -1,4 +1,49 @@
+# Changelog — Treino Personalizado
+
+## [2.0.0] - 2026-08-18
+### Corrigido (bug crítico)
+- **Perda de progresso ao fechar o app**: exercícios marcados como "concluído" só eram
+  salvos ao clicar em "Finalizar Treino" — se você fechasse o app antes disso, o estado
+  de conclusão era perdido. Agora cada toque no check de conclusão é persistido
+  imediatamente (`treino_daily_completion`), sobrevive a fechar/reabrir o app. Testado
+  simulando um reinício completo do app
+### Adicionado
+- **Retrair/expandir cards de exercício**: toque no card ou no ícone de seta para
+  esconder os campos e deixar a tela mais organizada durante o treino
+- **Exercício reserva (substituição)**: botão de troca (🔄) em cada card, com animação,
+  para substituir o exercício atual por uma reserva cadastrada — útil quando o
+  equipamento está ocupado. Cadastro de até 2 reservas por exercício no editor de perfil
+  (aba Planos), com busca rápida na base de exercícios. A substituição vale só para a
+  sessão atual; o plano salvo não é alterado
+- **Botões de ajuste de carga ±10kg**, além dos ±5kg e ±0,5kg já existentes
+- **Navegação por swipe**: arraste o dedo horizontalmente para alternar entre as abas
+  Treino → Planos → Perfil → Conquistas, na direção do gesto
+- **Force update**: o app agora verifica atualização toda vez que é aberto (com
+  internet) e recarrega sozinho quando uma versão nova está disponível; o service worker
+  passou a usar estratégia "network-first" para o HTML principal, priorizando sempre
+  buscar a versão mais recente antes de usar cache
+- **8 novas conquistas com referências pop**: "É de mais de 8000!" (8.000 XP total),
+  "Kurohitsugi" (nível 90), "Que a Força Esteja Com Você" (check-in em 4 de maio),
+  "Eu Sou a Vingança, Eu Sou a Noite" (check-in entre 21h–7h), "Os Pesos de Rock Lee"
+  (+10kg de uma vez no botão de ajuste), "A Vontade do Fogo" (30 check-ins totais),
+  "One For All: 100%" (sequência de 100 dias)
+### Alterado
+- Conquistas de nível renomeadas com referências pop: nível 10 "Posso Fazer Isso O Dia
+  Todo", nível 25 "Vá Além... Plus Ultra!", nível 50 "Bankai!", nível 100 "Uma Repetição
+  Para Todos Governar"
+- Conquista de segundo perfil renomeada para "Com Grandes Poderes, Vem Grandes
+  Responsabilidades" e sua condição mudou de "criar" para "criar E equipar/ativar" um
+  segundo perfil
+
 ## [1.9.0] - 2026-08-17
+### Revertido
+- **Voltamos ao modelo de arquivo único.** A divisão em `css/app.css` + `js/*.js` da
+  v1.8.0 foi desfeita a pedido — o projeto agora é novamente um único `index.html`
+  autocontido (~144KB). A divisão só volta a acontecer se pedida explicitamente no
+  futuro. Durante a remesclagem, um bug foi encontrado e corrigido: o `re.sub` do
+  Python usado no script de remesclagem estava interpretando `\n` dentro do JS como
+  escape de regex e inserindo quebras de linha reais no meio de uma string — corrigido
+  trocando para concatenação direta de texto; sintaxe e testes funcionais revalidados
 ### Adicionado
 - **Onboarding obrigatório no primeiro acesso**: tela cheia, não-dispensável, pedindo
   nome, data de nascimento, altura, peso, sexo (opcional) e nível de atividade antes de
