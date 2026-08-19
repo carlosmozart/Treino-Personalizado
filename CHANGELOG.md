@@ -6,6 +6,22 @@ Todas as mudanças relevantes do app ficam registradas aqui. Ao lançar uma nova
    atualizar o app instalado
 3. Adicione uma entrada aqui, nesse formato
 
+## [2.3.0] - 2026-08-19
+### Adicionado
+- **Tela de "Novidades"** (para testadores): modal acionável manualmente pelo rodapé
+  ("🆕 Ver Novidades") ou exibido automaticamente na primeira abertura do app após uma
+  atualização de versão. Mostra os destaques da versão atual em linguagem 100% focada em
+  experiência do usuário — nenhum termo técnico, isso continua só neste CHANGELOG.md
+- **Histórico de Versões** dentro da tela de Novidades: seção retrátil listando os
+  destaques de todas as versões anteriores relevantes (a partir da 1.0.0), na mesma
+  linguagem acessível
+- Nova constante `RELEASE_NOTES` no código, com uma entrada por versão (`version`, `date`,
+  `highlights[]`) — toda futura versão deve adicionar uma entrada aqui além da entrada
+  técnica neste CHANGELOG.md
+- Rastreamento de `treino_last_seen_version` no localStorage para saber quando mostrar a
+  tela automaticamente (só dispara para quem já tinha uma versão anterior registrada —
+  instalações novas não veem a tela na primeira abertura, só o onboarding)
+
 ## [2.2.0] - 2026-08-19
 ### Adicionado
 - **Rotina de virada de dia**: o app agora verifica a cada minuto (e sempre que volta a
