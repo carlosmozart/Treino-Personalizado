@@ -6,6 +6,26 @@ Todas as mudanças relevantes do app ficam registradas aqui. Ao lançar uma nova
    atualizar o app instalado
 3. Adicione uma entrada aqui, nesse formato
 
+## [2.2.0] - 2026-08-19
+### Adicionado
+- **Rotina de virada de dia**: o app agora verifica a cada minuto (e sempre que volta a
+  ficar em primeiro plano) se a data mudou; quando muda, a água consumida, o check-in do
+  dia e os exercícios concluídos são atualizados na tela automaticamente, sem precisar
+  recarregar o app manualmente. Os dados já eram armazenados por data — essa rotina
+  garante que a interface reflita isso em tempo real, inclusive à meia-noite
+- **Horário de Treino** no editor de Perfil de Treino (aba Planos): novo campo para
+  registrar em que horário você costuma treinar, exibido como referência no topo da tela
+  de treino (substituindo o valor fixo "12h00 - 13h30" que existia antes)
+### Alterado
+- **Datas na aba Conquistas** agora exibidas no padrão brasileiro (DD/MM/AAAA) em vez do
+  formato ISO (AAAA-MM-DD)
+- **Layout da aba Perfil reorganizado**: a seção "Consumo de Água" (botões +100ml/-100ml)
+  foi movida para logo abaixo dos cards de IMC e Água do dia, antes das seções
+  explicativas
+- **Menu de navegação movido para uma barra flutuante inferior** (padrão de apps mobile),
+  com ícones e rótulos, mantendo a navegação por swipe funcionando normalmente. Todas as
+  telas ganharam espaçamento inferior extra para o menu não sobrepor o conteúdo
+
 ## [2.1.0] - 2026-08-18
 ### Adicionado
 - **3 fórmulas validadas de TMB** com seletor visual na aba Perfil:
