@@ -1,5 +1,22 @@
 # Changelog — Treino Personalizado
 
+## [2.3.2] - 2026-08-20
+### Corrigido (bug crítico de fuso horário)
+- **Todas as chaves de data do app usavam `Date.toISOString().slice(0, 10)`**, que
+  converte para UTC antes de extrair a data. Em fusos atrás de UTC (Brasil, UTC-3), a
+  partir de ~21h-22h no horário local a data em UTC já tinha virado o dia seguinte,
+  fazendo `todayKey()` e todas as funções dependentes dela retornarem a data de amanhã
+  horas antes da meia-noite real — o sintoma relatado foi consumo de água resetando
+  sozinho por volta das 22h
+- Criado `formatLocalDateKey(date)`, que monta a string `YYYY-MM-DD` a partir de
+  `getFullYear()`/`getMonth()`/`getDate()` (fuso horário local do aparelho, não UTC).
+  Substituído em todos os pontos que usavam `toISOString()` para gerar chaves de data:
+  `todayKey()`, `renderCheckinGrid()`, `calculateStreak()`, `calculateMonthlyCount()`,
+  `getCurrentWeekKey()`, `calculateWeeklyCheckinCount()`
+- Bug reproduzido e confirmado em teste automatizado simulando 22h no fuso
+  `America/Sao_Paulo` (UTC-3): antes da correção, a chave de data já apontava para o dia
+  seguinte às 22h; depois da correção, permanece correta até a meia-noite local
+
 ## [2.3.1] - 2026-08-19
 ### Adicionado
 - Nova convenção de versionamento a partir de agora: patch (terceiro dígito, ex 2.3.1)
