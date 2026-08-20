@@ -6,6 +6,18 @@ Todas as mudanças relevantes do app ficam registradas aqui. Ao lançar uma nova
    atualizar o app instalado
 3. Adicione uma entrada aqui, nesse formato
 
+## [2.3.3] - 2026-08-20
+### Corrigido
+- **Sistema de toast reescrito com fila** (`toastQueue`/`toastActive`/`processToastQueue()`):
+  antes, chamadas consecutivas de `showToast()` (comum quando check-in + bônus de
+  sequência + conquista disparam quase juntos) reiniciavam o timeout do toast anterior,
+  cortando a mensagem antes do usuário conseguir ler. Agora cada chamada entra numa fila
+  e é exibida em sequência, com um intervalo de 250ms entre uma e outra
+### Alterado
+- **Área de toque dos botões de ação nos cards de exercício** (trocar reserva, marcar
+  concluído, recolher/expandir) aumentada de 32-36px para 44px (`w-11 h-11`), alinhando
+  com a recomendação de acessibilidade de alvo mínimo de toque (WCAG 2.5.5)
+
 ## [2.3.2] - 2026-08-20
 ### Corrigido (bug crítico de fuso horário)
 - **Todas as chaves de data do app usavam `Date.toISOString().slice(0, 10)`**, que
