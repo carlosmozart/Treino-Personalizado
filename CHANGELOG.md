@@ -6,6 +6,33 @@ Todas as mudanças relevantes do app ficam registradas aqui. Ao lançar uma nova
    atualizar o app instalado
 3. Adicione uma entrada aqui, nesse formato
 
+## [2.3.1] - 2026-08-19
+### Adicionado
+- Nova convenção de versionamento a partir de agora: patch (terceiro dígito, ex 2.3.1)
+  para melhorias/correções pequenas; minor/major para funcionalidades grandes
+### Corrigido
+- **Histórico de exercícios reserva isolado do exercício base**: ao trocar para uma
+  reserva via `swapExercise()`, séries/reps/carga (ou tempo/distância) agora são salvos
+  numa chave de histórico própria (`${exId}__v${variantIndex}`) em vez de sobrescrever
+  `exerciseHistory[exId]`. Cada variante (original, reserva 1, reserva 2) mantém sua
+  própria progressão; ao trocar de volta para uma variante já usada antes, os valores
+  salvos dela são recarregados automaticamente
+### Adicionado
+- **Auto-retração de cards ao concluir**: `toggleDone()` agora adiciona o exercício a
+  `collapsedIds` ~550ms depois de marcado como concluído (dá tempo da animação do check
+  rodar antes); desmarcar remove imediatamente do `collapsedIds`, reabrindo o card.
+  `initializeWorkoutData()` também pré-popula `collapsedIds` com exercícios já concluídos
+  no dia ao trocar de dia/perfil
+- **Persistência de scroll por aba**: novo objeto `scrollPositions` guarda `window.scrollY`
+  de cada aba ao sair dela (dentro de `switchView()`); ao entrar numa aba, restaura via
+  `window.scrollTo()` dentro de dois `requestAnimationFrame()` aninhados (garante que o
+  layout já foi recalculado antes de rolar)
+### Alterado
+- **Menu inferior**: opacidade do fundo reduzida (`bg-slate-900/80`) com blur mais forte
+  (`backdrop-blur-xl`), borda sutil translúcida (`border-white/10`) e sombra customizada
+  em camadas (`shadow-[0_8px_32px_rgba(0,0,0,0.55),inset_0_1px_0_rgba(255,255,255,0.06)]`)
+  para efeito de vidro fosco com mais contraste sobre o conteúdo rolando por trás
+
 ## [2.3.0] - 2026-08-19
 ### Adicionado
 - **Tela de "Novidades"** (para testadores): modal acionável manualmente pelo rodapé
