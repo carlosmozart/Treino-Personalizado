@@ -6,6 +6,24 @@ Todas as mudanças relevantes do app ficam registradas aqui. Ao lançar uma nova
    atualizar o app instalado
 3. Adicione uma entrada aqui, nesse formato
 
+## [2.3.4] - 2026-08-20
+### Adicionado
+- **Modal de confirmação ao finalizar treino incompleto**: `finalizeWorkout()` foi extraída
+  do handler de clique do `btnGenerate` para uma função própria; o handler agora checa
+  `areAllExercisesDoneForActiveWorkout()` antes — se completo, finaliza direto; se
+  incompleto, mostra `#confirmFinishOverlay` com contagem de exercícios feitos/total e o
+  XP que seria perdido, só chamando `finalizeWorkout()` após confirmação explícita
+  (`confirmFinishWorkout()`)/cancelamento (`cancelFinishWorkout()`)
+### Alterado
+- **Aba Perfil reorganizada em 3 sub-abas** (Dados / Saúde / Progresso), navegáveis por
+  uma pílula interna no topo da view (`switchPerfilSubTab()`). Reduz a rolagem vertical
+  que antes empilhava 7+ seções numa página só. A sub-aba selecionada é lembrada em
+  memória (`perfilSubTab`) enquanto o app está aberto, inclusive ao sair e voltar pra
+  aba Perfil. Nenhum ID de elemento interno mudou — apenas o agrupamento/contêineres —
+  então todas as funções de render (`renderIMCCard`, `renderWaterCard`,
+  `renderMetabolismCard`, `renderGoalRoadmap`, `renderWeightHistory`) continuam
+  funcionando sem alteração
+
 ## [2.3.3] - 2026-08-20
 ### Corrigido
 - **Sistema de toast reescrito com fila** (`toastQueue`/`toastActive`/`processToastQueue()`):
