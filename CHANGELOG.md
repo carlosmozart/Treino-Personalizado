@@ -6,6 +6,97 @@ Todas as mudanças relevantes do app ficam registradas aqui. Ao lançar uma nova
    atualizar o app instalado
 3. Adicione uma entrada aqui, nesse formato
 
+## [2.5.0] - 2026-08-22
+### Adicionado
+- **Backup completo dos dados** (`BACKUP_KEYS`, `buildBackupObject()`, `exportBackup()`,
+  `handleImportFile()`, `confirmImport()`): exporta todas as chaves do `localStorage` num
+  único JSON com envelope de metadados (`app`, `backupVersion`, `appVersion`, `exportedAt`).
+  A exportação tenta primeiro `navigator.share({ files })` — único caminho que funciona no
+  iOS, onde `<a download>` apenas abre o JSON como texto — e cai para o download via Blob
+  quando a folha de compartilhamento não está disponível. `copyBackupToClipboard()` é a
+  terceira alternativa para WebViews restritas. A importação valida o campo `app`, mostra
+  um resumo do conteúdo (check-ins, sessões, nível) antes de confirmar, e **substitui**
+  todas as chaves — as ausentes no arquivo são removidas para o estado final ser
+  exatamente o do backup
+- **Status e lembrete de backup** (`treino_last_backup_at`, `renderBackupStatus()`,
+  `maybeSuggestBackup()`): a aba Perfil > Dados mostra há quantos dias foi o último backup,
+  com destaque âmbar acima de 14 dias. O lembrete no boot só dispara com 5+ check-ins e no
+  máximo uma vez a cada 7 dias (`treino_last_backup_nag`)
+- **Rascunho do treino em andamento** (`DRAFT_KEY`, `saveDraft()`, `saveDraftNow()`,
+  `loadDraftFor()`, `clearDraft()`): `formData` passa a ser persistido a cada alteração
+  (debounce de 400ms em `adjustValue`/`updateWeightDirectly`/`updateObs`; gravação imediata
+  em `swapExercise` e `toggleDone`). O rascunho é validado por data + perfil + treino, e
+  limpo em `finalizeWorkout()` e na virada do dia
+- **Histórico completo de sessões** (`SESSIONS_KEY`, `recordSession()`, `sessionVolume()`,
+  `getPersonalRecord()`, `checkPersonalRecord()`): cada `finalizeWorkout()` grava uma entrada
+  por exercício por dia (regravar o mesmo dia atualiza em vez de duplicar), limitado a
+  `MAX_SESSIONS_PER_EXERCISE = 200` por chave. `migrateHistoryToSessionLog()` semeia o log
+  a partir do `exerciseHistory` antigo no primeiro boot da versão, e é idempotente
+- **Recordes pessoais**: `checkPersonalRecord()` compara a sessão nova com o melhor
+  resultado anterior (carga, desempate por reps) e dispara um toast. A primeira sessão de
+  um exercício nunca conta como recorde
+- **Modal de evolução por exercício** (`openExerciseProgress()`): gráfico da carga ao longo
+  do tempo, variação desde a primeira sessão, recorde pessoal, contagem de sessões, melhor
+  marca e histórico com volume por sessão
+- **Gráfico de linha em SVG puro** (`renderSparkline()`): sem biblioteca externa, para o app
+  seguir sendo um único arquivo offline. Usado na evolução dos exercícios e no histórico de
+  peso corporal. Trata série constante (divisão por zero) e exige ao menos 2 pontos
+- **Cronômetro de descanso entre séries** (`restTimer`, `startRestTimer()`,
+  `adjustRestTimer()`, `finishRestTimer()`): widget flutuante com anel de progresso. O tempo
+  restante é derivado de `Date.now()` contra `endsAt`, **nunca de contagem de ticks** — iOS e
+  Android congelam timers em segundo plano e uma contagem por ticks atrasaria exatamente
+  quando o cronômetro importa. `visibilitychange` recalcula ao voltar do background. Início
+  automático opcional ao concluir um exercício, suprimido quando o treino já está completo
+- **Áudio do cronômetro via WebAudio** (`unlockAudio()`, `playBeep()`): oscilador gerado em
+  tempo real, sem arquivo de som. O `AudioContext` é destravado no primeiro `touchend`/`click`
+  porque o iOS só permite áudio iniciado dentro de um gesto real do usuário
+- **Configurações de descanso** na aba Perfil > Dados: tempo padrão, início automático, som
+  e vibração (`SETTINGS_KEY`). A linha de vibração é ocultada quando `navigator.vibrate` não
+  existe — caso do iOS — em vez de exibir um botão inerte
+- **Volume total** (séries x reps x carga) somado no resumo do treino
+
+### Corrigido
+- **Exercício reserva não sobrevivia ao recarregar o app**: `variantIndex` era definido em
+  `swapExercise()` mas nunca persistido, e `initializeWorkoutData()` lia sempre
+  `exerciseHistory[ex.id]` (variante 0). Agora a variante vai no rascunho e é restaurada; se
+  a reserva escolhida foi apagada do plano, o card cai de volta no exercício base
+- **Nomes com aspas quebravam a interface** (`escapeHtml()`, `escapeJs()`): um nome como
+  `Supino "pegada fechada"` fechava o atributo `value=` no editor de planos. Aplicado nos
+  nomes de exercício, observações, dica `alt` e nome do arquivo importado. `escapeJs()` cobre
+  os nomes que entram dentro de `onclick="fn('...')"`, escapando aspas simples e barras
+- **`saveJSON()` engolia `QuotaExceededError` em silêncio**: passa a retornar boolean e
+  avisar por toast uma vez por sessão. Sem isso o app continuava aparentando salvar
+- **Cópia do resumo falhava no iOS**: `document.execCommand('copy')` não funciona com campo
+  `readonly` no Safari. `copyTextToClipboard()` usa `navigator.clipboard` quando disponível e
+  cai para o método antigo com seleção via `Range`, que é o que o iOS exige
+- **Rascunho sobrescrevia o nome do exercício**: renomear um exercício no plano com um
+  rascunho aberto deixava o card preso no nome antigo. O rascunho passa a guardar apenas os
+  valores; o nome vem sempre da definição atual do plano
+
+### Alterado
+- **Suporte a iOS/iPadOS**: metatags `apple-mobile-web-app-capable`,
+  `apple-mobile-web-app-status-bar-style` e `apple-mobile-web-app-title` (o Safari ignora o
+  `manifest.json` para instalação na tela de início); `viewport-fit=cover` mais
+  `env(safe-area-inset-*)` no header, na navegação inferior e no cronômetro para respeitar o
+  entalhe e a barra de gestos; `overscroll-behavior-y: contain` para bloquear o
+  puxar-para-atualizar dentro do PWA; `-webkit-tap-highlight-color: transparent`.
+  Campos de formulário recebem `font-size: 16px` **apenas** dentro de
+  `@supports (-webkit-touch-callout: none)`, que isola a regra a WebKit em iOS — abaixo de
+  16px o Safari dá zoom automático ao focar o campo. Android e desktop ficam inalterados
+- `PLATFORM` (`isIOS`, `isAndroid`, `isStandalone`) centraliza a detecção de plataforma,
+  incluindo o iPadOS que se identifica como `MacIntel` com `maxTouchPoints > 1`
+- `#appHeader` ganhou a classe `header-compact`, sincronizada por `updateHeaderOnScroll()`,
+  para o padding com safe-area acompanhar o estado retraído
+- `CACHE_NAME` do service worker: `treino-cache-v20` -> `treino-cache-v21`
+
+### Notas
+- **Lembrete de treino por notificação foi avaliado e não implementado.** Não existe API
+  confiável de notificação agendada em PWA: `Notification Triggers` segue atrás de flag no
+  Chrome, e no iOS notificações exigem o app instalado na tela de início (16.4+) e não podem
+  ser agendadas para disparar com o app fechado. Entregar isso hoje resultaria num lembrete
+  que só funciona com o app aberto. É candidato natural para quando o projeto virar app
+  nativo
+
 ## [2.4.0] - 2026-08-21
 ### Adicionado
 - **Cabeçalho retrátil ao rolar** (`updateHeaderOnScroll()`, listener em `window` no evento
