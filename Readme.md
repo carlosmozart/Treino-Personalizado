@@ -1,5 +1,31 @@
 # Changelog — Treino Personalizado
 
+## [2.4.0] - 2026-08-21
+### Adicionado
+- **Cabeçalho retrátil ao rolar** (`updateHeaderOnScroll()`, listener em `window` no evento
+  `scroll`, passive): acima de `scrollY > 40`, aplica classes compactas (`py-2`, ícone e
+  título menores, subtítulo com `opacity-0 max-h-0`, barra de nível com menos margem) via
+  `transition-all duration-300` nos elementos; abaixo do limiar, reverte. Chamado também
+  logo após a restauração de scroll em `switchView()` para refletir o estado correto
+  imediatamente ao trocar de aba
+- **Filtro na aba Conquistas** (Todas / Desbloqueadas / Bloqueadas): `achievementsFilter`
+  + `setAchievementsFilter()`, aplicado dentro de `renderAchievementsView()` antes do
+  mapeamento para HTML; estado vazio (`#achievementsEmptyState`) exibido quando o filtro
+  não retorna nenhum item
+- **Dicas de descoberta** (`treino_hints_seen` no localStorage, `{ swipe, swap }`):
+  - Banner dispensável (`#swipeHintBanner`) explicando a navegação por swipe, mostrado uma
+    única vez (ao concluir o onboarding ou, para quem já tinha perfil, no carregamento),
+    auto-oculto após 6s ou ao ser tocado ou ao usuário realizar um swipe real
+  - Pulso visual (`pulse-glow`, reaproveitando a animação já existente) no botão de trocar
+    exercício reserva, aplicado apenas quando `hasBackups && !hintsSeen.swap`; removido
+    permanentemente assim que `swapExercise()` é usado com sucesso pela primeira vez
+### Corrigido
+- Durante o desenvolvimento desta versão, identificado e corrigido um bug onde a dica de
+  swipe nunca aparecia para usuários novos: `maybeShowSwipeHint()` só era chamada no
+  `DOMContentLoaded` inicial, momento em que `isProfileComplete()` ainda era `false` para
+  quem está passando pelo onboarding pela primeira vez. Adicionada chamada equivalente ao
+  final de `submitOnboarding()`
+
 ## [2.3.4] - 2026-08-20
 ### Adicionado
 - **Modal de confirmação ao finalizar treino incompleto**: `finalizeWorkout()` foi extraída
