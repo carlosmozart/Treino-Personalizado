@@ -785,11 +785,20 @@
   </div>
 
   <script>
-    const APP_VERSION = '2.6.0'; // manter sincronizado com CACHE_NAME em sw.js e com o CHANGELOG.md
+    const APP_VERSION = '2.7.0'; // manter sincronizado com CACHE_NAME em sw.js e com o CHANGELOG.md
 
     // ---------- NOVIDADES (tela para testadores — só experiência do usuário, sem termos técnicos) ----------
     // Detalhes técnicos ficam só no CHANGELOG.md interno. Ordem: mais recente primeiro.
     const RELEASE_NOTES = [
+      {
+        version: '2.7.0', date: '2026-08-22',
+        highlights: [
+          '💪 <strong>Marque cada série conforme termina.</strong> Agora cada exercício de força mostra uma fileira com suas séries (1, 2, 3...). Toque numa série ao concluí-la e o cronômetro de descanso começa sozinho — no momento certo, que é <em>entre</em> as séries, e não só no fim do exercício.',
+          '✅ Marcar a última série conclui o exercício automaticamente, como antes. E o botão redondo de concluir continua funcionando: usar ele marca todas as séries de uma vez.',
+          '⏱️ O descanso não dispara depois da última série de um exercício — nessa hora você já vai partir pro próximo, não descansar.',
+          'ℹ️ Por enquanto carga e repetições continuam sendo um valor para o exercício inteiro. Registrar valores diferentes por série (12/10/8) é o próximo passo — use essa versão por algumas semanas e veja se marcar série a série encaixa no seu treino.'
+        ]
+      },
       {
         version: '2.6.0', date: '2026-08-22',
         highlights: [
@@ -3100,6 +3109,7 @@
 
         const bodyHtml = `
           ${fieldsHtml}
+          ${renderSeriesRow(ex, state)}
           <div id="badge-container-${ex.id}">${isCardio ? getCardioHistoryBadge(historyKey) : getPersistentLoadBadge(historyKey)}</div>
           <div id="alert-container-${ex.id}">${isCardio ? '' : getProgressionAlert(state.reps)}</div>
           ${ex.alt ? `<div class="mt-3 text-amber-300 bg-amber-950/30 border border-amber-800/40 px-3 py-2 rounded-xl text-xs font-medium flex items-start space-x-2"><span>💡</span><span class="text-justify">${escapeHtml(ex.alt)}</span></div>` : ''}
@@ -3154,10 +3164,18 @@
       });
     }
 
-    window.toggleDone = function(exId) {
+    // seriesJaAjustadas: quando a chamada vem de toggleSerie(), a fileira já reflete o toque
+    // do usuário e não pode ser sobrescrita — senão desmarcar UMA série apagaria as outras.
+    window.toggleDone = function(exId, seriesJaAjustadas) {
       const state = formData[exId];
       if (!state) return;
       state.done = !state.done;
+
+      // pelo botão redondo, concluir marca todas as séries e reabrir limpa todas
+      if (state.type !== 'cardio' && !seriesJaAjustadas) {
+        const total = Math.max(0, parseInt(state.sets, 10) || 0);
+        state.seriesDone = new Array(total).fill(state.done);
+      }
 
       if (state.done) {
         collapsedIds.delete(exId); // garante que a checkmark toque antes de retrair
@@ -3181,8 +3199,10 @@
       saveJSON(COMPLETION_KEY, dailyCompletion);
       saveDraftNow();
 
-      // descanso automático: só ao marcar (nunca ao desmarcar) e só se ainda faltar exercício
-      if (state.done && settings.restAutoStart && !areAllExercisesDoneForActiveWorkout()) {
+      // Descanso automático ao concluir o exercício pelo botão redondo. Exercícios de força
+      // já disparam o descanso série a série, então aqui só o cardio precisa deste caminho —
+      // sem isso, concluir a última série iniciaria dois cronômetros seguidos.
+      if (state.done && settings.restAutoStart && state.type === 'cardio' && !areAllExercisesDoneForActiveWorkout()) {
         startRestTimer(settings.restSeconds, state.name);
       }
 
@@ -3206,7 +3226,12 @@
       if (isDecimal) newValue = Math.round(newValue * 10) / 10;
       state[field] = newValue;
 
-      if (field === 'sets') document.getElementById(`display-sets-${exId}`).textContent = newValue;
+      if (field === 'sets') {
+        document.getElementById(`display-sets-${exId}`).textContent = newValue;
+        // a fileira de séries precisa crescer/encolher junto, então re-renderiza o card
+        state.seriesDone = getSeriesDone(state);
+        renderExercises();
+      }
       else if (field === 'reps') {
         document.getElementById(`display-reps-${exId}`).textContent = newValue;
         document.getElementById(`alert-container-${exId}`).innerHTML = getProgressionAlert(newValue);
@@ -3333,6 +3358,83 @@
     });
 
     document.getElementById('btnSaveProfile').addEventListener('click', saveProfile);
+
+    // ---------- SÉRIES CONCLUÍDAS (etapa 1: cronômetro no momento certo) ----------
+    // O descanso de verdade acontece ENTRE séries, não depois do exercício inteiro. Marcar
+    // cada série serve para o cronômetro disparar na hora certa — os valores de carga e reps
+    // continuam sendo um por exercício, como antes. Este estado vive só no rascunho do dia:
+    // nada é gravado no histórico permanente, então nenhum dado antigo é afetado.
+    function getSeriesDone(state) {
+      const total = Math.max(0, parseInt(state.sets, 10) || 0);
+      const atual = Array.isArray(state.seriesDone) ? state.seriesDone : [];
+      // acompanha mudanças no número de séries feitas durante o treino
+      const ajustado = [];
+      for (let i = 0; i < total; i++) ajustado.push(!!atual[i]);
+      return ajustado;
+    }
+
+    function countSeriesDone(state) {
+      return getSeriesDone(state).filter(Boolean).length;
+    }
+
+    window.toggleSerie = function(exId, index) {
+      const state = formData[exId];
+      if (!state || state.type === 'cardio') return;
+
+      const series = getSeriesDone(state);
+      if (index < 0 || index >= series.length) return;
+
+      const marcando = !series[index];
+      series[index] = marcando;
+      state.seriesDone = series;
+
+      const feitas = series.filter(Boolean).length;
+      const total = series.length;
+      const todasFeitas = total > 0 && feitas === total;
+
+      // marcar a última série conclui o exercício; desmarcar qualquer uma o reabre.
+      // toggleDone cuida do check-in automático, do XP e de salvar o rascunho.
+      if (todasFeitas !== !!state.done) {
+        toggleDone(exId, true); // já re-renderiza e persiste, preservando a fileira acima
+      } else {
+        saveDraftNow();
+        renderExercises();
+      }
+
+      // descanso só ao MARCAR, e não depois da última série do exercício
+      if (marcando && !todasFeitas && settings.restAutoStart) {
+        startRestTimer(settings.restSeconds, `${state.name} · série ${index + 1}`);
+      }
+    };
+
+    // Monta a fileira de séries. Cada série é um alvo de toque de 40px, tamanho confortável
+    // para acertar de primeira com a mão suada no meio do treino.
+    function renderSeriesRow(ex, state) {
+      if (state.type === 'cardio') return '';
+      const series = getSeriesDone(state);
+      if (series.length === 0) return '';
+
+      const feitas = series.filter(Boolean).length;
+      const botoes = series.map((feita, i) => `
+        <button type="button" onclick="toggleSerie('${ex.id}', ${i})"
+          aria-pressed="${feita ? 'true' : 'false'}"
+          aria-label="Série ${i + 1}${feita ? ', concluída' : ''}"
+          class="flex-1 min-w-[40px] h-10 rounded-xl border-2 font-black text-xs transition-all duration-200 active:scale-90 ${
+            feita
+              ? 'bg-emerald-600 border-emerald-500 text-white'
+              : 'bg-slate-950/60 border-slate-700 text-slate-500 active:border-emerald-600'
+          }">${feita ? '✓' : i + 1}</button>`).join('');
+
+      return `
+        <div class="mb-4">
+          <div class="flex items-center justify-between mb-1.5">
+            <span class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Séries concluídas</span>
+            <span class="text-[10px] font-black ${feitas === series.length ? 'text-emerald-400' : 'text-slate-500'}">${feitas}/${series.length}</span>
+          </div>
+          <div class="flex items-center gap-1.5">${botoes}</div>
+          <p class="text-[9px] text-slate-600 mt-1.5">Toque numa série ao terminá-la — o descanso começa sozinho.</p>
+        </div>`;
+    }
 
     // ---------- HISTÓRICO DE TREINOS POR DATA ----------
     // O sessionLog é indexado por exercício; para responder "o que eu fiz na quarta passada?"
