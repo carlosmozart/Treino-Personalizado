@@ -1,5 +1,49 @@
 # Changelog — Treino Personalizado
 
+## [2.8.0] - 2026-08-22
+### Corrigido
+- **Dias de descanso quebravam a sequencia** (`calculateStreak()`): a funcao percorria dias
+  corridos de calendario e encerrava a contagem no primeiro dia sem check-in. Quem treinava
+  de segunda a sexta via o contador zerar todo sabado — testado: 4 semanas sem falhar um
+  unico treino planejado resultavam numa sequencia de **5**. Como consequencia, as conquistas
+  `streak_7`, `streak_14`, `streak_30` e `streak_100` eram matematicamente inalcancaveis para
+  qualquer pessoa com descanso no plano, e `checkStreakBonus()` quase nunca disparava.
+  Agora `isRestDay()` identifica dias sem exercicios no plano ativo e a varredura os pula sem
+  contar e sem quebrar. A sequencia passa a significar "treinos seguidos sem falhar"
+- O laco ganhou teto de `STREAK_MAX_LOOKBACK_DAYS` (730). Sem ele, um plano composto apenas
+  de dias de descanso faria a varredura correr indefinidamente, ja que nenhum dia quebraria
+- Textos ajustados para refletir o novo significado: rotulo do cabecalho, toast de bonus e as
+  quatro descricoes de conquista passaram de "dias seguidos" para "treinos seguidos"
+
+### Adicionado
+- **Aviso de divergencia entre `daysPerWeek` e o plano montado** (`countScheduledTrainingDays()`,
+  `renderDaysPerWeekWarning()`, `applyDaysPerWeekFromSchedule()`): o campo e digitado a mao mas
+  calibra quatro calculos — XP por check-in (`getFullCheckinXP`), meta semanal
+  (`renderWeeklyProgress`), limiar da Refeicao Livre (`checkFreeMealReward`) e o multiplo do
+  bonus de sequencia (`checkStreakBonus`). Divergir deixava tudo descalibrado em silencio.
+  O editor agora compara o valor informado com a contagem real de dias que tem exercicios,
+  explica a consequencia especifica de cada direcao (meta inatingivel x XP menor) e oferece
+  ajuste num toque. Reavaliado ao abrir o editor, ao digitar no campo e ao adicionar ou
+  remover exercicios. **Nada e alterado automaticamente** — mudar `daysPerWeek` sozinho
+  reescreveria a economia de XP de quem ja usa o app
+- **Historico que acompanha o exercicio entre perfis** (`normalizeExerciseName()`,
+  `collectSessionsForExercise()`, `getLastSessionForExercise()`): o log e indexado por ID de
+  exercicio e cada perfil gera IDs proprios, entao o mesmo "Supino Reto" em dois planos tinha
+  dois historicos isolados — o segundo comecava sem carga sugerida, sem grafico e sem recorde.
+  A **gravacao continua indo para a chave propria** de cada exercicio; o que mudou foi a
+  leitura, que reune sessoes de mesmo nome (comparacao sem acentos, sem diferenca de caixa e
+  com espacos normalizados). Quando ha sessoes do mesmo dia em planos diferentes, prevalece a
+  de maior carga. Usado na sugestao de carga inicial, nos badges de ultima sessao (marcados
+  com "de outro plano") e no modal de evolucao, que exibe um aviso quando esta reunindo
+  mais de um plano
+- `getPersonalRecordFromList()` extraida de `getPersonalRecord()`, para o recorde poder ser
+  calculado sobre a lista agregada e nao apenas sobre uma chave do log
+
+### Alterado
+- `getPersistentLoadBadge()` e `getCardioHistoryBadge()` passaram a receber o nome do
+  exercicio como segundo parametro e a escapar os valores que interpolam
+- `CACHE_NAME`: `treino-cache-v23` -> `treino-cache-v24`
+
 ## [2.7.0] - 2026-08-22
 ### Adicionado
 - **Marcação de séries concluídas** (`getSeriesDone()`, `countSeriesDone()`, `toggleSerie()`,
