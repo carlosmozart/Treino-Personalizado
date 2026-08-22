@@ -6,6 +6,59 @@ Todas as mudanças relevantes do app ficam registradas aqui. Ao lançar uma nova
    atualizar o app instalado
 3. Adicione uma entrada aqui, nesse formato
 
+## [2.9.0] - 2026-08-22
+### Corrigido
+- **Cronometro de descanso aparecia atras dos cards de exercicio** (relatado em uso real). A
+  causa nao estava no widget: o CSS do Tailwind deste projeto foi gerado a partir do HTML de
+  uma versao anterior, entao `z-\[60\]` — classe introduzida junto com o cronometro — **nunca
+  existiu na folha de estilo**. Sem z-index efetivo, os cards venciam o empilhamento por
+  criarem contexto proprio atraves do `transform` da animacao de entrada (`card-enter`).
+- Auditoria completa das classes usadas contra o CSS compilado revelou **36 classes sem
+  definicao**, todas silenciosamente inertes. Entre as consequencias visiveis: `z-\[110\]`
+  (a confirmacao generica podia ficar sob outros overlays), `left-0.5` e `left-\[1.375rem\]`
+  (o "polegar" dos botoes de liga/desliga em Perfil > Dados nao deslizava), `bg-rose-600`
+  (botao de confirmacao destrutiva sem cor de fundo), `tabular-nums` (digitos do cronometro
+  mudando de largura a cada segundo), alem de `h-10`, `w-16`, `min-w-\[40px\]`, `italic`,
+  `text-left`, `ml-auto`, sombras e variantes `active:`. Todas definidas a mao ao final do
+  bloco `<style>`, sem depender de recompilar o Tailwind
+- `value="${ex.name}"` no campo de nome do editor de planos ainda era interpolado sem escape;
+  so a versao dos exercicios reserva havia sido corrigida na 2.5.0
+
+### Adicionado
+- **Tempo de descanso por exercicio** (`updateExerciseRest()`, `getRestSecondsFor()`): campo
+  opcional no editor. Vazio mantem o padrao global, entao nada muda para quem nao mexer.
+  Aplicado nos tres caminhos que iniciam o cronometro — botao do card, conclusao de serie e
+  auto-descanso de cardio
+- **Busca na biblioteca via `<datalist>`** (`buildExerciseDatalist()`): o editor montava tres
+  `<select>` de 77 opcoes por linha (231 por exercicio, ate 2.310 num dia cheio), recriados a
+  cada alteracao. Agora existe **um unico datalist** de 77 opcoes no documento e os campos de
+  nome ganham busca por digitacao. A deteccao automatica de cardio, que era feita pelos
+  seletores, migrou para `updateExerciseField()` — que so redesenha quando o tipo realmente
+  muda, para nao roubar o foco durante a digitacao. `applyLibraryPick()` e
+  `applyBackupLibraryPick()` ficaram sem uso e foram removidas
+- **Reordenar exercicios** (`moveExerciseRow()`): setas para cima/baixo em cada linha do
+  editor, desabilitadas nos extremos
+- **Duplicar plano** (`duplicateProfile()`): copia dias, exercicios e reservas. Os IDs de
+  exercicio sao **regerados** — o historico e indexado por esse ID, e uma copia que os
+  mantivesse faria os dois planos gravarem no mesmo lugar, misturando cargas. Como o
+  historico tambem casa por nome desde a 2.8.0, a evolucao continua visivel na copia
+- **Resumo do treino a partir do calendario**: dias passados com exercicios registrados
+  deixam de ser marcadores inertes e passam a abrir o resumo daquele dia, sinalizados com
+  "ver". Marcar e desmarcar continua exclusivo do dia de hoje, entao nenhum gesto existente
+  mudou de significado. `openWorkoutDay()` passou a montar o cache sob demanda, ja que agora
+  pode ser chamada sem a aba Progresso ter sido aberta antes
+
+### Alterado
+- **Redesenho pontual dos cards** (`buildExerciseCard()`, `renderExerciseCard()`): marcar
+  concluido, recolher, trocar por reserva, marcar serie e alterar o numero de series
+  reescreviam os ~16 KB de HTML de todos os exercicios. Agora so o card afetado e
+  substituido, preservando foco e rolagem. A animacao de entrada e suprimida no redesenho
+  pontual, para o card nao reanimar sozinho ao ser tocado
+- A tela de Novidades passa a listar apenas as `RELEASE_NOTES_NA_TELA` (5) versoes mais
+  recentes. O historico completo permanece neste arquivo; sem o corte, a lista embutida
+  crescia indefinidamente dentro do HTML que o app baixa
+- `CACHE_NAME`: `treino-cache-v24` -> `treino-cache-v25`
+
 ## [2.8.0] - 2026-08-22
 ### Corrigido
 - **Dias de descanso quebravam a sequencia** (`calculateStreak()`): a funcao percorria dias

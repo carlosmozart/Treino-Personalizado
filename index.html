@@ -100,6 +100,53 @@
     @keyframes chartDraw { from { stroke-dashoffset: var(--chart-len, 1000); } to { stroke-dashoffset: 0; } }
     .chart-line { stroke-dasharray: var(--chart-len, 1000); animation: chartDraw 0.9s ease-out both; }
 
+
+    /* ---------- CLASSES AUSENTES DO CSS COMPILADO ----------
+       O Tailwind deste projeto foi gerado a partir do HTML de uma versao anterior, entao
+       classes introduzidas depois nao existem na folha de estilo — elas simplesmente nao
+       faziam nada. Era esse o motivo de o cronometro de descanso aparecer ATRAS dos cards:
+       `z-[60]` nunca chegou a ser definido, e os cards, que criam contexto de empilhamento
+       por causa da animacao de entrada, cobriam o widget.
+       Definidas aqui a mao, apos o bloco do Tailwind, para nao dependerem de recompilacao. */
+    .z-\[60\] { z-index: 60; }
+    .z-\[110\] { z-index: 110; }
+    .h-10 { height: 2.5rem; }
+    .h-16 { height: 4rem; }
+    .w-16 { width: 4rem; }
+    .w-20 { width: 5rem; }
+    .min-w-\[40px\] { min-width: 40px; }
+    .max-h-56 { max-height: 14rem; }
+    .py-8 { padding-top: 2rem; padding-bottom: 2rem; }
+    .ml-auto { margin-left: auto; }
+    .top-0\.5 { top: 0.125rem; }
+    .left-0\.5 { left: 0.125rem; }
+    .left-\[1\.375rem\] { left: 1.375rem; }
+    .text-left { text-align: left; }
+    .italic { font-style: italic; }
+    .tabular-nums { font-variant-numeric: tabular-nums; }
+    .bg-slate-700 { background-color: #334155; }
+    .bg-slate-850 { background-color: #172033; }
+    .bg-slate-900\/95 { background-color: rgba(15, 23, 42, 0.95); }
+    .bg-rose-600 { background-color: #e11d48; }
+    .bg-rose-950\/60 { background-color: rgba(76, 5, 25, 0.6); }
+    .border-blue-500\/30 { border-color: rgba(59, 130, 246, 0.3); }
+    .text-amber-200 { color: #fde68a; }
+    .text-amber-300\/80 { color: rgba(252, 211, 77, 0.8); }
+    .shadow-\[0_8px_32px_rgba\(0\,0\,0\,0\.55\)\,inset_0_1px_0_rgba\(255\,255\,255\,0\.06\)\] { box-shadow: 0 8px 32px rgba(0,0,0,0.55), inset 0 1px 0 rgba(255,255,255,0.06); }
+    .shadow-\[0_8px_32px_rgba\(0\,0\,0\,0\.6\)\] { box-shadow: 0 8px 32px rgba(0,0,0,0.6); }
+    .active\:bg-amber-500:active { background-color: #f59e0b; }
+    .active\:bg-blue-500:active { background-color: #3b82f6; }
+    .active\:bg-rose-900\/60:active { background-color: rgba(136, 19, 55, 0.6); }
+    .active\:bg-slate-700:active { background-color: #334155; }
+    .active\:bg-slate-800\/60:active { background-color: rgba(30, 41, 59, 0.6); }
+    .active\:border-blue-600:active { border-color: #2563eb; }
+    .active\:border-emerald-600:active { border-color: #059669; }
+    .active\:text-blue-300:active { color: #93c5fd; }
+    .active\:text-emerald-300:active { color: #6ee7b7; }
+    .active\:scale-\[0\.98\]:active { --tw-scale-x: 0.98; --tw-scale-y: 0.98; transform: translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y)); }
+    .rounded-md { border-radius: 0.375rem; }
+    .w-3 { width: 0.75rem; }
+    .w-24 { width: 6rem; }
   </style>
 </head>
 <body class="bg-slate-950 text-slate-100 font-sans pb-12 min-h-screen">
@@ -135,6 +182,12 @@
 
   <!-- Campo de arquivo escondido, acionado pelo botão "Restaurar backup" -->
   <input type="file" id="importBackupInput" accept="application/json,.json" class="hidden" onchange="handleImportFile(this)"/>
+
+  <!-- Biblioteca de exercicios como datalist: uma unica lista no documento inteiro.
+       Antes cada linha do editor montava 3 <select> com 77 opcoes cada (231 por linha,
+       ate 2.310 num dia cheio), recriados a cada alteracao. Agora sao 77 no total, e o
+       campo ganha busca por digitacao de graca. -->
+  <datalist id="exerciseLibraryList"></datalist>
 
   <!-- Confirmação genérica: substitui o confirm() do navegador, que no PWA em tela cheia
        mostra o endereço do site e quebra a sensação de aplicativo (especialmente no iOS) -->
@@ -789,11 +842,23 @@
   </div>
 
   <script>
-    const APP_VERSION = '2.8.0'; // manter sincronizado com CACHE_NAME em sw.js e com o CHANGELOG.md
+    const APP_VERSION = '2.9.0'; // manter sincronizado com CACHE_NAME em sw.js e com o CHANGELOG.md
 
     // ---------- NOVIDADES (tela para testadores — só experiência do usuário, sem termos técnicos) ----------
     // Detalhes técnicos ficam só no CHANGELOG.md interno. Ordem: mais recente primeiro.
     const RELEASE_NOTES = [
+      {
+        version: '2.9.0', date: '2026-08-22',
+        highlights: [
+          '🐛 <strong>Corrigido: o cronômetro de descanso aparecia atrás dos cards</strong>, ficando impossível de ver durante o treino. A causa foi encontrada e outras peças afetadas pelo mesmo problema também foram corrigidas — os botões de liga/desliga em Perfil > Dados, que não deslizavam, e o botão vermelho de confirmação, que estava sem cor.',
+          '⏱️ <strong>Tempo de descanso por exercício.</strong> Agachamento pede mais descanso que rosca direta — agora cada exercício pode ter o seu, configurado em Planos > Editar. Deixe vazio para usar o tempo padrão de sempre.',
+          '🔍 <strong>Busca na biblioteca de exercícios.</strong> Em vez de rolar uma lista de 77 itens, agora é só digitar parte do nome no campo. O editor também ficou bem mais leve para abrir.',
+          '↕️ <strong>Reordenar exercícios</strong> do dia com as setas, sem precisar apagar e recriar.',
+          '📋 <strong>Duplicar plano.</strong> Crie uma cópia de um plano inteiro e ajuste o que precisar, em vez de montar tudo do zero.',
+          '📅 <strong>Toque num dia passado do calendário</strong> para ver o que você treinou nele. Dias com treino registrado agora mostram "ver".',
+          '⚡ O app ficou mais leve ao marcar exercícios: agora só o card tocado é redesenhado, em vez da lista inteira.'
+        ]
+      },
       {
         version: '2.8.0', date: '2026-08-22',
         highlights: [
@@ -1510,6 +1575,7 @@
             <div class="flex gap-2 mt-3">
               ${isActive ? '' : `<button type="button" onclick="selectProfile('${id}')" class="flex-1 bg-blue-950/40 hover:bg-blue-900/60 border border-blue-800/50 text-blue-300 font-bold text-xs py-2 rounded-lg transition-all active:scale-95">Usar Este Perfil</button>`}
               <button type="button" onclick="openProfileEditor('${id}')" class="flex-1 bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold text-xs py-2 rounded-lg transition-all active:scale-95">Editar</button>
+              <button type="button" onclick="duplicateProfile('${id}')" class="bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 font-bold text-xs px-3 py-2 rounded-lg transition-all active:scale-95">Duplicar</button>
               ${ids.length > 1 ? `<button type="button" onclick="deleteProfile('${id}')" class="bg-rose-950/40 hover:bg-rose-900/60 border border-rose-800/50 text-rose-400 font-bold text-xs px-3 py-2 rounded-lg transition-all active:scale-95">Excluir</button>` : ''}
             </div>
           </div>`;
@@ -1602,10 +1668,6 @@
         return;
       }
 
-      const libraryOptions = Object.keys(EXERCISE_LIBRARY).map(group =>
-        `<optgroup label="${group}">${EXERCISE_LIBRARY[group].map(name => `<option value="${name}">${name}</option>`).join('')}</optgroup>`
-      ).join('');
-
       listEl.innerHTML = day.exercises.map((ex, idx) => {
         const isCardio = ex.type === 'cardio';
         const backups = ex.backups || [{ name: '', type: 'forca' }, { name: '', type: 'forca' }];
@@ -1640,22 +1702,24 @@
           const b = backups[bIdx] || { name: '', type: 'forca' };
           return `
             <div class="flex items-center gap-2">
-              <select onchange="if(this.value){applyBackupLibraryPick(${idx},${bIdx},this.value);} this.selectedIndex=0;" class="flex-shrink-0 bg-slate-950 border border-slate-800 rounded-lg px-2 py-1.5 text-white text-[10px] focus:outline-none focus:ring-1 focus:ring-amber-600 w-[80px]">
-                <option value="">📚</option>
-                ${libraryOptions}
-              </select>
-              <input type="text" value="${escapeHtml(b.name || '')}" oninput="updateBackupField(${idx},${bIdx},this.value)" placeholder="Reserva ${bIdx + 1} (opcional)" class="flex-1 min-w-0 bg-slate-950 border border-slate-800 rounded-lg px-2 py-1.5 text-white text-[11px] focus:outline-none focus:ring-1 focus:ring-amber-600"/>
+              <span class="text-[10px] flex-shrink-0">📚</span>
+              <input type="text" list="exerciseLibraryList" value="${escapeHtml(b.name || '')}" oninput="updateBackupField(${idx},${bIdx},this.value)" placeholder="Reserva ${bIdx + 1} — digite para buscar" class="flex-1 min-w-0 bg-slate-950 border border-slate-800 rounded-lg px-2 py-1.5 text-white text-[11px] focus:outline-none focus:ring-1 focus:ring-amber-600"/>
             </div>`;
         }).join('');
+        const total = day.exercises.length;
         return `
         <div class="bg-slate-900 rounded-xl p-3 border border-slate-800 space-y-2">
           <div class="flex items-center gap-2">
-            <select onchange="if(this.value){applyLibraryPick(${idx},this.value);} this.selectedIndex=0;" class="flex-shrink-0 bg-slate-950 border border-slate-800 rounded-lg px-2 py-2 text-white text-[11px] focus:outline-none focus:ring-1 focus:ring-blue-600 w-[88px]">
-              <option value="">📚 Base</option>
-              ${libraryOptions}
-            </select>
-            <input type="text" id="exName_${idx}" value="${ex.name}" oninput="updateExerciseField(${idx},'name',this.value)" placeholder="Nome do exercício" class="flex-1 min-w-0 bg-slate-950 border border-slate-800 rounded-lg px-2 py-2 text-white text-xs focus:outline-none focus:ring-1 focus:ring-blue-600"/>
-            <button type="button" onclick="removeExerciseRow(${idx})" class="text-rose-500 hover:text-rose-400 flex-shrink-0 p-1">
+            <div class="flex flex-col gap-0.5 flex-shrink-0">
+              <button type="button" onclick="moveExerciseRow(${idx},-1)" ${idx === 0 ? 'disabled' : ''} aria-label="Mover para cima" class="w-7 h-6 rounded-md border border-slate-700 flex items-center justify-center transition-all active:scale-90 ${idx === 0 ? 'opacity-30 text-slate-700' : 'text-slate-300 active:border-blue-600'}">
+                <svg class="w-3 h-3" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 15l7-7 7 7"/></svg>
+              </button>
+              <button type="button" onclick="moveExerciseRow(${idx},1)" ${idx === total - 1 ? 'disabled' : ''} aria-label="Mover para baixo" class="w-7 h-6 rounded-md border border-slate-700 flex items-center justify-center transition-all active:scale-90 ${idx === total - 1 ? 'opacity-30 text-slate-700' : 'text-slate-300 active:border-blue-600'}">
+                <svg class="w-3 h-3" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
+              </button>
+            </div>
+            <input type="text" id="exName_${idx}" list="exerciseLibraryList" value="${escapeHtml(ex.name)}" oninput="updateExerciseField(${idx},'name',this.value)" placeholder="Digite para buscar na biblioteca" class="flex-1 min-w-0 bg-slate-950 border border-slate-800 rounded-lg px-2 py-2 text-white text-xs focus:outline-none focus:ring-1 focus:ring-blue-600"/>
+            <button type="button" onclick="removeExerciseRow(${idx})" aria-label="Remover exercício" class="text-rose-500 hover:text-rose-400 flex-shrink-0 p-1">
               <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
             </button>
           </div>
@@ -1666,6 +1730,11 @@
             }">${isCardio ? '🏃 Cardio' : '💪 Força'} — trocar</button>
           </div>
           ${fieldsHtml}
+          <div class="flex items-center gap-2">
+            <label class="text-[8px] font-bold text-slate-500 uppercase flex-shrink-0">Descanso (s)</label>
+            <input type="number" min="5" max="600" step="5" value="${ex.restSeconds || ''}" oninput="updateExerciseRest(${idx}, this.value)" placeholder="padrão: ${settings.restSeconds}" class="w-24 bg-slate-950 border border-slate-800 rounded-lg px-2 py-1.5 text-white text-xs focus:outline-none focus:ring-1 focus:ring-blue-600"/>
+            <span class="text-[8px] text-slate-600">vazio = usa o padrão</span>
+          </div>
           <div class="pt-2 mt-1 border-t border-slate-800 space-y-1.5">
             <span class="text-[8px] font-bold text-amber-500 uppercase tracking-wider flex items-center gap-1">🔄 Exercícios Reserva (até 2, opcional)</span>
             ${backupsHtml}
@@ -1674,21 +1743,7 @@
       }).join('');
     }
 
-    window.applyLibraryPick = function(idx, name) {
-      const day = editorState.schedule[editorState.currentDay];
-      if (!day.exercises[idx]) return;
-      day.exercises[idx].name = name;
-      day.exercises[idx].type = isCardioExerciseName(name) ? 'cardio' : 'forca';
-      renderExerciseEditorRows();
-    };
 
-    window.applyBackupLibraryPick = function(idx, bIdx, name) {
-      const day = editorState.schedule[editorState.currentDay];
-      if (!day.exercises[idx]) return;
-      if (!day.exercises[idx].backups) day.exercises[idx].backups = [{ name: '', type: 'forca' }, { name: '', type: 'forca' }];
-      day.exercises[idx].backups[bIdx] = { name, type: isCardioExerciseName(name) ? 'cardio' : 'forca' };
-      renderExerciseEditorRows();
-    };
 
     window.updateBackupField = function(idx, bIdx, value) {
       const day = editorState.schedule[editorState.currentDay];
@@ -1707,8 +1762,20 @@
 
     window.updateExerciseField = function(idx, field, value) {
       const day = editorState.schedule[editorState.currentDay];
-      if (!day.exercises[idx]) return;
-      day.exercises[idx][field] = (field === 'name') ? value : (parseFloat(value) || 0);
+      const ex = day.exercises[idx];
+      if (!ex) return;
+
+      if (field !== 'name') { ex[field] = parseFloat(value) || 0; return; }
+
+      ex.name = value;
+      // Ao escolher um item da biblioteca, o tipo se ajusta sozinho (era o que os antigos
+      // seletores faziam). So re-renderiza quando o tipo REALMENTE muda: redesenhar a cada
+      // tecla digitada tiraria o foco do campo no meio da digitacao.
+      const novoTipo = isCardioExerciseName(value) ? 'cardio' : (ex.type === 'cardio' && !isCardioExerciseName(value) ? 'forca' : ex.type);
+      if (novoTipo !== ex.type) {
+        ex.type = novoTipo;
+        renderExerciseEditorRows();
+      }
     };
 
     window.addExerciseRow = function() {
@@ -1837,6 +1904,12 @@
       const monday = getMondayOfCurrentWeek();
       const todayStr = todayKey();
       checkinGrid.innerHTML = '';
+
+      // datas que possuem exercicios registrados, para marcar quais dias abrem resumo
+      const diasComRegistro = new Set();
+      Object.keys(sessionLog).forEach(k => {
+        (sessionLog[k] || []).forEach(e => { if (e && e.date) diasComRegistro.add(e.date); });
+      });
       for (let i = 0; i < 7; i++) {
         const d = new Date(monday);
         d.setDate(monday.getDate() + i);
@@ -1844,28 +1917,37 @@
         const checked = !!checkins[dateStr];
         const isToday = dateStr === todayStr;
         const isPast = dateStr < todayStr;
+        // um dia passado com exercicios registrados deixa de ser apenas um marcador inerte:
+        // passa a abrir o resumo daquele treino. Marcar/desmarcar continua exclusivo de hoje.
+        const temResumo = isPast && diasComRegistro.has(dateStr);
         const btn = document.createElement('button');
         btn.type = 'button';
         btn.style.animationDelay = `${i * 40}ms`;
         if (isToday) {
           btn.onclick = () => toggleCheckin(dateStr, btn);
+        } else if (temResumo) {
+          btn.onclick = () => openWorkoutDay(dateStr);
+          btn.title = 'Ver o que você treinou neste dia';
         } else {
           btn.disabled = true;
           btn.title = isPast
             ? 'Dias passados não podem ser marcados retroativamente — isso preserva a integridade do seu XP.'
             : 'Dias futuros só podem ser marcados quando chegar a data.';
         }
-        btn.className = `checkin-pop flex flex-col items-center justify-center py-3 rounded-xl border transition-all duration-150 ${isToday ? 'active:scale-95' : 'cursor-not-allowed'} ${
+        btn.className = `checkin-pop flex flex-col items-center justify-center py-3 rounded-xl border transition-all duration-150 ${(isToday || temResumo) ? 'active:scale-95' : 'cursor-not-allowed'} ${
           checked
             ? 'bg-emerald-950/40 border-emerald-700 text-emerald-400'
             : isToday
               ? 'bg-blue-950/40 border-blue-700 text-blue-300 pulse-glow'
-              : 'bg-slate-950/50 border-slate-800 text-slate-600 opacity-60'
+              : temResumo
+                ? 'bg-slate-950/50 border-slate-700 text-slate-500'
+                : 'bg-slate-950/50 border-slate-800 text-slate-600 opacity-60'
         }`;
         btn.innerHTML = `
           <span class="text-[9px] font-black uppercase tracking-wider">${DAY_LABELS[i]}</span>
           <span class="text-sm font-extrabold mt-1">${d.getDate()}</span>
           <span class="mt-1 text-base leading-none">${checked ? '✅' : isToday ? '⏳' : isPast ? '·' : '🔒'}</span>
+          ${temResumo ? '<span class="text-[7px] text-blue-400 font-black uppercase tracking-wider mt-0.5">ver</span>' : ''}
         `;
         checkinGrid.appendChild(btn);
       }
@@ -3026,7 +3108,7 @@
     window.toggleCollapse = function(exId) {
       if (collapsedIds.has(exId)) collapsedIds.delete(exId);
       else collapsedIds.add(exId);
-      renderExercises();
+      renderExerciseCard(exId);
     };
 
     function getExerciseDef(exId) {
@@ -3073,27 +3155,27 @@
       // mesmo tipo e sem histórico próprio ainda: mantém séries/reps/carga (ou tempo/distância) atuais
       state.swapping = true;
       saveDraftNow(); // a variante escolhida precisa sobreviver a fechar e reabrir o app
-      renderExercises();
+      renderExerciseCard(exId);
     };
 
-    function renderExercises() {
-      const workout = getActiveProfile().schedule[activeWorkoutKey];
-      exercisesContainer.innerHTML = '';
-
-      workout.exercises.forEach((ex, idx) => {
+    // Monta o elemento de um unico exercicio. `animar` fica falso no redesenho pontual:
+    // sem isso, mexer num card faria ele reexecutar a animacao de entrada sozinho.
+    function buildExerciseCard(ex, idx, animar) {
         const state = formData[ex.id];
         const isCardio = state.type === 'cardio';
         const isCollapsed = collapsedIds.has(ex.id);
         const hasBackups = (ex.backups || []).some(b => b && b.name && b.name.trim());
         const wasSwapping = !!state.swapping;
         const historyKey = getHistoryKey(ex.id, state.variantIndex || 0);
+        const restSegundos = getRestSecondsFor(ex);
         state.swapping = false;
 
         const card = document.createElement('div');
-        card.className = `card-enter bg-slate-900 rounded-2xl p-5 border transition-all duration-200 shadow-sm ${
+        card.dataset.exId = ex.id;
+        card.className = `${animar ? 'card-enter ' : ''}bg-slate-900 rounded-2xl p-5 border transition-all duration-200 shadow-sm ${
           state.done ? 'border-emerald-700/70' : 'border-slate-800/80 hover:border-slate-700/80'
         } ${wasSwapping ? 'swap-flash' : ''}`;
-        card.style.animationDelay = `${idx * 60}ms`;
+        if (animar) card.style.animationDelay = `${idx * 60}ms`;
 
         const subtitleHtml = isCardio
           ? `<p class="text-xs text-slate-400 mt-0.5">Alvo base: <span class="text-cyan-300 font-semibold">${ex.targetDuration || 0} min</span>${ex.targetDistance ? ` | <span class="text-cyan-300 font-semibold">${ex.targetDistance} km</span>` : ''}</p>`
@@ -3161,8 +3243,8 @@
             <input type="text" value="${escapeHtml(state.obs)}" placeholder="Observações (Ex: Falha na última repetição, boa execução...)" oninput="updateObs('${ex.id}', this.value)" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2.5 text-white text-xs focus:outline-none focus:ring-1 focus:ring-slate-700 placeholder-slate-600"/>
           </div>
           <div class="mt-3 flex items-center gap-2">
-            <button type="button" onclick="startRestTimer(${settings.restSeconds}, '${escapeJs(state.name)}')" class="flex-1 bg-slate-950/60 border border-slate-700 active:border-blue-600 text-slate-300 active:text-blue-300 text-[11px] font-black py-2.5 rounded-xl transition-all active:scale-[0.98] flex items-center justify-center gap-1.5">
-              <span>⏱️</span> Descansar ${settings.restSeconds}s
+            <button type="button" onclick="startRestTimer(${restSegundos}, '${escapeJs(state.name)}')" class="flex-1 bg-slate-950/60 border border-slate-700 active:border-blue-600 text-slate-300 active:text-blue-300 text-[11px] font-black py-2.5 rounded-xl transition-all active:scale-[0.98] flex items-center justify-center gap-1.5">
+              <span>⏱️</span> Descansar ${restSegundos}s
             </button>
             <button type="button" onclick="openExerciseProgress('${historyKey}', '${escapeJs(state.name)}')" class="flex-1 bg-slate-950/60 border border-slate-700 active:border-emerald-600 text-slate-300 active:text-emerald-300 text-[11px] font-black py-2.5 rounded-xl transition-all active:scale-[0.98] flex items-center justify-center gap-1.5">
               <span>📊</span> Evolução
@@ -3204,8 +3286,29 @@
           </div>
           ${isCollapsed ? '' : bodyHtml}
         `;
-        exercisesContainer.appendChild(card);
+        return card;
+    }
+
+    function renderExercises() {
+      const workout = getActiveProfile().schedule[activeWorkoutKey];
+      exercisesContainer.innerHTML = '';
+      workout.exercises.forEach((ex, idx) => {
+        exercisesContainer.appendChild(buildExerciseCard(ex, idx, true));
       });
+    }
+
+    // Redesenha apenas o card de um exercicio. Usado quando so ele mudou — marcar concluido,
+    // recolher, trocar por reserva, marcar serie. Preserva a rolagem e o foco dos demais
+    // campos, que se perdiam quando o container inteiro era reescrito.
+    function renderExerciseCard(exId) {
+      const workout = getActiveProfile().schedule[activeWorkoutKey];
+      const idx = workout.exercises.findIndex(e => e.id === exId);
+      if (idx === -1) return renderExercises();
+
+      const antigo = exercisesContainer.querySelector(`[data-ex-id="${exId}"]`);
+      if (!antigo) return renderExercises();
+
+      antigo.replaceWith(buildExerciseCard(workout.exercises[idx], idx, false));
     }
 
     // seriesJaAjustadas: quando a chamada vem de toggleSerie(), a fileira já reflete o toque
@@ -3223,16 +3326,16 @@
 
       if (state.done) {
         collapsedIds.delete(exId); // garante que a checkmark toque antes de retrair
-        renderExercises();
+        renderExerciseCard(exId);
         setTimeout(() => {
           if (formData[exId] && formData[exId].done) {
             collapsedIds.add(exId);
-            renderExercises();
+            renderExerciseCard(exId);
           }
         }, 550);
       } else {
         collapsedIds.delete(exId); // desmarcar reabre o card para permitir edição
-        renderExercises();
+        renderExerciseCard(exId);
       }
 
       // Persiste imediatamente o estado de conclusão do dia (corrige perda ao reiniciar o app)
@@ -3247,7 +3350,7 @@
       // já disparam o descanso série a série, então aqui só o cardio precisa deste caminho —
       // sem isso, concluir a última série iniciaria dois cronômetros seguidos.
       if (state.done && settings.restAutoStart && state.type === 'cardio' && !areAllExercisesDoneForActiveWorkout()) {
-        startRestTimer(settings.restSeconds, state.name);
+        startRestTimer(getRestSecondsFor(getExerciseDef(exId)), state.name);
       }
 
       // Check-in automático: se marcar TODOS os exercícios do dia como concluídos, concede XP cheio
@@ -3274,7 +3377,7 @@
         document.getElementById(`display-sets-${exId}`).textContent = newValue;
         // a fileira de séries precisa crescer/encolher junto, então re-renderiza o card
         state.seriesDone = getSeriesDone(state);
-        renderExercises();
+        renderExerciseCard(exId);
       }
       else if (field === 'reps') {
         document.getElementById(`display-reps-${exId}`).textContent = newValue;
@@ -3455,6 +3558,90 @@
       return sessions.length ? sessions[sessions.length - 1] : null;
     }
 
+    // ---------- DUPLICAR PLANO ----------
+    // Os IDs de exercicio precisam ser REGERADOS. O historico e indexado por esse ID: uma
+    // copia que mantivesse os mesmos IDs faria os dois planos gravarem no mesmo lugar,
+    // misturando cargas de treinos diferentes.
+    window.duplicateProfile = async function(profileId) {
+      const origem = profiles[profileId];
+      if (!origem) return;
+
+      const ok = await askConfirm({
+        icon: '📋',
+        title: 'Duplicar plano',
+        text: `Criar uma cópia de <strong class="text-white">${escapeHtml(origem.name)}</strong> com todos os dias e exercícios?<br/><span class="text-slate-500">A cópia começa com histórico próprio, do zero — mas se um exercício tiver o mesmo nome, a evolução dele continua aparecendo.</span>`,
+        confirmLabel: 'Duplicar'
+      });
+      if (!ok) return;
+
+      const novoId = makeId('profile');
+      const schedule = {};
+      DAY_ORDER.forEach(k => {
+        const dia = origem.schedule[k] || { name: '', focus: '', exercises: [] };
+        schedule[k] = {
+          name: dia.name,
+          focus: dia.focus,
+          exercises: (dia.exercises || []).map(ex => Object.assign({}, ex, {
+            id: makeId('ex'),                                  // ID novo: historico separado
+            backups: (ex.backups || []).map(b => Object.assign({}, b))
+          }))
+        };
+      });
+
+      profiles[novoId] = {
+        id: novoId,
+        name: `${origem.name} (cópia)`,
+        description: origem.description || '',
+        daysPerWeek: origem.daysPerWeek,
+        trainingTime: origem.trainingTime || '',
+        schedule,
+        createdAt: todayKey(),
+        updatedAt: todayKey()
+      };
+      saveJSON(PROFILES_KEY, profiles);
+      renderProfileList();
+      showToast('📋 Plano duplicado! Abra para renomear e ajustar.');
+    };
+
+    // ---------- BIBLIOTECA DE EXERCICIOS (datalist) ----------
+    function buildExerciseDatalist() {
+      const dl = document.getElementById('exerciseLibraryList');
+      if (!dl || dl.childElementCount) return; // montada uma vez so
+      const html = Object.keys(EXERCISE_LIBRARY).map(grupo =>
+        EXERCISE_LIBRARY[grupo].map(nome =>
+          `<option value="${escapeHtml(nome)}">${escapeHtml(grupo)}</option>`
+        ).join('')
+      ).join('');
+      dl.innerHTML = html;
+    }
+
+    // ---------- REORDENAR EXERCICIOS DO DIA ----------
+    window.moveExerciseRow = function(idx, delta) {
+      const day = editorState.schedule[editorState.currentDay];
+      const destino = idx + delta;
+      if (destino < 0 || destino >= day.exercises.length) return;
+      const [item] = day.exercises.splice(idx, 1);
+      day.exercises.splice(destino, 0, item);
+      renderExerciseEditorRows();
+    };
+
+    // ---------- DESCANSO POR EXERCICIO ----------
+    // Agachamento pede bem mais descanso que rosca direta. Vazio = usa o tempo padrao
+    // definido em Perfil > Dados, que continua sendo o comportamento de quem nao mexer aqui.
+    window.updateExerciseRest = function(idx, value) {
+      const day = editorState.schedule[editorState.currentDay];
+      if (!day.exercises[idx]) return;
+      const n = parseInt(value, 10);
+      if (!value || isNaN(n) || n <= 0) delete day.exercises[idx].restSeconds;
+      else day.exercises[idx].restSeconds = Math.min(600, Math.max(5, n));
+    };
+
+    // Tempo de descanso que vale para um exercicio: o proprio, se definido; senao o global.
+    function getRestSecondsFor(exDef) {
+      const proprio = exDef && parseInt(exDef.restSeconds, 10);
+      return (proprio && proprio > 0) ? proprio : settings.restSeconds;
+    }
+
     // ---------- COERÊNCIA ENTRE "DIAS POR SEMANA" E O PLANO MONTADO ----------
     // daysPerWeek é digitado à mão, mas calibra quatro coisas: o XP de cada check-in, a meta
     // semanal, o limiar da Refeição Livre e o bônus de sequência. Se divergir do plano real,
@@ -3533,12 +3720,13 @@
         toggleDone(exId, true); // já re-renderiza e persiste, preservando a fileira acima
       } else {
         saveDraftNow();
-        renderExercises();
+        renderExerciseCard(exId);
       }
 
-      // descanso só ao MARCAR, e não depois da última série do exercício
+      // descanso so ao MARCAR, e nao depois da ultima serie do exercicio
       if (marcando && !todasFeitas && settings.restAutoStart) {
-        startRestTimer(settings.restSeconds, `${state.name} · série ${index + 1}`);
+        const exDef = getExerciseDef(exId);
+        startRestTimer(getRestSecondsFor(exDef), `${state.name} · série ${index + 1}`);
       }
     };
 
@@ -3661,6 +3849,9 @@
     }
 
     window.openWorkoutDay = function(dateStr) {
+      // o cache so era montado ao abrir Perfil > Progresso; chamado pelo calendario,
+      // pode ainda nao existir
+      if (!workoutHistoryCache.length) workoutHistoryCache = buildWorkoutHistory();
       const dia = workoutHistoryCache.find(d => d.date === dateStr);
       if (!dia) return;
 
@@ -4087,6 +4278,10 @@
     // ---------- TELA DE NOVIDADES ----------
     const LAST_SEEN_VERSION_KEY = 'treino_last_seen_version';
 
+    // O historico completo vive no CHANGELOG.md; no app so as ultimas versoes importam.
+    // Sem esse corte, a lista cresce indefinidamente dentro do arquivo que o app baixa.
+    const RELEASE_NOTES_NA_TELA = 5;
+
     function renderNovidades() {
       const current = RELEASE_NOTES[0];
       document.getElementById('novidadesCurrentVersion').innerHTML = `
@@ -4096,7 +4291,7 @@
         </ul>
       `;
 
-      document.getElementById('versionHistoryList').innerHTML = RELEASE_NOTES.slice(1).map(r => `
+      document.getElementById('versionHistoryList').innerHTML = RELEASE_NOTES.slice(1, RELEASE_NOTES_NA_TELA).map(r => `
         <div class="border-t border-slate-800 pt-3 mt-3 first:border-t-0 first:mt-0 first:pt-0">
           <p class="text-[10px] text-slate-500 font-black uppercase tracking-wider mb-1.5">Versão ${r.version} · ${formatDateBR(r.date)}</p>
           <ul class="space-y-1.5">
@@ -4211,6 +4406,7 @@
         document.querySelector('header').insertAdjacentElement('afterend', warn);
       }
       ensureProfilesSeeded();
+      buildExerciseDatalist();
       migrateHistoryToSessionLog(); // semeia o log de sessões para quem já usava versões anteriores
       renderWorkoutSelectOptions();
       const startKey = getTodaysWorkoutKey();
