@@ -1,5 +1,38 @@
 # Changelog — Treino Personalizado
 
+## [2.7.0] - 2026-08-22
+### Adicionado
+- **Marcação de séries concluídas** (`getSeriesDone()`, `countSeriesDone()`, `toggleSerie()`,
+  `renderSeriesRow()`): cada exercício de força ganha uma fileira de botões, um por série,
+  derivada de `state.sets`. Marcar uma série dispara `startRestTimer()` — o descanso real
+  acontece **entre** séries, não depois do exercício inteiro, que era quando o cronômetro
+  disparava até agora
+- Primeira etapa do registro por série. Deliberadamente **não** altera o formato de dados:
+  `seriesDone` vive apenas em `formData`, ou seja, no rascunho do dia. `sessionLog` e
+  `exerciseHistory` seguem intactos, então nada do histórico existente é afetado e a mudança
+  é reversível. Registrar carga/reps por série é a etapa 2, a ser decidida depois de uso real
+- Os botões de série têm 40px de altura, dimensionados para acerto de primeira durante o
+  treino, e carregam `aria-pressed`/`aria-label`
+
+### Alterado
+- `toggleDone()` passou a aceitar um segundo parâmetro `seriesJaAjustadas`. Sem ele, a função
+  sincroniza a fileira com o estado do exercício (concluir marca todas, reabrir limpa todas),
+  que é o comportamento do botão redondo. Com ele — usado por `toggleSerie()` — a fileira é
+  preservada, porque já reflete o toque do usuário
+- O descanso automático em `toggleDone()` ficou restrito a exercícios de **cardio**. Os de
+  força já disparam o cronômetro série a série; sem essa restrição, concluir a última série
+  iniciaria dois cronômetros em sequência
+- `adjustValue()` re-renderiza o card ao alterar o número de séries, para a fileira crescer ou
+  encolher junto. `getSeriesDone()` normaliza o array contra `state.sets` a cada leitura, então
+  mudar de 4 para 3 séries no meio do treino não deixa estado órfão
+- `CACHE_NAME`: `treino-cache-v22` -> `treino-cache-v23`
+
+### Corrigido
+- Durante o desenvolvimento desta versão: na primeira implementação, desmarcar uma série do
+  meio de um exercício já concluído apagava todas as outras. A causa era `toggleSerie()`
+  chamar `toggleDone()`, que preenchia `seriesDone` inteiro com o novo valor de `state.done`.
+  Resolvido com o parâmetro `seriesJaAjustadas`
+
 ## [2.6.0] - 2026-08-22
 ### Adicionado
 - **Histórico de treinos por data** (`buildWorkoutHistory()`, `renderWorkoutHistory()`,
