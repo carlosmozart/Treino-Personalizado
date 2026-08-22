@@ -356,7 +356,7 @@
         <h3 class="text-xs font-black uppercase tracking-widest text-slate-400">Check-in Semanal</h3>
         <div class="flex items-center gap-2">
           <span id="monthlyLabel" class="text-[10px] font-black text-blue-300 uppercase tracking-wider bg-blue-950/40 border border-blue-800/60 px-2.5 py-1 rounded-full">0 dias no mês</span>
-          <span id="streakLabel" class="text-[10px] font-black text-emerald-400 uppercase tracking-wider bg-emerald-950/40 border border-emerald-800/60 px-2.5 py-1 rounded-full">0 dias seguidos</span>
+          <span id="streakLabel" class="text-[10px] font-black text-emerald-400 uppercase tracking-wider bg-emerald-950/40 border border-emerald-800/60 px-2.5 py-1 rounded-full">0 treinos seguidos</span>
         </div>
       </div>
       <div id="checkinGrid" class="grid grid-cols-4 gap-2"></div>
@@ -430,8 +430,12 @@
       </div>
       <div>
         <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Dias de Treino por Semana</label>
-        <input type="number" id="editorDaysPerWeek" min="1" max="7" placeholder="Ex: 6" class="mt-1 w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2.5 text-white text-sm focus:outline-none focus:ring-1 focus:ring-blue-600"/>
+        <input type="number" id="editorDaysPerWeek" min="1" max="7" placeholder="Ex: 6" oninput="renderDaysPerWeekWarning()" class="mt-1 w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2.5 text-white text-sm focus:outline-none focus:ring-1 focus:ring-blue-600"/>
         <p class="text-[10px] text-slate-600 mt-1">Usado para calcular o XP de cada check-in. Marque o ciclo completo (Segunda a Domingo) abaixo — dias sem exercícios contam como descanso.</p>
+        <div id="dpwMismatchWarning" class="hidden mt-2 bg-amber-950/40 border border-amber-800/60 rounded-xl px-3 py-2">
+          <p id="dpwMismatchText" class="text-[10px] text-amber-300 font-bold leading-relaxed"></p>
+          <button type="button" id="dpwMismatchFix" onclick="applyDaysPerWeekFromSchedule()" class="mt-2 w-full bg-amber-600 active:bg-amber-500 text-white font-black text-[10px] uppercase tracking-wider py-2 rounded-lg transition-all active:scale-[0.99]">Ajustar</button>
+        </div>
       </div>
       <div>
         <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Horário de Treino</label>
@@ -785,11 +789,19 @@
   </div>
 
   <script>
-    const APP_VERSION = '2.7.0'; // manter sincronizado com CACHE_NAME em sw.js e com o CHANGELOG.md
+    const APP_VERSION = '2.8.0'; // manter sincronizado com CACHE_NAME em sw.js e com o CHANGELOG.md
 
     // ---------- NOVIDADES (tela para testadores — só experiência do usuário, sem termos técnicos) ----------
     // Detalhes técnicos ficam só no CHANGELOG.md interno. Ordem: mais recente primeiro.
     const RELEASE_NOTES = [
+      {
+        version: '2.8.0', date: '2026-08-22',
+        highlights: [
+          '🔥 <strong>Sua sequência não quebra mais nos dias de descanso.</strong> Antes o contador zerava todo dia sem treino — quem treinava de segunda a sexta nunca passava de 5, e as conquistas de 7, 14, 30 e 100 eram impossíveis de alcançar. Agora dias de descanso do seu plano são pulados: a sequência conta <em>treinos seguidos sem falhar</em>. Se você tem descanso no plano, sua sequência deve aumentar sozinha assim que abrir o app.',
+          '⚖️ <strong>O app avisa se "dias por semana" não bate com o plano.</strong> Esse número calcula o XP de cada check-in, a meta semanal e a Refeição Livre — se você monta 4 dias de treino mas deixa o campo em 6, tudo fica desregulado sem aviso. Agora o editor aponta a diferença e oferece corrigir num toque.',
+          '🔗 <strong>Seu histórico segue o exercício entre planos.</strong> Antes, criar um novo plano com um exercício que você já fazia começava do zero — sem carga sugerida, sem gráfico, sem recorde. Agora o app reconhece o exercício pelo nome e reúne a evolução de todos os seus planos.'
+        ]
+      },
       {
         version: '2.7.0', date: '2026-08-22',
         highlights: [
@@ -1535,6 +1547,7 @@
       document.getElementById('editorName').value = editorState.name;
       document.getElementById('editorDescription').value = editorState.description;
       document.getElementById('editorDaysPerWeek').value = editorState.daysPerWeek;
+      setTimeout(renderDaysPerWeekWarning, 0); // depois que o restante do editor montar
       document.getElementById('editorTrainingTime').value = editorState.trainingTime;
 
       renderEditorDayTabs();
@@ -1577,6 +1590,7 @@
     }
 
     function renderExerciseEditorRows() {
+      renderDaysPerWeekWarning(); // a contagem de dias com exercícios pode ter mudado
       const day = editorState.schedule[editorState.currentDay];
       const listEl = document.getElementById('editorExerciseList');
       document.getElementById('editorExerciseCount').textContent = `${day.exercises.length}/${MAX_EXERCISES_PER_DAY}`;
@@ -1857,7 +1871,7 @@
       }
       const streak = calculateStreak();
       const monthly = calculateMonthlyCount();
-      streakLabel.textContent = `${streak} dia${streak === 1 ? '' : 's'} seguidos`;
+      streakLabel.textContent = `${streak} treino${streak === 1 ? '' : 's'} seguidos`;
       monthlyLabel.textContent = `${monthly} dia${monthly === 1 ? '' : 's'} no mês`;
       renderWeeklyProgress();
       if (streak > (gamification.longestStreak || 0)) {
@@ -1907,16 +1921,38 @@
       renderCheckinGrid();
     }
 
+    // Um dia sem exercícios no plano é descanso programado, não falha. Antes a sequência
+    // contava dias corridos de calendário, então quem treinava de segunda a sexta via o
+    // contador zerar todo sábado — e as conquistas de 7, 14, 30 e 100 eram inalcançáveis.
+    // Agora a sequência conta TREINOS seguidos sem falhar: dias de descanso são pulados.
+    function isRestDay(dateObj) {
+      const profile = getActiveProfile();
+      if (!profile) return false;
+      const workout = profile.schedule[DOW_TO_KEY[dateObj.getDay()]];
+      return !!workout && (workout.exercises || []).length === 0;
+    }
+
+    const STREAK_MAX_LOOKBACK_DAYS = 730; // 2 anos: teto de segurança contra plano só de descanso
+
     function calculateStreak() {
       let streak = 0;
       let d = new Date();
       d.setHours(0, 0, 0, 0);
       let firstDay = true;
-      while (true) {
+
+      for (let i = 0; i < STREAK_MAX_LOOKBACK_DAYS; i++) {
         const key = formatLocalDateKey(d);
-        if (checkins[key]) { streak++; d.setDate(d.getDate() - 1); firstDay = false; }
-        else if (firstDay) { d.setDate(d.getDate() - 1); firstDay = false; } // hoje ainda pendente, não quebra
-        else break;
+        if (checkins[key]) {
+          streak++;                       // treinou: conta
+        } else if (firstDay) {
+          // hoje ainda pode ser treinado; não quebra a sequência
+        } else if (isRestDay(d)) {
+          // descanso planejado: pula sem contar e sem quebrar
+        } else {
+          break;                          // dia de treino que ficou sem check-in: fim da sequência
+        }
+        firstDay = false;
+        d.setDate(d.getDate() - 1);
       }
       return streak;
     }
@@ -2132,10 +2168,10 @@
       { id: 'checkins_30', name: 'A Vontade do Fogo', desc: 'Alcance um histórico de 30 check-ins totais no aplicativo.', icon: '🍥', target: 30, current: () => Object.keys(checkins).length },
       { id: 'checkins_50', name: '50 Treinos', desc: 'Complete 50 check-ins no total.', icon: '💪', target: 50, current: () => Object.keys(checkins).length },
       { id: 'checkins_100', name: 'Centurião', desc: 'Complete 100 check-ins no total.', icon: '🏛️', target: 100, current: () => Object.keys(checkins).length },
-      { id: 'streak_7', name: 'Uma Semana de Foco', desc: 'Alcance uma sequência de 7 dias seguidos.', icon: '📅', target: 7, current: () => gamification.longestStreak || 0 },
-      { id: 'streak_14', name: 'Chama Acesa', desc: 'Alcance uma sequência de 14 dias seguidos.', icon: '🔥', target: 14, current: () => gamification.longestStreak || 0 },
-      { id: 'streak_30', name: 'Inabalável', desc: 'Alcance uma sequência de 30 dias seguidos.', icon: '🏆', target: 30, current: () => gamification.longestStreak || 0 },
-      { id: 'streak_100', name: 'One For All: 100%', desc: 'Alcance uma sequência de 100 treinos seguidos.', icon: '💯', target: 100, current: () => gamification.longestStreak || 0 },
+      { id: 'streak_7', name: 'Uma Semana de Foco', desc: 'Complete 7 treinos seguidos sem falhar (dias de descanso não contam).', icon: '📅', target: 7, current: () => gamification.longestStreak || 0 },
+      { id: 'streak_14', name: 'Chama Acesa', desc: 'Complete 14 treinos seguidos sem falhar (dias de descanso não contam).', icon: '🔥', target: 14, current: () => gamification.longestStreak || 0 },
+      { id: 'streak_30', name: 'Inabalável', desc: 'Complete 30 treinos seguidos sem falhar (dias de descanso não contam).', icon: '🏆', target: 30, current: () => gamification.longestStreak || 0 },
+      { id: 'streak_100', name: 'One For All: 100%', desc: 'Complete 100 treinos seguidos sem falhar (dias de descanso não contam).', icon: '💯', target: 100, current: () => gamification.longestStreak || 0 },
       { id: 'xp_8000', name: 'É de mais de 8000!', desc: 'Acumule um total de 8.000 XP na sua jornada de treinos.', icon: '📈', target: 8000, current: () => gamification.totalXP || 0 },
       { id: 'level_10', name: 'Posso Fazer Isso O Dia Todo', desc: 'Alcance o nível 10.', icon: '🛡️', target: 10, current: () => getLevelInfo(gamification.totalXP).level },
       { id: 'level_25', name: 'Vá Além... Plus Ultra!', desc: 'Alcance o nível 25.', icon: '💥', target: 25, current: () => getLevelInfo(gamification.totalXP).level },
@@ -2304,7 +2340,7 @@
       gamification.streakBonuses[key] = true;
       saveJSON(GAMIFICATION_KEY, gamification);
       grantXP(getStreakBonusXP());
-      showToast(`🔥 Sequência de ${streak} dias! +${getStreakBonusXP()} XP de bônus`, 'trophy');
+      showToast(`🔥 Sequência de ${streak} treinos! +${getStreakBonusXP()} XP de bônus`, 'trophy');
     }
 
     // Prêmio de refeição livre: ao completar 80% dos dias planejados na semana atual (Seg-Dom),
@@ -2773,7 +2809,10 @@
 
     // Recorde pessoal = maior carga já registrada; empate na carga é desempatado por repetições.
     function getPersonalRecord(historyKey) {
-      const list = sessionLog[historyKey];
+      return getPersonalRecordFromList(sessionLog[historyKey]);
+    }
+
+    function getPersonalRecordFromList(list) {
       if (!list || list.length === 0) return null;
       let best = null;
       list.forEach(e => {
@@ -2854,22 +2893,26 @@
     }
 
     // ---------- MARCADOR PERSISTENTE DE "HORA DE SUBIR CARGA" ----------
-    function getPersistentLoadBadge(exId) {
-      const h = exerciseHistory[exId];
+    function getPersistentLoadBadge(exId, name) {
+      const proprio = !!exerciseHistory[exId];
+      const h = getLastSessionForExercise(exId, name);
       if (!h) return '';
       const r = parseInt(h.reps, 10);
       if (isNaN(r) || r <= 10) return '';
+      const origem = proprio ? '' : ' <span class="opacity-70">(de outro plano)</span>';
       return `<div class="fade-badge mb-3 text-amber-300 bg-amber-950/40 border border-amber-700/60 px-3 py-2 rounded-xl text-xs font-black flex items-center space-x-2">
-        <span>📈 Última sessão (${h.date}): ${h.reps} reps com ${h.weight}kg. Hora de subir a carga!</span>
+        <span>📈 Última sessão (${escapeHtml(h.date)}): ${escapeHtml(h.reps)} reps com ${escapeHtml(h.weight)}kg. Hora de subir a carga!${origem}</span>
       </div>`;
     }
 
-    function getCardioHistoryBadge(exId) {
-      const h = exerciseHistory[exId];
+    function getCardioHistoryBadge(exId, name) {
+      const proprio = !!exerciseHistory[exId];
+      const h = getLastSessionForExercise(exId, name);
       if (!h || (!h.duration && !h.distance)) return '';
-      const distancePart = h.distance ? `, ${h.distance}km` : '';
+      const distancePart = h.distance ? `, ${escapeHtml(h.distance)}km` : '';
+      const origem = proprio ? '' : ' <span class="opacity-70">(de outro plano)</span>';
       return `<div class="fade-badge mb-3 text-cyan-300 bg-cyan-950/40 border border-cyan-700/60 px-3 py-2 rounded-xl text-xs font-black flex items-center space-x-2">
-        <span>🏃 Última sessão (${h.date}): ${h.duration}min${distancePart}</span>
+        <span>🏃 Última sessão (${escapeHtml(h.date)}): ${escapeHtml(h.duration)}min${distancePart}${origem}</span>
       </div>`;
     }
 
@@ -2942,7 +2985,8 @@
           });
         } else {
           const type = ex.type === 'cardio' ? 'cardio' : 'forca';
-          const saved = exerciseHistory[ex.id];
+          // sem histórico próprio, aproveita o do mesmo exercício em outro perfil
+          const saved = exerciseHistory[ex.id] || getLastSessionForExercise(ex.id, ex.name);
           formData[ex.id] = saved
             ? { name: ex.name, type, variantIndex: 0, sets: saved.sets || ex.targetSets, reps: saved.reps || ex.targetReps, weight: saved.weight || ex.targetWeight, duration: saved.duration || ex.targetDuration || 20, distance: saved.distance || ex.targetDistance || 0, obs: '', done: doneToday }
             : { name: ex.name, type, variantIndex: 0, sets: ex.targetSets, reps: ex.targetReps, weight: ex.targetWeight, duration: ex.targetDuration || 20, distance: ex.targetDistance || 0, obs: '', done: doneToday };
@@ -3110,7 +3154,7 @@
         const bodyHtml = `
           ${fieldsHtml}
           ${renderSeriesRow(ex, state)}
-          <div id="badge-container-${ex.id}">${isCardio ? getCardioHistoryBadge(historyKey) : getPersistentLoadBadge(historyKey)}</div>
+          <div id="badge-container-${ex.id}">${isCardio ? getCardioHistoryBadge(historyKey, state.name) : getPersistentLoadBadge(historyKey, state.name)}</div>
           <div id="alert-container-${ex.id}">${isCardio ? '' : getProgressionAlert(state.reps)}</div>
           ${ex.alt ? `<div class="mt-3 text-amber-300 bg-amber-950/30 border border-amber-800/40 px-3 py-2 rounded-xl text-xs font-medium flex items-start space-x-2"><span>💡</span><span class="text-justify">${escapeHtml(ex.alt)}</span></div>` : ''}
           <div class="mt-4">
@@ -3358,6 +3402,97 @@
     });
 
     document.getElementById('btnSaveProfile').addEventListener('click', saveProfile);
+
+    // ---------- HISTÓRICO QUE ACOMPANHA O EXERCÍCIO ENTRE PERFIS ----------
+    // O log é indexado por ID de exercício, e cada perfil gera IDs próprios. Sem isso, criar
+    // um segundo perfil com o mesmo "Supino Reto" fazia a progressão recomeçar do zero: sem
+    // carga sugerida, sem gráfico, sem recorde. A gravação continua indo para a chave própria
+    // de cada exercício — o que muda é a LEITURA, que passa a reunir tudo com o mesmo nome.
+    function normalizeExerciseName(name) {
+      return String(name || '')
+        .trim()
+        .toLowerCase()
+        .normalize('NFD').replace(/[\u0300-\u036f]/g, '') // ignora acentos na comparacao
+        .replace(/\s+/g, ' ');
+    }
+
+    // Devolve todas as sessões daquele exercício, venham da chave própria ou de qualquer
+    // outro perfil que use o mesmo nome. Ordenado por data, um registro por dia.
+    function collectSessionsForExercise(historyKey, name) {
+      const proprias = sessionLog[historyKey] || [];
+      const alvo = normalizeExerciseName(name);
+      if (!alvo) return { sessions: proprias.slice(), fromOtherProfiles: false };
+
+      let outras = [];
+      Object.keys(sessionLog).forEach(key => {
+        if (key === historyKey) return;
+        (sessionLog[key] || []).forEach(entry => {
+          if (normalizeExerciseName(entry.name) === alvo) outras.push(entry);
+        });
+      });
+
+      if (outras.length === 0) return { sessions: proprias.slice(), fromOtherProfiles: false };
+
+      // um registro por dia: se o mesmo exercício foi feito em dois perfis no mesmo dia,
+      // mantém o de maior carga, que é o que interessa para progressão e recorde
+      const porData = {};
+      proprias.concat(outras).forEach(e => {
+        const atual = porData[e.date];
+        if (!atual) { porData[e.date] = e; return; }
+        const a = parseFloat(e.weight) || parseFloat(e.duration) || 0;
+        const b = parseFloat(atual.weight) || parseFloat(atual.duration) || 0;
+        if (a > b) porData[e.date] = e;
+      });
+
+      const sessions = Object.values(porData).sort((a, b) => a.date.localeCompare(b.date));
+      return { sessions, fromOtherProfiles: sessions.length > proprias.length };
+    }
+
+    // Última sessão registrada para aquele exercício, olhando também os outros perfis.
+    function getLastSessionForExercise(historyKey, name) {
+      if (exerciseHistory[historyKey]) return exerciseHistory[historyKey];
+      const { sessions } = collectSessionsForExercise(historyKey, name);
+      return sessions.length ? sessions[sessions.length - 1] : null;
+    }
+
+    // ---------- COERÊNCIA ENTRE "DIAS POR SEMANA" E O PLANO MONTADO ----------
+    // daysPerWeek é digitado à mão, mas calibra quatro coisas: o XP de cada check-in, a meta
+    // semanal, o limiar da Refeição Livre e o bônus de sequência. Se divergir do plano real,
+    // tudo isso fica errado em silêncio — por isso o editor passa a apontar a diferença.
+    function countScheduledTrainingDays(schedule) {
+      if (!schedule) return 0;
+      return DAY_ORDER.filter(k => schedule[k] && (schedule[k].exercises || []).length > 0).length;
+    }
+
+    function renderDaysPerWeekWarning() {
+      const box = document.getElementById('dpwMismatchWarning');
+      const txt = document.getElementById('dpwMismatchText');
+      if (!box || !txt || !editorState) return;
+
+      const informado = Math.min(7, Math.max(1, parseInt(document.getElementById('editorDaysPerWeek').value, 10) || 0));
+      const reais = countScheduledTrainingDays(editorState.schedule);
+
+      // nada a dizer enquanto o plano estiver vazio ou os números baterem
+      if (reais === 0 || !informado || informado === reais) {
+        box.classList.add('hidden');
+        return;
+      }
+
+      txt.innerHTML = informado > reais
+        ? `Você marcou <strong>${informado} dias/semana</strong>, mas montou exercícios em apenas <strong>${reais}</strong>. Assim a meta semanal fica inatingível e a Refeição Livre nunca libera.`
+        : `Você marcou <strong>${informado} dias/semana</strong>, mas montou exercícios em <strong>${reais}</strong>. Assim cada check-in vale menos XP do que deveria.`;
+      document.getElementById('dpwMismatchFix').textContent = `Usar ${reais} dia${reais === 1 ? '' : 's'}/semana`;
+      box.classList.remove('hidden');
+    }
+
+    window.applyDaysPerWeekFromSchedule = function() {
+      const reais = countScheduledTrainingDays(editorState.schedule);
+      if (!reais) return;
+      document.getElementById('editorDaysPerWeek').value = reais;
+      editorState.daysPerWeek = reais;
+      renderDaysPerWeekWarning();
+      showToast(`✅ Ajustado para ${reais} dia${reais === 1 ? '' : 's'} por semana.`);
+    };
 
     // ---------- SÉRIES CONCLUÍDAS (etapa 1: cronômetro no momento certo) ----------
     // O descanso de verdade acontece ENTRE séries, não depois do exercício inteiro. Marcar
@@ -3644,7 +3779,8 @@
 
     // ---------- EVOLUÇÃO DE UM EXERCÍCIO ----------
     window.openExerciseProgress = function(historyKey, exerciseName) {
-      const list = (sessionLog[historyKey] || []).slice();
+      const coletado = collectSessionsForExercise(historyKey, exerciseName);
+      const list = coletado.sessions;
       document.getElementById('progressExerciseName').textContent = exerciseName || 'Exercício';
       const body = document.getElementById('progressBody');
 
@@ -3657,7 +3793,7 @@
         const last = values[values.length - 1];
         const delta = last - first;
         const unit = isCardio ? 'min' : 'kg';
-        const pr = isCardio ? null : getPersonalRecord(historyKey);
+        const pr = isCardio ? null : getPersonalRecordFromList(list);
 
         const deltaHtml = list.length < 2 ? '' : `
           <div class="flex items-center justify-center gap-1.5 mt-1">
@@ -3717,6 +3853,7 @@
               <p class="text-[9px] text-slate-600 font-bold uppercase tracking-wider">Melhor marca</p>
             </div>
           </div>
+          ${coletado.fromOtherProfiles ? `<p class="text-[10px] text-slate-500 text-center mt-3 bg-slate-950/50 border border-slate-800 rounded-lg px-3 py-2">ℹ️ Reunindo sessões deste exercício em todos os seus planos de treino.</p>` : ''}
           <p class="text-[10px] font-black text-slate-500 uppercase tracking-wider mt-5 mb-2">Histórico</p>
           <div class="space-y-1.5 max-h-56 overflow-y-auto">${rows}</div>
         `;
