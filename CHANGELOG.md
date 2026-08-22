@@ -6,6 +6,38 @@ Todas as mudanças relevantes do app ficam registradas aqui. Ao lançar uma nova
    atualizar o app instalado
 3. Adicione uma entrada aqui, nesse formato
 
+## [2.6.0] - 2026-08-22
+### Adicionado
+- **Histórico de treinos por data** (`buildWorkoutHistory()`, `renderWorkoutHistory()`,
+  `openWorkoutDay()`): nova seção em Perfil > Progresso. O `sessionLog` é indexado por
+  exercício, então responder "o que fiz no dia X" exige inverter o índice — a agregação
+  percorre todo o log e agrupa por data, somando o volume de cada dia. Roda sob demanda,
+  apenas ao abrir a aba Perfil, e não a cada render
+- `resolveWorkoutName()` resolve o nome do treino a partir de `checkins[data]` contra o
+  perfil ativo, com dois fallbacks: nome do dia da semana pelo `DAY_FULL_NAMES` e, por
+  último, o dia da semana derivado da própria data (instanciada com `T12:00:00` para o fuso
+  não empurrar para o dia anterior). Necessário porque o plano pode ter sido alterado ou o
+  dia registrado sob outro perfil
+- **Modal de detalhe do dia**: exercícios separados em Força e Cardio, volume por exercício,
+  observações registradas e um botão que remonta o mesmo formato de resumo do
+  `finalizeWorkout()` para copiar
+- Paginação simples da lista (`workoutHistoryLimit`, 10 iniciais + 15 por toque em "Ver mais")
+
+### Alterado
+- **`askConfirm()`**: confirmação genérica baseada em Promise, para substituir o `confirm()`
+  nativo — que em PWA standalone exibe o domínio no diálogo (visível sobretudo no iOS) e
+  destoa do resto da interface. Aceita título, texto em HTML, ícone, rótulos e variante
+  `danger`; fecha por toque no fundo e por Escape, sempre removendo os listeners que
+  registrou. `deleteProfile()` passou a ser `async` para usá-la
+- `deleteProfile()` agora informa quantos dias de treino serão perdidos e deixa explícito que
+  o histórico de sessões e os check-ins **não** são apagados junto
+- `CACHE_NAME`: `treino-cache-v21` -> `treino-cache-v22`
+
+### Corrigido
+- **`removeExerciseRow()` apagava um exercício do plano sem qualquer confirmação**: um toque
+  no ✕ removia o exercício e as duas reservas de imediato, sem desfazer. Agora passa por
+  `askConfirm()`, informando quantas reservas serão removidas junto
+
 ## [2.5.0] - 2026-08-22
 ### Adicionado
 - **Backup completo dos dados** (`BACKUP_KEYS`, `buildBackupObject()`, `exportBackup()`,

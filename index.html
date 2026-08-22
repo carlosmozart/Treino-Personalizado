@@ -136,6 +136,38 @@
   <!-- Campo de arquivo escondido, acionado pelo botão "Restaurar backup" -->
   <input type="file" id="importBackupInput" accept="application/json,.json" class="hidden" onchange="handleImportFile(this)"/>
 
+  <!-- Confirmação genérica: substitui o confirm() do navegador, que no PWA em tela cheia
+       mostra o endereço do site e quebra a sensação de aplicativo (especialmente no iOS) -->
+  <div id="confirmOverlay" class="hidden fixed inset-0 bg-slate-950/95 backdrop-blur-sm z-[110] flex items-center justify-center p-4">
+    <div class="bg-slate-900 rounded-2xl border shadow-2xl max-w-sm w-full p-6" id="confirmOverlayBox">
+      <div class="text-center mb-5">
+        <span id="confirmOverlayIcon" class="text-4xl">⚠️</span>
+        <h2 id="confirmOverlayTitle" class="text-lg font-black text-white mt-2">Confirmar</h2>
+        <p id="confirmOverlayText" class="text-xs text-slate-400 mt-2 leading-relaxed"></p>
+      </div>
+      <div class="flex gap-2">
+        <button type="button" id="confirmOverlayCancel" class="flex-1 bg-slate-800 active:bg-slate-700 text-slate-300 font-extrabold text-sm py-3 rounded-xl transition-all active:scale-[0.99]">Cancelar</button>
+        <button type="button" id="confirmOverlayOk" class="flex-1 text-white font-extrabold text-sm py-3 rounded-xl transition-all active:scale-[0.99]">Confirmar</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="workoutDayOverlay" class="hidden fixed inset-0 bg-slate-950/95 backdrop-blur-sm z-[100] flex items-center justify-center p-4 overflow-y-auto">
+    <div class="bg-slate-900 rounded-2xl border border-slate-800 shadow-2xl max-w-md w-full p-5 my-8">
+      <div class="flex items-start justify-between gap-3 mb-4">
+        <div class="min-w-0">
+          <p id="workoutDayDate" class="text-[10px] font-black text-blue-400 uppercase tracking-wider">--</p>
+          <h2 id="workoutDayName" class="text-base font-black text-white leading-tight">--</h2>
+        </div>
+        <button type="button" onclick="closeWorkoutDay()" class="flex-shrink-0 w-9 h-9 rounded-full bg-slate-800 active:bg-slate-700 text-slate-400 flex items-center justify-center transition-all active:scale-90">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+        </button>
+      </div>
+      <div id="workoutDayBody"></div>
+      <button type="button" id="workoutDayCopy" class="mt-4 w-full bg-slate-800 active:bg-slate-700 text-slate-300 font-bold text-xs py-2.5 rounded-xl transition-all active:scale-[0.99]">📋 Copiar resumo deste treino</button>
+    </div>
+  </div>
+
   <div id="exerciseProgressOverlay" class="hidden fixed inset-0 bg-slate-950/95 backdrop-blur-sm z-[100] flex items-center justify-center p-4 overflow-y-auto">
     <div class="bg-slate-900 rounded-2xl border border-slate-800 shadow-2xl max-w-md w-full p-5 my-8">
       <div class="flex items-start justify-between gap-3 mb-4">
@@ -673,6 +705,16 @@
       </section>
 
       <section class="bg-slate-900 rounded-2xl p-5 border border-slate-800 shadow-sm">
+        <div class="flex items-center justify-between mb-1">
+          <h3 class="text-xs font-black uppercase tracking-widest text-slate-400">Treinos Realizados</h3>
+          <span id="workoutHistoryCount" class="text-[10px] font-black text-blue-400 uppercase tracking-wider bg-blue-950/40 border border-blue-800/60 px-2.5 py-1 rounded-full">0</span>
+        </div>
+        <p class="text-[10px] text-slate-600 mb-4">Toque num treino para ver tudo que você registrou naquele dia.</p>
+        <div id="workoutHistoryList" class="space-y-2"></div>
+        <button type="button" id="workoutHistoryMore" onclick="showMoreWorkoutHistory()" class="hidden mt-3 w-full bg-slate-800 active:bg-slate-700 text-slate-300 font-bold text-xs py-2.5 rounded-xl transition-all active:scale-[0.99]">Ver mais</button>
+      </section>
+
+      <section class="bg-slate-900 rounded-2xl p-5 border border-slate-800 shadow-sm">
         <h3 class="text-xs font-black uppercase tracking-widest text-slate-400 mb-3">Histórico de Peso e IMC</h3>
         <div id="weightHistoryList" class="space-y-2 max-h-64 overflow-y-auto"></div>
       </section>
@@ -743,11 +785,20 @@
   </div>
 
   <script>
-    const APP_VERSION = '2.5.0'; // manter sincronizado com CACHE_NAME em sw.js e com o CHANGELOG.md
+    const APP_VERSION = '2.6.0'; // manter sincronizado com CACHE_NAME em sw.js e com o CHANGELOG.md
 
     // ---------- NOVIDADES (tela para testadores — só experiência do usuário, sem termos técnicos) ----------
     // Detalhes técnicos ficam só no CHANGELOG.md interno. Ordem: mais recente primeiro.
     const RELEASE_NOTES = [
+      {
+        version: '2.6.0', date: '2026-08-22',
+        highlights: [
+          '📅 <strong>Histórico de treinos realizados</strong> (Perfil > Progresso): a lista de tudo que você já treinou, por data. Toque num treino para ver todos os exercícios daquele dia, com carga, repetições, suas observações e o volume total — dá pra responder "o que eu fiz na quarta passada?" sem sair procurando exercício por exercício.',
+          '📋 Cada treino do histórico tem um botão para <strong>copiar o resumo</strong> daquele dia, no mesmo formato de quando você finaliza um treino.',
+          '🗑️ <strong>Remover um exercício do plano agora pede confirmação.</strong> Antes, um toque errado no ✕ apagava o exercício e as reservas na hora, sem aviso.',
+          '✨ As confirmações de excluir passaram a usar as janelas do próprio app, em vez da caixa cinza do navegador — que no celular mostrava o endereço do site e destoava do resto.'
+        ]
+      },
       {
         version: '2.5.0', date: '2026-08-22',
         highlights: [
@@ -1388,12 +1439,21 @@
       checkAchievements();
     }
 
-    function deleteProfile(profileId) {
+    async function deleteProfile(profileId) {
       if (Object.keys(profiles).length <= 1) {
         showToast('⚠️ Não é possível excluir o único perfil existente.');
         return;
       }
-      if (!confirm(`Excluir o perfil "${profiles[profileId].name}"? Essa ação não pode ser desfeita.`)) return;
+      const nome = profiles[profileId].name;
+      const diasComExercicio = DAY_ORDER.filter(k => (profiles[profileId].schedule[k].exercises || []).length > 0).length;
+      const ok = await askConfirm({
+        icon: '🗑️',
+        title: 'Excluir perfil',
+        text: `Excluir <strong class="text-white">${escapeHtml(nome)}</strong> e os ${diasComExercicio} dias de treino montados nele?<br/><span class="text-rose-300 font-bold">Essa ação não pode ser desfeita.</span><br/><span class="text-slate-500">Seu histórico de sessões e check-ins não é apagado.</span>`,
+        confirmLabel: 'Excluir',
+        danger: true
+      });
+      if (!ok) return;
       delete profiles[profileId];
       saveJSON(PROFILES_KEY, profiles);
       if (activeProfileId === profileId) {
@@ -1639,8 +1699,22 @@
       renderEditorDayTabs();
     };
 
-    window.removeExerciseRow = function(idx) {
+    window.removeExerciseRow = async function(idx) {
       const day = editorState.schedule[editorState.currentDay];
+      const ex = day.exercises[idx];
+      if (!ex) return;
+
+      const reservas = (ex.backups || []).filter(b => b && b.name && b.name.trim()).length;
+      const ok = await askConfirm({
+        icon: '🗑️',
+        title: 'Remover exercício',
+        text: `Remover <strong class="text-white">${escapeHtml(ex.name || 'este exercício')}</strong> de ${escapeHtml(DAY_FULL_NAMES[editorState.currentDay])}?` +
+              (reservas > 0 ? `<br/><span class="text-slate-500">${reservas} exercício(s) reserva serão removidos junto.</span>` : ''),
+        confirmLabel: 'Remover',
+        danger: true
+      });
+      if (!ok) return;
+
       day.exercises.splice(idx, 1);
       renderExerciseEditorRows();
       renderEditorDayTabs();
@@ -2488,6 +2562,7 @@
       renderGoalRoadmap();
       renderRestSettings();
       renderBackupStatus();
+      renderWorkoutHistory();
     }
 
     function renderIMCCard() {
@@ -3258,6 +3333,212 @@
     });
 
     document.getElementById('btnSaveProfile').addEventListener('click', saveProfile);
+
+    // ---------- HISTÓRICO DE TREINOS POR DATA ----------
+    // O sessionLog é indexado por exercício; para responder "o que eu fiz na quarta passada?"
+    // é preciso inverter esse índice e agrupar por data. Feito sob demanda (só ao abrir a aba
+    // Progresso), porque percorre todo o log.
+    function buildWorkoutHistory() {
+      const porData = {};
+
+      Object.keys(sessionLog).forEach(historyKey => {
+        (sessionLog[historyKey] || []).forEach(entry => {
+          if (!entry || !entry.date) return;
+          if (!porData[entry.date]) porData[entry.date] = { date: entry.date, exercicios: [], volume: 0 };
+          porData[entry.date].exercicios.push(entry);
+          porData[entry.date].volume += sessionVolume(entry);
+        });
+      });
+
+      // enriquece com o treino que foi registrado no check-in daquele dia
+      Object.keys(porData).forEach(date => {
+        const workoutKey = checkins[date];
+        porData[date].workoutKey = workoutKey || null;
+        porData[date].workoutName = resolveWorkoutName(workoutKey, date);
+      });
+
+      return Object.values(porData).sort((a, b) => b.date.localeCompare(a.date)); // mais recente primeiro
+    }
+
+    // O nome do treino vem do perfil ativo. Se o plano mudou desde então (ou o dia foi
+    // registrado por outro perfil), cai para o nome do dia da semana, que sempre existe.
+    function resolveWorkoutName(workoutKey, dateStr) {
+      const profile = getActiveProfile();
+      if (workoutKey && profile && profile.schedule[workoutKey]) {
+        return profile.schedule[workoutKey].name;
+      }
+      if (workoutKey && DAY_FULL_NAMES[workoutKey]) return DAY_FULL_NAMES[workoutKey];
+      if (dateStr) {
+        // meio-dia evita que o fuso empurre a data para o dia anterior
+        const d = new Date(dateStr + 'T12:00:00');
+        const nomes = ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado'];
+        return nomes[d.getDay()] || 'Treino';
+      }
+      return 'Treino';
+    }
+
+    let workoutHistoryLimit = 10;      // quantos dias mostrar antes do "Ver mais"
+    let workoutHistoryCache = [];
+
+    window.showMoreWorkoutHistory = function() {
+      workoutHistoryLimit += 15;
+      renderWorkoutHistory();
+    };
+
+    function renderWorkoutHistory() {
+      const list = document.getElementById('workoutHistoryList');
+      const more = document.getElementById('workoutHistoryMore');
+      const countEl = document.getElementById('workoutHistoryCount');
+      if (!list) return;
+
+      workoutHistoryCache = buildWorkoutHistory();
+      countEl.textContent = workoutHistoryCache.length;
+
+      if (workoutHistoryCache.length === 0) {
+        list.innerHTML = `<p class="text-xs text-slate-600 text-center py-6 leading-relaxed">Nenhum treino registrado ainda.<br/>Finalize um treino para ele aparecer aqui.</p>`;
+        more.classList.add('hidden');
+        return;
+      }
+
+      const visiveis = workoutHistoryCache.slice(0, workoutHistoryLimit);
+      list.innerHTML = visiveis.map(dia => {
+        const qtd = dia.exercicios.length;
+        const temCardio = dia.exercicios.some(e => e.type === 'cardio');
+        const volumeTxt = dia.volume > 0 ? `${Math.round(dia.volume).toLocaleString('pt-BR')}kg` : (temCardio ? 'cardio' : '--');
+        return `<button type="button" onclick="openWorkoutDay('${dia.date}')" class="w-full text-left bg-slate-950/50 active:bg-slate-800/60 rounded-xl px-3 py-2.5 border border-slate-800/60 transition-all active:scale-[0.99] flex items-center justify-between gap-3">
+          <div class="min-w-0">
+            <p class="text-xs font-bold text-white truncate">${escapeHtml(dia.workoutName)}</p>
+            <p class="text-[10px] text-slate-500 font-semibold">${formatDateBR(dia.date)} · ${qtd} exercício${qtd > 1 ? 's' : ''}</p>
+          </div>
+          <div class="flex items-center gap-2 flex-shrink-0">
+            <span class="text-[10px] font-black text-blue-300">${volumeTxt}</span>
+            <svg class="w-4 h-4 text-slate-600" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
+          </div>
+        </button>`;
+      }).join('');
+
+      more.classList.toggle('hidden', workoutHistoryCache.length <= workoutHistoryLimit);
+      if (!more.classList.contains('hidden')) {
+        more.textContent = `Ver mais (${workoutHistoryCache.length - workoutHistoryLimit} restantes)`;
+      }
+    }
+
+    window.openWorkoutDay = function(dateStr) {
+      const dia = workoutHistoryCache.find(d => d.date === dateStr);
+      if (!dia) return;
+
+      document.getElementById('workoutDayDate').textContent = formatDateBR(dia.date);
+      document.getElementById('workoutDayName').textContent = dia.workoutName;
+
+      const forca = dia.exercicios.filter(e => e.type !== 'cardio');
+      const cardio = dia.exercicios.filter(e => e.type === 'cardio');
+
+      const linha = (e) => {
+        const detalhe = e.type === 'cardio'
+          ? `${e.duration}min${e.distance ? ` · ${e.distance}km` : ''}`
+          : `${e.sets}x${e.reps} · ${e.weight}kg`;
+        const vol = e.type === 'cardio' ? '' : `<p class="text-[9px] text-slate-600">${Math.round(sessionVolume(e)).toLocaleString('pt-BR')}kg de volume</p>`;
+        const obs = e.obs ? `<p class="text-[10px] text-amber-300/80 mt-1 italic">"${escapeHtml(e.obs)}"</p>` : '';
+        return `<div class="bg-slate-950/50 rounded-xl px-3 py-2.5 border border-slate-800/60">
+          <div class="flex items-start justify-between gap-2">
+            <p class="text-xs font-bold text-white min-w-0 flex-1">${escapeHtml(e.name)}</p>
+            <span class="text-xs font-black text-blue-300 flex-shrink-0">${escapeHtml(detalhe)}</span>
+          </div>
+          ${vol}${obs}
+        </div>`;
+      };
+
+      const bloco = (titulo, itens) => itens.length === 0 ? '' :
+        `<p class="text-[10px] font-black text-slate-500 uppercase tracking-wider mt-4 mb-2">${titulo}</p>
+         <div class="space-y-1.5">${itens.map(linha).join('')}</div>`;
+
+      document.getElementById('workoutDayBody').innerHTML = `
+        <div class="grid grid-cols-2 gap-2">
+          <div class="bg-slate-950/50 border border-slate-800 rounded-xl px-3 py-2.5 text-center">
+            <p class="text-lg font-black text-white">${dia.exercicios.length}</p>
+            <p class="text-[9px] text-slate-600 font-bold uppercase tracking-wider">Exercícios</p>
+          </div>
+          <div class="bg-slate-950/50 border border-slate-800 rounded-xl px-3 py-2.5 text-center">
+            <p class="text-lg font-black text-white">${dia.volume > 0 ? Math.round(dia.volume).toLocaleString('pt-BR') : '--'}<span class="text-[10px] text-slate-500">${dia.volume > 0 ? 'kg' : ''}</span></p>
+            <p class="text-[9px] text-slate-600 font-bold uppercase tracking-wider">Volume total</p>
+          </div>
+        </div>
+        ${bloco('Força', forca)}
+        ${bloco('Cardio', cardio)}
+      `;
+
+      // o botão de copiar remonta o mesmo formato de resumo que o app já gera ao finalizar
+      document.getElementById('workoutDayCopy').onclick = async () => {
+        let txt = `RESUMO DO TREINO | ${dia.workoutName}\nData: ${formatDateBR(dia.date)}\n---------------------------------------------\n`;
+        dia.exercicios.forEach(e => {
+          txt += e.type === 'cardio'
+            ? `> ${e.name}: ${e.duration}min${e.distance ? ` | ${e.distance}km` : ''}`
+            : `> ${e.name}: ${e.sets}x${e.reps} | ${e.weight}kg`;
+          if (e.obs) txt += ` [Nota: ${e.obs}]`;
+          txt += '\n';
+        });
+        if (dia.volume > 0) txt += `---------------------------------------------\nVolume total: ${Math.round(dia.volume).toLocaleString('pt-BR')} kg\n`;
+        const ok = await copyTextToClipboard(txt);
+        showToast(ok ? 'Resumo copiado!' : '❌ Não foi possível copiar.');
+      };
+
+      document.getElementById('workoutDayOverlay').classList.remove('hidden');
+    };
+
+    window.closeWorkoutDay = function() {
+      document.getElementById('workoutDayOverlay').classList.add('hidden');
+    };
+
+    // ---------- CONFIRMAÇÃO GENÉRICA ----------
+    // Devolve uma Promise<boolean>, então quem chama usa `if (await askConfirm(...))`,
+    // igual ao confirm() nativo — mas sem sair da identidade visual do app.
+    function askConfirm(options) {
+      const opts = Object.assign({
+        title: 'Confirmar',
+        text: '',
+        icon: '⚠️',
+        confirmLabel: 'Confirmar',
+        cancelLabel: 'Cancelar',
+        danger: false
+      }, options || {});
+
+      return new Promise(resolve => {
+        const overlay = document.getElementById('confirmOverlay');
+        const box = document.getElementById('confirmOverlayBox');
+        const okBtn = document.getElementById('confirmOverlayOk');
+        const cancelBtn = document.getElementById('confirmOverlayCancel');
+
+        document.getElementById('confirmOverlayIcon').textContent = opts.icon;
+        document.getElementById('confirmOverlayTitle').textContent = opts.title;
+        document.getElementById('confirmOverlayText').innerHTML = opts.text;
+        okBtn.textContent = opts.confirmLabel;
+        cancelBtn.textContent = opts.cancelLabel;
+
+        box.className = `bg-slate-900 rounded-2xl border shadow-2xl max-w-sm w-full p-6 ${opts.danger ? 'border-rose-800/50' : 'border-slate-800'}`;
+        okBtn.className = `flex-1 text-white font-extrabold text-sm py-3 rounded-xl transition-all active:scale-[0.99] ${opts.danger ? 'bg-rose-600 active:bg-rose-500' : 'bg-blue-600 active:bg-blue-500'}`;
+
+        const finish = (result) => {
+          overlay.classList.add('hidden');
+          okBtn.removeEventListener('click', onOk);
+          cancelBtn.removeEventListener('click', onCancel);
+          overlay.removeEventListener('click', onBackdrop);
+          document.removeEventListener('keydown', onKey);
+          resolve(result);
+        };
+        const onOk = () => finish(true);
+        const onCancel = () => finish(false);
+        // tocar fora da caixa cancela, como é praxe em modal de celular
+        const onBackdrop = (e) => { if (e.target === overlay) finish(false); };
+        const onKey = (e) => { if (e.key === 'Escape') finish(false); };
+
+        okBtn.addEventListener('click', onOk);
+        cancelBtn.addEventListener('click', onCancel);
+        overlay.addEventListener('click', onBackdrop);
+        document.addEventListener('keydown', onKey);
+
+        overlay.classList.remove('hidden');
+      });
+    }
 
     // ---------- EVOLUÇÃO DE UM EXERCÍCIO ----------
     window.openExerciseProgress = function(historyKey, exerciseName) {
