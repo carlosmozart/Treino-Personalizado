@@ -6,6 +6,31 @@ Todas as mudanças relevantes do app ficam registradas aqui. Ao lançar uma nova
    atualizar o app instalado
 3. Adicione uma entrada aqui, nesse formato
 
+## [2.9.1] - 2026-08-22
+### Corrigido
+- **Historico exibia o dia da semana errado** (relatado em uso real: treino de sabado
+  aparecendo como domingo). `resolveWorkoutName()` devolve o nome da rotina registrada em
+  `checkins[data]`, e `finalizeWorkout()` grava ali o `activeWorkoutKey` — que e o dia
+  **selecionado no seletor**, nao necessariamente o dia de hoje. Abrir a rotina de domingo
+  num sabado e finalizar gravava `DOM`, e a lista passava a exibir "Domingo: Extra
+  (Opcional)" numa entrada datada de sabado, sem nenhuma pista da data real.
+  Reproduzido em teste antes da correcao.
+  Agora `weekdayOf()` e `formatDateWithWeekday()` derivam o dia da semana **sempre da
+  data** (instanciada com `T12:00:00`, para o fuso nao empurrar para o dia anterior), e a
+  lista e o modal passam a mostrar "sabado, 22/08/2026". Quando a rotina registrada nao
+  corresponde ao dia da data, o modal exibe um aviso explicando qual rotina foi treinada,
+  em vez de deixar a tela parecer errada. O resumo copiado leva a data completa
+- **Dias do calendario nao abriam o resumo** (relatado junto: "somente a terca mostra").
+  `openWorkoutDay()` so reconstruia `workoutHistoryCache` quando ele estava **vazio**, entao
+  bastava ter visitado Perfil > Progresso uma vez para o cache congelar: qualquer treino
+  finalizado depois nao constava, e tocar nesse dia no calendario nao produzia efeito algum,
+  sem erro nem aviso. Passa a reconstruir a cada abertura — a agregacao custa poucos
+  milissegundos mesmo com anos de historico (medido: 2,9 ms para 3.120 sessoes) — e, quando
+  realmente nao ha registro para a data, exibe um toast em vez de falhar em silencio
+
+### Alterado
+- `CACHE_NAME`: `treino-cache-v25` -> `treino-cache-v26`
+
 ## [2.9.0] - 2026-08-22
 ### Corrigido
 - **Cronometro de descanso aparecia atras dos cards de exercicio** (relatado em uso real). A

@@ -147,6 +147,7 @@
     .rounded-md { border-radius: 0.375rem; }
     .w-3 { width: 0.75rem; }
     .w-24 { width: 6rem; }
+    .border-blue-800\/40 { border-color: rgba(30, 64, 175, 0.4); }
   </style>
 </head>
 <body class="bg-slate-950 text-slate-100 font-sans pb-12 min-h-screen">
@@ -216,6 +217,7 @@
           <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
         </button>
       </div>
+      <p id="workoutDayMismatch" class="hidden text-[10px] text-blue-300 bg-blue-950/30 border border-blue-800/40 rounded-lg px-3 py-2 mb-3"></p>
       <div id="workoutDayBody"></div>
       <button type="button" id="workoutDayCopy" class="mt-4 w-full bg-slate-800 active:bg-slate-700 text-slate-300 font-bold text-xs py-2.5 rounded-xl transition-all active:scale-[0.99]">📋 Copiar resumo deste treino</button>
     </div>
@@ -842,11 +844,18 @@
   </div>
 
   <script>
-    const APP_VERSION = '2.9.0'; // manter sincronizado com CACHE_NAME em sw.js e com o CHANGELOG.md
+    const APP_VERSION = '2.9.1'; // manter sincronizado com CACHE_NAME em sw.js e com o CHANGELOG.md
 
     // ---------- NOVIDADES (tela para testadores — só experiência do usuário, sem termos técnicos) ----------
     // Detalhes técnicos ficam só no CHANGELOG.md interno. Ordem: mais recente primeiro.
     const RELEASE_NOTES = [
+      {
+        version: '2.9.1', date: '2026-08-22',
+        highlights: [
+          '🐛 <strong>Corrigido: o histórico mostrava o dia errado.</strong> Um treino feito no sábado podia aparecer como domingo. O motivo é que a tela exibia o nome da rotina que você usou, e não o dia real — se você abre a rotina de outro dia no seletor e finaliza, era esse nome que aparecia. Agora toda entrada mostra o dia da semana da data de verdade (ex: "sábado, 22/08/2026"), e quando a rotina é de outro dia o app avisa em vez de confundir.',
+          '🐛 <strong>Corrigido: só alguns dias do calendário abriam o resumo.</strong> A lista de treinos ficava congelada na primeira vez que era montada, então qualquer treino finalizado depois não abria ao ser tocado. Agora ela é sempre recalculada na hora.'
+        ]
+      },
       {
         version: '2.9.0', date: '2026-08-22',
         highlights: [
@@ -3785,6 +3794,25 @@
       return Object.values(porData).sort((a, b) => b.date.localeCompare(a.date)); // mais recente primeiro
     }
 
+    // Dia da semana derivado da DATA, nunca da chave do treino registrado. E possivel fazer
+    // o treino de domingo num sabado (basta trocar no seletor), e nesse caso o historico
+    // mostrava "Domingo" numa entrada de sabado — a data real sumia da tela.
+    const WEEKDAY_NAMES_ACENTUADOS = ['domingo', 'segunda-feira', 'ter\u00e7a-feira', 'quarta-feira', 'quinta-feira', 'sexta-feira', 's\u00e1bado'];
+
+    function weekdayOf(dateStr) {
+      // meio-dia: evita que o fuso empurre a data para o dia anterior
+      return WEEKDAY_NAMES_ACENTUADOS[new Date(dateStr + 'T12:00:00').getDay()] || '';
+    }
+
+    function capitalizar(txt) {
+      return txt ? txt.charAt(0).toUpperCase() + txt.slice(1) : '';
+    }
+
+    function formatDateWithWeekday(dateStr) {
+      const dia = weekdayOf(dateStr);
+      return dia ? `${dia}, ${formatDateBR(dateStr)}` : formatDateBR(dateStr);
+    }
+
     // O nome do treino vem do perfil ativo. Se o plano mudou desde então (ou o dia foi
     // registrado por outro perfil), cai para o nome do dia da semana, que sempre existe.
     function resolveWorkoutName(workoutKey, dateStr) {
@@ -3832,8 +3860,8 @@
         const volumeTxt = dia.volume > 0 ? `${Math.round(dia.volume).toLocaleString('pt-BR')}kg` : (temCardio ? 'cardio' : '--');
         return `<button type="button" onclick="openWorkoutDay('${dia.date}')" class="w-full text-left bg-slate-950/50 active:bg-slate-800/60 rounded-xl px-3 py-2.5 border border-slate-800/60 transition-all active:scale-[0.99] flex items-center justify-between gap-3">
           <div class="min-w-0">
-            <p class="text-xs font-bold text-white truncate">${escapeHtml(dia.workoutName)}</p>
-            <p class="text-[10px] text-slate-500 font-semibold">${formatDateBR(dia.date)} · ${qtd} exercício${qtd > 1 ? 's' : ''}</p>
+            <p class="text-xs font-bold text-white truncate">${escapeHtml(capitalizar(formatDateWithWeekday(dia.date)))}</p>
+            <p class="text-[10px] text-slate-500 font-semibold truncate">${escapeHtml(dia.workoutName)} · ${qtd} exercício${qtd > 1 ? 's' : ''}</p>
           </div>
           <div class="flex items-center gap-2 flex-shrink-0">
             <span class="text-[10px] font-black text-blue-300">${volumeTxt}</span>
@@ -3849,14 +3877,31 @@
     }
 
     window.openWorkoutDay = function(dateStr) {
-      // o cache so era montado ao abrir Perfil > Progresso; chamado pelo calendario,
-      // pode ainda nao existir
-      if (!workoutHistoryCache.length) workoutHistoryCache = buildWorkoutHistory();
+      // Reconstroi SEMPRE. Antes so montava quando o cache estava vazio, entao qualquer
+      // treino finalizado depois da primeira visita a aba Progresso ficava de fora — e
+      // tocar nesse dia no calendario nao abria absolutamente nada. A agregacao leva
+      // poucos milissegundos mesmo com anos de historico.
+      workoutHistoryCache = buildWorkoutHistory();
       const dia = workoutHistoryCache.find(d => d.date === dateStr);
-      if (!dia) return;
+      if (!dia) {
+        showToast('Nenhum exercício registrado neste dia.');
+        return;
+      }
 
-      document.getElementById('workoutDayDate').textContent = formatDateBR(dia.date);
+      document.getElementById('workoutDayDate').textContent = formatDateWithWeekday(dia.date);
       document.getElementById('workoutDayName').textContent = dia.workoutName;
+
+      // Quando o treino registrado nao corresponde ao dia da semana da data — o que acontece
+      // ao treinar a rotina de outro dia — o aviso explica a diferenca em vez de deixar a
+      // tela parecer errada.
+      const aviso = document.getElementById('workoutDayMismatch');
+      const chaveDoDia = DOW_TO_KEY[new Date(dia.date + 'T12:00:00').getDay()];
+      if (dia.workoutKey && chaveDoDia && dia.workoutKey !== chaveDoDia) {
+        aviso.innerHTML = `\u2139\ufe0f Você treinou a rotina de <strong>${escapeHtml(DAY_FULL_NAMES[dia.workoutKey] || dia.workoutKey)}</strong> neste dia.`;
+        aviso.classList.remove('hidden');
+      } else {
+        aviso.classList.add('hidden');
+      }
 
       const forca = dia.exercicios.filter(e => e.type !== 'cardio');
       const cardio = dia.exercicios.filter(e => e.type === 'cardio');
@@ -3897,7 +3942,7 @@
 
       // o botão de copiar remonta o mesmo formato de resumo que o app já gera ao finalizar
       document.getElementById('workoutDayCopy').onclick = async () => {
-        let txt = `RESUMO DO TREINO | ${dia.workoutName}\nData: ${formatDateBR(dia.date)}\n---------------------------------------------\n`;
+        let txt = `RESUMO DO TREINO | ${dia.workoutName}\nData: ${formatDateWithWeekday(dia.date)}\n---------------------------------------------\n`;
         dia.exercicios.forEach(e => {
           txt += e.type === 'cardio'
             ? `> ${e.name}: ${e.duration}min${e.distance ? ` | ${e.distance}km` : ''}`
