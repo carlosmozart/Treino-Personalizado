@@ -147,6 +147,10 @@
     .rounded-md { border-radius: 0.375rem; }
     .w-3 { width: 0.75rem; }
     .w-24 { width: 6rem; }
+    .z-\[105\] { z-index: 105; }
+    .max-h-72 { max-height: 18rem; }
+    .active\:border-amber-600:active { border-color: #d97706; }
+    .active\:text-amber-300:active { color: #fcd34d; }
     .bg-slate-950\/40 { background-color: rgba(2, 6, 23, 0.4); }
     .border-blue-800\/40 { border-color: rgba(30, 64, 175, 0.4); }
   </style>
@@ -204,6 +208,23 @@
         <button type="button" id="confirmOverlayCancel" class="flex-1 bg-slate-800 active:bg-slate-700 text-slate-300 font-extrabold text-sm py-3 rounded-xl transition-all active:scale-[0.99]">Cancelar</button>
         <button type="button" id="confirmOverlayOk" class="flex-1 text-white font-extrabold text-sm py-3 rounded-xl transition-all active:scale-[0.99]">Confirmar</button>
       </div>
+    </div>
+  </div>
+
+  <div id="swapPickerOverlay" class="hidden fixed inset-0 bg-slate-950/95 backdrop-blur-sm z-[105] flex items-center justify-center p-4 overflow-y-auto">
+    <div class="bg-slate-900 rounded-2xl border border-slate-800 shadow-2xl max-w-md w-full p-5 my-8">
+      <div class="flex items-start justify-between gap-3 mb-3">
+        <div class="min-w-0">
+          <p class="text-[10px] font-black text-amber-400 uppercase tracking-wider">Trocar exercício</p>
+          <h2 id="swapPickerCurrent" class="text-sm font-black text-white leading-tight truncate">--</h2>
+        </div>
+        <button type="button" onclick="closeSwapPicker()" class="flex-shrink-0 w-9 h-9 rounded-full bg-slate-800 active:bg-slate-700 text-slate-400 flex items-center justify-center transition-all active:scale-90">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+        </button>
+      </div>
+      <p class="text-[10px] text-slate-500 mb-3">A troca vale só para o treino de hoje. Seu plano não é alterado.</p>
+      <input type="text" id="swapPickerSearch" placeholder="Digite para buscar (ex: supino, agacho...)" oninput="renderSwapPickerList(this.value)" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2.5 text-white text-sm focus:outline-none focus:ring-1 focus:ring-amber-600 placeholder-slate-600 mb-3"/>
+      <div id="swapPickerList" class="space-y-1.5 max-h-72 overflow-y-auto"></div>
     </div>
   </div>
 
@@ -853,11 +874,19 @@
   </div>
 
   <script>
-    const APP_VERSION = '2.9.3'; // manter sincronizado com CACHE_NAME em sw.js e com o CHANGELOG.md
+    const APP_VERSION = '2.10.0'; // manter sincronizado com CACHE_NAME em sw.js e com o CHANGELOG.md
 
     // ---------- NOVIDADES (tela para testadores — só experiência do usuário, sem termos técnicos) ----------
     // Detalhes técnicos ficam só no CHANGELOG.md interno. Ordem: mais recente primeiro.
     const RELEASE_NOTES = [
+      {
+        version: '2.10.0', date: '2026-08-24',
+        highlights: [
+          '📈 <strong>Agora você sempre vê o que fez da última vez.</strong> Antes essa informação só aparecia quando você tinha passado de 10 repetições — ou seja, na faixa de 6 a 10, que é a mais comum, o card não mostrava nada. Agora a referência aparece sempre ("Última vez: 4x9 com 60kg"), com a dica mudando conforme o resultado.',
+          '🔍 <strong>Trocar exercício por qualquer um da biblioteca, no meio do treino.</strong> Aparelho ocupado e sem reserva cadastrada? Toque na lupa do exercício e busque outro. A troca vale só para o treino de hoje — seu plano continua intacto. Se o exercício escolhido já tem histórico, a carga anterior vem preenchida.',
+          '⏱️ <strong>Duração do treino registrada automaticamente.</strong> O app marca quando você começou (na primeira série ou ajuste) e quanto tempo levou até finalizar. Aparece no resumo, na lista de treinos e no detalhe do dia.'
+        ]
+      },
       {
         version: '2.9.3', date: '2026-08-24',
         highlights: [
@@ -1248,10 +1277,12 @@
     let hintsSeen = Object.assign({ swipe: false, swap: false }, loadJSON(HINTS_KEY)); // controla as dicas de descoberta (mostradas só até o usuário ver/usar cada recurso)
 
     // ---------- NOVOS ARMAZENAMENTOS (v2.5.0) ----------
+    const WORKOUT_META_KEY = 'treino_workout_meta'; // { 'YYYY-MM-DD': { inicio, fim, minutos } }
     const DRAFT_KEY = 'treino_workout_draft';    // rascunho do treino em andamento (protege contra o app ser fechado no meio)
     const SESSIONS_KEY = 'treino_session_log';   // histórico completo de sessões, uma entrada por exercício por dia
     const SETTINGS_KEY = 'treino_settings';      // preferências: descanso, som, vibração, lembrete
 
+    let workoutMeta = loadJSON(WORKOUT_META_KEY);
     let sessionLog = loadJSON(SESSIONS_KEY);     // { historyKey: [ { date, ...dados }, ... ] } — ordem cronológica
     let settings = Object.assign({
       restSeconds: 90,
@@ -1271,7 +1302,7 @@
       'treino_water_log', 'treino_daily_completion', 'treino_hints_seen', 'treino_profiles',
       'treino_active_profile_id', 'treino_last_seen_version', 'treino_session_log',
       'treino_settings', 'treino_workout_draft', 'treino_last_backup_at',
-      'treino_last_backup_nag', 'treino_optional_migrated'
+      'treino_last_backup_nag', 'treino_optional_migrated', 'treino_workout_meta'
     ];
 
     function buildBackupObject() {
@@ -2927,7 +2958,10 @@
 
     // Cada exercício reserva tem sua própria trilha de histórico, separada do exercício
     // base — assim trocar de reserva não sobrescreve o progresso de carga/reps de nenhum dos dois.
-    function getHistoryKey(exId, variantIndex) {
+    function getHistoryKey(exId, variantIndex, customName) {
+      // troca avulsa: trilha propria por nome, para nao misturar o historico do slot com o
+      // de um exercicio que so entrou uma vez
+      if (customName) return `custom__${normalizeExerciseName(customName).replace(/[^a-z0-9]+/g, '_')}`;
       return variantIndex ? `${exId}__v${variantIndex}` : exId;
     }
 
@@ -2959,10 +2993,6 @@
     }
 
     // Recorde pessoal = maior carga já registrada; empate na carga é desempatado por repetições.
-    function getPersonalRecord(historyKey) {
-      return getPersonalRecordFromList(sessionLog[historyKey]);
-    }
-
     function getPersonalRecordFromList(list) {
       if (!list || list.length === 0) return null;
       let best = null;
@@ -3044,15 +3074,39 @@
     }
 
     // ---------- MARCADOR PERSISTENTE DE "HORA DE SUBIR CARGA" ----------
+    // Referencia da ultima vez que voce fez este exercicio. Antes o badge so aparecia acima de
+    // 10 repeticoes, entao na faixa de 6 a 10 — a mais comum em hipertrofia — o card nao
+    // mostrava nada: a carga vinha preenchida, mas as REPETICOES que voce conseguiu ficavam
+    // invisiveis, e e esse numero que diz se houve progresso. Agora aparece sempre, mudando
+    // apenas o tom e a sugestao.
     function getPersistentLoadBadge(exId, name) {
       const proprio = !!exerciseHistory[exId];
       const h = getLastSessionForExercise(exId, name);
-      if (!h) return '';
+      if (!h || h.type === 'cardio') return '';
+
       const r = parseInt(h.reps, 10);
-      if (isNaN(r) || r <= 10) return '';
+      const temReps = !isNaN(r) && r > 0;
       const origem = proprio ? '' : ' <span class="opacity-70">(de outro plano)</span>';
-      return `<div class="fade-badge mb-3 text-amber-300 bg-amber-950/40 border border-amber-700/60 px-3 py-2 rounded-xl text-xs font-black flex items-center space-x-2">
-        <span>📈 Última sessão (${escapeHtml(h.date)}): ${escapeHtml(h.reps)} reps com ${escapeHtml(h.weight)}kg. Hora de subir a carga!${origem}</span>
+      const series = h.sets ? `${escapeHtml(h.sets)}x` : '';
+      const marca = `${series}${escapeHtml(h.reps)} com ${escapeHtml(h.weight)}kg`;
+
+      let cor, sugestao;
+      if (!temReps) {
+        cor = 'text-slate-300 bg-slate-950/60 border-slate-700';
+        sugestao = '';
+      } else if (r > 10) {
+        cor = 'text-amber-300 bg-amber-950/40 border-amber-700/60';
+        sugestao = ' Hora de subir a carga!';
+      } else if (r >= 8) {
+        cor = 'text-blue-300 bg-blue-950/40 border-blue-800/60';
+        sugestao = ' Tente somar mais uma repetição.';
+      } else {
+        cor = 'text-slate-300 bg-slate-950/60 border-slate-700';
+        sugestao = ' Busque chegar a 8 antes de subir a carga.';
+      }
+
+      return `<div class="fade-badge mb-3 ${cor} border px-3 py-2 rounded-xl text-xs font-black flex items-center space-x-2">
+        <span>📈 Última vez (${escapeHtml(formatDateBR(h.date))}): ${marca}.${sugestao}${origem}</span>
       </div>`;
     }
 
@@ -3063,7 +3117,7 @@
       const distancePart = h.distance ? `, ${escapeHtml(h.distance)}km` : '';
       const origem = proprio ? '' : ' <span class="opacity-70">(de outro plano)</span>';
       return `<div class="fade-badge mb-3 text-cyan-300 bg-cyan-950/40 border border-cyan-700/60 px-3 py-2 rounded-xl text-xs font-black flex items-center space-x-2">
-        <span>🏃 Última sessão (${escapeHtml(h.date)}): ${escapeHtml(h.duration)}min${distancePart}${origem}</span>
+        <span>🏃 Última vez (${escapeHtml(formatDateBR(h.date))}): ${escapeHtml(h.duration)}min${distancePart}${origem}</span>
       </div>`;
     }
 
@@ -3075,6 +3129,7 @@
 
     function saveDraft() {
       if (!activeWorkoutKey) return;
+      markWorkoutStart(); // qualquer edicao de valor conta como treino em andamento
       // grava em lote: evita escrever no disco a cada toque nos botões de +/-
       clearTimeout(draftSaveTimer);
       draftSaveTimer = setTimeout(saveDraftNow, 400);
@@ -3125,15 +3180,20 @@
           // NOME sempre vem do plano atual — senão renomear um exercício com rascunho aberto
           // deixaria o card preso no nome antigo. Se a reserva escolhida foi apagada do plano,
           // volta para o exercício base.
-          const backups = (ex.backups || []).filter(b => b && b.name && b.name.trim());
-          let vIdx = drafted.variantIndex || 0;
-          if (vIdx > backups.length) vIdx = 0;
-          const source = vIdx === 0 ? ex : backups[vIdx - 1];
-          formData[ex.id] = Object.assign({}, drafted, {
-            name: source.name,
-            variantIndex: vIdx,
-            done: doneToday
-          });
+          if (drafted.customName) {
+            // troca avulsa do dia: o nome nao vem do plano, entao e preservado como esta
+            formData[ex.id] = Object.assign({}, drafted, { done: doneToday });
+          } else {
+            const backups = (ex.backups || []).filter(b => b && b.name && b.name.trim());
+            let vIdx = drafted.variantIndex || 0;
+            if (vIdx > backups.length) vIdx = 0;
+            const source = vIdx === 0 ? ex : backups[vIdx - 1];
+            formData[ex.id] = Object.assign({}, drafted, {
+              name: source.name,
+              variantIndex: vIdx,
+              done: doneToday
+            });
+          }
         } else {
           const type = ex.type === 'cardio' ? 'cardio' : 'forca';
           // sem histórico próprio, aproveita o do mesmo exercício em outro perfil
@@ -3191,13 +3251,14 @@
       if (!exDef || !state) return;
       const backups = (exDef.backups || []).filter(b => b && b.name && b.name.trim());
       if (backups.length === 0) {
-        showToast('⚠️ Nenhum exercício reserva cadastrado para este slot. Cadastre em Planos > Editar.');
+        openSwapPicker(exId); // sem reservas: oferece a biblioteca inteira, ali mesmo
         return;
       }
       if (!hintsSeen.swap) {
         hintsSeen.swap = true;
         saveJSON(HINTS_KEY, hintsSeen);
       }
+      delete state.customName; // voltar ao ciclo do plano encerra a troca avulsa
       const currentVariant = state.variantIndex || 0;
       const nextVariant = (currentVariant + 1) % (backups.length + 1); // 0 = original, 1..n = reservas
       const source = nextVariant === 0 ? exDef : backups[nextVariant - 1];
@@ -3208,7 +3269,7 @@
 
       // cada variante (original/reserva 1/reserva 2) tem seu próprio histórico salvo —
       // se já existe um, usa ele (continuidade de progressão daquela reserva específica)
-      const historyKey = getHistoryKey(exId, nextVariant);
+      const historyKey = getHistoryKey(exId, nextVariant, null);
       const savedForVariant = exerciseHistory[historyKey];
 
       if (savedForVariant && savedForVariant.type === newType) {
@@ -3235,7 +3296,7 @@
         const isCollapsed = collapsedIds.has(ex.id);
         const hasBackups = (ex.backups || []).some(b => b && b.name && b.name.trim());
         const wasSwapping = !!state.swapping;
-        const historyKey = getHistoryKey(ex.id, state.variantIndex || 0);
+        const historyKey = getHistoryKey(ex.id, state.variantIndex || 0, state.customName);
         const restSegundos = getRestSecondsFor(ex);
         state.swapping = false;
 
@@ -3318,6 +3379,9 @@
             <button type="button" onclick="openExerciseProgress('${historyKey}', '${escapeJs(state.name)}')" class="flex-1 bg-slate-950/60 border border-slate-700 active:border-emerald-600 text-slate-300 active:text-emerald-300 text-[11px] font-black py-2.5 rounded-xl transition-all active:scale-[0.98] flex items-center justify-center gap-1.5">
               <span>📊</span> Evolução
             </button>
+            <button type="button" onclick="openSwapPicker('${ex.id}')" title="Trocar por outro exercício" class="flex-shrink-0 w-11 h-11 bg-slate-950/60 border border-slate-700 active:border-amber-600 text-slate-300 active:text-amber-300 rounded-xl transition-all active:scale-[0.98] flex items-center justify-center">
+              <span class="text-sm">🔍</span>
+            </button>
           </div>
         `;
 
@@ -3386,6 +3450,7 @@
       const state = formData[exId];
       if (!state) return;
       state.done = !state.done;
+      if (state.done) markWorkoutStart();
 
       // pelo botão redondo, concluir marca todas as séries e reabrir limpa todas
       if (state.type !== 'cardio' && !seriesJaAjustadas) {
@@ -3489,7 +3554,7 @@
       workout.exercises.forEach(ex => {
         const state = formData[ex.id];
         if (state) {
-          const historyKey = getHistoryKey(ex.id, state.variantIndex || 0);
+          const historyKey = getHistoryKey(ex.id, state.variantIndex || 0, state.customName);
           // nome garantido no momento da gravacao: um exercicio sem nome no plano deixaria
           // o historico com uma linha muda para sempre
           if (!state.name || !String(state.name).trim()) {
@@ -3520,8 +3585,11 @@
         }
       });
 
-      if (totalVolume > 0) {
-        report += `---------------------------------------------\nVolume total: ${Math.round(totalVolume).toLocaleString('pt-BR')} kg\n`;
+      const minutos = markWorkoutEnd();
+      if (totalVolume > 0 || minutos) {
+        report += '---------------------------------------------\n';
+        if (totalVolume > 0) report += `Volume total: ${Math.round(totalVolume).toLocaleString('pt-BR')} kg\n`;
+        if (minutos) report += `Duração: ${formatDuration(minutos)}\n`;
       }
 
       saveJSON(COMPLETION_KEY, dailyCompletion);
@@ -3678,6 +3746,143 @@
       showToast('📋 Plano duplicado! Abra para renomear e ajustar.');
     };
 
+    // ---------- DURACAO DO TREINO ----------
+    // O inicio e marcado na primeira acao real do dia (ajustar um valor, concluir uma serie),
+    // nao na abertura do app: abrir para conferir o treino de amanha nao deve iniciar
+    // cronometragem. O fim e o momento de finalizar.
+    function markWorkoutStart() {
+      const hoje = todayKey();
+      if (workoutMeta[hoje] && workoutMeta[hoje].inicio) return;
+      workoutMeta[hoje] = Object.assign({}, workoutMeta[hoje], { inicio: new Date().toISOString() });
+      saveJSON(WORKOUT_META_KEY, workoutMeta);
+    }
+
+    function markWorkoutEnd() {
+      const hoje = todayKey();
+      const meta = workoutMeta[hoje];
+      if (!meta || !meta.inicio) return null;
+      const fim = new Date();
+      const minutos = Math.max(1, Math.round((fim - new Date(meta.inicio)) / 60000));
+      // um treino nao dura mais que um dia; valores absurdos indicam app aberto esquecido
+      workoutMeta[hoje] = Object.assign({}, meta, {
+        fim: fim.toISOString(),
+        minutos: minutos > 480 ? null : minutos
+      });
+      saveJSON(WORKOUT_META_KEY, workoutMeta);
+      return workoutMeta[hoje].minutos;
+    }
+
+    function formatDuration(minutos) {
+      if (!minutos || minutos <= 0) return '';
+      const h = Math.floor(minutos / 60);
+      const m = minutos % 60;
+      return h > 0 ? `${h}h${String(m).padStart(2, '0')}` : `${m}min`;
+    }
+
+    // ---------- TROCA AVULSA POR QUALQUER EXERCICIO DA BIBLIOTECA ----------
+    // Antes so dava para alternar entre as reservas cadastradas no plano. Sem reserva, a
+    // unica saida era ir em Planos > Editar no meio do treino — com o aparelho ocupado e a
+    // academia cheia. Aqui a troca vale so para o dia, sem tocar no plano.
+    let swapPickerExId = null;
+
+    window.openSwapPicker = function(exId) {
+      swapPickerExId = exId;
+      const state = formData[exId];
+      if (!state) return;
+      document.getElementById('swapPickerCurrent').textContent = state.name || 'Exercício';
+      const busca = document.getElementById('swapPickerSearch');
+      busca.value = '';
+      renderSwapPickerList('');
+      document.getElementById('swapPickerOverlay').classList.remove('hidden');
+      // no celular, abrir o teclado sozinho tampa a lista; deixa o usuario decidir
+    };
+
+    window.closeSwapPicker = function() {
+      swapPickerExId = null;
+      document.getElementById('swapPickerOverlay').classList.add('hidden');
+    };
+
+    window.renderSwapPickerList = function(termo) {
+      const alvo = normalizeExerciseName(termo || '');
+      const lista = document.getElementById('swapPickerList');
+      const exDef = swapPickerExId ? getExerciseDef(swapPickerExId) : null;
+
+      // reservas do proprio slot aparecem primeiro: continuam sendo o caminho rapido
+      const reservas = ((exDef && exDef.backups) || [])
+        .filter(b => b && b.name && b.name.trim())
+        .map(b => ({ nome: b.name, grupo: 'Reserva deste exercício', reserva: true }));
+
+      const daBiblioteca = [];
+      Object.keys(EXERCISE_LIBRARY).forEach(grupo => {
+        EXERCISE_LIBRARY[grupo].forEach(nome => {
+          daBiblioteca.push({ nome, grupo, reserva: false });
+        });
+      });
+
+      const filtrados = reservas.concat(daBiblioteca).filter(item =>
+        !alvo || normalizeExerciseName(item.nome).includes(alvo) || normalizeExerciseName(item.grupo).includes(alvo)
+      );
+
+      if (filtrados.length === 0) {
+        lista.innerHTML = `<p class="text-xs text-slate-600 text-center py-6">Nenhum exercício encontrado.</p>`;
+        return;
+      }
+
+      lista.innerHTML = filtrados.slice(0, 60).map(item => `
+        <button type="button" onclick="applySwapPick('${escapeJs(item.nome)}')" class="w-full text-left bg-slate-950/50 active:bg-slate-800/60 rounded-xl px-3 py-2.5 border ${item.reserva ? 'border-amber-800/50' : 'border-slate-800/60'} transition-all active:scale-[0.99]">
+          <p class="text-xs font-bold text-white truncate">${escapeHtml(item.nome)}</p>
+          <p class="text-[9px] ${item.reserva ? 'text-amber-400' : 'text-slate-600'} font-bold uppercase tracking-wider">${escapeHtml(item.grupo)}</p>
+        </button>`).join('');
+    };
+
+    window.applySwapPick = function(nome) {
+      const exId = swapPickerExId;
+      const state = formData[exId];
+      if (!state || !nome) return;
+
+      const exDef = getExerciseDef(exId);
+      const reservas = ((exDef && exDef.backups) || []).filter(b => b && b.name && b.name.trim());
+      const idxReserva = reservas.findIndex(b => normalizeExerciseName(b.name) === normalizeExerciseName(nome));
+      const ehOriginal = exDef && normalizeExerciseName(exDef.name) === normalizeExerciseName(nome);
+
+      const novoTipo = isCardioExerciseName(nome) ? 'cardio' : 'forca';
+
+      if (ehOriginal) {
+        state.variantIndex = 0;
+        delete state.customName;
+      } else if (idxReserva >= 0) {
+        state.variantIndex = idxReserva + 1;   // trilha propria da reserva, como antes
+        delete state.customName;
+      } else {
+        // exercicio fora do plano: ganha trilha propria de historico, identificada pelo nome.
+        // Como a leitura casa por nome desde a 2.8.0, a evolucao dele continua junta com a
+        // dos outros planos onde o mesmo exercicio aparece.
+        state.customName = nome;
+        state.variantIndex = 0;
+      }
+
+      state.name = nome;
+
+      // recupera o que foi feito da ultima vez neste exercicio, venha de onde vier
+      const chave = getHistoryKey(exId, state.variantIndex || 0, state.customName);
+      const salvo = getLastSessionForExercise(chave, nome);
+      if (salvo && salvo.type === novoTipo) {
+        if (novoTipo === 'cardio') { state.duration = salvo.duration; state.distance = salvo.distance || 0; }
+        else { state.sets = salvo.sets; state.reps = salvo.reps; state.weight = salvo.weight; }
+      } else if (novoTipo !== state.type) {
+        if (novoTipo === 'cardio') { state.duration = 20; state.distance = 0; }
+        else { state.sets = 3; state.reps = 10; state.weight = 0; }
+      }
+      state.type = novoTipo;
+      state.seriesDone = [];         // exercicio novo comeca com as series zeradas
+      state.swapping = true;
+
+      saveDraftNow();
+      closeSwapPicker();
+      renderExerciseCard(exId);
+      showToast(`🔄 Trocado por ${nome} (só para hoje).`);
+    };
+
     // ---------- BIBLIOTECA DE EXERCICIOS (datalist) ----------
     function buildExerciseDatalist() {
       const dl = document.getElementById('exerciseLibraryList');
@@ -3798,10 +4003,6 @@
       return ajustado;
     }
 
-    function countSeriesDone(state) {
-      return getSeriesDone(state).filter(Boolean).length;
-    }
-
     window.toggleSerie = function(exId, index) {
       const state = formData[exId];
       if (!state || state.type === 'cardio') return;
@@ -3810,6 +4011,7 @@
       if (index < 0 || index >= series.length) return;
 
       const marcando = !series[index];
+      if (marcando) markWorkoutStart();
       series[index] = marcando;
       state.seriesDone = series;
 
@@ -3887,6 +4089,7 @@
         const workoutKey = checkins[date];
         porData[date].workoutKey = workoutKey || null;
         porData[date].workoutName = resolveWorkoutName(workoutKey, date);
+        porData[date].minutos = (workoutMeta[date] && workoutMeta[date].minutos) || null;
       });
 
       return Object.values(porData).sort((a, b) => b.date.localeCompare(a.date)); // mais recente primeiro
@@ -3992,7 +4195,7 @@
         return `<button type="button" onclick="openWorkoutDay('${dia.date}')" class="w-full text-left bg-slate-950/50 active:bg-slate-800/60 rounded-xl px-3 py-2.5 border border-slate-800/60 transition-all active:scale-[0.99] flex items-center justify-between gap-3">
           <div class="min-w-0">
             <p class="text-xs font-bold text-white truncate">${escapeHtml(capitalizar(formatDateWithWeekday(dia.date)))}</p>
-            <p class="text-[10px] text-slate-500 font-semibold truncate">${escapeHtml(dia.workoutName)} · ${qtd} exercício${qtd > 1 ? 's' : ''}</p>
+            <p class="text-[10px] text-slate-500 font-semibold truncate">${escapeHtml(dia.workoutName)} · ${qtd} exercício${qtd > 1 ? 's' : ''}${dia.minutos ? ` · ${formatDuration(dia.minutos)}` : ''}</p>
           </div>
           <div class="flex items-center gap-2 flex-shrink-0">
             <span class="text-[10px] font-black text-blue-300">${volumeTxt}</span>
@@ -4067,6 +4270,10 @@
             <p class="text-[9px] text-slate-600 font-bold uppercase tracking-wider">Volume total</p>
           </div>
         </div>
+        ${dia.minutos ? `<div class="bg-slate-950/50 border border-slate-800 rounded-xl px-3 py-2.5 text-center mt-2">
+          <p class="text-lg font-black text-white">${formatDuration(dia.minutos)}</p>
+          <p class="text-[9px] text-slate-600 font-bold uppercase tracking-wider">Duração do treino</p>
+        </div>` : ''}
         ${bloco('Força', forca)}
         ${bloco('Cardio', cardio)}
       `;
@@ -4081,7 +4288,11 @@
           if (e.obs) txt += ` [Nota: ${e.obs}]`;
           txt += '\n';
         });
-        if (dia.volume > 0) txt += `---------------------------------------------\nVolume total: ${Math.round(dia.volume).toLocaleString('pt-BR')} kg\n`;
+        if (dia.volume > 0 || dia.minutos) {
+          txt += '---------------------------------------------\n';
+          if (dia.volume > 0) txt += `Volume total: ${Math.round(dia.volume).toLocaleString('pt-BR')} kg\n`;
+          if (dia.minutos) txt += `Duração: ${formatDuration(dia.minutos)}\n`;
+        }
         const ok = await copyTextToClipboard(txt);
         showToast(ok ? 'Resumo copiado!' : '❌ Não foi possível copiar.');
       };
