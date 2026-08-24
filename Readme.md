@@ -1,5 +1,37 @@
 # Changelog — Treino Personalizado
 
+## [2.9.2] - 2026-08-22
+### Adicionado
+- **Dias opcionais no plano** (`toggleEditorDayOptional()`, `renderEditorDayOptional()`,
+  campo `optional` por dia do schedule). A 2.8.0 fez `isRestDay()` reconhecer descanso, mas
+  pelo unico criterio disponivel na epoca: dia **sem exercicios**. O plano padrao traz
+  "Domingo: Extra (Opcional)" **com** exercicios cadastrados, entao quem nao treina domingo
+  continuava tendo a sequencia zerada — relatado em uso real. Agora um dia nao quebra a
+  sequencia quando esta vazio **ou** quando foi marcado como opcional, o que separa "nao ha
+  nada para fazer" de "ha, mas e dispensavel"
+- O editor mostra a consequencia da escolha em texto direto ("Se voce nao treinar neste dia,
+  sua sequencia sera zerada" x "Nao fazer este treino nao vai quebrar sua sequencia"), e a
+  barra de dias marca o dia com "(Opcional)"
+- `migrateOptionalDays()`: marca uma unica vez os dias cujo proprio nome ou foco ja se
+  declara opcional, o que conserta planos existentes sem exigir acao do usuario. A sequencia
+  e derivada dos check-ins a cada render, entao o contador se recupera sozinho
+- `duplicateProfile()` passou a copiar `optional` junto com o resto do dia
+
+### Corrigido
+- **Exercicios sem nome no detalhe do dia** (relatado em uso real: "mostra apenas o volume de
+  carga e series/peso"). Entradas do log gravadas sem `name` — exercicio adicionado ao plano
+  sem preencher o nome, ja que `addExerciseRow()` cria com `name: ''` — renderizavam um
+  paragrafo vazio ao lado dos numeros. Reproduzido em teste antes da correcao.
+  `resolveExerciseName()` recupera o nome consultando os planos pelo ID contido na chave do
+  log (inclusive o sufixo `__vN` das reservas, e varrendo **todos** os perfis, ja que o
+  registro pode ser de outro plano). Sem correspondencia, exibe "Exercicio sem nome" em
+  italico esmaecido, em vez de uma linha muda
+- `finalizeWorkout()` passou a garantir um nome no momento da gravacao, para o problema nao
+  se repetir em registros novos
+
+### Alterado
+- `CACHE_NAME`: `treino-cache-v26` -> `treino-cache-v27`
+
 ## [2.9.1] - 2026-08-22
 ### Corrigido
 - **Historico exibia o dia da semana errado** (relatado em uso real: treino de sabado
