@@ -1,5 +1,40 @@
 # Changelog — Treino Personalizado
 
+## [2.10.0] - 2026-08-24
+### Alterado
+- **Badge da ultima sessao agora aparece sempre** (`getPersistentLoadBadge()`). A condicao
+  `if (isNaN(r) || r <= 10) return ''` limitava a referencia aos casos acima de 10
+  repeticoes, entao na faixa de 6 a 10 — a mais usada em hipertrofia — o card nao exibia
+  nada. A carga vinha pre-preenchida, mas as **repeticoes** da sessao anterior ficavam
+  invisiveis, e e esse numero que indica progresso. O badge passa a mostrar
+  series x reps x carga com a data formatada, variando apenas o tom e a sugestao: acima de
+  10 sugere subir a carga, de 8 a 10 sugere somar uma repeticao, abaixo de 8 sugere
+  consolidar antes de subir. Exercicios de cardio continuam com o badge proprio
+
+### Adicionado
+- **Troca avulsa por qualquer exercicio da biblioteca** (`openSwapPicker()`,
+  `renderSwapPickerList()`, `applySwapPick()`). `swapExercise()` so ciclava entre reservas
+  cadastradas; sem nenhuma, a mensagem mandava editar o plano — no meio do treino, com o
+  aparelho ocupado. Agora o card tem uma lupa que abre a biblioteca com busca, e o botao de
+  ciclo tambem cai nela quando nao ha reservas. As reservas do proprio slot aparecem no topo
+  da lista, destacadas
+- A troca **nao altera o plano**: vive no rascunho do dia (`state.customName`), e
+  `initializeWorkoutData()` preserva esse nome ao restaurar, em vez de sobrescrever com o do
+  plano. `getHistoryKey()` ganhou um terceiro parametro e passa a devolver `custom__<nome>`
+  nesses casos, dando trilha propria ao exercicio avulso em vez de misturar o registro com o
+  historico do slot. Como a leitura casa por nome desde a 2.8.0, a evolucao dele continua
+  reunida com a dos outros planos
+- **Duracao do treino** (`markWorkoutStart()`, `markWorkoutEnd()`, `formatDuration()`,
+  `treino_workout_meta`). O inicio e marcado na primeira acao real — ajustar um valor ou
+  concluir uma serie — e nao na abertura do app, para que consultar o treino de amanha nao
+  inicie cronometragem. Sessoes acima de 8h sao descartadas como app esquecido aberto.
+  Exibida no resumo do treino, na lista de treinos realizados e no detalhe do dia
+
+### Removido
+- `countSeriesDone()` e `getPersonalRecord()`: declaradas nas versoes 2.7.0 e 2.8.0 e nunca
+  chamadas — a primeira porque a contagem acabou feita inline, a segunda por ter sido
+  substituida por `getPersonalRecordFromList()`
+
 ## [2.9.3] - 2026-08-24
 ### Corrigido
 - **`registration.update()` gerava uma promise rejeitada sem tratamento quando offline.** O
