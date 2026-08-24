@@ -6,6 +6,39 @@ Todas as mudanças relevantes do app ficam registradas aqui. Ao lançar uma nova
    atualizar o app instalado
 3. Adicione uma entrada aqui, nesse formato
 
+## [2.9.3] - 2026-08-24
+### Corrigido
+- **`registration.update()` gerava uma promise rejeitada sem tratamento quando offline.** O
+  `.catch()` existente cobria apenas `navigator.serviceWorker.register()`; a promise devolvida
+  por `update()` dentro do `.then()` nao era retornada nem tratada, entao sem rede o console
+  registrava `Uncaught (in promise) TypeError: Failed to update a ServiceWorker`. O app
+  continuava funcionando normalmente — mas uma rejeicao nao tratada pode acionar handlers
+  globais de erro e, num app instalado, ruido de console e a unica pista quando algo de fato
+  quebra. Agora `update()` tem `.catch()` proprio
+
+### Notas — verificacao de funcionamento offline
+- Auditoria estatica: **nenhum recurso externo**. Zero `src`/`href` apontando para http(s),
+  zero `fetch`/`XMLHttpRequest`, nenhum `@import` ou `url()` remoto no CSS. Tailwind, fontes,
+  icones e graficos sao todos locais ou gerados em tempo de execucao (SVG por
+  `renderSparkline()`, som por WebAudio)
+- Teste com o servidor **desligado**: o app carrega, mantem perfil, check-ins, XP e sessoes,
+  e permanecem funcionais o registro de carga, o rascunho, a marcacao de series, o cronometro
+  de descanso, o audio, a finalizacao de treino, os graficos de evolucao e de peso, o
+  historico por data, o resumo do dia, as confirmacoes e a geracao do arquivo de backup
+  (`Blob`/`URL.createObjectURL` sao APIs locais)
+- Estrategia do service worker permanece adequada: network-first para o documento (busca
+  versao nova quando ha rede, cai para o cache quando nao ha) e cache-first para manifest e
+  icones
+- **`cache.addAll()` podia gravar uma versao antiga do app no cache offline.** Descoberto
+  durante a verificacao: apos publicar uma versao nova, o cache do service worker continha o
+  `index.html` anterior. A causa e que `addAll()` faz requisicoes comuns, sujeitas ao cache
+  HTTP do proprio navegador — entao o cache offline nascia com o que o navegador ja tinha
+  guardado, nao com o que o servidor estava entregando. Com rede o problema ficava invisivel
+  (a estrategia e network-first), mas **sem rede o usuario receberia a versao antiga**, que e
+  justamente quando o cache importa. Os assets passam a ser buscados com
+  `new Request(url, { cache: 'reload' })`, que ignora o cache HTTP ao popular
+- `CACHE_NAME`: `treino-cache-v27` -> `treino-cache-v29`
+
 ## [2.9.2] - 2026-08-22
 ### Adicionado
 - **Dias opcionais no plano** (`toggleEditorDayOptional()`, `renderEditorDayOptional()`,

@@ -853,11 +853,18 @@
   </div>
 
   <script>
-    const APP_VERSION = '2.9.2'; // manter sincronizado com CACHE_NAME em sw.js e com o CHANGELOG.md
+    const APP_VERSION = '2.9.3'; // manter sincronizado com CACHE_NAME em sw.js e com o CHANGELOG.md
 
     // ---------- NOVIDADES (tela para testadores — só experiência do usuário, sem termos técnicos) ----------
     // Detalhes técnicos ficam só no CHANGELOG.md interno. Ordem: mais recente primeiro.
     const RELEASE_NOTES = [
+      {
+        version: '2.9.3', date: '2026-08-24',
+        highlights: [
+          '📴 <strong>Funcionamento sem internet verificado.</strong> O app foi testado com a conexão totalmente cortada: abre, registra treino, cronômetro, gráficos, histórico e backup — tudo funciona igual. Ele não depende de nada da internet para rodar.',
+          '🔧 Corrigido um erro interno que aparecia quando o app era aberto sem conexão. Não afetava o uso, mas era registrado como falha.'
+        ]
+      },
       {
         version: '2.9.2', date: '2026-08-22',
         highlights: [
@@ -4607,8 +4614,10 @@
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
         navigator.serviceWorker.register('sw.js').then((registration) => {
-          // força uma verificação de atualização toda vez que o app é aberto
-          registration.update();
+          // Verifica se ha versao nova toda vez que o app abre. Offline isso SEMPRE falha, e
+          // sem o catch a promise rejeitada aparecia no console como erro nao tratado — o
+          // app funcionava, mas parecia quebrado para quem olhasse o console.
+          registration.update().catch(() => { /* sem rede: segue com a versao em cache */ });
 
           // se já existe um service worker esperando (versão nova pronta), ativa na hora
           if (registration.waiting) {

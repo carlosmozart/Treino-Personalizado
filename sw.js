@@ -1,4 +1,4 @@
-const CACHE_NAME = 'treino-cache-v27';
+const CACHE_NAME = 'treino-cache-v29';
 const ASSETS = [
   './',
   './index.html',
@@ -9,7 +9,13 @@ const ASSETS = [
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => cache.addAll(ASSETS))
+    caches.open(CACHE_NAME).then((cache) =>
+      // `cache: 'reload'` obriga cada arquivo a vir da rede ao popular o cache. Sem isso o
+      // navegador pode entregar sua propria copia HTTP ja armazenada, e o cache do service
+      // worker nasce com uma versao ANTIGA do app — que so apareceria quando o usuario
+      // ficasse sem internet, exatamente quando ele depende do cache.
+      cache.addAll(ASSETS.map((url) => new Request(url, { cache: 'reload' })))
+    )
   );
   self.skipWaiting();
 });
