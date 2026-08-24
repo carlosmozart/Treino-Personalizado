@@ -147,6 +147,7 @@
     .rounded-md { border-radius: 0.375rem; }
     .w-3 { width: 0.75rem; }
     .w-24 { width: 6rem; }
+    .bg-slate-950\/40 { background-color: rgba(2, 6, 23, 0.4); }
     .border-blue-800\/40 { border-color: rgba(30, 64, 175, 0.4); }
   </style>
 </head>
@@ -517,6 +518,14 @@
           <span class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Exercícios</span>
           <span id="editorExerciseCount" class="text-[10px] font-black text-blue-300">0/10</span>
         </div>
+        <div class="bg-slate-950/40 border border-slate-800 rounded-xl px-3 py-2.5 mb-3 flex items-center justify-between gap-3">
+          <div class="min-w-0">
+            <p class="text-xs font-bold text-slate-300">Dia opcional</p>
+            <p id="editorDayOptionalText" class="text-[10px] text-slate-600 mt-0.5"></p>
+          </div>
+          <button type="button" id="editorDayOptionalToggle" onclick="toggleEditorDayOptional()" aria-pressed="false" class="relative w-11 h-6 rounded-full bg-slate-700 transition-all duration-200 flex-shrink-0"></button>
+        </div>
+
         <div id="editorExerciseList" class="space-y-2"></div>
         <button type="button" id="btnAddExerciseRow" onclick="addExerciseRow()" class="w-full bg-blue-950/40 hover:bg-blue-900/60 border border-blue-800/50 text-blue-300 font-bold text-xs py-2.5 rounded-xl transition-all active:scale-95">+ Adicionar Exercício</button>
       </div>
@@ -844,11 +853,19 @@
   </div>
 
   <script>
-    const APP_VERSION = '2.9.1'; // manter sincronizado com CACHE_NAME em sw.js e com o CHANGELOG.md
+    const APP_VERSION = '2.9.2'; // manter sincronizado com CACHE_NAME em sw.js e com o CHANGELOG.md
 
     // ---------- NOVIDADES (tela para testadores — só experiência do usuário, sem termos técnicos) ----------
     // Detalhes técnicos ficam só no CHANGELOG.md interno. Ordem: mais recente primeiro.
     const RELEASE_NOTES = [
+      {
+        version: '2.9.2', date: '2026-08-22',
+        highlights: [
+          '🔥 <strong>Dias opcionais não quebram mais sua sequência.</strong> Agora cada dia do plano pode ser marcado como opcional em Planos > Editar. Se você não treinar num dia marcado assim, a sequência continua de onde parou. Era esse o motivo de o contador zerar para quem não treina domingo: o dia "Domingo: Extra (Opcional)" tem exercícios cadastrados, então o app o tratava como treino obrigatório.',
+          '✅ <strong>Seu domingo já foi marcado automaticamente.</strong> Dias cujo nome diz "opcional" foram ajustados sozinhos nesta atualização — sua sequência deve voltar a contar assim que você abrir o app.',
+          '🐛 <strong>Corrigido: exercícios apareciam sem nome no histórico.</strong> Ao abrir um dia em Perfil > Progresso, algumas linhas mostravam só a carga e as séries. Agora o app recupera o nome pelo exercício do plano, e nomes em branco não são mais gravados.'
+        ]
+      },
       {
         version: '2.9.1', date: '2026-08-22',
         highlights: [
@@ -1247,7 +1264,7 @@
       'treino_water_log', 'treino_daily_completion', 'treino_hints_seen', 'treino_profiles',
       'treino_active_profile_id', 'treino_last_seen_version', 'treino_session_log',
       'treino_settings', 'treino_workout_draft', 'treino_last_backup_at',
-      'treino_last_backup_nag'
+      'treino_last_backup_nag', 'treino_optional_migrated'
     ];
 
     function buildBackupObject() {
@@ -1484,6 +1501,26 @@
     let profiles = loadJSON(PROFILES_KEY);
     let activeProfileId = loadString(ACTIVE_PROFILE_KEY);
 
+    // Planos criados antes da marcacao existir podem ter dias claramente dispensaveis — o
+    // padrao traz "Domingo: Extra (Opcional)". Sem a marcacao, nao treinar nesse dia zerava a
+    // sequencia. Roda uma unica vez e so olha dias cujo proprio nome se declara opcional.
+    function migrateOptionalDays() {
+      if (loadString('treino_optional_migrated')) return;
+      let mudou = false;
+      Object.keys(profiles).forEach(pid => {
+        const sched = profiles[pid] && profiles[pid].schedule;
+        if (!sched) return;
+        DAY_ORDER.forEach(k => {
+          const dia = sched[k];
+          if (!dia || dia.optional) return;
+          const nome = (dia.name || '') + ' ' + (dia.focus || '');
+          if (/opcional/i.test(nome)) { dia.optional = true; mudou = true; }
+        });
+      });
+      if (mudou) saveJSON(PROFILES_KEY, profiles);
+      saveString('treino_optional_migrated', '1');
+    }
+
     function ensureProfilesSeeded() {
       if (Object.keys(profiles).length === 0) {
         const id = 'default';
@@ -1641,11 +1678,19 @@
     function renderEditorDayTabs() {
       const wrap = document.getElementById('editorDayTabs');
       wrap.innerHTML = DAY_ORDER.map(key => {
-        const hasExercises = editorState.schedule[key].exercises.length > 0;
+        const dia = editorState.schedule[key];
+        const hasExercises = dia.exercises.length > 0;
+        const isOptional = !!dia.optional && hasExercises;
         const isCurrent = key === editorState.currentDay;
-        return `<button type="button" onclick="selectEditorDay('${key}')" class="py-2 rounded-lg text-[10px] font-black uppercase transition-all ${
-          isCurrent ? 'bg-blue-600 text-white' : hasExercises ? 'bg-emerald-950/40 text-emerald-400 border border-emerald-800/50' : 'bg-slate-950 text-slate-500 border border-slate-800'
-        }">${key}</button>`;
+        // dia opcional recebe tom ambar: tem treino, mas nao quebra a sequencia se faltar
+        const cor = isCurrent
+          ? 'bg-blue-600 text-white'
+          : isOptional
+            ? 'bg-amber-950/40 text-amber-400 border border-amber-800/50'
+            : hasExercises
+              ? 'bg-emerald-950/40 text-emerald-400 border border-emerald-800/50'
+              : 'bg-slate-950 text-slate-500 border border-slate-800';
+        return `<button type="button" onclick="selectEditorDay('${key}')" title="${isOptional ? 'Dia opcional' : ''}" class="py-2 rounded-lg text-[10px] font-black uppercase transition-all ${cor}">${key}${isOptional ? '<span class="block text-[7px] leading-none">opc</span>' : ''}</button>`;
       }).join('');
     }
 
@@ -1665,7 +1710,8 @@
     }
 
     function renderExerciseEditorRows() {
-      renderDaysPerWeekWarning(); // a contagem de dias com exercícios pode ter mudado
+      renderDaysPerWeekWarning();
+      renderEditorDayOptional(); // a contagem de dias com exercícios pode ter mudado
       const day = editorState.schedule[editorState.currentDay];
       const listEl = document.getElementById('editorExerciseList');
       document.getElementById('editorExerciseCount').textContent = `${day.exercises.length}/${MAX_EXERCISES_PER_DAY}`;
@@ -1828,6 +1874,7 @@
       const prevDay = editorState.schedule[editorState.currentDay];
       prevDay.name = document.getElementById('editorDayName').value.trim() || prevDay.name;
       prevDay.focus = document.getElementById('editorDayFocus').value.trim();
+      // prevDay.optional ja e atualizado por toggleEditorDayOptional()
 
       const id = editorState.id || makeId('profile');
       profiles[id] = {
@@ -1893,7 +1940,7 @@
       document.getElementById('activeProfileLabel').textContent = profile.name;
       workoutSelect.innerHTML = DAY_ORDER.map(key => {
         const day = profile.schedule[key];
-        const restTag = day.exercises.length === 0 ? ' (Descanso)' : '';
+        const restTag = day.exercises.length === 0 ? ' (Descanso)' : (day.optional ? ' (Opcional)' : '');
         return `<option value="${key}">${DAY_FULL_NAMES[key]}: ${day.name.includes(':') ? day.name.split(':').slice(1).join(':').trim() : day.name}${restTag}</option>`;
       }).join('');
     }
@@ -2016,11 +2063,17 @@
     // contava dias corridos de calendário, então quem treinava de segunda a sexta via o
     // contador zerar todo sábado — e as conquistas de 7, 14, 30 e 100 eram inalcançáveis.
     // Agora a sequência conta TREINOS seguidos sem falhar: dias de descanso são pulados.
+    // Um dia nao quebra a sequencia quando: nao tem exercicio nenhum (descanso puro) OU foi
+    // marcado como opcional no plano. A segunda condicao existe porque um dia pode ter
+    // exercicios cadastrados e ainda assim ser dispensavel — caso do "Domingo: Extra
+    // (Opcional)", que antes zerava o contador de quem simplesmente nao treinava domingo.
     function isRestDay(dateObj) {
       const profile = getActiveProfile();
       if (!profile) return false;
       const workout = profile.schedule[DOW_TO_KEY[dateObj.getDay()]];
-      return !!workout && (workout.exercises || []).length === 0;
+      if (!workout) return false;
+      if (workout.optional) return true;
+      return (workout.exercises || []).length === 0;
     }
 
     const STREAK_MAX_LOOKBACK_DAYS = 730; // 2 anos: teto de segurança contra plano só de descanso
@@ -3430,6 +3483,11 @@
         const state = formData[ex.id];
         if (state) {
           const historyKey = getHistoryKey(ex.id, state.variantIndex || 0);
+          // nome garantido no momento da gravacao: um exercicio sem nome no plano deixaria
+          // o historico com uma linha muda para sempre
+          if (!state.name || !String(state.name).trim()) {
+            state.name = (ex.name && ex.name.trim()) ? ex.name : 'Exercício sem nome';
+          }
           let entry;
           if (state.type === 'cardio') {
             report += `> ${state.name}: ${state.duration}min${state.distance ? ` | ${state.distance}km` : ''}`;
@@ -3590,6 +3648,7 @@
         schedule[k] = {
           name: dia.name,
           focus: dia.focus,
+          optional: !!dia.optional,   // a marcacao de dia opcional acompanha a copia
           exercises: (dia.exercises || []).map(ex => Object.assign({}, ex, {
             id: makeId('ex'),                                  // ID novo: historico separado
             backups: (ex.backups || []).map(b => Object.assign({}, b))
@@ -3637,6 +3696,34 @@
     // ---------- DESCANSO POR EXERCICIO ----------
     // Agachamento pede bem mais descanso que rosca direta. Vazio = usa o tempo padrao
     // definido em Perfil > Dados, que continua sendo o comportamento de quem nao mexer aqui.
+    // ---------- DIA OPCIONAL ----------
+    window.toggleEditorDayOptional = function() {
+      const dia = editorState.schedule[editorState.currentDay];
+      dia.optional = !dia.optional;
+      renderEditorDayOptional();
+      renderEditorDayTabs();
+      renderDaysPerWeekWarning();
+    };
+
+    function renderEditorDayOptional() {
+      const dia = editorState.schedule[editorState.currentDay];
+      const btn = document.getElementById('editorDayOptionalToggle');
+      const txt = document.getElementById('editorDayOptionalText');
+      if (!btn || !txt) return;
+
+      const on = !!dia.optional;
+      const semExercicios = (dia.exercises || []).length === 0;
+      btn.setAttribute('aria-pressed', on ? 'true' : 'false');
+      btn.className = `relative w-11 h-6 rounded-full transition-all duration-200 flex-shrink-0 ${on ? 'bg-emerald-600' : 'bg-slate-700'}`;
+      btn.innerHTML = `<span class="absolute top-0.5 w-5 h-5 bg-white rounded-full shadow transition-all duration-200 ${on ? 'left-[1.375rem]' : 'left-0.5'}"></span>`;
+
+      txt.textContent = semExercicios
+        ? 'Este dia já não tem exercícios, então nunca quebra a sequência.'
+        : (on
+            ? 'Não fazer este treino não vai quebrar sua sequência.'
+            : 'Se você não treinar neste dia, sua sequência será zerada.');
+    }
+
     window.updateExerciseRest = function(idx, value) {
       const day = editorState.schedule[editorState.currentDay];
       if (!day.exercises[idx]) return;
@@ -3779,7 +3866,11 @@
         (sessionLog[historyKey] || []).forEach(entry => {
           if (!entry || !entry.date) return;
           if (!porData[entry.date]) porData[entry.date] = { date: entry.date, exercicios: [], volume: 0 };
-          porData[entry.date].exercicios.push(entry);
+          // guarda a chave e um nome garantido, para a linha nunca sair so com numeros
+          porData[entry.date].exercicios.push(Object.assign({}, entry, {
+            historyKey,
+            name: resolveExerciseName(historyKey, entry)
+          }));
           porData[entry.date].volume += sessionVolume(entry);
         });
       });
@@ -3828,6 +3919,39 @@
         return nomes[d.getDay()] || 'Treino';
       }
       return 'Treino';
+    }
+
+    // A chave do log e o ID do exercicio (com sufixo __vN para as reservas). Quando a entrada
+    // gravada nao tem nome — exercicio adicionado ao plano sem preencher o nome, ou registro
+    // de uma versao antiga — da para recuperar consultando os planos pelo ID, em vez de
+    // exibir uma linha so com numeros.
+    const NOME_DESCONHECIDO = 'Exercício sem nome';
+
+    function resolveExerciseName(historyKey, entry) {
+      if (entry && entry.name && String(entry.name).trim()) return entry.name;
+      if (!historyKey) return NOME_DESCONHECIDO;
+
+      const partes = String(historyKey).split('__v');
+      const exId = partes[0];
+      const variante = partes[1] ? parseInt(partes[1], 10) : 0;
+
+      // procura em todos os planos, nao so no ativo: o registro pode ser de outro perfil
+      for (const pid of Object.keys(profiles)) {
+        const sched = profiles[pid] && profiles[pid].schedule;
+        if (!sched) continue;
+        for (const k of DAY_ORDER) {
+          const lista = (sched[k] && sched[k].exercises) || [];
+          const ex = lista.find(e => e.id === exId);
+          if (!ex) continue;
+          if (variante > 0) {
+            const reservas = (ex.backups || []).filter(b => b && b.name && b.name.trim());
+            const b = reservas[variante - 1];
+            if (b && b.name) return b.name;
+          }
+          if (ex.name && ex.name.trim()) return ex.name;
+        }
+      }
+      return NOME_DESCONHECIDO;
     }
 
     let workoutHistoryLimit = 10;      // quantos dias mostrar antes do "Ver mais"
@@ -3914,7 +4038,7 @@
         const obs = e.obs ? `<p class="text-[10px] text-amber-300/80 mt-1 italic">"${escapeHtml(e.obs)}"</p>` : '';
         return `<div class="bg-slate-950/50 rounded-xl px-3 py-2.5 border border-slate-800/60">
           <div class="flex items-start justify-between gap-2">
-            <p class="text-xs font-bold text-white min-w-0 flex-1">${escapeHtml(e.name)}</p>
+            <p class="text-xs font-bold ${e.name && e.name !== NOME_DESCONHECIDO ? 'text-white' : 'text-slate-500 italic'} min-w-0 flex-1">${escapeHtml(e.name || NOME_DESCONHECIDO)}</p>
             <span class="text-xs font-black text-blue-300 flex-shrink-0">${escapeHtml(detalhe)}</span>
           </div>
           ${vol}${obs}
@@ -4061,6 +4185,7 @@
           const detail = e.type === 'cardio'
             ? `${e.duration}min${e.distance ? ` · ${e.distance}km` : ''}`
             : `${e.sets}x${e.reps} · ${e.weight}kg`;
+          // (o nome aqui ja vem do cabecalho do modal, entao a linha mostra so os numeros)
           const vol = e.type === 'cardio' ? '' : `<span class="text-[9px] text-slate-600">${Math.round(sessionVolume(e)).toLocaleString('pt-BR')}kg vol.</span>`;
           return `<div class="flex items-center justify-between bg-slate-950/50 rounded-lg px-3 py-2 border border-slate-800/60">
             <span class="text-[11px] text-slate-400 font-semibold">${formatDateBR(e.date)}</span>
@@ -4451,6 +4576,7 @@
         document.querySelector('header').insertAdjacentElement('afterend', warn);
       }
       ensureProfilesSeeded();
+      migrateOptionalDays();
       buildExerciseDatalist();
       migrateHistoryToSessionLog(); // semeia o log de sessões para quem já usava versões anteriores
       renderWorkoutSelectOptions();
