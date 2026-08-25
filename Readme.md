@@ -1,5 +1,64 @@
 # Changelog — Treino Personalizado
 
+## [2.11.0] - 2026-08-25
+### Adicionado
+- **Registro por serie (etapa 2)**. Ate aqui um exercicio era gravado com um unico valor para
+  todas as series (`{ sets: 3, reps: 10, weight: 40 }`), entao um treino em piramide 12/10/8
+  virava "3x10" — numero que nao correspondia a nenhuma serie executada. Agora cada serie tem
+  repeticoes e carga proprias (`series: [{reps,weight}, ...]`)
+- **Os dois formatos convivem.** `getEntrySeries()` normaliza a leitura: registro novo devolve
+  as series como estao, registro antigo e representado como N series identicas apenas para
+  calculo. **Nada e convertido no disco** — transformar "3x10" em tres series iguais
+  inventaria uma uniformidade que talvez nunca tenha existido. `describeEntry()` resume
+  qualquer um dos dois ("3x10 · 40kg" quando uniforme, "12/10/8 · 42.5-40kg" quando varia)
+- **Pre-preenchimento serie a serie** (`buildSeriesFromHistory()`): a sessao anterior e
+  reproduzida na ordem — quem fez 12/10/8 encontra 12/10/8 sugerido, nao tres series iguais.
+  Series alem do historico herdam a ultima conhecida
+- **Protecao contra erro de digitacao** (`isSuspiciousWeight()`, `confirmSuspiciousWeight()`):
+  uma carga acima de 2,5x o maior registro daquele exercicio abre confirmacao antes de ser
+  aceita, sugerindo o valor com um digito a menos quando ele fica proximo do historico
+  (600 -> "Voce quis dizer 60kg?"). Calibrado para nao atrapalhar progressao real: com
+  historico de 40kg, os valores 45, 60, 85 e 100 passam sem perguntar; 400 e 600 alertam.
+  Sem historico algum, so barra acima de 500kg. Existe porque hoje **nao ha como corrigir um
+  registro** — um valor errado vira recorde pessoal permanente e achata o grafico de evolucao
+  (medido: uma curva de 52px de amplitude cai para 1,2px com um unico outlier)
+- `adjustSeries()` e `updateSeriesField()` editam uma serie isolada; `syncLegacyFields()`
+  mantem `sets`/`reps`/`weight` coerentes com as series, porque badges, resumo e o formato
+  gravado ainda os utilizam
+
+### Alterado
+- **Volume total passou a somar serie a serie** em vez de multiplicar media por quantidade.
+  Com cargas diferentes entre series o resultado antigo nao correspondia ao trabalho feito:
+  12x40 + 10x40 + 8x37.5 = 1.180kg, e nao 3 x 10 x 40 = 1.200kg
+- **Recorde pessoal considera a melhor serie** da sessao (`bestSeriesOf()`), nao mais um valor
+  unico do exercicio. `getPersonalRecordFromList()` devolve a sessao com a serie recordista
+  destacada em `recordSeries`
+- **Card do exercicio** passa a mostrar uma linha por serie — numero, repeticoes, carga e o
+  botao de concluir — com a linha esmaecendo ao ser concluida. Adicionar e remover series
+  passou para o cabecalho do bloco
+- **Bloco antigo de Series/Reps/Carga deixou de existir como estava.** Com a lista por serie,
+  ele passou a editar exatamente os mesmos valores num segundo lugar: o card ficou com dois
+  controles concorrentes e 812px de altura. Em vez de remove-lo, virou "Carga para todas as
+  series" — o gesto de quem decide subir tudo de uma vez, que a lista sozinha faria em tres
+  edicoes. Quantidade de series e repeticoes saíram dali porque agora pertencem a cada linha.
+  Card voltou para 639px. `applyWeightToAll()` e `setWeightForAll()` cuidam do lote;
+  `updateWeightDirectly()` ficou sem uso e foi removida, e `adjustValue()` perdeu os ramos de
+  `reps` e `weight`, que apontavam para elementos que nao existem mais
+- A conquista "Os Pesos de Rock Lee" (salto de 10kg de uma vez) passou a ser observada no
+  ajuste em lote, que e onde esse gesto acontece agora
+- `state.seriesDone` (array de booleanos da 2.7.0) foi absorvido por `state.series[i].done`.
+  `getSeriesDone()` detecta rascunhos no formato anterior e migra uma unica vez, para quem
+  estivesse no meio de um treino ao atualizar nao perder as series ja marcadas
+- Badges, resumo do treino, historico por data, detalhe do dia e modal de evolucao passaram a
+  usar `describeEntry()`, funcionando igual com registros de qualquer um dos formatos
+- `CACHE_NAME`: `treino-cache-v31` -> `treino-cache-v32`
+
+### Notas
+- A tela de Novidades abre pedindo que o usuario exporte um backup antes de seguir. Nao ha
+  conversao de dados nesta versao, mas e a maior mudanca de formato ate hoje e ha usuarios de
+  teste com dados proprios em outros aparelhos
+
+
 ## [2.10.1] - 2026-08-25
 ### Corrigido
 - **Treino finalizado nao entrava no historico** (relatado em uso real). `recordSession()`
