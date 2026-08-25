@@ -161,6 +161,8 @@
     .rounded-md { border-radius: 0.375rem; }
     .w-3 { width: 0.75rem; }
     .w-24 { width: 6rem; }
+    .w-10 { width: 2.5rem; }
+    .active\:text-white:active { color: #fff; }
     .z-\[105\] { z-index: 105; }
     .max-h-72 { max-height: 18rem; }
     .active\:border-amber-600:active { border-color: #d97706; }
@@ -890,11 +892,22 @@
   </div>
 
   <script>
-    const APP_VERSION = '2.10.1'; // manter sincronizado com CACHE_NAME em sw.js e com o CHANGELOG.md
+    const APP_VERSION = '2.11.0'; // manter sincronizado com CACHE_NAME em sw.js e com o CHANGELOG.md
 
     // ---------- NOVIDADES (tela para testadores — só experiência do usuário, sem termos técnicos) ----------
     // Detalhes técnicos ficam só no CHANGELOG.md interno. Ordem: mais recente primeiro.
     const RELEASE_NOTES = [
+      {
+        version: '2.11.0', date: '2026-08-25',
+        highlights: [
+          '💾 <strong>Antes de tudo: exporte um backup.</strong> Esta versão muda a forma como os treinos são gravados. Seus registros antigos continuam intactos e nada precisa ser convertido — mas como é a maior mudança de dados até hoje, vale a garantia. Perfil > Dados > Exportar Backup.',
+          '🔢 <strong>Cada série tem suas próprias repetições e carga.</strong> Antes o app gravava um valor para o exercício inteiro: um treino em pirâmide (12/10/8) virava "3x10", um número que não correspondia a nenhuma série real. Agora você registra série por série, e o histórico mostra "12/10/8 · 40kg".',
+          '📊 <strong>Volume total agora é exato.</strong> Em vez de multiplicar uma média, o app soma o trabalho de cada série. Se você baixou a carga na última, isso aparece na conta.',
+          '🏅 <strong>Recorde pessoal considera sua melhor série</strong> — não mais um valor médio do exercício.',
+          '🤔 <strong>Proteção contra erro de digitação.</strong> Se você digitar uma carga muito acima do seu histórico naquele exercício, o app pergunta antes de aceitar. Um 600 no lugar de 60 viraria recorde e achataria seu gráfico para sempre.',
+          'ℹ️ Os treinos que você já registrou continuam aparecendo normalmente. Eles não são convertidos de propósito: transformar "3x10" em três séries iguais inventaria uma uniformidade que talvez nunca tenha existido.'
+        ]
+      },
       {
         version: '2.10.1', date: '2026-08-25',
         highlights: [
@@ -3006,6 +3019,63 @@
       return variantIndex ? `${exId}__v${variantIndex}` : exId;
     }
 
+    // ---------- DOIS FORMATOS DE REGISTRO CONVIVENDO (v2.11.0) ----------
+    // Ate a 2.10.x cada exercicio era gravado com UM valor para todas as series:
+    //     { sets: 3, reps: 10, weight: 40 }
+    // Um treino em piramide (12/10/8) virava "3x10", um numero que nao correspondia a
+    // nenhuma serie real. A partir da 2.11.0 grava-se cada serie:
+    //     { series: [ {reps:12,weight:40}, {reps:10,weight:40}, {reps:8,weight:37.5} ] }
+    // Registros antigos NAO sao convertidos — transformar "3x10" em tres series iguais
+    // inventaria uma uniformidade que nunca existiu. As duas formas convivem, e toda
+    // leitura passa por aqui.
+    function getEntrySeries(entry) {
+      if (!entry || entry.type === 'cardio') return [];
+      if (Array.isArray(entry.series) && entry.series.length) {
+        return entry.series.map(sr => ({
+          reps: parseFloat(sr.reps) || 0,
+          weight: parseFloat(sr.weight) || 0
+        }));
+      }
+      // formato antigo: representa como N series identicas, apenas para calculo
+      const n = Math.max(0, parseInt(entry.sets, 10) || 0);
+      const reps = parseFloat(entry.reps) || 0;
+      const weight = parseFloat(entry.weight) || 0;
+      const out = [];
+      for (let i = 0; i < n; i++) out.push({ reps, weight });
+      return out;
+    }
+
+    // Resumo curto de uma sessao, para listas e badges.
+    //   por serie e iguais  -> "3x10 · 40kg"
+    //   por serie e variadas -> "12/10/8 · 40kg"  ou  "12/10/8 · 40-37.5kg"
+    function describeEntry(entry) {
+      if (!entry) return '';
+      if (entry.type === 'cardio') {
+        return `${entry.duration}min${entry.distance ? ` · ${entry.distance}km` : ''}`;
+      }
+      const series = getEntrySeries(entry);
+      if (series.length === 0) return '--';
+
+      const reps = series.map(x => x.reps);
+      const pesos = series.map(x => x.weight);
+      const repsIguais = reps.every(r => r === reps[0]);
+      const pesosIguais = pesos.every(w => w === pesos[0]);
+
+      const parteReps = repsIguais ? `${series.length}x${reps[0]}` : reps.join('/');
+      const menor = Math.min.apply(null, pesos), maior = Math.max.apply(null, pesos);
+      const partePeso = pesosIguais ? `${pesos[0]}kg` : `${maior}-${menor}kg`;
+      return `${parteReps} · ${partePeso}`;
+    }
+
+    // Melhor serie de uma sessao: maior carga, desempate por repeticoes.
+    function bestSeriesOf(entry) {
+      const series = getEntrySeries(entry);
+      if (series.length === 0) return null;
+      return series.reduce((best, sr) =>
+        (sr.weight > best.weight || (sr.weight === best.weight && sr.reps > best.reps)) ? sr : best,
+        series[0]);
+    }
+
     // ---------- HISTÓRICO COMPLETO DE SESSÕES (v2.5.0) ----------
     // Antes o app guardava apenas a ÚLTIMA sessão de cada exercício e sobrescrevia o resto.
     // Agora cada treino finalizado vira uma entrada no log, o que permite ver evolução de
@@ -3054,23 +3124,25 @@
     // "quanto trabalho foi feito" — subir carga baixando muito as reps pode até reduzir o volume.
     function sessionVolume(entry) {
       if (!entry || entry.type === 'cardio') return 0;
-      return (parseFloat(entry.sets) || 0) * (parseFloat(entry.reps) || 0) * (parseFloat(entry.weight) || 0);
+      // soma serie a serie: com cargas diferentes entre series, multiplicar media por
+      // quantidade daria um numero que nao corresponde ao trabalho realizado
+      return getEntrySeries(entry).reduce((total, sr) => total + sr.reps * sr.weight, 0);
     }
 
     // Recorde pessoal = maior carga já registrada; empate na carga é desempatado por repetições.
     function getPersonalRecordFromList(list) {
       if (!list || list.length === 0) return null;
-      let best = null;
+      let best = null, bestSr = null;
       list.forEach(e => {
         if (e.type === 'cardio') return;
-        const w = parseFloat(e.weight) || 0;
-        const r = parseInt(e.reps, 10) || 0;
-        if (!best) { best = e; return; }
-        const bw = parseFloat(best.weight) || 0;
-        const br = parseInt(best.reps, 10) || 0;
-        if (w > bw || (w === bw && r > br)) best = e;
+        const sr = bestSeriesOf(e);   // compara a melhor serie de cada sessao
+        if (!sr) return;
+        if (!bestSr || sr.weight > bestSr.weight || (sr.weight === bestSr.weight && sr.reps > bestSr.reps)) {
+          best = e; bestSr = sr;
+        }
       });
-      return best;
+      // devolve a sessao com a melhor serie destacada, para quem exibe saber o que mostrar
+      return best ? Object.assign({}, best, { recordSeries: bestSr }) : null;
     }
 
     // Verdadeiro quando a sessão que acabou de ser salva bate o melhor resultado anterior.
@@ -3079,14 +3151,15 @@
       if (entry.type === 'cardio') return false;
       const previous = list.filter(e => e.date !== entry.date && e.type !== 'cardio');
       if (previous.length === 0) return false; // a primeira vez não conta como recorde
-      const bestBefore = previous.reduce((best, e) => {
-        const w = parseFloat(e.weight) || 0, bw = parseFloat(best.weight) || 0;
-        const r = parseInt(e.reps, 10) || 0, br = parseInt(best.reps, 10) || 0;
-        return (w > bw || (w === bw && r > br)) ? e : best;
-      }, previous[0]);
-      const nw = parseFloat(entry.weight) || 0, bw = parseFloat(bestBefore.weight) || 0;
-      const nr = parseInt(entry.reps, 10) || 0, br = parseInt(bestBefore.reps, 10) || 0;
-      return nw > bw || (nw === bw && nr > br);
+
+      const nova = bestSeriesOf(entry);
+      if (!nova) return false;
+      const anterior = getPersonalRecordFromList(previous);
+      const melhorAntes = anterior && anterior.recordSeries;
+      if (!melhorAntes) return false;
+
+      return nova.weight > melhorAntes.weight ||
+             (nova.weight === melhorAntes.weight && nova.reps > melhorAntes.reps);
     }
 
     // Migração única: quem já usava o app tem uma última sessão por exercício em
@@ -3149,11 +3222,11 @@
       const h = getLastSessionForExercise(exId, name);
       if (!h || h.type === 'cardio') return '';
 
-      const r = parseInt(h.reps, 10);
+      const melhor = bestSeriesOf(h);
+      const r = melhor ? melhor.reps : parseInt(h.reps, 10);
       const temReps = !isNaN(r) && r > 0;
       const origem = proprio ? '' : ' <span class="opacity-70">(de outro plano)</span>';
-      const series = h.sets ? `${escapeHtml(h.sets)}x` : '';
-      const marca = `${series}${escapeHtml(h.reps)} com ${escapeHtml(h.weight)}kg`;
+      const marca = escapeHtml(describeEntry(h));
 
       let cor, sugestao;
       if (!temReps) {
@@ -3263,9 +3336,12 @@
           const type = ex.type === 'cardio' ? 'cardio' : 'forca';
           // sem histórico próprio, aproveita o do mesmo exercício em outro perfil
           const saved = exerciseHistory[ex.id] || getLastSessionForExercise(ex.id, ex.name);
+          // series pre-preenchidas com o que foi feito da ultima vez, uma a uma
+          const qtdSeries = (saved && getEntrySeries(saved).length) || ex.targetSets || 3;
+          const seriesIniciais = type === 'cardio' ? [] : buildSeriesFromHistory(ex, saved, qtdSeries);
           formData[ex.id] = saved
-            ? { name: ex.name, type, variantIndex: 0, sets: saved.sets || ex.targetSets, reps: saved.reps || ex.targetReps, weight: saved.weight || ex.targetWeight, duration: saved.duration || ex.targetDuration || 20, distance: saved.distance || ex.targetDistance || 0, obs: '', done: doneToday }
-            : { name: ex.name, type, variantIndex: 0, sets: ex.targetSets, reps: ex.targetReps, weight: ex.targetWeight, duration: ex.targetDuration || 20, distance: ex.targetDistance || 0, obs: '', done: doneToday };
+            ? { name: ex.name, type, variantIndex: 0, series: seriesIniciais, sets: seriesIniciais.length || saved.sets || ex.targetSets, reps: (seriesIniciais[0] && seriesIniciais[0].reps) || saved.reps || ex.targetReps, weight: (seriesIniciais[0] && seriesIniciais[0].weight) || saved.weight || ex.targetWeight, duration: saved.duration || ex.targetDuration || 20, distance: saved.distance || ex.targetDistance || 0, obs: '', done: doneToday }
+            : { name: ex.name, type, variantIndex: 0, series: seriesIniciais, sets: seriesIniciais.length || ex.targetSets, reps: ex.targetReps, weight: ex.targetWeight, duration: ex.targetDuration || 20, distance: ex.targetDistance || 0, obs: '', done: doneToday };
         }
         if (doneToday) collapsedIds.add(ex.id);
       });
@@ -3396,37 +3472,22 @@
             </div>
           </div>
         ` : `
-          <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-            <div class="bg-slate-950/50 rounded-xl p-2.5 border border-slate-800 flex flex-col items-center">
-              <span class="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Séries</span>
-              <div class="flex items-center space-x-4">
-                <button type="button" onclick="adjustValue('${ex.id}', 'sets', -1)" class="bg-slate-850 hover:bg-slate-800 text-slate-300 p-2 rounded-lg border border-slate-700/50 transition-transform active:scale-90">-</button>
-                <span id="display-sets-${ex.id}" class="text-lg font-extrabold text-white min-w-[24px] text-center">${state.sets}</span>
-                <button type="button" onclick="adjustValue('${ex.id}', 'sets', 1)" class="bg-slate-850 hover:bg-slate-800 text-slate-300 p-2 rounded-lg border border-slate-700/50 transition-transform active:scale-90">+</button>
-              </div>
+          <div class="bg-slate-950/50 rounded-xl p-3 border border-slate-800 mb-4">
+            <div class="flex items-center justify-between mb-2">
+              <span class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Carga para todas as séries</span>
+              <span class="text-[9px] text-slate-600">ajuste fino em cada linha abaixo</span>
             </div>
-            <div class="bg-slate-950/50 rounded-xl p-2.5 border border-slate-800 flex flex-col items-center">
-              <span class="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Repetições</span>
-              <div class="flex items-center space-x-4">
-                <button type="button" onclick="adjustValue('${ex.id}', 'reps', -1)" class="bg-slate-850 hover:bg-slate-800 text-slate-300 p-2 rounded-lg border border-slate-700/50 transition-transform active:scale-90">-</button>
-                <span id="display-reps-${ex.id}" class="text-xl font-black text-blue-400 min-w-[28px] text-center">${state.reps}</span>
-                <button type="button" onclick="adjustValue('${ex.id}', 'reps', 1)" class="bg-slate-850 hover:bg-slate-800 text-slate-300 p-2 rounded-lg border border-slate-700/50 transition-transform active:scale-90">+</button>
-              </div>
-            </div>
-            <div class="bg-slate-950/50 rounded-xl p-2.5 border border-slate-800 flex flex-col items-center">
-              <span class="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Carga (kg)</span>
-              <div class="flex items-center gap-1 flex-wrap justify-center">
-                <button type="button" onclick="adjustValue('${ex.id}', 'weight', -10)" class="bg-rose-950/50 hover:bg-rose-900/70 text-rose-300 px-1.5 py-1.5 text-[10px] font-black rounded border border-rose-800/50 transition-transform active:scale-90">-10</button>
-                <button type="button" onclick="adjustValue('${ex.id}', 'weight', -5)" class="bg-rose-950/40 hover:bg-rose-900/60 text-rose-400 px-1.5 py-1 text-[10px] font-black rounded border border-rose-800/40 transition-transform active:scale-90">-5</button>
-                <button type="button" onclick="adjustValue('${ex.id}', 'weight', -0.5)" class="bg-slate-850 hover:bg-slate-800 text-slate-300 px-1.5 py-1.5 text-[10px] font-bold rounded-lg border border-slate-700/50 transition-transform active:scale-90">-0.5</button>
-                <input type="number" step="0.5" id="input-weight-${ex.id}" value="${state.weight}" onchange="updateWeightDirectly('${ex.id}', this.value)" class="bg-transparent text-center font-extrabold text-white text-base w-14 focus:outline-none"/>
-                <button type="button" onclick="adjustValue('${ex.id}', 'weight', 0.5)" class="bg-slate-850 hover:bg-slate-800 text-slate-300 px-1.5 py-1.5 text-[10px] font-bold rounded-lg border border-slate-700/50 transition-transform active:scale-90">+0.5</button>
-                <button type="button" onclick="adjustValue('${ex.id}', 'weight', 5)" class="bg-blue-900/40 hover:bg-blue-800/60 text-blue-400 px-1.5 py-1 text-[10px] font-black rounded border border-blue-800/30 transition-transform active:scale-90">+5</button>
-                <button type="button" onclick="adjustValue('${ex.id}', 'weight', 10)" class="bg-blue-900/50 hover:bg-blue-800/70 text-blue-300 px-1.5 py-1.5 text-[10px] font-black rounded border border-blue-800/50 transition-transform active:scale-90">+10</button>
-              </div>
+            <div class="flex items-center gap-1 flex-wrap justify-center">
+              <button type="button" onclick="applyWeightToAll('${ex.id}', -10)" class="bg-rose-950/50 hover:bg-rose-900/70 text-rose-300 px-1.5 py-1.5 text-[10px] font-black rounded border border-rose-800/50 transition-transform active:scale-90">-10</button>
+              <button type="button" onclick="applyWeightToAll('${ex.id}', -5)" class="bg-rose-950/40 hover:bg-rose-900/60 text-rose-400 px-1.5 py-1 text-[10px] font-black rounded border border-rose-800/40 transition-transform active:scale-90">-5</button>
+              <button type="button" onclick="applyWeightToAll('${ex.id}', -2.5)" class="bg-slate-850 hover:bg-slate-800 text-slate-300 px-1.5 py-1.5 text-[10px] font-bold rounded-lg border border-slate-700/50 transition-transform active:scale-90">-2.5</button>
+              <input type="number" step="0.5" id="input-weight-${ex.id}" value="${state.weight}" onchange="setWeightForAll('${ex.id}', this.value)" aria-label="Carga para todas as séries" class="bg-transparent text-center font-extrabold text-white text-base w-16 focus:outline-none"/>
+              <button type="button" onclick="applyWeightToAll('${ex.id}', 2.5)" class="bg-slate-850 hover:bg-slate-800 text-slate-300 px-1.5 py-1.5 text-[10px] font-bold rounded-lg border border-slate-700/50 transition-transform active:scale-90">+2.5</button>
+              <button type="button" onclick="applyWeightToAll('${ex.id}', 5)" class="bg-blue-900/40 hover:bg-blue-800/60 text-blue-400 px-1.5 py-1 text-[10px] font-black rounded border border-blue-800/30 transition-transform active:scale-90">+5</button>
+              <button type="button" onclick="applyWeightToAll('${ex.id}', 10)" class="bg-blue-900/50 hover:bg-blue-800/70 text-blue-300 px-1.5 py-1.5 text-[10px] font-black rounded border border-blue-800/50 transition-transform active:scale-90">+10</button>
             </div>
           </div>
-        `;
+                `;
 
         const bodyHtml = `
           ${fieldsHtml}
@@ -3519,8 +3580,9 @@
 
       // pelo botão redondo, concluir marca todas as séries e reabrir limpa todas
       if (state.type !== 'cardio' && !seriesJaAjustadas) {
-        const total = Math.max(0, parseInt(state.sets, 10) || 0);
-        state.seriesDone = new Array(total).fill(state.done);
+        const series = getSeries(state, getExerciseDef(exId));
+        series.forEach(sr => { sr.done = state.done; });
+        state.series = series;
       }
 
       if (state.done) {
@@ -3573,22 +3635,10 @@
       state[field] = newValue;
 
       if (field === 'sets') {
-        document.getElementById(`display-sets-${exId}`).textContent = newValue;
-        // a fileira de séries precisa crescer/encolher junto, então re-renderiza o card
-        state.seriesDone = getSeriesDone(state);
+        // o contador vive no cabeçalho do bloco de séries, redesenhado logo abaixo
+        getSeries(state, getExerciseDef(exId)); // ajusta a lista ao novo total
+        syncLegacyFields(state);
         renderExerciseCard(exId);
-      }
-      else if (field === 'reps') {
-        document.getElementById(`display-reps-${exId}`).textContent = newValue;
-        document.getElementById(`alert-container-${exId}`).innerHTML = getProgressionAlert(newValue);
-      }
-      else if (field === 'weight') {
-        document.getElementById(`input-weight-${exId}`).value = newValue;
-        if (amount >= 10 && !gamification.bigWeightJump) {
-          gamification.bigWeightJump = true;
-          saveJSON(GAMIFICATION_KEY, gamification);
-          checkAchievements();
-        }
       }
       else if (field === 'duration') document.getElementById(`display-duration-${exId}`).textContent = newValue;
       else if (field === 'distance') document.getElementById(`display-distance-${exId}`).textContent = newValue;
@@ -3596,11 +3646,7 @@
       saveDraft();
     };
 
-    window.updateWeightDirectly = function(exId, value) {
-      if (!formData[exId]) return;
-      formData[exId].weight = Math.max(0, Math.round((parseFloat(value) || 0) * 10) / 10);
-      saveDraft();
-    };
+
     window.updateObs = function(exId, value) {
       if (!formData[exId]) return;
       formData[exId].obs = value;
@@ -3632,8 +3678,15 @@
             report += `> ${state.name}: ${state.duration}min${state.distance ? ` | ${state.distance}km` : ''}`;
             entry = { type: 'cardio', name: state.name, duration: state.duration, distance: state.distance, date: today };
           } else {
-            report += `> ${state.name}: ${state.sets}x${state.reps} | ${state.weight}kg`;
-            entry = { type: 'forca', name: state.name, sets: state.sets, reps: state.reps, weight: state.weight, date: today };
+            const seriesFeitas = getSeries(state, ex).map(sr => ({ reps: sr.reps, weight: sr.weight }));
+            entry = { type: 'forca', name: state.name, series: seriesFeitas,
+                      // sets/reps/weight seguem gravados: versoes anteriores e telas antigas
+                      // ainda os leem, e servem de resumo rapido
+                      sets: seriesFeitas.length,
+                      reps: seriesFeitas.length ? seriesFeitas[0].reps : state.reps,
+                      weight: seriesFeitas.length ? seriesFeitas[0].weight : state.weight,
+                      date: today };
+            report += `> ${state.name}: ${describeEntry(entry)}`;
             totalVolume += sessionVolume(entry);
           }
           if (state.obs && state.obs.trim() !== '') {
@@ -3949,7 +4002,7 @@
         else { state.sets = 3; state.reps = 10; state.weight = 0; }
       }
       state.type = novoTipo;
-      state.seriesDone = [];         // exercicio novo comeca com as series zeradas
+      state.series = [];             // exercicio novo comeca com as series zeradas
       state.swapping = true;
 
       saveDraftNow();
@@ -4064,33 +4117,167 @@
       showToast(`✅ Ajustado para ${reais} dia${reais === 1 ? '' : 's'} por semana.`);
     };
 
+    // ---------- SERIES COM VALORES PROPRIOS (etapa 2) ----------
+    // Monta as series de um exercicio para o treino de hoje. A referencia e a ultima sessao:
+    // se voce fez 12/10/8, o app ja sugere 12/10/8 — e nao tres series identicas.
+    function buildSeriesFromHistory(ex, saved, qtdAlvo) {
+      const total = Math.max(1, parseInt(qtdAlvo, 10) || parseInt(ex.targetSets, 10) || 3);
+      const anteriores = saved ? getEntrySeries(saved) : [];
+      const out = [];
+      for (let i = 0; i < total; i++) {
+        const ref = anteriores[i] || anteriores[anteriores.length - 1]; // faltando, repete a ultima
+        out.push({
+          reps: ref ? ref.reps : (parseFloat(ex.targetReps) || 10),
+          weight: ref ? ref.weight : (parseFloat(ex.targetWeight) || 0),
+          done: false
+        });
+      }
+      return out;
+    }
+
+    // Series do estado atual, sempre coerentes com a quantidade pedida.
+    function getSeries(state, ex) {
+      const total = Math.max(0, parseInt(state.sets, 10) || 0);
+      const atual = Array.isArray(state.series) ? state.series : [];
+      const out = [];
+      for (let i = 0; i < total; i++) {
+        const sr = atual[i];
+        if (sr) {
+          out.push({ reps: sr.reps, weight: sr.weight, done: !!sr.done });
+        } else {
+          // serie adicionada durante o treino herda a anterior
+          const ref = out[out.length - 1] || atual[atual.length - 1];
+          out.push({
+            reps: ref ? ref.reps : (parseFloat(state.reps) || (ex && ex.targetReps) || 10),
+            weight: ref ? ref.weight : (parseFloat(state.weight) || (ex && ex.targetWeight) || 0),
+            done: false
+          });
+        }
+      }
+      state.series = out;
+      return out;
+    }
+
+    // Alerta de valor fora do padrao: protege contra o dedo escorregar (600 no lugar de 60).
+    // Compara com o maior peso ja registrado naquele exercicio; sem historico, usa um teto
+    // generoso apenas para barrar absurdos.
+    function isSuspiciousWeight(exId, state, valor) {
+      const w = parseFloat(valor) || 0;
+      if (w <= 0) return null;
+      const chave = getHistoryKey(exId, state.variantIndex || 0, state.customName);
+      const { sessions } = collectSessionsForExercise(chave, state.name);
+      let maxHist = 0;
+      sessions.forEach(e => getEntrySeries(e).forEach(sr => { if (sr.weight > maxHist) maxHist = sr.weight; }));
+
+      // O alvo e o erro de digitacao (um digito a mais), nao a progressao ousada. Subir de
+      // 40 para 85kg e um salto grande porem possivel; 600 nao e. O limiar de 2,5x deixa
+      // passar a progressao real e barra o absurdo.
+      const dividido = Math.round(w / 10 * 10) / 10 / 1;   // valor com um digito a menos
+      const sugestao = (w >= 100 && Number.isFinite(dividido)) ? (Math.round(w / 10 * 100) / 100) : null;
+
+      if (maxHist > 0) {
+        if (w > maxHist * 2.5) {
+          // so sugere o valor dividido por 10 quando ele fica perto do historico —
+          // caso classico do 600 no lugar de 60
+          const plausivel = sugestao !== null && sugestao <= maxHist * 2.5 && sugestao > maxHist * 0.3;
+          return { max: maxHist, sugestao: plausivel ? sugestao : null };
+        }
+        return null;
+      }
+      // sem historico: so barra o que nao existe em academia nenhuma
+      if (w > 500) return { max: 0, sugestao: sugestao };
+      return null;
+    }
+
+    window.updateSeriesField = function(exId, idx, campo, valor) {
+      const state = formData[exId];
+      if (!state) return;
+      const ex = getExerciseDef(exId);
+      const series = getSeries(state, ex);
+      if (!series[idx]) return;
+
+      let n = parseFloat(valor) || 0;
+      if (n < 0) n = 0;
+      if (campo === 'weight') n = Math.round(n * 10) / 10;
+      else n = Math.round(n);
+
+      series[idx][campo] = n;
+      state.series = series;
+      // mantem os campos antigos coerentes: alimentam badges e o resumo
+      syncLegacyFields(state);
+      saveDraft();
+    };
+
+    window.confirmSuspiciousWeight = async function(exId, idx, valor) {
+      const state = formData[exId];
+      if (!state) return;
+      const alerta = isSuspiciousWeight(exId, state, valor);
+      if (!alerta) return;
+
+      const ok = await askConfirm({
+        icon: '🤔',
+        title: 'Conferir a carga',
+        text: (alerta.max > 0
+          ? `Você digitou <strong class="text-white">${escapeHtml(valor)}kg</strong>, bem acima do seu melhor registro neste exercício (<strong>${alerta.max}kg</strong>).`
+          : `Você digitou <strong class="text-white">${escapeHtml(valor)}kg</strong>.`)
+          + (alerta.sugestao ? `<br/>Você quis dizer <strong class="text-white">${alerta.sugestao}kg</strong>?` : '')
+          + `<br/><span class="text-slate-500">Um valor errado vira recorde e achata seu gráfico de evolução.</span>`,
+        confirmLabel: 'Está correto',
+        cancelLabel: 'Corrigir'
+      });
+      if (!ok) {
+        // devolve ao valor anterior conhecido
+        const series = getSeries(state, getExerciseDef(exId));
+        const ref = series[idx - 1] || series[idx + 1];
+        series[idx].weight = ref ? ref.weight : 0;
+        syncLegacyFields(state);
+        saveDraft();
+        renderExerciseCard(exId);
+      }
+    };
+
+    // Os campos sets/reps/weight continuam existindo no estado porque badges, resumo e o
+    // formato antigo dependem deles. Aqui eles refletem as series: reps/carga da primeira.
+    function syncLegacyFields(state) {
+      const series = Array.isArray(state.series) ? state.series : [];
+      if (series.length === 0) return;
+      state.sets = series.length;
+      state.reps = series[0].reps;
+      state.weight = series[0].weight;
+    }
+
     // ---------- SÉRIES CONCLUÍDAS (etapa 1: cronômetro no momento certo) ----------
     // O descanso de verdade acontece ENTRE séries, não depois do exercício inteiro. Marcar
     // cada série serve para o cronômetro disparar na hora certa — os valores de carga e reps
     // continuam sendo um por exercício, como antes. Este estado vive só no rascunho do dia:
     // nada é gravado no histórico permanente, então nenhum dado antigo é afetado.
+    // Estado de conclusao passou a viver dentro de cada serie (state.series[i].done).
+    // Rascunhos gravados pela 2.7.0-2.10.x ainda trazem o array seriesDone: e lido uma vez
+    // aqui, para quem estava no meio de um treino ao atualizar nao perder o que ja marcou.
     function getSeriesDone(state) {
-      const total = Math.max(0, parseInt(state.sets, 10) || 0);
-      const atual = Array.isArray(state.seriesDone) ? state.seriesDone : [];
-      // acompanha mudanças no número de séries feitas durante o treino
-      const ajustado = [];
-      for (let i = 0; i < total; i++) ajustado.push(!!atual[i]);
-      return ajustado;
+      const series = getSeries(state, null);
+      if (Array.isArray(state.seriesDone) && state.seriesDone.length) {
+        state.seriesDone.forEach((feita, i) => { if (series[i] && feita) series[i].done = true; });
+        delete state.seriesDone;
+        state.series = series;
+      }
+      return series.map(sr => !!sr.done);
     }
 
     window.toggleSerie = function(exId, index) {
       const state = formData[exId];
       if (!state || state.type === 'cardio') return;
 
-      const series = getSeriesDone(state);
+      getSeriesDone(state);                 // migra rascunho antigo, se houver
+      const series = getSeries(state, getExerciseDef(exId));
       if (index < 0 || index >= series.length) return;
 
-      const marcando = !series[index];
+      const marcando = !series[index].done;
       if (marcando) markWorkoutStart();
-      series[index] = marcando;
-      state.seriesDone = series;
+      series[index].done = marcando;
+      state.series = series;
 
-      const feitas = series.filter(Boolean).length;
+      const feitas = series.filter(sr => sr.done).length;
       const total = series.length;
       const todasFeitas = total > 0 && feitas === total;
 
@@ -4112,32 +4299,104 @@
 
     // Monta a fileira de séries. Cada série é um alvo de toque de 40px, tamanho confortável
     // para acertar de primeira com a mão suada no meio do treino.
+    // Uma linha por serie: numero, repeticoes, carga e o botao de concluir. Concluida, a
+    // linha esmaece para a proxima ganhar destaque — mantendo o card na altura de sempre.
     function renderSeriesRow(ex, state) {
       if (state.type === 'cardio') return '';
-      const series = getSeriesDone(state);
+      const series = getSeries(state, ex);
       if (series.length === 0) return '';
 
-      const feitas = series.filter(Boolean).length;
-      const botoes = series.map((feita, i) => `
-        <button type="button" onclick="toggleSerie('${ex.id}', ${i})"
-          aria-pressed="${feita ? 'true' : 'false'}"
-          aria-label="Série ${i + 1}${feita ? ', concluída' : ''}"
-          class="flex-1 min-w-[40px] h-10 rounded-xl border-2 font-black text-xs transition-all duration-200 active:scale-90 ${
-            feita
-              ? 'bg-emerald-600 border-emerald-500 text-white'
-              : 'bg-slate-950/60 border-slate-700 text-slate-500 active:border-emerald-600'
-          }">${feita ? '✓' : i + 1}</button>`).join('');
+      const feitas = series.filter(sr => sr.done).length;
+
+      const linhas = series.map((sr, i) => `
+        <div class="flex items-center gap-2 ${sr.done ? 'opacity-50' : ''}">
+          <span class="w-5 text-[10px] font-black ${sr.done ? 'text-emerald-400' : 'text-slate-500'} text-center flex-shrink-0">${i + 1}</span>
+
+          <div class="flex items-center bg-slate-950/60 border border-slate-800 rounded-lg flex-1 min-w-0">
+            <button type="button" onclick="adjustSeries('${ex.id}',${i},'reps',-1)" aria-label="Menos uma repetição na série ${i + 1}" class="w-8 h-9 text-slate-400 active:text-white font-black text-xs flex-shrink-0">−</button>
+            <input type="number" inputmode="numeric" value="${sr.reps}" onchange="updateSeriesField('${ex.id}',${i},'reps',this.value)" aria-label="Repetições da série ${i + 1}" class="w-full min-w-0 bg-transparent text-center font-extrabold text-white text-sm focus:outline-none"/>
+            <button type="button" onclick="adjustSeries('${ex.id}',${i},'reps',1)" aria-label="Mais uma repetição na série ${i + 1}" class="w-8 h-9 text-slate-400 active:text-white font-black text-xs flex-shrink-0">+</button>
+          </div>
+          <span class="text-[9px] text-slate-600 font-bold flex-shrink-0">reps</span>
+
+          <div class="flex items-center bg-slate-950/60 border border-slate-800 rounded-lg flex-1 min-w-0">
+            <button type="button" onclick="adjustSeries('${ex.id}',${i},'weight',-2.5)" aria-label="Menos carga na série ${i + 1}" class="w-8 h-9 text-slate-400 active:text-white font-black text-xs flex-shrink-0">−</button>
+            <input type="number" inputmode="decimal" step="0.5" value="${sr.weight}" onchange="updateSeriesField('${ex.id}',${i},'weight',this.value); confirmSuspiciousWeight('${ex.id}',${i},this.value)" aria-label="Carga da série ${i + 1}" class="w-full min-w-0 bg-transparent text-center font-extrabold text-white text-sm focus:outline-none"/>
+            <button type="button" onclick="adjustSeries('${ex.id}',${i},'weight',2.5)" aria-label="Mais carga na série ${i + 1}" class="w-8 h-9 text-slate-400 active:text-white font-black text-xs flex-shrink-0">+</button>
+          </div>
+          <span class="text-[9px] text-slate-600 font-bold flex-shrink-0">kg</span>
+
+          <button type="button" onclick="toggleSerie('${ex.id}', ${i})"
+            aria-pressed="${sr.done ? 'true' : 'false'}"
+            aria-label="Série ${i + 1}${sr.done ? ', concluída' : ''}"
+            class="w-10 h-9 rounded-lg border-2 font-black text-xs transition-all duration-200 active:scale-90 flex-shrink-0 ${
+              sr.done ? 'bg-emerald-600 border-emerald-500 text-white'
+                      : 'bg-slate-950/60 border-slate-700 text-slate-500 active:border-emerald-600'
+            }">${sr.done ? '✓' : '○'}</button>
+        </div>`).join('');
 
       return `
         <div class="mb-4">
-          <div class="flex items-center justify-between mb-1.5">
-            <span class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Séries concluídas</span>
-            <span class="text-[10px] font-black ${feitas === series.length ? 'text-emerald-400' : 'text-slate-500'}">${feitas}/${series.length}</span>
+          <div class="flex items-center justify-between mb-2">
+            <span class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Séries</span>
+            <div class="flex items-center gap-2">
+              <span class="text-[10px] font-black ${feitas === series.length ? 'text-emerald-400' : 'text-slate-500'}">${feitas}/${series.length}</span>
+              <button type="button" onclick="adjustValue('${ex.id}','sets',-1)" aria-label="Remover uma série" class="w-7 h-7 rounded-lg bg-slate-950/60 border border-slate-700 text-slate-400 active:text-white font-black text-xs">−</button>
+              <button type="button" onclick="adjustValue('${ex.id}','sets',1)" aria-label="Adicionar uma série" class="w-7 h-7 rounded-lg bg-slate-950/60 border border-slate-700 text-slate-400 active:text-white font-black text-xs">+</button>
+            </div>
           </div>
-          <div class="flex items-center gap-1.5">${botoes}</div>
-          <p class="text-[9px] text-slate-600 mt-1.5">Toque numa série ao terminá-la — o descanso começa sozinho.</p>
+          <div class="space-y-1.5">${linhas}</div>
+          <p class="text-[9px] text-slate-600 mt-2">Toque no ○ ao terminar cada série — o descanso começa sozinho.</p>
         </div>`;
     }
+
+    // Soma (ou subtrai) o mesmo valor em todas as series de uma vez.
+    window.applyWeightToAll = function(exId, delta) {
+      const state = formData[exId];
+      if (!state) return;
+      const series = getSeries(state, getExerciseDef(exId));
+      series.forEach(sr => {
+        let n = (parseFloat(sr.weight) || 0) + delta;
+        sr.weight = Math.round(Math.max(0, n) * 10) / 10;
+      });
+      if (delta >= 10 && !gamification.bigWeightJump) {
+        gamification.bigWeightJump = true;
+        saveJSON(GAMIFICATION_KEY, gamification);
+        checkAchievements();
+      }
+      state.series = series;
+      syncLegacyFields(state);
+      saveDraft();
+      renderExerciseCard(exId);
+    };
+
+    // Define a mesma carga em todas as series (campo numerico do topo).
+    window.setWeightForAll = async function(exId, valor) {
+      const state = formData[exId];
+      if (!state) return;
+      const n = Math.round(Math.max(0, parseFloat(valor) || 0) * 10) / 10;
+      const series = getSeries(state, getExerciseDef(exId));
+      series.forEach(sr => { sr.weight = n; });
+      state.series = series;
+      syncLegacyFields(state);
+      saveDraft();
+      renderExerciseCard(exId);
+      await confirmSuspiciousWeight(exId, 0, n);
+    };
+
+    window.adjustSeries = function(exId, idx, campo, delta) {
+      const state = formData[exId];
+      if (!state) return;
+      const series = getSeries(state, getExerciseDef(exId));
+      if (!series[idx]) return;
+      let n = (parseFloat(series[idx][campo]) || 0) + delta;
+      if (n < 0) n = 0;
+      series[idx][campo] = campo === 'weight' ? Math.round(n * 10) / 10 : Math.round(n);
+      state.series = series;
+      syncLegacyFields(state);
+      saveDraft();
+      renderExerciseCard(exId);
+    };
 
     // ---------- HISTÓRICO DE TREINOS POR DATA ----------
     // O sessionLog é indexado por exercício; para responder "o que eu fiz na quarta passada?"
@@ -4318,9 +4577,7 @@
       const cardio = dia.exercicios.filter(e => e.type === 'cardio');
 
       const linha = (e) => {
-        const detalhe = e.type === 'cardio'
-          ? `${e.duration}min${e.distance ? ` · ${e.distance}km` : ''}`
-          : `${e.sets}x${e.reps} · ${e.weight}kg`;
+        const detalhe = describeEntry(e);
         const vol = e.type === 'cardio' ? '' : `<p class="text-[9px] text-slate-600">${Math.round(sessionVolume(e)).toLocaleString('pt-BR')}kg de volume</p>`;
         const obs = e.obs ? `<p class="text-[10px] text-amber-300/80 mt-1 italic">"${escapeHtml(e.obs)}"</p>` : '';
         return `<div class="bg-slate-950/50 rounded-xl px-3 py-2.5 border border-slate-800/60">
@@ -4361,7 +4618,7 @@
         dia.exercicios.forEach(e => {
           txt += e.type === 'cardio'
             ? `> ${e.name}: ${e.duration}min${e.distance ? ` | ${e.distance}km` : ''}`
-            : `> ${e.name}: ${e.sets}x${e.reps} | ${e.weight}kg`;
+            : `> ${e.name}: ${describeEntry(e)}`;
           if (e.obs) txt += ` [Nota: ${e.obs}]`;
           txt += '\n';
         });
@@ -4472,14 +4729,12 @@
             <span class="text-lg">🏅</span>
             <div class="min-w-0">
               <p class="text-[9px] font-black text-amber-400 uppercase tracking-wider">Recorde pessoal</p>
-              <p class="text-xs font-bold text-amber-200">${pr.sets}x${pr.reps} com ${pr.weight}kg · ${formatDateBR(pr.date)}</p>
+              <p class="text-xs font-bold text-amber-200">${pr.recordSeries ? `${pr.recordSeries.reps} reps com ${pr.recordSeries.weight}kg` : describeEntry(pr)} · ${formatDateBR(pr.date)}</p>
             </div>
           </div>` : '';
 
         const rows = list.slice().reverse().slice(0, 20).map(e => {
-          const detail = e.type === 'cardio'
-            ? `${e.duration}min${e.distance ? ` · ${e.distance}km` : ''}`
-            : `${e.sets}x${e.reps} · ${e.weight}kg`;
+          const detail = describeEntry(e);
           // (o nome aqui ja vem do cabecalho do modal, entao a linha mostra so os numeros)
           const vol = e.type === 'cardio' ? '' : `<span class="text-[9px] text-slate-600">${Math.round(sessionVolume(e)).toLocaleString('pt-BR')}kg vol.</span>`;
           return `<div class="flex items-center justify-between bg-slate-950/50 rounded-lg px-3 py-2 border border-slate-800/60">

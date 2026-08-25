@@ -1,4 +1,4 @@
-const CACHE_NAME = 'treino-cache-v31';
+const CACHE_NAME = 'treino-cache-v32';
 const ASSETS = [
   './',
   './index.html',
