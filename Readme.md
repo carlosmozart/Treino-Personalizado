@@ -1,5 +1,71 @@
 # Changelog — Treino Personalizado
 
+## [2.13.0] - 2026-08-25
+### Corrigido
+- **Treino de hoje nao aparecia em Perfil > Progresso** (relatado em uso real, com a lista
+  parada em 18/08). `renderWorkoutHistory()` so era chamada por `renderPerfilView()`, ou seja,
+  ao **entrar** na aba Perfil. Navegar entre as sub-abas Dados / Saude / Progresso apenas
+  alternava a visibilidade dos blocos e reexibia a lista montada anteriormente, e
+  `finalizeWorkout()` nao avisava nenhuma tela. Reproduzido em teste: apos finalizar um
+  treino, o contador seguia marcando 5 de 6 dias existentes.
+  Agora `switchPerfilSubTab('progresso')` remonta a lista, o grafico de peso e o roadmap;
+  `finalizeWorkout()` invalida `workoutHistoryCache` e redesenha se a aba estiver visivel; e
+  o retorno do segundo plano (`visibilitychange`) faz o mesmo, cobrindo o app que fica dias
+  aberto sem recarregar
+
+### Adicionado
+- **Conquistas por volume acumulado**: Kaioken (10.000 kg), Kaioken x3 (30.000 kg),
+  Kaioken x10 (100.000 kg) e Super Saiyajin (1.000.000 kg). `getTotalVolume()` percorre todo
+  o `sessionLog` somando `sessionVolume()` de cada sessao, entao registros nos dois formatos
+  contam igual e o historico ja existente vale desde a instalacao desta versao
+- O total e memorizado em `volumeTotalCache` porque as conquistas sao verificadas com
+  frequencia: medido 3,7 ms para 6.000 entradas na primeira chamada e leitura imediata nas
+  seguintes. **A invalidacao mora dentro de `saveJSON()`** — a primeira versao espalhava
+  `invalidateVolumeCache()` por cada ponto de gravacao, o que dependia de lembrar de chama-la
+  e teria deixado o cache velho no dia em que um caminho novo esquecesse
+- **Bolha com o nome completo do exercicio** (`showNameTooltip()`): nomes longos sao cortados
+  no card, porque os botoes de trocar, concluir e recolher ocupam a largura a direita. Tocar
+  no titulo abre uma bolha com o texto inteiro. So aparece quando o nome **esta** truncado
+  (`scrollWidth > clientWidth`), usa `stopPropagation()` para nao recolher o card junto, e a
+  posicao e presa dentro da tela nos dois eixos — sem o limite vertical, tocar num card
+  abaixo da dobra colocava a bolha fora da area visivel. Fecha ao rolar, ao tocar fora ou
+  sozinha apos 3,5s. Vale tambem no detalhe do dia, onde os nomes tambem sao truncados
+
+### Alterado
+- `CACHE_NAME`: `treino-cache-v33` -> `treino-cache-v34`
+
+## [2.12.0] - 2026-08-25
+### Adicionado
+- **Correcao de registros do historico** (`openEditEntry()`, `saveEditedEntry()`,
+  `deleteEditedEntry()`). Ate aqui **nada** do que fosse gravado podia ser alterado: uma carga
+  digitada errada virava recorde pessoal permanente e achatava o grafico de evolucao, sem
+  saida. Reproduzido em teste: um registro de 600kg entre valores de 40-45kg elevava o
+  recorde para 600kg e o volume do dia para 6.810kg; apos a correcao, 45kg e 1.260kg
+- O editor abre pelo lapis em cada linha do historico do exercicio (modal de evolucao) e em
+  cada exercicio do detalhe do dia. Permite ajustar repeticoes e carga de cada serie,
+  adicionar e remover series, e mostra o volume recalculado ao vivo
+- **Registros no formato antigo sao convertidos ao serem editados.** Diferente da conversao
+  automatica — que a 2.11.0 evitou de proposito —, aqui os valores foram exibidos e
+  confirmados pelo usuario, entao gravar como `series[]` reflete o que ele declarou
+- **Apagar um registro isolado**, preservando o restante do treino daquele dia
+- **Desfazer um treino inteiro** (`undoWorkoutDay()`): remove as sessoes da data em todas as
+  chaves do log, o check-in, o `dailyCompletion`, o `workoutMeta`, e **devolve o XP** via
+  `revokeCheckinXP()` (verificado: 0 -> 50 ao finalizar -> 0 ao desfazer). Sendo o dia de
+  hoje, limpa o rascunho e reabre os exercicios na tela. Registros de outras datas ficam
+  intactos
+- **Apagar entrada do historico de peso** (`deleteWeightEntry()`), pelo mesmo motivo: um peso
+  digitado errado distorcia o grafico e o calculo de progresso rumo a meta
+- `syncExerciseHistoryFor()` mantem `exerciseHistory` — que alimenta os badges de "ultima
+  vez" — apontando para o registro mais recente depois de qualquer edicao ou remocao
+- `refreshHistoryViews()` redesenha o que estiver aberto apos uma correcao, usando os
+  contextos `progressContext` e `workoutDayContext` introduzidos para isso
+
+### Notas
+- No modal de evolucao, o lapis so aparece em registros da propria chave. Sessoes trazidas de
+  outro plano pela unificacao por nome (2.8.0) pertencem a outra trilha e devem ser corrigidas
+  no contexto delas, para a edicao nao gravar no lugar errado
+- `CACHE_NAME`: `treino-cache-v32` -> `treino-cache-v33`
+
 ## [2.11.0] - 2026-08-25
 ### Adicionado
 - **Registro por serie (etapa 2)**. Ate aqui um exercicio era gravado com um unico valor para
