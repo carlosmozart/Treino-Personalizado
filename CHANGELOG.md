@@ -6,6 +6,38 @@ Todas as mudanças relevantes do app ficam registradas aqui. Ao lançar uma nova
    atualizar o app instalado
 3. Adicione uma entrada aqui, nesse formato
 
+## [2.12.0] - 2026-08-25
+### Adicionado
+- **Correcao de registros do historico** (`openEditEntry()`, `saveEditedEntry()`,
+  `deleteEditedEntry()`). Ate aqui **nada** do que fosse gravado podia ser alterado: uma carga
+  digitada errada virava recorde pessoal permanente e achatava o grafico de evolucao, sem
+  saida. Reproduzido em teste: um registro de 600kg entre valores de 40-45kg elevava o
+  recorde para 600kg e o volume do dia para 6.810kg; apos a correcao, 45kg e 1.260kg
+- O editor abre pelo lapis em cada linha do historico do exercicio (modal de evolucao) e em
+  cada exercicio do detalhe do dia. Permite ajustar repeticoes e carga de cada serie,
+  adicionar e remover series, e mostra o volume recalculado ao vivo
+- **Registros no formato antigo sao convertidos ao serem editados.** Diferente da conversao
+  automatica — que a 2.11.0 evitou de proposito —, aqui os valores foram exibidos e
+  confirmados pelo usuario, entao gravar como `series[]` reflete o que ele declarou
+- **Apagar um registro isolado**, preservando o restante do treino daquele dia
+- **Desfazer um treino inteiro** (`undoWorkoutDay()`): remove as sessoes da data em todas as
+  chaves do log, o check-in, o `dailyCompletion`, o `workoutMeta`, e **devolve o XP** via
+  `revokeCheckinXP()` (verificado: 0 -> 50 ao finalizar -> 0 ao desfazer). Sendo o dia de
+  hoje, limpa o rascunho e reabre os exercicios na tela. Registros de outras datas ficam
+  intactos
+- **Apagar entrada do historico de peso** (`deleteWeightEntry()`), pelo mesmo motivo: um peso
+  digitado errado distorcia o grafico e o calculo de progresso rumo a meta
+- `syncExerciseHistoryFor()` mantem `exerciseHistory` — que alimenta os badges de "ultima
+  vez" — apontando para o registro mais recente depois de qualquer edicao ou remocao
+- `refreshHistoryViews()` redesenha o que estiver aberto apos uma correcao, usando os
+  contextos `progressContext` e `workoutDayContext` introduzidos para isso
+
+### Notas
+- No modal de evolucao, o lapis so aparece em registros da propria chave. Sessoes trazidas de
+  outro plano pela unificacao por nome (2.8.0) pertencem a outra trilha e devem ser corrigidas
+  no contexto delas, para a edicao nao gravar no lugar errado
+- `CACHE_NAME`: `treino-cache-v32` -> `treino-cache-v33`
+
 ## [2.11.0] - 2026-08-25
 ### Adicionado
 - **Registro por serie (etapa 2)**. Ate aqui um exercicio era gravado com um unico valor para

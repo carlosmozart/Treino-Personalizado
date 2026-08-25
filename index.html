@@ -161,6 +161,11 @@
     .rounded-md { border-radius: 0.375rem; }
     .w-3 { width: 0.75rem; }
     .w-24 { width: 6rem; }
+    .z-\[108\] { z-index: 108; }
+    .border-rose-900\/50 { border-color: rgba(136, 19, 55, 0.5); }
+    .active\:bg-rose-950\/40:active { background-color: rgba(76, 5, 25, 0.4); }
+    .active\:border-rose-600:active { border-color: #e11d48; }
+    .active\:text-rose-400:active { color: #fb7185; }
     .w-10 { width: 2.5rem; }
     .active\:text-white:active { color: #fff; }
     .z-\[105\] { z-index: 105; }
@@ -229,6 +234,29 @@
     </div>
   </div>
 
+  <div id="editEntryOverlay" class="hidden fixed inset-0 bg-slate-950/95 backdrop-blur-sm z-[108] flex items-center justify-center p-4 overflow-y-auto">
+    <div class="bg-slate-900 rounded-2xl border border-slate-800 shadow-2xl max-w-md w-full p-5 my-8">
+      <div class="flex items-start justify-between gap-3 mb-1">
+        <div class="min-w-0">
+          <p class="text-[10px] font-black text-blue-400 uppercase tracking-wider">Corrigir registro</p>
+          <h2 id="editEntryName" class="text-sm font-black text-white leading-tight truncate">--</h2>
+        </div>
+        <button type="button" onclick="closeEditEntry()" class="flex-shrink-0 w-9 h-9 rounded-full bg-slate-800 active:bg-slate-700 text-slate-400 flex items-center justify-center transition-all active:scale-90">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+        </button>
+      </div>
+      <p id="editEntryDate" class="text-[10px] text-slate-500 mb-4">--</p>
+
+      <div id="editEntryBody" class="space-y-2"></div>
+
+      <div class="flex gap-2 mt-5">
+        <button type="button" onclick="deleteEditedEntry()" class="flex-shrink-0 bg-rose-950/40 border border-rose-800/50 active:bg-rose-900/60 text-rose-400 font-extrabold text-xs px-4 py-3 rounded-xl transition-all active:scale-[0.99]">Apagar</button>
+        <button type="button" onclick="closeEditEntry()" class="flex-1 bg-slate-800 active:bg-slate-700 text-slate-300 font-extrabold text-sm py-3 rounded-xl transition-all active:scale-[0.99]">Cancelar</button>
+        <button type="button" onclick="saveEditedEntry()" class="flex-1 bg-blue-600 active:bg-blue-500 text-white font-extrabold text-sm py-3 rounded-xl transition-all active:scale-[0.99]">Salvar</button>
+      </div>
+    </div>
+  </div>
+
   <div id="swapPickerOverlay" class="hidden fixed inset-0 bg-slate-950/95 backdrop-blur-sm z-[105] flex items-center justify-center p-4 overflow-y-auto">
     <div class="bg-slate-900 rounded-2xl border border-slate-800 shadow-2xl max-w-md w-full p-5 my-8">
       <div class="flex items-start justify-between gap-3 mb-3">
@@ -260,6 +288,7 @@
       <p id="workoutDayMismatch" class="hidden text-[10px] text-blue-300 bg-blue-950/30 border border-blue-800/40 rounded-lg px-3 py-2 mb-3"></p>
       <div id="workoutDayBody"></div>
       <button type="button" id="workoutDayCopy" class="mt-4 w-full bg-slate-800 active:bg-slate-700 text-slate-300 font-bold text-xs py-2.5 rounded-xl transition-all active:scale-[0.99]">📋 Copiar resumo deste treino</button>
+      <button type="button" id="workoutDayUndo" class="mt-2 w-full bg-slate-950/60 border border-rose-900/50 active:bg-rose-950/40 text-rose-400 font-bold text-xs py-2.5 rounded-xl transition-all active:scale-[0.99]">↩️ Desfazer este treino</button>
     </div>
   </div>
 
@@ -892,11 +921,21 @@
   </div>
 
   <script>
-    const APP_VERSION = '2.11.0'; // manter sincronizado com CACHE_NAME em sw.js e com o CHANGELOG.md
+    const APP_VERSION = '2.12.0'; // manter sincronizado com CACHE_NAME em sw.js e com o CHANGELOG.md
 
     // ---------- NOVIDADES (tela para testadores — só experiência do usuário, sem termos técnicos) ----------
     // Detalhes técnicos ficam só no CHANGELOG.md interno. Ordem: mais recente primeiro.
     const RELEASE_NOTES = [
+      {
+        version: '2.12.0', date: '2026-08-25',
+        highlights: [
+          '✏️ <strong>Agora dá para corrigir o que já foi registrado.</strong> Toque no lápis em qualquer sessão — no histórico do exercício (📊 Evolução) ou no detalhe do dia — para ajustar repetições e carga, adicionar ou remover séries. Até hoje um valor digitado errado ficava para sempre, virava recorde pessoal e distorcia seu gráfico.',
+          '🗑️ <strong>Apagar um registro isolado</strong> sem perder o resto do treino daquele dia.',
+          '↩️ <strong>Desfazer um treino inteiro.</strong> Finalizou por engano? O botão no detalhe do dia remove os exercícios registrados, o check-in e devolve o XP concedido.',
+          '⚖️ <strong>Apagar um registro do histórico de peso</strong>, pelo mesmo motivo.',
+          'ℹ️ Ao corrigir um registro antigo, ele passa a ser gravado no formato por série — os valores foram vistos e confirmados por você, então a conversão é segura.'
+        ]
+      },
       {
         version: '2.11.0', date: '2026-08-25',
         highlights: [
@@ -2916,13 +2955,33 @@
 
       list.innerHTML = chart + entries.map(e => {
         const [y, m, d] = e.date.split('-');
-        return `<div class="flex items-center justify-between bg-slate-950/50 rounded-lg px-3 py-2 border border-slate-800/60 text-xs">
+        return `<div class="flex items-center justify-between bg-slate-950/50 rounded-lg px-3 py-2 border border-slate-800/60 text-xs gap-2">
           <span class="text-slate-400 font-semibold">${d}/${m}/${y}</span>
           <span class="text-white font-bold">${e.weight}kg</span>
           <span class="text-blue-300 font-bold">IMC ${e.imc.toFixed(1)}</span>
+          <button type="button" onclick="deleteWeightEntry('${escapeJs(e.date)}')" aria-label="Apagar registro de ${d}/${m}/${y}" class="w-6 h-6 rounded bg-slate-900 border border-slate-700 active:border-rose-600 text-slate-500 active:text-rose-400 flex items-center justify-center flex-shrink-0 text-[10px] font-black">×</button>
         </div>`;
       }).join('');
     }
+
+    window.deleteWeightEntry = async function(dateStr) {
+      const lista = userProfile.weightHistory || [];
+      const alvo = lista.find(e => e.date === dateStr);
+      if (!alvo) return;
+      const ok = await askConfirm({
+        icon: '🗑️',
+        title: 'Apagar registro de peso',
+        text: `Apagar <strong class="text-white">${alvo.weight}kg</strong> de ${escapeHtml(formatDateBR(dateStr))}?`,
+        confirmLabel: 'Apagar',
+        danger: true
+      });
+      if (!ok) return;
+      userProfile.weightHistory = lista.filter(e => e.date !== dateStr);
+      saveJSON(PROFILE_KEY, userProfile);
+      renderWeightHistory();
+      renderGoalRoadmap();
+      showToast('🗑️ Registro de peso apagado.');
+    };
 
     function renderGoalRoadmap() {
       const emptyEl = document.getElementById('goalRoadmapEmpty');
@@ -3907,6 +3966,229 @@
       return h > 0 ? `${h}h${String(m).padStart(2, '0')}` : `${m}min`;
     }
 
+    // ---------- CORRIGIR OU APAGAR UM REGISTRO DO HISTORICO ----------
+    // Ate aqui nada do que fosse gravado podia ser desfeito: uma carga digitada errada virava
+    // recorde pessoal permanente e achatava o grafico de evolucao, sem saida. A confirmacao
+    // de valores suspeitos (2.11.0) reduz o problema na origem, mas nao conserta o que ja
+    // esta gravado — e por isso existe esta tela.
+    let editEntryRef = null;   // { historyKey, date, series[], tipo, cardio{...} }
+
+    window.openEditEntry = function(historyKey, dateStr) {
+      const lista = sessionLog[historyKey] || [];
+      const entry = lista.find(e => entryDateKey(e) === dateStr);
+      if (!entry) { showToast('Registro não encontrado.'); return; }
+
+      editEntryRef = {
+        historyKey,
+        date: dateStr,
+        tipo: entry.type === 'cardio' ? 'cardio' : 'forca',
+        nome: resolveExerciseName(historyKey, entry),
+        series: getEntrySeries(entry).map(sr => ({ reps: sr.reps, weight: sr.weight })),
+        duration: entry.duration,
+        distance: entry.distance,
+        obs: entry.obs || ''
+      };
+
+      document.getElementById('editEntryName').textContent = editEntryRef.nome;
+      document.getElementById('editEntryDate').textContent = capitalizar(formatDateWithWeekday(dateStr));
+      renderEditEntryBody();
+      document.getElementById('editEntryOverlay').classList.remove('hidden');
+    };
+
+    function renderEditEntryBody() {
+      const body = document.getElementById('editEntryBody');
+      if (!editEntryRef) return;
+
+      if (editEntryRef.tipo === 'cardio') {
+        body.innerHTML = `
+          <div class="grid grid-cols-2 gap-2">
+            <div>
+              <label class="text-[9px] font-bold text-slate-500 uppercase">Tempo (min)</label>
+              <input type="number" inputmode="numeric" id="editEntryDuration" value="${escapeHtml(editEntryRef.duration || 0)}" class="w-full bg-slate-950 border border-slate-800 rounded-lg px-2 py-2 text-white text-sm text-center focus:outline-none focus:ring-1 focus:ring-blue-600"/>
+            </div>
+            <div>
+              <label class="text-[9px] font-bold text-slate-500 uppercase">Distância (km)</label>
+              <input type="number" inputmode="decimal" step="0.1" id="editEntryDistance" value="${escapeHtml(editEntryRef.distance || 0)}" class="w-full bg-slate-950 border border-slate-800 rounded-lg px-2 py-2 text-white text-sm text-center focus:outline-none focus:ring-1 focus:ring-blue-600"/>
+            </div>
+          </div>`;
+        return;
+      }
+
+      const linhas = editEntryRef.series.map((sr, i) => `
+        <div class="flex items-center gap-2">
+          <span class="w-5 text-[10px] font-black text-slate-500 text-center flex-shrink-0">${i + 1}</span>
+          <input type="number" inputmode="numeric" value="${sr.reps}" oninput="updateEditSeries(${i},'reps',this.value)" aria-label="Repetições da série ${i + 1}" class="flex-1 min-w-0 bg-slate-950 border border-slate-800 rounded-lg px-2 py-2 text-white text-sm text-center focus:outline-none focus:ring-1 focus:ring-blue-600"/>
+          <span class="text-[9px] text-slate-600 font-bold flex-shrink-0">reps</span>
+          <input type="number" inputmode="decimal" step="0.5" value="${sr.weight}" oninput="updateEditSeries(${i},'weight',this.value)" aria-label="Carga da série ${i + 1}" class="flex-1 min-w-0 bg-slate-950 border border-slate-800 rounded-lg px-2 py-2 text-white text-sm text-center focus:outline-none focus:ring-1 focus:ring-blue-600"/>
+          <span class="text-[9px] text-slate-600 font-bold flex-shrink-0">kg</span>
+          <button type="button" onclick="removeEditSeries(${i})" aria-label="Remover série ${i + 1}" class="w-8 h-9 rounded-lg bg-slate-950/60 border border-slate-700 text-rose-400 active:border-rose-600 flex-shrink-0 text-xs font-black">×</button>
+        </div>`).join('');
+
+      const volume = editEntryRef.series.reduce((t, sr) => t + (sr.reps || 0) * (sr.weight || 0), 0);
+
+      body.innerHTML = `
+        ${linhas || '<p class="text-xs text-slate-600 text-center py-3">Sem séries. Apague o registro ou adicione uma.</p>'}
+        <button type="button" onclick="addEditSeries()" class="w-full bg-slate-950/60 border border-slate-700 active:border-blue-600 text-slate-300 text-[11px] font-black py-2 rounded-xl transition-all active:scale-[0.99] mt-1">+ Adicionar série</button>
+        <div class="flex items-center justify-between bg-slate-950/50 border border-slate-800 rounded-xl px-3 py-2 mt-3">
+          <span class="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Volume</span>
+          <span class="text-xs font-black text-blue-300">${Math.round(volume).toLocaleString('pt-BR')}kg</span>
+        </div>`;
+    }
+
+    window.updateEditSeries = function(i, campo, valor) {
+      if (!editEntryRef || !editEntryRef.series[i]) return;
+      let n = parseFloat(valor) || 0;
+      if (n < 0) n = 0;
+      editEntryRef.series[i][campo] = campo === 'weight' ? Math.round(n * 10) / 10 : Math.round(n);
+      // so o total e redesenhado: refazer as linhas tiraria o foco do campo em edicao
+      const volume = editEntryRef.series.reduce((t, sr) => t + (sr.reps || 0) * (sr.weight || 0), 0);
+      const el = document.querySelector('#editEntryBody .text-blue-300');
+      if (el) el.textContent = `${Math.round(volume).toLocaleString('pt-BR')}kg`;
+    };
+
+    window.addEditSeries = function() {
+      if (!editEntryRef) return;
+      const ultima = editEntryRef.series[editEntryRef.series.length - 1];
+      editEntryRef.series.push({ reps: ultima ? ultima.reps : 10, weight: ultima ? ultima.weight : 0 });
+      renderEditEntryBody();
+    };
+
+    window.removeEditSeries = function(i) {
+      if (!editEntryRef) return;
+      editEntryRef.series.splice(i, 1);
+      renderEditEntryBody();
+    };
+
+    window.closeEditEntry = function() {
+      editEntryRef = null;
+      document.getElementById('editEntryOverlay').classList.add('hidden');
+    };
+
+    window.saveEditedEntry = function() {
+      if (!editEntryRef) return;
+      const { historyKey, date } = editEntryRef;
+      const lista = sessionLog[historyKey] || [];
+      const idx = lista.findIndex(e => entryDateKey(e) === date);
+      if (idx < 0) { closeEditEntry(); return; }
+
+      const original = lista[idx];
+      if (editEntryRef.tipo === 'cardio') {
+        const dur = parseFloat(document.getElementById('editEntryDuration').value) || 0;
+        const dist = parseFloat(document.getElementById('editEntryDistance').value) || 0;
+        lista[idx] = Object.assign({}, original, { duration: dur, distance: dist });
+      } else {
+        if (editEntryRef.series.length === 0) { showToast('⚠️ Adicione ao menos uma série ou apague o registro.'); return; }
+        const series = editEntryRef.series.map(sr => ({ reps: sr.reps, weight: sr.weight }));
+        // corrigir um registro antigo o grava no formato por serie: os valores foram vistos
+        // e confirmados pelo usuario, entao aqui a conversao e legitima
+        lista[idx] = Object.assign({}, original, {
+          series,
+          sets: series.length,
+          reps: series[0].reps,
+          weight: series[0].weight
+        });
+      }
+      sessionLog[historyKey] = lista;
+      saveJSON(SESSIONS_KEY, sessionLog);
+      syncExerciseHistoryFor(historyKey);
+
+      closeEditEntry();
+      refreshHistoryViews();
+      showToast('✅ Registro corrigido.');
+    };
+
+    window.deleteEditedEntry = async function() {
+      if (!editEntryRef) return;
+      const { historyKey, date, nome } = editEntryRef;
+      const ok = await askConfirm({
+        icon: '🗑️',
+        title: 'Apagar registro',
+        text: `Apagar <strong class="text-white">${escapeHtml(nome)}</strong> de ${escapeHtml(formatDateBR(date))}?<br/><span class="text-slate-500">O restante do treino desse dia continua no histórico.</span>`,
+        confirmLabel: 'Apagar',
+        danger: true
+      });
+      if (!ok) return;
+
+      sessionLog[historyKey] = (sessionLog[historyKey] || []).filter(e => entryDateKey(e) !== date);
+      if (sessionLog[historyKey].length === 0) delete sessionLog[historyKey];
+      saveJSON(SESSIONS_KEY, sessionLog);
+      syncExerciseHistoryFor(historyKey);
+
+      closeEditEntry();
+      refreshHistoryViews();
+      showToast('🗑️ Registro apagado.');
+    };
+
+    // exerciseHistory guarda a ultima sessao de cada exercicio e alimenta os badges;
+    // depois de mexer no log ele precisa refletir o novo ultimo registro
+    function syncExerciseHistoryFor(historyKey) {
+      const lista = sessionLog[historyKey] || [];
+      if (lista.length === 0) delete exerciseHistory[historyKey];
+      else exerciseHistory[historyKey] = lista[lista.length - 1];
+      saveJSON(HISTORY_KEY, exerciseHistory);
+    }
+
+    // Redesenha o que estiver aberto depois de uma correcao.
+    function refreshHistoryViews() {
+      workoutHistoryCache = [];
+      if (!document.getElementById('exerciseProgressOverlay').classList.contains('hidden') && progressContext) {
+        openExerciseProgress(progressContext.historyKey, progressContext.name);
+      }
+      if (!document.getElementById('workoutDayOverlay').classList.contains('hidden') && workoutDayContext) {
+        openWorkoutDay(workoutDayContext);
+      }
+      if (!perfilView.classList.contains('hidden')) renderWorkoutHistory();
+      if (!treinoView.classList.contains('hidden')) renderExercises();
+    }
+
+    // ---------- DESFAZER UM TREINO INTEIRO ----------
+    window.undoWorkoutDay = async function(dateStr) {
+      const dia = buildWorkoutHistory().find(d => d.date === dateStr);
+      const qtd = dia ? dia.exercicios.length : 0;
+      const xp = (gamification.checkins[dateStr] && gamification.checkins[dateStr].amount) || 0;
+
+      const ok = await askConfirm({
+        icon: '↩️',
+        title: 'Desfazer treino',
+        text: `Remover o treino de <strong class="text-white">${escapeHtml(capitalizar(formatDateWithWeekday(dateStr)))}</strong>?<br/>` +
+              `<span class="text-slate-500">Serão apagados ${qtd} exercício${qtd === 1 ? '' : 's'} registrado${qtd === 1 ? '' : 's'}, o check-in do dia` +
+              (xp ? ` e ${xp} XP` : '') + `.</span><br/><span class="text-rose-300 font-bold">Não dá para desfazer.</span>`,
+        confirmLabel: 'Desfazer treino',
+        danger: true
+      });
+      if (!ok) return;
+
+      // remove as sessoes daquele dia em todas as chaves
+      Object.keys(sessionLog).forEach(k => {
+        const restante = (sessionLog[k] || []).filter(e => entryDateKey(e) !== dateStr);
+        if (restante.length === 0) delete sessionLog[k];
+        else sessionLog[k] = restante;
+        syncExerciseHistoryFor(k);
+      });
+      saveJSON(SESSIONS_KEY, sessionLog);
+
+      revokeCheckinXP(dateStr);          // devolve o XP concedido
+      delete checkins[dateStr];
+      saveJSON(CHECKIN_KEY, checkins);
+      delete dailyCompletion[dateStr];
+      saveJSON(COMPLETION_KEY, dailyCompletion);
+      delete workoutMeta[dateStr];
+      saveJSON(WORKOUT_META_KEY, workoutMeta);
+
+      // se for o dia de hoje, o treino na tela volta a ficar em aberto
+      if (dateStr === todayKey()) {
+        clearDraft();
+        initializeWorkoutData(activeWorkoutKey);
+      }
+
+      closeWorkoutDay();
+      workoutHistoryCache = [];
+      renderCheckinGrid();
+      renderExercises();
+      if (!perfilView.classList.contains('hidden')) renderWorkoutHistory();
+      showToast('↩️ Treino desfeito.');
+    };
+
     // ---------- TROCA AVULSA POR QUALQUER EXERCICIO DA BIBLIOTECA ----------
     // Antes so dava para alternar entre as reservas cadastradas no plano. Sem reserva, a
     // unica saida era ir em Planos > Editar no meio do treino — com o aparelho ocupado e a
@@ -4546,7 +4828,10 @@
       }
     }
 
+    let workoutDayContext = null;  // a data que o detalhe do dia esta exibindo
+
     window.openWorkoutDay = function(dateStr) {
+      workoutDayContext = dateStr;
       // Reconstroi SEMPRE. Antes so montava quando o cache estava vazio, entao qualquer
       // treino finalizado depois da primeira visita a aba Progresso ficava de fora — e
       // tocar nesse dia no calendario nao abria absolutamente nada. A agregacao leva
@@ -4584,6 +4869,7 @@
           <div class="flex items-start justify-between gap-2">
             <p class="text-xs font-bold ${e.name && e.name !== NOME_DESCONHECIDO ? 'text-white' : 'text-slate-500 italic'} min-w-0 flex-1">${escapeHtml(e.name || NOME_DESCONHECIDO)}</p>
             <span class="text-xs font-black text-blue-300 flex-shrink-0">${escapeHtml(detalhe)}</span>
+            <button type="button" onclick="openEditEntry('${escapeJs(e.historyKey || '')}','${escapeJs(e.date)}')" aria-label="Corrigir ${escapeHtml(e.name || 'registro')}" class="w-7 h-7 rounded-lg bg-slate-900 border border-slate-700 active:border-blue-600 text-slate-400 active:text-blue-300 flex items-center justify-center flex-shrink-0 text-[10px]">✏️</button>
           </div>
           ${vol}${obs}
         </div>`;
@@ -4630,6 +4916,8 @@
         const ok = await copyTextToClipboard(txt);
         showToast(ok ? 'Resumo copiado!' : '❌ Não foi possível copiar.');
       };
+
+      document.getElementById('workoutDayUndo').onclick = () => undoWorkoutDay(dia.date);
 
       document.getElementById('workoutDayOverlay').classList.remove('hidden');
     };
@@ -4690,7 +4978,10 @@
     }
 
     // ---------- EVOLUÇÃO DE UM EXERCÍCIO ----------
+    let progressContext = null;   // o que o modal de evolucao esta exibindo
+
     window.openExerciseProgress = function(historyKey, exerciseName) {
+      progressContext = { historyKey, name: exerciseName };
       const coletado = collectSessionsForExercise(historyKey, exerciseName);
       const list = coletado.sessions;
       document.getElementById('progressExerciseName').textContent = exerciseName || 'Exercício';
@@ -4737,11 +5028,18 @@
           const detail = describeEntry(e);
           // (o nome aqui ja vem do cabecalho do modal, entao a linha mostra so os numeros)
           const vol = e.type === 'cardio' ? '' : `<span class="text-[9px] text-slate-600">${Math.round(sessionVolume(e)).toLocaleString('pt-BR')}kg vol.</span>`;
-          return `<div class="flex items-center justify-between bg-slate-950/50 rounded-lg px-3 py-2 border border-slate-800/60">
-            <span class="text-[11px] text-slate-400 font-semibold">${formatDateBR(e.date)}</span>
-            <div class="flex items-center gap-2">
+          // so registros da propria chave podem ser corrigidos aqui: os que vem de outro
+          // plano pertencem a outra trilha e devem ser editados no contexto deles
+          const proprio = (sessionLog[historyKey] || []).some(x => entryDateKey(x) === entryDateKey(e));
+          const btnEditar = proprio
+            ? `<button type="button" onclick="openEditEntry('${escapeJs(historyKey)}','${escapeJs(entryDateKey(e))}')" aria-label="Corrigir registro de ${escapeHtml(formatDateBR(e.date))}" class="w-7 h-7 rounded-lg bg-slate-900 border border-slate-700 active:border-blue-600 text-slate-400 active:text-blue-300 flex items-center justify-center flex-shrink-0 text-[10px]">✏️</button>`
+            : '';
+          return `<div class="flex items-center justify-between bg-slate-950/50 rounded-lg px-3 py-2 border border-slate-800/60 gap-2">
+            <span class="text-[11px] text-slate-400 font-semibold flex-shrink-0">${formatDateBR(e.date)}</span>
+            <div class="flex items-center gap-2 min-w-0">
               ${vol}
-              <span class="text-xs text-white font-bold">${escapeHtml(detail)}</span>
+              <span class="text-xs text-white font-bold truncate">${escapeHtml(detail)}</span>
+              ${btnEditar}
             </div>
           </div>`;
         }).join('');
