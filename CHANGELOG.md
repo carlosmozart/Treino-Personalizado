@@ -6,6 +6,35 @@ Todas as mudanças relevantes do app ficam registradas aqui. Ao lançar uma nova
    atualizar o app instalado
 3. Adicione uma entrada aqui, nesse formato
 
+## [2.10.1] - 2026-08-25
+### Corrigido
+- **Treino finalizado nao entrava no historico** (relatado em uso real). `recordSession()`
+  ordenava a lista com `a.date.localeCompare(b.date)`; bastava **uma** entrada antiga sem
+  `date` no log daquele exercicio para o comparador receber `undefined` e lancar TypeError.
+  A excecao subia pelo `forEach` de `finalizeWorkout()` e abortava a funcao **antes** dos
+  `saveJSON()` — reproduzido em teste: com 4 entradas corrompidas, apenas 1 dos 4 exercicios
+  foi processado, `treino_session_log` nao foi gravado no disco e o relatorio nem chegou a
+  ser exibido. Do lado do usuario, o treino aparecia concluido na tela mas sumia do historico
+- **Treinos fora de ordem na lista** — mesma origem. `entryDateKey()` normaliza a data
+  (aceita string ou `Date`, descarta o resto) e `compareByDate()` substitui `localeCompare`
+  por comparacao direta de string, que e o correto para datas ISO e nao quebra com valores
+  inesperados. Aplicado tambem ao historico de peso corporal, que tinha a mesma fragilidade
+- `finalizeWorkout()` passou a isolar cada exercicio em `try/catch`: uma falha pontual nao
+  impede os demais de serem gravados, e os nomes afetados sao informados por toast em vez de
+  o treino desaparecer em silencio
+- `sanitizeSessionLog()` remove uma unica vez os registros sem data ja existentes, que nunca
+  apareciam no historico e so serviam para quebrar a ordenacao e a finalizacao
+
+### Alterado
+- **Toast centralizado** (relatado como "ora aparece a esquerda, ora a direita"). O elemento
+  era ancorado por `right-6`, entao a posicao visual dependia da largura do texto: mensagens
+  curtas ficavam no canto direito e mensagens longas se esticavam quase ate a borda esquerda.
+  Passa a ser fixado no centro por CSS proprio (`left: 50%` + `translateX(-50%)`), com
+  `width: max-content` e `max-width` limitado. A animacao de entrada usa a classe `toast-in`,
+  que anima apenas o eixo Y — as classes utilitarias `translate-y-*` sobrescreveriam o
+  `translateX` da centralizacao
+- `CACHE_NAME`: `treino-cache-v30` -> `treino-cache-v31`
+
 ## [2.10.0] - 2026-08-24
 ### Alterado
 - **Badge da ultima sessao agora aparece sempre** (`getPersistentLoadBadge()`). A condicao

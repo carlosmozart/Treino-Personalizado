@@ -87,6 +87,20 @@
     /* Rolagem suave e com inércia nas listas internas */
     .overflow-y-auto, .overflow-x-auto { -webkit-overflow-scrolling: touch; }
 
+    /* ---------- TOAST CENTRALIZADO ----------
+       A posicao horizontal e fixa no centro; so o eixo Y anima. Antes o toast era ancorado
+       pela direita, entao mensagens curtas ficavam num canto e mensagens longas se
+       esticavam ate o outro lado, dando a impressao de que trocavam de lugar. */
+    #toast {
+      left: 50%;
+      transform: translateX(-50%) translateY(0.5rem);
+      max-width: calc(100% - 2rem);
+      width: max-content;
+      justify-content: center;
+      text-align: left;
+    }
+    #toast.toast-in { transform: translateX(-50%) translateY(0); }
+
     /* ---------- CRONÔMETRO DE DESCANSO ---------- */
     @keyframes timerPop { from { opacity: 0; transform: translate(-50%, 16px) scale(0.94); } to { opacity: 1; transform: translate(-50%, 0) scale(1); } }
     .timer-pop { animation: timerPop 0.28s cubic-bezier(.34,1.56,.64,1) both; }
@@ -157,7 +171,9 @@
 </head>
 <body class="bg-slate-950 text-slate-100 font-sans pb-12 min-h-screen">
 
-  <div id="toast" class="fixed top-6 right-6 bg-gradient-to-r from-emerald-600 to-teal-500 text-white px-5 py-3 rounded-xl shadow-2xl flex items-center space-x-3 z-50 border border-emerald-400 transition-all duration-300 opacity-0 pointer-events-none transform translate-y-2">
+  <!-- Ancorado ao centro: preso a direita, a largura variavel do texto fazia o toast
+       parecer mudar de lugar a cada mensagem. -->
+  <div id="toast" class="fixed top-6 bg-gradient-to-r from-emerald-600 to-teal-500 text-white px-5 py-3 rounded-xl shadow-2xl flex items-center space-x-3 z-50 border border-emerald-400 transition-all duration-300 opacity-0 pointer-events-none">
     <svg class="w-5 h-5 stroke-[3]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
       <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
     </svg>
@@ -874,11 +890,19 @@
   </div>
 
   <script>
-    const APP_VERSION = '2.10.0'; // manter sincronizado com CACHE_NAME em sw.js e com o CHANGELOG.md
+    const APP_VERSION = '2.10.1'; // manter sincronizado com CACHE_NAME em sw.js e com o CHANGELOG.md
 
     // ---------- NOVIDADES (tela para testadores — só experiência do usuário, sem termos técnicos) ----------
     // Detalhes técnicos ficam só no CHANGELOG.md interno. Ordem: mais recente primeiro.
     const RELEASE_NOTES = [
+      {
+        version: '2.10.1', date: '2026-08-25',
+        highlights: [
+          '🐛 <strong>Corrigido: treino finalizado sumia do histórico.</strong> Um registro antigo com data inválida no seu histórico fazia a finalização falhar no meio — o app mostrava o treino como concluído, mas ele nunca chegava à lista de treinos realizados. Agora um registro problemático não derruba mais o resto, e o app avisa se algum exercício não puder ser gravado.',
+          '🐛 <strong>Corrigido: treinos fora de ordem no histórico.</strong> Tinha a mesma origem — registros com data em formato inesperado bagunçavam a ordenação. Esses registros antigos foram limpos automaticamente nesta atualização.',
+          '🎯 <strong>Avisos agora aparecem sempre centralizados.</strong> Antes ficavam presos à direita, e como a largura depende do tamanho do texto, pareciam mudar de lugar a cada mensagem.'
+        ]
+      },
       {
         version: '2.10.0', date: '2026-08-24',
         highlights: [
@@ -1302,7 +1326,8 @@
       'treino_water_log', 'treino_daily_completion', 'treino_hints_seen', 'treino_profiles',
       'treino_active_profile_id', 'treino_last_seen_version', 'treino_session_log',
       'treino_settings', 'treino_workout_draft', 'treino_last_backup_at',
-      'treino_last_backup_nag', 'treino_optional_migrated', 'treino_workout_meta'
+      'treino_last_backup_nag', 'treino_optional_migrated', 'treino_workout_meta',
+      'treino_log_sanitized'
     ];
 
     function buildBackupObject() {
@@ -1542,6 +1567,22 @@
     // Planos criados antes da marcacao existir podem ter dias claramente dispensaveis — o
     // padrao traz "Domingo: Extra (Opcional)". Sem a marcacao, nao treinar nesse dia zerava a
     // sequencia. Roda uma unica vez e so olha dias cujo proprio nome se declara opcional.
+    // Remove do log entradas sem data utilizavel. Elas nunca apareciam no historico e eram a
+    // causa de a finalizacao do treino falhar silenciosamente. Roda uma vez.
+    function sanitizeSessionLog() {
+      if (loadString('treino_log_sanitized')) return;
+      let removidas = 0;
+      Object.keys(sessionLog).forEach(k => {
+        const lista = sessionLog[k] || [];
+        const limpa = lista.filter(e => entryDateKey(e));
+        if (limpa.length !== lista.length) removidas += lista.length - limpa.length;
+        if (limpa.length === 0) delete sessionLog[k];
+        else { limpa.sort(compareByDate); sessionLog[k] = limpa; }
+      });
+      if (removidas > 0) saveJSON(SESSIONS_KEY, sessionLog);
+      saveString('treino_log_sanitized', '1');
+    }
+
     function migrateOptionalDays() {
       if (loadString('treino_optional_migrated')) return;
       let mudou = false;
@@ -2309,12 +2350,12 @@
         : 'M5 13l4 4L19 7';
       toast.querySelector('svg path').setAttribute('d', iconPath);
       toast.querySelector('span').textContent = message;
-      toast.classList.remove('opacity-0', 'pointer-events-none', 'translate-y-2');
-      toast.classList.add('opacity-100', 'translate-y-0');
+      toast.classList.remove('opacity-0', 'pointer-events-none');
+      toast.classList.add('opacity-100', 'toast-in');
       clearTimeout(toastTimeout);
       toastTimeout = setTimeout(() => {
-        toast.classList.remove('opacity-100', 'translate-y-0');
-        toast.classList.add('opacity-0', 'pointer-events-none', 'translate-y-2');
+        toast.classList.remove('opacity-100', 'toast-in');
+        toast.classList.add('opacity-0', 'pointer-events-none');
         setTimeout(() => {
           toastActive = false;
           processToastQueue();
@@ -2843,7 +2884,7 @@
 
     function renderWeightHistory() {
       const list = document.getElementById('weightHistoryList');
-      const entries = [...(userProfile.weightHistory || [])].sort((a, b) => b.date.localeCompare(a.date)).slice(0, 15);
+      const entries = [...(userProfile.weightHistory || [])].filter(e => entryDateKey(e)).sort((a, b) => compareByDate(b, a)).slice(0, 15);
       if (entries.length === 0) {
         list.innerHTML = `<p class="text-xs text-slate-600 text-center py-4">Nenhum registro ainda. Salve seus dados para começar o histórico.</p>`;
         return;
@@ -2885,7 +2926,7 @@
       contentEl.classList.remove('hidden');
 
       // "início" = primeiro peso já registrado no histórico; se não houver, usa o peso atual
-      const sortedHistory = [...(userProfile.weightHistory || [])].sort((a, b) => a.date.localeCompare(b.date));
+      const sortedHistory = [...(userProfile.weightHistory || [])].filter(e => entryDateKey(e)).sort(compareByDate);
       const startWeight = sortedHistory.length > 0 ? sortedHistory[0].weight : currentWeight;
 
       document.getElementById('goalStartWeight').textContent = `${startWeight}kg`;
@@ -2972,17 +3013,41 @@
     // (exerciseHistory) porque os avisos de "hora de subir a carga" dependem dele.
     const MAX_SESSIONS_PER_EXERCISE = 200; // ~4 anos treinando o mesmo exercício 1x/semana
 
+    // Data de uma entrada, sempre como string comparavel. Registros antigos ou importados
+    // podem estar sem data ou com um objeto Date no lugar da string; antes isso fazia
+    // `a.date.localeCompare(...)` lancar TypeError e derrubar a finalizacao inteira do treino.
+    function entryDateKey(entry) {
+      if (!entry) return '';
+      const d = entry.date;
+      if (typeof d === 'string') return d;
+      if (d instanceof Date && !isNaN(d)) return formatLocalDateKey(d);
+      return '';
+    }
+
+    // Ordenacao por comparacao direta de string. localeCompare aplica regras de colacao do
+    // idioma, desnecessarias para datas ISO — e quebra assim que um valor nao e string.
+    function compareByDate(a, b) {
+      const da = entryDateKey(a), db = entryDateKey(b);
+      if (da === db) return 0;
+      return da < db ? -1 : 1;
+    }
+
     function recordSession(historyKey, entry) {
       if (!sessionLog[historyKey]) sessionLog[historyKey] = [];
-      const list = sessionLog[historyKey];
+      // descarta o que nao tem data utilizavel: essas entradas nunca apareceriam no
+      // historico de qualquer forma, e ficavam ali so para quebrar a ordenacao
+      const list = sessionLog[historyKey].filter(e => entryDateKey(e));
+      const chave = entryDateKey(entry);
+
       // um registro por exercício por dia: refinalizar o mesmo treino atualiza, não duplica
-      const existingIdx = list.findIndex(e => e.date === entry.date);
+      const existingIdx = list.findIndex(e => entryDateKey(e) === chave);
       if (existingIdx >= 0) list[existingIdx] = entry;
       else list.push(entry);
-      list.sort((a, b) => a.date.localeCompare(b.date));
-      if (list.length > MAX_SESSIONS_PER_EXERCISE) {
-        sessionLog[historyKey] = list.slice(list.length - MAX_SESSIONS_PER_EXERCISE);
-      }
+
+      list.sort(compareByDate);
+      sessionLog[historyKey] = list.length > MAX_SESSIONS_PER_EXERCISE
+        ? list.slice(list.length - MAX_SESSIONS_PER_EXERCISE)
+        : list;
     }
 
     // Volume de uma sessão de força: séries x repetições x carga. É a medida mais honesta de
@@ -3551,9 +3616,11 @@
       let totalVolume = 0;
       const newRecords = [];
 
+      const falhas = [];
       workout.exercises.forEach(ex => {
         const state = formData[ex.id];
         if (state) {
+         try {
           const historyKey = getHistoryKey(ex.id, state.variantIndex || 0, state.customName);
           // nome garantido no momento da gravacao: um exercicio sem nome no plano deixaria
           // o historico com uma linha muda para sempre
@@ -3582,6 +3649,13 @@
 
           state.done = true;
           dailyCompletion[today][ex.id] = true;
+         } catch (err) {
+          // Registrar um exercicio nao pode impedir os outros de serem salvos. Antes, uma
+          // unica entrada corrompida no log lancava excecao aqui e o treino inteiro deixava
+          // de ser gravado — o usuario finalizava e nada aparecia no historico.
+          console.error('Falha ao registrar exercício', ex.id, err);
+          falhas.push(state.name || ex.name || ex.id);
+         }
         }
       });
 
@@ -3603,6 +3677,7 @@
       grantCheckinXP(today, wasAllDone);
       if (!wasAllDone) showToast(`⚠️ Check-in manual sem tudo concluído: +${getHalfCheckinXP()} XP (metade)`);
       newRecords.forEach(name => showToast(`🏅 Novo recorde pessoal: ${name}!`, 'trophy'));
+      if (falhas.length) showToast(`⚠️ Não foi possível registrar: ${falhas.join(', ')}`);
       renderCheckinGrid();
       renderExercises();
 
@@ -3689,7 +3764,7 @@
         if (a > b) porData[e.date] = e;
       });
 
-      const sessions = Object.values(porData).sort((a, b) => a.date.localeCompare(b.date));
+      const sessions = Object.values(porData).sort(compareByDate);
       return { sessions, fromOtherProfiles: sessions.length > proprias.length };
     }
 
@@ -4073,14 +4148,16 @@
 
       Object.keys(sessionLog).forEach(historyKey => {
         (sessionLog[historyKey] || []).forEach(entry => {
-          if (!entry || !entry.date) return;
-          if (!porData[entry.date]) porData[entry.date] = { date: entry.date, exercicios: [], volume: 0 };
+          const data = entryDateKey(entry);  // aceita string ou Date, descarta o resto
+          if (!data) return;
+          if (!porData[data]) porData[data] = { date: data, exercicios: [], volume: 0 };
           // guarda a chave e um nome garantido, para a linha nunca sair so com numeros
-          porData[entry.date].exercicios.push(Object.assign({}, entry, {
+          porData[data].exercicios.push(Object.assign({}, entry, {
+            date: data,
             historyKey,
             name: resolveExerciseName(historyKey, entry)
           }));
-          porData[entry.date].volume += sessionVolume(entry);
+          porData[data].volume += sessionVolume(entry);
         });
       });
 
@@ -4092,7 +4169,7 @@
         porData[date].minutos = (workoutMeta[date] && workoutMeta[date].minutos) || null;
       });
 
-      return Object.values(porData).sort((a, b) => b.date.localeCompare(a.date)); // mais recente primeiro
+      return Object.values(porData).sort((a, b) => compareByDate(b, a)); // mais recente primeiro
     }
 
     // Dia da semana derivado da DATA, nunca da chave do treino registrado. E possivel fazer
@@ -4795,6 +4872,7 @@
       }
       ensureProfilesSeeded();
       migrateOptionalDays();
+      sanitizeSessionLog();
       buildExerciseDatalist();
       migrateHistoryToSessionLog(); // semeia o log de sessões para quem já usava versões anteriores
       renderWorkoutSelectOptions();
