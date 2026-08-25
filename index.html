@@ -929,11 +929,19 @@
   </div>
 
   <script>
-    const APP_VERSION = '2.13.0'; // manter sincronizado com CACHE_NAME em sw.js e com o CHANGELOG.md
+    const APP_VERSION = '2.13.1'; // manter sincronizado com CACHE_NAME em sw.js e com o CHANGELOG.md
 
     // ---------- NOVIDADES (tela para testadores — só experiência do usuário, sem termos técnicos) ----------
     // Detalhes técnicos ficam só no CHANGELOG.md interno. Ordem: mais recente primeiro.
     const RELEASE_NOTES = [
+      {
+        version: '2.13.1', date: '2026-08-25',
+        highlights: [
+          '🐛 <strong>Corrigido de verdade: treinos não apareciam em "Treinos realizados".</strong> O registro no histórico só acontecia ao tocar em <em>Finalizar Treino</em>. Se você marcava todas as séries e considerava o treino encerrado — o app já dava o check-in, o XP e dizia "Treino completo!" — nada era gravado no histórico. Agora concluir todos os exercícios registra o treino automaticamente.',
+          'ℹ️ O botão <em>Finalizar Treino</em> continua existindo e serve para gerar o resumo copiável, mas deixou de ser obrigatório para o treino entrar no histórico.',
+          '⚠️ Treinos de dias anteriores que não foram finalizados pelo botão não podem ser recuperados — eles nunca chegaram a ser gravados. A partir desta versão isso não acontece mais.'
+        ]
+      },
       {
         version: '2.13.0', date: '2026-08-25',
         highlights: [
@@ -3718,14 +3726,24 @@
         startRestTimer(getRestSecondsFor(getExerciseDef(exId)), state.name);
       }
 
-      // Check-in automático: se marcar TODOS os exercícios do dia como concluídos, concede XP cheio
+      // Check-in automático: marcar TODOS os exercícios do dia concede XP cheio E registra o
+      // treino no histórico. Antes só o check-in acontecia aqui — o app dizia "Treino
+      // completo", dava o XP e marcava o calendário, mas nada ia para "Treinos realizados"
+      // enquanto o botão Finalizar não fosse tocado.
       if (areAllExercisesDoneForActiveWorkout()) {
         const alreadyFull = gamification.checkins[today] && gamification.checkins[today].full;
         checkins[today] = activeWorkoutKey;
         saveJSON(CHECKIN_KEY, checkins);
         grantCheckinXP(today, true);
+
+        const res = recordWorkoutSessions({ apenasConcluidos: true });
+        markWorkoutEnd();
+        res.recordes.forEach(n => showToast(`🏅 Novo recorde pessoal: ${n}!`, 'trophy'));
+        if (res.falhas.length) showToast(`⚠️ Não foi possível registrar: ${res.falhas.join(', ')}`);
+
         renderCheckinGrid();
-        if (!alreadyFull) showToast('✅ Treino completo! Check-in automático realizado.');
+        if (!perfilView.classList.contains('hidden')) renderWorkoutHistory();
+        if (!alreadyFull) showToast('✅ Treino completo e registrado no histórico!');
       }
     };
 
@@ -3757,6 +3775,78 @@
       saveDraft();
     };
 
+    // Grava no historico o que foi realizado hoje no treino ativo. Chamada tanto pelo botao
+    // "Finalizar Treino" quanto pelo check-in automatico (quando o ultimo exercicio e
+    // marcado), para que o registro nao dependa de lembrar de apertar o botao.
+    // recordSession() mantem um registro por exercicio por dia, entao chamar nas duas
+    // situacoes atualiza em vez de duplicar.
+    function recordWorkoutSessions(opcoes) {
+      const opts = opcoes || {};
+      const workout = getActiveProfile().schedule[activeWorkoutKey];
+      const today = todayKey();
+      if (!dailyCompletion[today]) dailyCompletion[today] = {};
+
+      let volume = 0, linhas = '';
+      const falhas = [], recordes = [];
+
+      workout.exercises.forEach(ex => {
+        const state = formData[ex.id];
+        if (!state) return;
+        // registra apenas o que foi de fato realizado: um exercicio deixado de lado nao deve
+        // entrar no historico como se tivesse sido feito
+        if (opts.apenasConcluidos && !state.done) return;
+
+        try {
+          const historyKey = getHistoryKey(ex.id, state.variantIndex || 0, state.customName);
+          if (!state.name || !String(state.name).trim()) {
+            state.name = (ex.name && ex.name.trim()) ? ex.name : 'Exercício sem nome';
+          }
+
+          let entry;
+          if (state.type === 'cardio') {
+            entry = { type: 'cardio', name: state.name, duration: state.duration, distance: state.distance, date: today };
+            linhas += `> ${state.name}: ${state.duration}min${state.distance ? ` | ${state.distance}km` : ''}`;
+          } else {
+            const seriesFeitas = getSeries(state, ex).map(sr => ({ reps: sr.reps, weight: sr.weight }));
+            entry = { type: 'forca', name: state.name, series: seriesFeitas,
+                      // sets/reps/weight seguem gravados: telas e versoes anteriores os leem
+                      sets: seriesFeitas.length,
+                      reps: seriesFeitas.length ? seriesFeitas[0].reps : state.reps,
+                      weight: seriesFeitas.length ? seriesFeitas[0].weight : state.weight,
+                      date: today };
+            volume += sessionVolume(entry);
+            linhas += `> ${state.name}: ${describeEntry(entry)}`;
+          }
+
+          if (state.obs && state.obs.trim() !== '') {
+            entry.obs = state.obs.trim();
+            linhas += ` [Nota: ${state.obs.trim()}]`;
+          }
+          linhas += '\n';
+
+          // o recorde precisa ser conferido ANTES de gravar a sessao de hoje no log
+          if (checkPersonalRecord(historyKey, entry)) recordes.push(state.name);
+          recordSession(historyKey, entry);
+          exerciseHistory[historyKey] = entry;
+
+          if (opts.marcarConcluidos) {
+            state.done = true;
+            dailyCompletion[today][ex.id] = true;
+          }
+        } catch (err) {
+          // uma falha pontual nao pode impedir os demais exercicios de serem gravados
+          console.error('Falha ao registrar exercício', ex.id, err);
+          falhas.push(state.name || ex.name || ex.id);
+        }
+      });
+
+      saveJSON(COMPLETION_KEY, dailyCompletion);
+      saveJSON(HISTORY_KEY, exerciseHistory);
+      saveJSON(SESSIONS_KEY, sessionLog);
+      workoutHistoryCache = [];
+      return { volume, linhas, falhas, recordes };
+    }
+
     function finalizeWorkout() {
       const workout = getActiveProfile().schedule[activeWorkoutKey];
       const today = todayKey();
@@ -3766,55 +3856,11 @@
       let totalVolume = 0;
       const newRecords = [];
 
-      const falhas = [];
-      workout.exercises.forEach(ex => {
-        const state = formData[ex.id];
-        if (state) {
-         try {
-          const historyKey = getHistoryKey(ex.id, state.variantIndex || 0, state.customName);
-          // nome garantido no momento da gravacao: um exercicio sem nome no plano deixaria
-          // o historico com uma linha muda para sempre
-          if (!state.name || !String(state.name).trim()) {
-            state.name = (ex.name && ex.name.trim()) ? ex.name : 'Exercício sem nome';
-          }
-          let entry;
-          if (state.type === 'cardio') {
-            report += `> ${state.name}: ${state.duration}min${state.distance ? ` | ${state.distance}km` : ''}`;
-            entry = { type: 'cardio', name: state.name, duration: state.duration, distance: state.distance, date: today };
-          } else {
-            const seriesFeitas = getSeries(state, ex).map(sr => ({ reps: sr.reps, weight: sr.weight }));
-            entry = { type: 'forca', name: state.name, series: seriesFeitas,
-                      // sets/reps/weight seguem gravados: versoes anteriores e telas antigas
-                      // ainda os leem, e servem de resumo rapido
-                      sets: seriesFeitas.length,
-                      reps: seriesFeitas.length ? seriesFeitas[0].reps : state.reps,
-                      weight: seriesFeitas.length ? seriesFeitas[0].weight : state.weight,
-                      date: today };
-            report += `> ${state.name}: ${describeEntry(entry)}`;
-            totalVolume += sessionVolume(entry);
-          }
-          if (state.obs && state.obs.trim() !== '') {
-            entry.obs = state.obs.trim();
-            report += ` [Nota: ${state.obs.trim()}]`;
-          }
-          report += '\n';
-
-          // o recorde precisa ser conferido ANTES de gravar a sessão de hoje no log
-          if (checkPersonalRecord(historyKey, entry)) newRecords.push(state.name);
-          recordSession(historyKey, entry);
-          exerciseHistory[historyKey] = entry; // formato antigo: alimenta os avisos de progressão
-
-          state.done = true;
-          dailyCompletion[today][ex.id] = true;
-         } catch (err) {
-          // Registrar um exercicio nao pode impedir os outros de serem salvos. Antes, uma
-          // unica entrada corrompida no log lancava excecao aqui e o treino inteiro deixava
-          // de ser gravado — o usuario finalizava e nada aparecia no historico.
-          console.error('Falha ao registrar exercício', ex.id, err);
-          falhas.push(state.name || ex.name || ex.id);
-         }
-        }
-      });
+      const resultado = recordWorkoutSessions({ marcarConcluidos: true });
+      const falhas = resultado.falhas;
+      totalVolume = resultado.volume;
+      resultado.recordes.forEach(n => newRecords.push(n));
+      report += resultado.linhas;
 
       const minutos = markWorkoutEnd();
       if (totalVolume > 0 || minutos) {
@@ -3823,9 +3869,6 @@
         if (minutos) report += `Duração: ${formatDuration(minutos)}\n`;
       }
 
-      saveJSON(COMPLETION_KEY, dailyCompletion);
-      saveJSON(HISTORY_KEY, exerciseHistory);
-      saveJSON(SESSIONS_KEY, sessionLog);
       clearDraft(); // treino fechado: o rascunho do dia já virou histórico
 
       // check-in manual: XP cheio se todos os exercícios já estavam concluídos, metade caso contrário
