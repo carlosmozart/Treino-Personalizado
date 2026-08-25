@@ -1,5 +1,34 @@
 # Changelog — Treino Personalizado
 
+## [2.13.1] - 2026-08-25
+### Corrigido
+- **Treino nao entrava em "Treinos realizados" — causa real.** As correcoes de 2.9.1, 2.10.1
+  e 2.13.0 atacaram problemas legitimos de renderizacao e ordenacao, mas nao este, que e o
+  que o usuario estava vivendo. `recordSession()` era chamada de **um unico lugar**: dentro
+  de `finalizeWorkout()`. Concluir todos os exercicios disparava o check-in automatico em
+  `toggleDone()`, que gravava `checkins`, concedia XP cheio, marcava o calendario e exibia
+  "Treino completo! Check-in automatico realizado" — **sem escrever nada no `sessionLog`**.
+  Quem considerava o treino encerrado ao marcar a ultima serie, sem tocar em "Finalizar
+  Treino", ficava com check-in e XP mas historico vazio.
+  Reproduzido em teste: apos marcar todas as series, `checkins` presente, XP 100, calendario
+  marcado, **sessoes gravadas: 0**
+- `recordWorkoutSessions()` extraida de `finalizeWorkout()` e chamada tambem pelo check-in
+  automatico. `recordSession()` mantem um registro por exercicio por dia, entao acionar os
+  dois caminhos atualiza em vez de duplicar (verificado). A opcao `apenasConcluidos` faz o
+  check-in automatico registrar so o que foi realmente marcado, enquanto o botao Finalizar
+  segue gravando o treino inteiro
+- A duracao do treino tambem passa a ser fechada pelo check-in automatico
+- O botao "Finalizar Treino" continua gerando o resumo copiavel, mas deixou de ser condicao
+  para o treino existir no historico
+
+### Notas
+- Treinos de dias anteriores concluidos sem o botao Finalizar **nao sao recuperaveis**: eles
+  nunca chegaram a ser gravados. O teste de migracao da 2.11.0 para a 2.13.0 mostrou os dados
+  intactos justamente porque naquele teste o botao havia sido acionado — o que mascarou este
+  caminho
+- `CACHE_NAME`: `treino-cache-v34` -> `treino-cache-v35`
+
+
 ## [2.13.0] - 2026-08-25
 ### Corrigido
 - **Treino de hoje nao aparecia em Perfil > Progresso** (relatado em uso real, com a lista
