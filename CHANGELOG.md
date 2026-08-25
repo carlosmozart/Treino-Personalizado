@@ -6,6 +6,40 @@ Todas as mudanças relevantes do app ficam registradas aqui. Ao lançar uma nova
    atualizar o app instalado
 3. Adicione uma entrada aqui, nesse formato
 
+## [2.13.0] - 2026-08-25
+### Corrigido
+- **Treino de hoje nao aparecia em Perfil > Progresso** (relatado em uso real, com a lista
+  parada em 18/08). `renderWorkoutHistory()` so era chamada por `renderPerfilView()`, ou seja,
+  ao **entrar** na aba Perfil. Navegar entre as sub-abas Dados / Saude / Progresso apenas
+  alternava a visibilidade dos blocos e reexibia a lista montada anteriormente, e
+  `finalizeWorkout()` nao avisava nenhuma tela. Reproduzido em teste: apos finalizar um
+  treino, o contador seguia marcando 5 de 6 dias existentes.
+  Agora `switchPerfilSubTab('progresso')` remonta a lista, o grafico de peso e o roadmap;
+  `finalizeWorkout()` invalida `workoutHistoryCache` e redesenha se a aba estiver visivel; e
+  o retorno do segundo plano (`visibilitychange`) faz o mesmo, cobrindo o app que fica dias
+  aberto sem recarregar
+
+### Adicionado
+- **Conquistas por volume acumulado**: Kaioken (10.000 kg), Kaioken x3 (30.000 kg),
+  Kaioken x10 (100.000 kg) e Super Saiyajin (1.000.000 kg). `getTotalVolume()` percorre todo
+  o `sessionLog` somando `sessionVolume()` de cada sessao, entao registros nos dois formatos
+  contam igual e o historico ja existente vale desde a instalacao desta versao
+- O total e memorizado em `volumeTotalCache` porque as conquistas sao verificadas com
+  frequencia: medido 3,7 ms para 6.000 entradas na primeira chamada e leitura imediata nas
+  seguintes. **A invalidacao mora dentro de `saveJSON()`** — a primeira versao espalhava
+  `invalidateVolumeCache()` por cada ponto de gravacao, o que dependia de lembrar de chama-la
+  e teria deixado o cache velho no dia em que um caminho novo esquecesse
+- **Bolha com o nome completo do exercicio** (`showNameTooltip()`): nomes longos sao cortados
+  no card, porque os botoes de trocar, concluir e recolher ocupam a largura a direita. Tocar
+  no titulo abre uma bolha com o texto inteiro. So aparece quando o nome **esta** truncado
+  (`scrollWidth > clientWidth`), usa `stopPropagation()` para nao recolher o card junto, e a
+  posicao e presa dentro da tela nos dois eixos — sem o limite vertical, tocar num card
+  abaixo da dobra colocava a bolha fora da area visivel. Fecha ao rolar, ao tocar fora ou
+  sozinha apos 3,5s. Vale tambem no detalhe do dia, onde os nomes tambem sao truncados
+
+### Alterado
+- `CACHE_NAME`: `treino-cache-v33` -> `treino-cache-v34`
+
 ## [2.12.0] - 2026-08-25
 ### Adicionado
 - **Correcao de registros do historico** (`openEditEntry()`, `saveEditedEntry()`,

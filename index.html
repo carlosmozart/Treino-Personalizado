@@ -161,6 +161,9 @@
     .rounded-md { border-radius: 0.375rem; }
     .w-3 { width: 0.75rem; }
     .w-24 { width: 6rem; }
+    .z-\[115\] { z-index: 115; }
+    #nameTooltip { max-width: calc(100% - 2rem); }
+    .border-slate-600 { border-color: #475569; }
     .z-\[108\] { z-index: 108; }
     .border-rose-900\/50 { border-color: rgba(136, 19, 55, 0.5); }
     .active\:bg-rose-950\/40:active { background-color: rgba(76, 5, 25, 0.4); }
@@ -186,6 +189,11 @@
     </svg>
     <span class="font-bold">Resumo copiado! Pronto para envio.</span>
   </div>
+
+  <!-- Bolha com o nome completo de um exercicio. Existe porque nomes longos sao cortados
+       no card: os botoes de trocar, concluir e recolher ocupam a largura a direita, e o
+       titulo fica com reticencias sem forma de ler o resto no celular. -->
+  <div id="nameTooltip" class="hidden fixed z-[115] bg-slate-800 border border-slate-600 text-white text-xs font-bold px-3 py-2 rounded-xl shadow-2xl pointer-events-none"></div>
 
   <!-- CRONÔMETRO DE DESCANSO: flutua acima da barra de navegação durante o treino -->
   <div id="restTimerWidget" class="hidden fixed left-1/2 -translate-x-1/2 z-[60] w-[calc(100%-2rem)] max-w-sm" style="bottom: calc(5.5rem + env(safe-area-inset-bottom));">
@@ -921,11 +929,19 @@
   </div>
 
   <script>
-    const APP_VERSION = '2.12.0'; // manter sincronizado com CACHE_NAME em sw.js e com o CHANGELOG.md
+    const APP_VERSION = '2.13.0'; // manter sincronizado com CACHE_NAME em sw.js e com o CHANGELOG.md
 
     // ---------- NOVIDADES (tela para testadores — só experiência do usuário, sem termos técnicos) ----------
     // Detalhes técnicos ficam só no CHANGELOG.md interno. Ordem: mais recente primeiro.
     const RELEASE_NOTES = [
+      {
+        version: '2.13.0', date: '2026-08-25',
+        highlights: [
+          '🐛 <strong>Corrigido: o treino de hoje não aparecia no histórico.</strong> A lista de treinos realizados só era montada ao ENTRAR na aba Perfil — navegar entre Dados, Saúde e Progresso reexibia a versão antiga, e finalizar um treino não avisava a tela. Agora ela é remontada sempre que você abre Progresso, ao finalizar um treino e ao voltar para o app.',
+          '🔴 <strong>Novas conquistas por volume levantado:</strong> Kaioken (10.000 kg), Kaioken x3 (30.000 kg), Kaioken x10 (100.000 kg) e Super Saiyajin (1.000.000 kg). O volume de todos os seus treinos já registrados conta desde já — algumas podem desbloquear assim que você abrir o app.',
+          '💬 <strong>Nomes longos de exercício agora podem ser lidos por inteiro.</strong> Toque no nome cortado no card e uma bolha mostra o texto completo. Vale também no detalhe do dia.'
+        ]
+      },
       {
         version: '2.12.0', date: '2026-08-25',
         highlights: [
@@ -1322,10 +1338,14 @@
     // Avisa uma única vez por sessão quando o armazenamento enche — antes o erro era engolido
     // em silêncio e o app continuava parecendo salvar sem salvar nada.
     let storageQuotaWarned = false;
+    let volumeTotalCache = null;   // volume acumulado; zerado a cada gravacao do log
     function saveJSON(key, obj) {
       if (!storageAvailable) return false;
       try {
         localStorage.setItem(key, JSON.stringify(obj));
+        // qualquer gravacao do log invalida o volume acumulado: deixar isso a cargo de quem
+        // chama significaria um cache velho no dia em que alguem esquecesse
+        if (key === 'treino_session_log') volumeTotalCache = null; // literal: SESSIONS_KEY e declarada adiante
         return true;
       } catch (e) {
         if (!storageQuotaWarned) {
@@ -2461,8 +2481,25 @@
       { id: 'aniversario', name: 'Mais um Ano de Treino', desc: 'Complete um aniversário seu usando o app.', icon: '🎂', target: 1, current: () => Object.keys(gamification.birthdayGreeted || {}).length },
       { id: 'star_wars_day', name: 'Que a Força Esteja Com Você', desc: 'Faça check-in no dia 4 de maio.', icon: '⭐', target: 1, current: () => Object.keys(checkins).some(d => d.slice(5) === '05-04') ? 1 : 0 },
       { id: 'night_checkin', name: 'Eu Sou a Vingança, Eu Sou a Noite', desc: 'Faça check-in de um treino entre 21h e 7h da manhã.', icon: '🦇', target: 1, current: () => Object.keys(gamification.nightCheckins || {}).length > 0 ? 1 : 0 },
-      { id: 'rock_lee_weights', name: 'Os Pesos de Rock Lee', desc: 'Aumente a carga de um exercício em 10kg ou mais de uma só vez, usando o botão de ajuste.', icon: '🏋️', target: 1, current: () => gamification.bigWeightJump ? 1 : 0 }
+      { id: 'rock_lee_weights', name: 'Os Pesos de Rock Lee', desc: 'Aumente a carga de um exercício em 10kg ou mais de uma só vez, usando o botão de ajuste.', icon: '🏋️', target: 1, current: () => gamification.bigWeightJump ? 1 : 0 },
+      { id: 'volume_10k', name: 'Kaioken', desc: 'Acumule 10.000 kg de volume total levantado.', icon: '🔴', target: 10000, current: () => getTotalVolume() },
+      { id: 'volume_30k', name: 'Kaioken x3', desc: 'Acumule 30.000 kg de volume total levantado.', icon: '🟠', target: 30000, current: () => getTotalVolume() },
+      { id: 'volume_100k', name: 'Kaioken x10', desc: 'Acumule 100.000 kg de volume total levantado.', icon: '🔥', target: 100000, current: () => getTotalVolume() },
+      { id: 'volume_1m', name: 'Super Saiyajin', desc: 'Acumule 1.000.000 kg de volume total levantado.', icon: '💛', target: 1000000, current: () => getTotalVolume() }
     ];
+
+    // Volume acumulado de toda a vida: soma o trabalho de cada sessao de forca ja registrada.
+    // O resultado e memorizado porque as conquistas sao verificadas com frequencia e o log
+    // pode ter milhares de entradas; o cache cai sempre que o log muda.
+    function getTotalVolume() {
+      if (volumeTotalCache !== null) return volumeTotalCache;
+      let total = 0;
+      Object.keys(sessionLog).forEach(k => {
+        (sessionLog[k] || []).forEach(e => { total += sessionVolume(e); });
+      });
+      volumeTotalCache = Math.round(total);
+      return volumeTotalCache;
+    }
 
     function checkAchievements() {
       let unlockedAny = false;
@@ -2855,6 +2892,14 @@
       document.getElementById('perfilSubDadosContent').classList.toggle('hidden', tab !== 'dados');
       document.getElementById('perfilSubSaudeContent').classList.toggle('hidden', tab !== 'saude');
       document.getElementById('perfilSubProgressoContent').classList.toggle('hidden', tab !== 'progresso');
+
+      // Progresso mostra dados que mudam a cada treino: remonta ao ser exibida, em vez de
+      // reaproveitar o que foi renderizado quando a aba Perfil foi aberta
+      if (tab === 'progresso') {
+        renderWorkoutHistory();
+        renderWeightHistory();
+        renderGoalRoadmap();
+      }
 
       const activeCls = 'bg-blue-600 text-white';
       const inactiveCls = 'text-slate-500';
@@ -3581,7 +3626,7 @@
                   }
                 </div>
                 <div class="min-w-0">
-                  <h3 class="font-extrabold text-base md:text-lg text-white leading-tight truncate ${state.done ? 'line-through decoration-emerald-500 decoration-2 text-slate-400' : ''}">${escapeHtml(state.name)}</h3>
+                  <h3 onclick="showNameTooltip(event, '${escapeJs(state.name)}')" title="${escapeHtml(state.name)}" class="font-extrabold text-base md:text-lg text-white leading-tight truncate ${state.done ? 'line-through decoration-emerald-500 decoration-2 text-slate-400' : ''}">${escapeHtml(state.name)}</h3>
                   ${isCollapsed ? '' : subtitleHtml}
                 </div>
               </div>
@@ -3792,6 +3837,9 @@
       if (falhas.length) showToast(`⚠️ Não foi possível registrar: ${falhas.join(', ')}`);
       renderCheckinGrid();
       renderExercises();
+      // o historico acabou de mudar: invalida o cache e redesenha se estiver a vista
+      workoutHistoryCache = [];
+      if (!perfilView.classList.contains('hidden')) renderWorkoutHistory();
 
       reportOutput.value = report;
       reportContainer.classList.remove('hidden');
@@ -3965,6 +4013,57 @@
       const m = minutos % 60;
       return h > 0 ? `${h}h${String(m).padStart(2, '0')}` : `${m}min`;
     }
+
+    // ---------- BOLHA COM O NOME COMPLETO ----------
+    // Nomes longos sao truncados no card. Tocar no titulo abre uma bolha com o texto
+    // inteiro, posicionada logo abaixo do proprio titulo e presa dentro da tela.
+    let tooltipTimer = null;
+
+    window.showNameTooltip = function(ev, texto) {
+      const tip = document.getElementById('nameTooltip');
+      const alvo = ev && ev.currentTarget;
+      if (!tip || !alvo) return;
+
+      // se o nome cabe inteiro na tela, nao ha o que revelar
+      if (alvo.scrollWidth <= alvo.clientWidth + 1) return;
+
+      if (ev.stopPropagation) ev.stopPropagation();  // nao recolhe o card junto
+
+      tip.textContent = texto;
+      tip.classList.remove('hidden');
+
+      // posiciona abaixo do titulo, corrigindo caso ultrapasse as bordas
+      const r = alvo.getBoundingClientRect();
+      const larguraTip = tip.offsetWidth;
+      const margem = 16;
+      let left = r.left;
+      if (left + larguraTip > window.innerWidth - margem) left = window.innerWidth - larguraTip - margem;
+      if (left < margem) left = margem;
+      let top = r.bottom + 6;
+      if (top + tip.offsetHeight > window.innerHeight - margem) top = r.top - tip.offsetHeight - 6;
+      // se o titulo estiver fora da area visivel, as duas posicoes acima cairiam fora junto:
+      // prende a bolha dentro da tela para ela nunca aparecer em lugar nenhum
+      const maxTop = window.innerHeight - tip.offsetHeight - margem;
+      if (top > maxTop) top = maxTop;
+      if (top < margem) top = margem;
+
+      tip.style.left = `${Math.round(left)}px`;
+      tip.style.top = `${Math.round(top)}px`;
+
+      clearTimeout(tooltipTimer);
+      tooltipTimer = setTimeout(hideNameTooltip, 3500);
+    };
+
+    function hideNameTooltip() {
+      clearTimeout(tooltipTimer);
+      const tip = document.getElementById('nameTooltip');
+      if (tip) tip.classList.add('hidden');
+    }
+
+    // qualquer toque fora fecha a bolha
+    document.addEventListener('touchstart', hideNameTooltip, { passive: true });
+    document.addEventListener('click', hideNameTooltip);
+    window.addEventListener('scroll', hideNameTooltip, { passive: true });
 
     // ---------- CORRIGIR OU APAGAR UM REGISTRO DO HISTORICO ----------
     // Ate aqui nada do que fosse gravado podia ser desfeito: uma carga digitada errada virava
@@ -4867,7 +4966,7 @@
         const obs = e.obs ? `<p class="text-[10px] text-amber-300/80 mt-1 italic">"${escapeHtml(e.obs)}"</p>` : '';
         return `<div class="bg-slate-950/50 rounded-xl px-3 py-2.5 border border-slate-800/60">
           <div class="flex items-start justify-between gap-2">
-            <p class="text-xs font-bold ${e.name && e.name !== NOME_DESCONHECIDO ? 'text-white' : 'text-slate-500 italic'} min-w-0 flex-1">${escapeHtml(e.name || NOME_DESCONHECIDO)}</p>
+            <p onclick="showNameTooltip(event, '${escapeJs(e.name || NOME_DESCONHECIDO)}')" title="${escapeHtml(e.name || NOME_DESCONHECIDO)}" class="text-xs font-bold ${e.name && e.name !== NOME_DESCONHECIDO ? 'text-white' : 'text-slate-500 italic'} min-w-0 flex-1 truncate">${escapeHtml(e.name || NOME_DESCONHECIDO)}</p>
             <span class="text-xs font-black text-blue-300 flex-shrink-0">${escapeHtml(detalhe)}</span>
             <button type="button" onclick="openEditEntry('${escapeJs(e.historyKey || '')}','${escapeJs(e.date)}')" aria-label="Corrigir ${escapeHtml(e.name || 'registro')}" class="w-7 h-7 rounded-lg bg-slate-900 border border-slate-700 active:border-blue-600 text-slate-400 active:text-blue-300 flex items-center justify-center flex-shrink-0 text-[10px]">✏️</button>
           </div>
@@ -5256,7 +5355,12 @@
     // Ao voltar do segundo plano, recalcula na hora em vez de esperar o próximo tick —
     // se o tempo acabou enquanto o app estava fechado, avisa imediatamente.
     document.addEventListener('visibilitychange', () => {
-      if (!document.hidden && restTimer.running) tickRestTimer();
+      if (document.hidden) return;
+      if (restTimer.running) tickRestTimer();
+      // app que fica dias aberto em segundo plano: ao voltar, o que esta na tela pode
+      // estar desatualizado
+      workoutHistoryCache = [];
+      if (!perfilView.classList.contains('hidden') && perfilSubTab === 'progresso') renderWorkoutHistory();
     });
 
     // ---------- CONFIGURAÇÕES DE DESCANSO (aba Perfil > Dados) ----------
