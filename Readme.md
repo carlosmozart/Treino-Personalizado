@@ -1,5 +1,30 @@
 # Changelog — Treino Personalizado
 
+## [2.14.0] - 2026-08-26
+
+### Alterado
+- **Card do exercicio enxugado.** Medido antes: cards de 643 a 737px numa tela de 812px, com
+  a pagina inteira em 4.292px — 5,3 telas de rolagem para um treino de 4 exercicios. Depois:
+  555 a 582px e 3.834px, ou 4,7 telas. Reducao de 123px por card
+- **Aviso unico no lugar de dois.** O card exibia `getPersistentLoadBadge()` (referencia da
+  ultima sessao) e logo abaixo `getProgressionAlert()` (avaliacao das repeticoes atuais),
+  somando 100px. Como a 2.11.0 passou a pre-preencher as repeticoes com as da sessao
+  anterior, os dois avaliavam o mesmo numero e concluiam a mesma coisa. Agora e um bloco so
+  (54px), e a sugestao usa o estado **atual** do card: alterar as repeticoes durante o treino
+  muda a recomendacao, comportamento que antes pertencia ao segundo bloco.
+  `getProgressionAlert()` ficou sem uso e foi removida
+- **Dica do exercicio recolhida por padrao** (`hintsOpen`, `toggleExerciseHint()`): ocupava
+  50px fixos em todo card que tem uma, com texto que se le uma vez e se decora. Vira um botao
+  de 15px que abre sob demanda. Exercicios sem dica nao mostram nada
+- **Campo de observacao sob demanda** (`notesOpen`, `openExerciseNote()`): 38px permanentes
+  para algo raramente usado durante o treino. Agora um botao de 15px abre o campo e ja
+  posiciona o cursor. Observacao ja preenchida continua visivel sem precisar abrir, e
+  sobrevive a recolher e reabrir o card
+- Ambos os estados sao reiniciados ao trocar de dia ou de treino
+
+### Alterado (interno)
+- `CACHE_NAME`: `treino-cache-v35` -> `treino-cache-v36`
+
 ## [2.13.1] - 2026-08-25
 ### Corrigido
 - **Treino nao entrava em "Treinos realizados" — causa real.** As correcoes de 2.9.1, 2.10.1
