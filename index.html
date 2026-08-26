@@ -161,6 +161,11 @@
     .rounded-md { border-radius: 0.375rem; }
     .w-3 { width: 0.75rem; }
     .w-24 { width: 6rem; }
+    .opacity-90 { opacity: 0.9; }
+    .text-amber-400\/80 { color: rgba(251, 191, 36, 0.8); }
+    .active\:text-amber-300:active { color: #fcd34d; }
+    .active\:text-slate-300:active { color: #cbd5e1; }
+    .text-amber-500 { color: #f59e0b; }
     .z-\[115\] { z-index: 115; }
     #nameTooltip { max-width: calc(100% - 2rem); }
     .border-slate-600 { border-color: #475569; }
@@ -929,11 +934,20 @@
   </div>
 
   <script>
-    const APP_VERSION = '2.13.1'; // manter sincronizado com CACHE_NAME em sw.js e com o CHANGELOG.md
+    const APP_VERSION = '2.14.0'; // manter sincronizado com CACHE_NAME em sw.js e com o CHANGELOG.md
 
     // ---------- NOVIDADES (tela para testadores — só experiência do usuário, sem termos técnicos) ----------
     // Detalhes técnicos ficam só no CHANGELOG.md interno. Ordem: mais recente primeiro.
     const RELEASE_NOTES = [
+      {
+        version: '2.14.0', date: '2026-08-26',
+        highlights: [
+          '📐 <strong>Card do exercício mais enxuto.</strong> Antes cada exercício ocupava quase a tela inteira e um treino de 4 exercícios exigia mais de 5 telas de rolagem. Agora sobra espaço para ver o próximo exercício sem rolar tanto.',
+          '📈 <strong>Um aviso no lugar de dois.</strong> O card mostrava a referência da última sessão E um segundo aviso avaliando as mesmas repetições logo abaixo — dois blocos dizendo a mesma coisa. Agora é um só, com a sugestão acompanhando o que você registra na hora.',
+          '💡 <strong>A dica do exercício ficou recolhida.</strong> Toque em "Ver dica deste exercício" quando precisar — ela continua ali, só não ocupa espaço o tempo todo.',
+          '✏️ <strong>Observações agora abrem sob demanda.</strong> Toque em "Adicionar observação" para escrever. Se você já tiver escrito algo, o campo aparece preenchido normalmente.'
+        ]
+      },
       {
         version: '2.13.1', date: '2026-08-25',
         highlights: [
@@ -3329,14 +3343,22 @@
     // mostrava nada: a carga vinha preenchida, mas as REPETICOES que voce conseguiu ficavam
     // invisiveis, e e esse numero que diz se houve progresso. Agora aparece sempre, mudando
     // apenas o tom e a sugestao.
-    function getPersistentLoadBadge(exId, name) {
+    // Aviso unico: mostra o que foi feito da ultima vez e, na mesma linha, a sugestao para
+    // hoje. A sugestao considera o que esta registrado AGORA no card — assim ela acompanha
+    // qualquer alteracao que voce faca nas repeticoes durante o treino, em vez de repetir
+    // uma segunda mensagem logo abaixo.
+    function getPersistentLoadBadge(exId, name, state) {
       const proprio = !!exerciseHistory[exId];
       const h = getLastSessionForExercise(exId, name);
       if (!h || h.type === 'cardio') return '';
 
-      const melhor = bestSeriesOf(h);
-      const r = melhor ? melhor.reps : parseInt(h.reps, 10);
+      // base da sugestao: as repeticoes de hoje quando ha um estado em edicao; senao, as da
+      // ultima sessao registrada
+      const melhorHoje = state ? bestSeriesOf({ type: 'forca', series: getSeries(state, null) }) : null;
+      const melhorAntes = bestSeriesOf(h);
+      const r = melhorHoje ? melhorHoje.reps : (melhorAntes ? melhorAntes.reps : parseInt(h.reps, 10));
       const temReps = !isNaN(r) && r > 0;
+
       const origem = proprio ? '' : ' <span class="opacity-70">(de outro plano)</span>';
       const marca = escapeHtml(describeEntry(h));
 
@@ -3346,17 +3368,18 @@
         sugestao = '';
       } else if (r > 10) {
         cor = 'text-amber-300 bg-amber-950/40 border-amber-700/60';
-        sugestao = ' Hora de subir a carga!';
+        sugestao = '🔥 Força sobrando — hora de subir a carga!';
       } else if (r >= 8) {
         cor = 'text-blue-300 bg-blue-950/40 border-blue-800/60';
-        sugestao = ' Tente somar mais uma repetição.';
+        sugestao = '⚖️ Base sólida — tente somar mais uma repetição.';
       } else {
         cor = 'text-slate-300 bg-slate-950/60 border-slate-700';
-        sugestao = ' Busque chegar a 8 antes de subir a carga.';
+        sugestao = '⚠️ Busque chegar a 8 antes de subir a carga.';
       }
 
-      return `<div class="fade-badge mb-3 ${cor} border px-3 py-2 rounded-xl text-xs font-black flex items-center space-x-2">
-        <span>📈 Última vez (${escapeHtml(formatDateBR(h.date))}): ${marca}.${sugestao}${origem}</span>
+      return `<div class="fade-badge mb-3 ${cor} border px-3 py-2 rounded-xl text-xs font-black">
+        <span class="block">📈 Última vez (${escapeHtml(formatDateBR(h.date))}): ${marca}${origem}</span>
+        ${sugestao ? `<span class="block mt-1 opacity-90 font-bold">${sugestao}</span>` : ''}
       </div>`;
     }
 
@@ -3419,6 +3442,8 @@
       const completionToday = dailyCompletion[today] || {};
       const draft = loadDraftFor(key);
       collapsedIds.clear(); // troca de dia começa com todos os cards expandidos, exceto os já concluídos
+      hintsOpen.clear();
+      notesOpen.clear();
       workout.exercises.forEach(ex => {
         const doneToday = !!completionToday[ex.id];
         const drafted = draft && draft[ex.id];
@@ -3473,17 +3498,26 @@
       badge.textContent = profile.trainingTime ? `Horário de Treino: ${profile.trainingTime}` : 'Horário de Treino: não definido';
     }
 
-    function getProgressionAlert(reps) {
-      const r = parseInt(reps, 10);
-      if (isNaN(r) || r <= 0) return '';
-      if (r > 10) {
-        return `<div class="fade-badge mt-3 text-emerald-400 bg-emerald-950/40 border border-emerald-800/60 px-3 py-2 rounded-xl text-xs font-bold flex items-center space-x-2"><span>🔥 Força sobrando! Suba a carga no próximo treino.</span></div>`;
-      } else if (r >= 8) {
-        return `<div class="fade-badge mt-3 text-blue-400 bg-blue-950/40 border border-blue-800/60 px-3 py-2 rounded-xl text-xs font-bold flex items-center space-x-2"><span>⚖️ Base sólida. Massa muscular protegida durante o déficit.</span></div>`;
-      } else {
-        return `<div class="fade-badge mt-3 text-rose-400 bg-rose-950/40 border border-rose-800/60 px-3 py-2 rounded-xl text-xs font-bold flex items-center space-x-2"><span>⚠️ Risco de perda muscular. Tente chegar a pelo menos 8 reps!</span></div>`;
-      }
-    }
+
+    // Dica do exercicio e campo de observacao ficam fechados por padrao: a dica e lida uma
+    // vez e decorada, e a observacao raramente e usada durante o treino. Juntos ocupavam
+    // quase 90px fixos em cada card.
+    let hintsOpen = new Set();
+    let notesOpen = new Set();
+
+    window.toggleExerciseHint = function(exId) {
+      if (hintsOpen.has(exId)) hintsOpen.delete(exId);
+      else hintsOpen.add(exId);
+      renderExerciseCard(exId);
+    };
+
+    window.openExerciseNote = function(exId) {
+      notesOpen.add(exId);
+      renderExerciseCard(exId);
+      // leva o cursor direto para o campo recem-aberto
+      const campo = document.querySelector(`[data-ex-id="${exId}"] input[oninput^="updateObs"]`);
+      if (campo) campo.focus();
+    };
 
     let collapsedIds = new Set();
 
@@ -3604,12 +3638,21 @@
         const bodyHtml = `
           ${fieldsHtml}
           ${renderSeriesRow(ex, state)}
-          <div id="badge-container-${ex.id}">${isCardio ? getCardioHistoryBadge(historyKey, state.name) : getPersistentLoadBadge(historyKey, state.name)}</div>
-          <div id="alert-container-${ex.id}">${isCardio ? '' : getProgressionAlert(state.reps)}</div>
-          ${ex.alt ? `<div class="mt-3 text-amber-300 bg-amber-950/30 border border-amber-800/40 px-3 py-2 rounded-xl text-xs font-medium flex items-start space-x-2"><span>💡</span><span class="text-justify">${escapeHtml(ex.alt)}</span></div>` : ''}
-          <div class="mt-4">
-            <input type="text" value="${escapeHtml(state.obs)}" placeholder="Observações (Ex: Falha na última repetição, boa execução...)" oninput="updateObs('${ex.id}', this.value)" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2.5 text-white text-xs focus:outline-none focus:ring-1 focus:ring-slate-700 placeholder-slate-600"/>
-          </div>
+          <div id="badge-container-${ex.id}">${isCardio ? getCardioHistoryBadge(historyKey, state.name) : getPersistentLoadBadge(historyKey, state.name, state)}</div>
+          ${ex.alt ? (
+            hintsOpen.has(ex.id)
+              ? `<div class="mt-3 text-amber-300 bg-amber-950/30 border border-amber-800/40 px-3 py-2 rounded-xl text-xs font-medium flex items-start gap-2">
+                   <span>💡</span><span class="text-justify flex-1">${escapeHtml(ex.alt)}</span>
+                   <button type="button" onclick="toggleExerciseHint('${ex.id}')" aria-label="Ocultar dica" class="text-amber-500 font-black flex-shrink-0">×</button>
+                 </div>`
+              : `<button type="button" onclick="toggleExerciseHint('${ex.id}')" class="mt-3 text-[10px] font-black text-amber-400/80 active:text-amber-300 flex items-center gap-1">💡 Ver dica deste exercício</button>`
+          ) : ''}
+          ${(notesOpen.has(ex.id) || (state.obs && state.obs.trim()))
+            ? `<div class="mt-3">
+                 <input type="text" value="${escapeHtml(state.obs)}" placeholder="Como foi? (ex: falhei na última)" oninput="updateObs('${ex.id}', this.value)" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2.5 text-white text-xs focus:outline-none focus:ring-1 focus:ring-slate-700 placeholder-slate-600"/>
+               </div>`
+            : `<button type="button" onclick="openExerciseNote('${ex.id}')" class="mt-3 text-[10px] font-black text-slate-500 active:text-slate-300 flex items-center gap-1">✏️ Adicionar observação</button>`
+          }
           <div class="mt-3 flex items-center gap-2">
             <button type="button" onclick="startRestTimer(${restSegundos}, '${escapeJs(state.name)}')" class="flex-1 bg-slate-950/60 border border-slate-700 active:border-blue-600 text-slate-300 active:text-blue-300 text-[11px] font-black py-2.5 rounded-xl transition-all active:scale-[0.98] flex items-center justify-center gap-1.5">
               <span>⏱️</span> Descansar ${restSegundos}s
