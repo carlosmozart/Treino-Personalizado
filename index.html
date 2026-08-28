@@ -161,6 +161,7 @@
     .rounded-md { border-radius: 0.375rem; }
     .w-3 { width: 0.75rem; }
     .w-24 { width: 6rem; }
+    .ml-0\.5 { margin-left: 0.125rem; }
     .opacity-90 { opacity: 0.9; }
     .text-amber-400\/80 { color: rgba(251, 191, 36, 0.8); }
     .active\:text-amber-300:active { color: #fcd34d; }
@@ -853,6 +854,15 @@
         </div>
       </section>
 
+      <section id="weeklyVolumeSection" class="bg-slate-900 rounded-2xl p-5 border border-slate-800 shadow-sm">
+        <div class="flex items-center justify-between mb-1">
+          <h3 class="text-xs font-black uppercase tracking-widest text-slate-400">Volume Semanal</h3>
+          <span class="text-[9px] text-slate-600 font-bold">segunda a domingo</span>
+        </div>
+        <p class="text-[10px] text-slate-600 mb-4">Soma das cargas levantadas na semana. É a medida mais direta de quanto trabalho você acumulou.</p>
+        <div id="weeklyVolumeBody"></div>
+      </section>
+
       <section class="bg-slate-900 rounded-2xl p-5 border border-slate-800 shadow-sm">
         <div class="flex items-center justify-between mb-1">
           <h3 class="text-xs font-black uppercase tracking-widest text-slate-400">Treinos Realizados</h3>
@@ -934,11 +944,25 @@
   </div>
 
   <script>
-    const APP_VERSION = '2.14.0'; // manter sincronizado com CACHE_NAME em sw.js e com o CHANGELOG.md
+    const APP_VERSION = '2.15.0'; // manter sincronizado com CACHE_NAME em sw.js e com o CHANGELOG.md
 
     // ---------- NOVIDADES (tela para testadores — só experiência do usuário, sem termos técnicos) ----------
     // Detalhes técnicos ficam só no CHANGELOG.md interno. Ordem: mais recente primeiro.
     const RELEASE_NOTES = [
+      {
+        version: '2.15.0', date: '2026-08-27',
+        highlights: [
+          '📊 <strong>Volume semanal</strong> em Perfil > Progresso: quanto você levantou nesta semana, na semana passada, e a variação entre elas. É a escala que mostra progressão de verdade — uma sessão isolada varia por sono e humor, mas a soma da semana revela tendência.',
+          '📈 Gráfico das <strong>últimas 8 semanas</strong>, para ver se a carga vem subindo, estável ou caindo ao longo do tempo.',
+          'ℹ️ Semanas em que você não treinou aparecem como zero em vez de sumirem — uma pausa é informação sobre seu treino, não ausência de dado.'
+        ]
+      },
+      {
+        version: '2.14.1', date: '2026-08-27',
+        highlights: [
+          '⚡ <strong>App 15 KB mais leve.</strong> As notas de versão antigas continuavam embarcadas no app mesmo sem aparecer em lugar nenhum — 32 versões acumuladas, das quais a tela mostra 5. Agora só as recentes viajam junto, e o histórico completo segue registrado no repositório.'
+        ]
+      },
       {
         version: '2.14.0', date: '2026-08-26',
         highlights: [
@@ -1008,213 +1032,11 @@
           '🔧 Corrigido um erro interno que aparecia quando o app era aberto sem conexão. Não afetava o uso, mas era registrado como falha.'
         ]
       },
-      {
-        version: '2.9.2', date: '2026-08-22',
-        highlights: [
-          '🔥 <strong>Dias opcionais não quebram mais sua sequência.</strong> Agora cada dia do plano pode ser marcado como opcional em Planos > Editar. Se você não treinar num dia marcado assim, a sequência continua de onde parou. Era esse o motivo de o contador zerar para quem não treina domingo: o dia "Domingo: Extra (Opcional)" tem exercícios cadastrados, então o app o tratava como treino obrigatório.',
-          '✅ <strong>Seu domingo já foi marcado automaticamente.</strong> Dias cujo nome diz "opcional" foram ajustados sozinhos nesta atualização — sua sequência deve voltar a contar assim que você abrir o app.',
-          '🐛 <strong>Corrigido: exercícios apareciam sem nome no histórico.</strong> Ao abrir um dia em Perfil > Progresso, algumas linhas mostravam só a carga e as séries. Agora o app recupera o nome pelo exercício do plano, e nomes em branco não são mais gravados.'
-        ]
-      },
-      {
-        version: '2.9.1', date: '2026-08-22',
-        highlights: [
-          '🐛 <strong>Corrigido: o histórico mostrava o dia errado.</strong> Um treino feito no sábado podia aparecer como domingo. O motivo é que a tela exibia o nome da rotina que você usou, e não o dia real — se você abre a rotina de outro dia no seletor e finaliza, era esse nome que aparecia. Agora toda entrada mostra o dia da semana da data de verdade (ex: "sábado, 22/08/2026"), e quando a rotina é de outro dia o app avisa em vez de confundir.',
-          '🐛 <strong>Corrigido: só alguns dias do calendário abriam o resumo.</strong> A lista de treinos ficava congelada na primeira vez que era montada, então qualquer treino finalizado depois não abria ao ser tocado. Agora ela é sempre recalculada na hora.'
-        ]
-      },
-      {
-        version: '2.9.0', date: '2026-08-22',
-        highlights: [
-          '🐛 <strong>Corrigido: o cronômetro de descanso aparecia atrás dos cards</strong>, ficando impossível de ver durante o treino. A causa foi encontrada e outras peças afetadas pelo mesmo problema também foram corrigidas — os botões de liga/desliga em Perfil > Dados, que não deslizavam, e o botão vermelho de confirmação, que estava sem cor.',
-          '⏱️ <strong>Tempo de descanso por exercício.</strong> Agachamento pede mais descanso que rosca direta — agora cada exercício pode ter o seu, configurado em Planos > Editar. Deixe vazio para usar o tempo padrão de sempre.',
-          '🔍 <strong>Busca na biblioteca de exercícios.</strong> Em vez de rolar uma lista de 77 itens, agora é só digitar parte do nome no campo. O editor também ficou bem mais leve para abrir.',
-          '↕️ <strong>Reordenar exercícios</strong> do dia com as setas, sem precisar apagar e recriar.',
-          '📋 <strong>Duplicar plano.</strong> Crie uma cópia de um plano inteiro e ajuste o que precisar, em vez de montar tudo do zero.',
-          '📅 <strong>Toque num dia passado do calendário</strong> para ver o que você treinou nele. Dias com treino registrado agora mostram "ver".',
-          '⚡ O app ficou mais leve ao marcar exercícios: agora só o card tocado é redesenhado, em vez da lista inteira.'
-        ]
-      },
-      {
-        version: '2.8.0', date: '2026-08-22',
-        highlights: [
-          '🔥 <strong>Sua sequência não quebra mais nos dias de descanso.</strong> Antes o contador zerava todo dia sem treino — quem treinava de segunda a sexta nunca passava de 5, e as conquistas de 7, 14, 30 e 100 eram impossíveis de alcançar. Agora dias de descanso do seu plano são pulados: a sequência conta <em>treinos seguidos sem falhar</em>. Se você tem descanso no plano, sua sequência deve aumentar sozinha assim que abrir o app.',
-          '⚖️ <strong>O app avisa se "dias por semana" não bate com o plano.</strong> Esse número calcula o XP de cada check-in, a meta semanal e a Refeição Livre — se você monta 4 dias de treino mas deixa o campo em 6, tudo fica desregulado sem aviso. Agora o editor aponta a diferença e oferece corrigir num toque.',
-          '🔗 <strong>Seu histórico segue o exercício entre planos.</strong> Antes, criar um novo plano com um exercício que você já fazia começava do zero — sem carga sugerida, sem gráfico, sem recorde. Agora o app reconhece o exercício pelo nome e reúne a evolução de todos os seus planos.'
-        ]
-      },
-      {
-        version: '2.7.0', date: '2026-08-22',
-        highlights: [
-          '💪 <strong>Marque cada série conforme termina.</strong> Agora cada exercício de força mostra uma fileira com suas séries (1, 2, 3...). Toque numa série ao concluí-la e o cronômetro de descanso começa sozinho — no momento certo, que é <em>entre</em> as séries, e não só no fim do exercício.',
-          '✅ Marcar a última série conclui o exercício automaticamente, como antes. E o botão redondo de concluir continua funcionando: usar ele marca todas as séries de uma vez.',
-          '⏱️ O descanso não dispara depois da última série de um exercício — nessa hora você já vai partir pro próximo, não descansar.',
-          'ℹ️ Por enquanto carga e repetições continuam sendo um valor para o exercício inteiro. Registrar valores diferentes por série (12/10/8) é o próximo passo — use essa versão por algumas semanas e veja se marcar série a série encaixa no seu treino.'
-        ]
-      },
-      {
-        version: '2.6.0', date: '2026-08-22',
-        highlights: [
-          '📅 <strong>Histórico de treinos realizados</strong> (Perfil > Progresso): a lista de tudo que você já treinou, por data. Toque num treino para ver todos os exercícios daquele dia, com carga, repetições, suas observações e o volume total — dá pra responder "o que eu fiz na quarta passada?" sem sair procurando exercício por exercício.',
-          '📋 Cada treino do histórico tem um botão para <strong>copiar o resumo</strong> daquele dia, no mesmo formato de quando você finaliza um treino.',
-          '🗑️ <strong>Remover um exercício do plano agora pede confirmação.</strong> Antes, um toque errado no ✕ apagava o exercício e as reservas na hora, sem aviso.',
-          '✨ As confirmações de excluir passaram a usar as janelas do próprio app, em vez da caixa cinza do navegador — que no celular mostrava o endereço do site e destoava do resto.'
-        ]
-      },
-      {
-        version: '2.5.0', date: '2026-08-22',
-        highlights: [
-          '🛟 <strong>Backup dos seus dados</strong> (Perfil > Dados): exporte tudo num arquivo e guarde no Drive, no e-mail ou onde quiser. Se você trocar de celular, limpar os dados do navegador ou reinstalar o app, é só restaurar e nada se perde. O app avisa quando faz muito tempo que você não faz backup.',
-          '💾 <strong>O treino não se perde mais no meio.</strong> Antes, carga, repetições e observações só eram salvas ao finalizar — se o celular fechasse o app durante o treino, tudo que você digitou sumia. Agora cada alteração é salva na hora.',
-          '⏱️ <strong>Cronômetro de descanso entre séries.</strong> Toque em "Descansar" em qualquer exercício, ou deixe ele começar sozinho quando você marca um exercício como concluído. Dá pra ajustar o tempo, apitar e vibrar ao terminar. Configure em Perfil > Dados.',
-          '📊 <strong>Evolução de cada exercício.</strong> O botão "Evolução" mostra um gráfico da sua carga ao longo do tempo, quantas sessões você já fez, sua melhor marca e o histórico completo. Antes o app só guardava a última sessão e apagava o resto.',
-          '🏅 <strong>Recordes pessoais.</strong> Quando você bate sua melhor carga num exercício, o app avisa na hora.',
-          '📈 <strong>Gráfico do peso corporal</strong> no histórico de peso, pra ver a tendência de verdade em vez de só uma lista de números.',
-          '🍎 <strong>Suporte a iPhone e iPad.</strong> O app agora se comporta direito no iOS: respeita o formato da tela (aquele "recorte" em cima), não dá mais zoom sozinho ao tocar nos campos, e copiar e exportar funcionam.',
-          '🧮 O resumo do treino agora mostra o <strong>volume total</strong> (séries x repetições x carga) — a medida mais honesta de quanto trabalho você fez.',
-          '🐛 Corrigido: trocar por um exercício reserva não se perdia mais ao fechar e reabrir o app.',
-          '🐛 Corrigido: nomes de exercícios com aspas (ex: Supino "pegada fechada") quebravam a tela de edição.'
-        ]
-      },
-      {
-        version: '2.4.0', date: '2026-08-21',
-        highlights: [
-          'O cabeçalho encolhe automaticamente ao rolar a tela, ganhando mais espaço pra ver os exercícios.',
-          'Nova aba de Conquistas com filtro: veja Todas, só as Desbloqueadas ou só as Bloqueadas.',
-          'Dica na primeira vez que você abre o app mostrando que dá pra arrastar o dedo pros lados pra trocar de aba.',
-          'O botão de trocar exercício reserva agora pisca suavemente até você usá-lo pela primeira vez, pra ajudar a descobrir essa função.'
-        ]
-      },
-      {
-        version: '2.3.4', date: '2026-08-20',
-        highlights: [
-          'Agora o app pede confirmação antes de finalizar um treino incompleto, mostrando quantos exercícios faltam e quanto de XP você perderia — evita finalizar sem querer.',
-          'A aba Perfil foi reorganizada em 3 partes (Dados, Saúde e Progresso), pra não precisar rolar tanto a tela pra achar o que precisa.'
-        ]
-      },
-      {
-        version: '2.3.3', date: '2026-08-20',
-        highlights: [
-          'Avisos (toasts) agora aparecem um de cada vez, em fila — antes, se dois aparecessem quase juntos, um cortava o outro antes de dar tempo de ler.',
-          'Botões de trocar exercício, marcar concluído e recolher card ficaram maiores, mais fáceis de acertar durante o treino.'
-        ]
-      },
-      {
-        version: '2.3.2', date: '2026-08-20',
-        highlights: [
-          'Corrigido: a água (e o check-in do dia) estava reiniciando cedo demais no fim da noite, por volta das 21h-22h, dependendo do fuso horário do aparelho. Agora o dia só vira mesmo à meia-noite no horário local.'
-        ]
-      },
-      {
-        version: '2.3.1', date: '2026-08-19',
-        highlights: [
-          'Ao marcar um exercício como concluído, o card agora se retrai sozinho para deixar a tela mais limpa (desmarcar reabre ele de novo).',
-          'A posição da rolagem da tela agora é lembrada ao trocar de aba e voltar.',
-          'Cada exercício reserva agora guarda seu próprio histórico de carga e progressão, sem se misturar com o exercício original.',
-          'Menu de navegação inferior com mais contraste e profundidade, para não se misturar com o conteúdo ao rolar a tela.'
-        ]
-      },
-      {
-        version: '2.3.0', date: '2026-08-19',
-        highlights: [
-          'Nova tela de "Novidades", mostrando o que mudou a cada atualização e um histórico com todas as versões anteriores.',
-          'Sempre que o app for atualizado, essa tela aparece automaticamente na próxima vez que você abrir.'
-        ]
-      },
-      {
-        version: '2.2.0', date: '2026-08-19',
-        highlights: [
-          'A água que você bebe agora reinicia sozinha à meia-noite, sem precisar recarregar o app.',
-          'Novo campo para você registrar o horário em que costuma treinar.',
-          'As datas na tela de Conquistas agora aparecem no formato brasileiro (dia/mês/ano).',
-          'A seção de consumo de água foi reposicionada para ficar logo abaixo dos cards de IMC e Água do dia.',
-          'O menu de navegação foi movido para a parte de baixo da tela, mais fácil de alcançar com o polegar.'
-        ]
-      },
-      {
-        version: '2.1.0', date: '2026-08-18',
-        highlights: [
-          'Agora você pode escolher entre 3 formas diferentes de calcular sua taxa metabólica, cada uma com uma explicação de quando usar.',
-          'Textos mais longos do app ficaram mais fáceis de ler, com alinhamento justificado.'
-        ]
-      },
-      {
-        version: '2.0.0', date: '2026-08-18',
-        highlights: [
-          'Corrigido: exercícios marcados como concluídos não são mais perdidos ao fechar e reabrir o app.',
-          'Você pode recolher os cards de exercício para deixar a tela mais organizada durante o treino.',
-          'Novo botão para trocar um exercício por uma reserva na hora, direto durante o treino.',
-          'Botões de ajuste de carga com saltos maiores (±10kg) para quem usa cargas altas.',
-          'Agora dá para arrastar o dedo na tela para trocar de aba, além de tocar nos botões.',
-          'O app avisa e busca a versão mais nova automaticamente sempre que é aberto.',
-          'Novas conquistas com referências de cultura pop para desbloquear.'
-        ]
-      },
-      {
-        version: '1.9.0', date: '2026-08-17',
-        highlights: [
-          'Agora é preciso preencher seus dados básicos na primeira vez que abre o app.',
-          'Sua idade é calculada automaticamente a partir da data de nascimento.',
-          'O app te dá parabéns no dia do seu aniversário e libera uma conquista especial.',
-          'Novo cálculo de taxa metabólica basal (quanto seu corpo gasta em repouso).'
-        ]
-      },
-      {
-        version: '1.7.0', date: '2026-08-16',
-        highlights: [
-          'Novo sistema de Conquistas, no estilo dos troféus da Steam.',
-          'Bônus de XP por manter uma sequência de dias treinando sem parar.',
-          'Ao completar 80% do treino da semana, você libera o direito a uma Refeição Livre no fim de semana.',
-          'O bônus de água agora escala com o seu ritmo de treino.'
-        ]
-      },
-      {
-        version: '1.6.0', date: '2026-08-16',
-        highlights: [
-          'Exercícios de cardio (esteira, bike etc.) agora têm campos de tempo e distância, em vez de séries e peso.',
-          'Ícone do aplicativo atualizado.'
-        ]
-      },
-      {
-        version: '1.5.0', date: '2026-08-16',
-        highlights: [
-          'Novo campo de peso alvo, com uma barra mostrando o quanto falta para chegar no seu objetivo.'
-        ]
-      },
-      {
-        version: '1.4.0', date: '2026-08-15',
-        highlights: [
-          'Agora você pode criar vários planos de treino diferentes e alternar entre eles.',
-          'Nova base com dezenas de exercícios prontos para montar seu treino, além de poder criar os seus.'
-        ]
-      },
-      {
-        version: '1.3.0', date: '2026-08-15',
-        highlights: [
-          'Novo sistema de experiência (XP) e níveis, indo até o nível 100.',
-          'Nova aba de Perfil com cálculo de IMC e meta de água diária.',
-          'Marcar todos os exercícios do dia como concluídos agora faz seu check-in automaticamente.'
-        ]
-      },
-      {
-        version: '1.1.0', date: '2026-08-14',
-        highlights: [
-          'Nome e textos do app renovados para ficarem mais claros.',
-          'O treino do dia carrega automaticamente ao abrir o app.',
-          'Novo contador de quantos dias você treinou no mês.',
-          'Grade de check-in semanal redesenhada, incluindo o domingo como dia extra opcional.',
-          'Novo botão para marcar cada exercício como concluído, e botão para reduzir a carga em 5kg.'
-        ]
-      },
-      {
-        version: '1.0.0', date: '2026-08-07',
-        highlights: [
-          'Lançamento do painel de treino como aplicativo instalável no celular.',
-          'Registro de séries, repetições e carga por exercício.',
-          'Sistema de check-in semanal com contador de sequência.',
-          'Aviso automático de quando está na hora de aumentar a carga de um exercício.'
-        ]
-      }
+      // Historico completo das versoes fica no CHANGELOG.md do repositorio. Aqui ficam
+      // apenas as ultimas 8: o array e baixado junto com o app a cada atualizacao, e as
+      // 32 entradas acumuladas somavam 22,6 KB de texto que a tela nunca exibia
+      // (RELEASE_NOTES_NA_TELA mostra 5).
+
     ];
 
     const SEED_WORKOUT_DATABASE = {
@@ -2918,6 +2740,7 @@
       // Progresso mostra dados que mudam a cada treino: remonta ao ser exibida, em vez de
       // reaproveitar o que foi renderizado quando a aba Perfil foi aberta
       if (tab === 'progresso') {
+        renderWeeklyVolume();
         renderWorkoutHistory();
         renderWeightHistory();
         renderGoalRoadmap();
@@ -2949,6 +2772,7 @@
       renderGoalRoadmap();
       renderRestSettings();
       renderBackupStatus();
+      renderWeeklyVolume();
       renderWorkoutHistory();
     }
 
@@ -3785,7 +3609,7 @@
         if (res.falhas.length) showToast(`⚠️ Não foi possível registrar: ${res.falhas.join(', ')}`);
 
         renderCheckinGrid();
-        if (!perfilView.classList.contains('hidden')) renderWorkoutHistory();
+        if (!perfilView.classList.contains('hidden')) { renderWeeklyVolume(); renderWorkoutHistory(); }
         if (!alreadyFull) showToast('✅ Treino completo e registrado no histórico!');
       }
     };
@@ -3925,7 +3749,7 @@
       renderExercises();
       // o historico acabou de mudar: invalida o cache e redesenha se estiver a vista
       workoutHistoryCache = [];
-      if (!perfilView.classList.contains('hidden')) renderWorkoutHistory();
+      if (!perfilView.classList.contains('hidden')) { renderWeeklyVolume(); renderWorkoutHistory(); }
 
       reportOutput.value = report;
       reportContainer.classList.remove('hidden');
@@ -4322,7 +4146,7 @@
       if (!document.getElementById('workoutDayOverlay').classList.contains('hidden') && workoutDayContext) {
         openWorkoutDay(workoutDayContext);
       }
-      if (!perfilView.classList.contains('hidden')) renderWorkoutHistory();
+      if (!perfilView.classList.contains('hidden')) { renderWeeklyVolume(); renderWorkoutHistory(); }
       if (!treinoView.classList.contains('hidden')) renderExercises();
     }
 
@@ -4864,6 +4688,118 @@
       saveDraft();
       renderExerciseCard(exId);
     };
+
+    // ---------- VOLUME SEMANAL ----------
+    // Volume por treino ja existia, e o acumulado de sempre alimenta as conquistas. Faltava a
+    // escala do meio — a semana —, que e onde a progressao de carga realmente aparece: uma
+    // sessao isolada varia por sono, alimentacao e humor, mas a soma da semana mostra
+    // tendencia.
+    function getMondayOf(dateStr) {
+      // meio-dia evita que o fuso empurre para o dia anterior
+      const d = new Date(dateStr + 'T12:00:00');
+      const dia = d.getDay();                    // 0 = domingo
+      d.setDate(d.getDate() + (dia === 0 ? -6 : 1 - dia));
+      d.setHours(0, 0, 0, 0);
+      return d;
+    }
+
+    // Devolve as ultimas `quantas` semanas em ordem cronologica, incluindo as sem treino —
+    // uma semana vazia e informacao, nao ausencia de dado.
+    function buildWeeklyVolume(quantas) {
+      const total = Math.max(1, quantas || 8);
+      const porDia = buildWorkoutHistory();
+
+      const acumulado = {};   // chave: segunda-feira da semana
+      porDia.forEach(dia => {
+        const seg = formatLocalDateKey(getMondayOf(dia.date));
+        if (!acumulado[seg]) acumulado[seg] = { volume: 0, treinos: 0 };
+        acumulado[seg].volume += dia.volume;
+        acumulado[seg].treinos += 1;
+      });
+
+      const semanas = [];
+      const segAtual = getMondayOfCurrentWeek();
+      for (let i = total - 1; i >= 0; i--) {
+        const d = new Date(segAtual);
+        d.setDate(d.getDate() - i * 7);
+        const chave = formatLocalDateKey(d);
+        const dados = acumulado[chave] || { volume: 0, treinos: 0 };
+        const fim = new Date(d); fim.setDate(fim.getDate() + 6);
+        semanas.push({
+          inicio: chave,
+          fim: formatLocalDateKey(fim),
+          volume: Math.round(dados.volume),
+          treinos: dados.treinos
+        });
+      }
+      return semanas;
+    }
+
+    function renderWeeklyVolume() {
+      const body = document.getElementById('weeklyVolumeBody');
+      if (!body) return;
+
+      const semanas = buildWeeklyVolume(8);
+      const atual = semanas[semanas.length - 1];
+      const anterior = semanas[semanas.length - 2];
+
+      // sem nenhum treino registrado ainda, o card explica em vez de mostrar zeros
+      const temAlgum = semanas.some(w => w.treinos > 0);
+      if (!temAlgum) {
+        body.innerHTML = `<p class="text-xs text-slate-600 text-center py-6 leading-relaxed">Nenhum treino registrado nas últimas 8 semanas.<br/>Complete um treino para acompanhar seu volume aqui.</p>`;
+        return;
+      }
+
+      // variacao so faz sentido com uma semana anterior que teve treino
+      let variacao = '';
+      if (anterior && anterior.volume > 0 && atual.volume > 0) {
+        const pct = ((atual.volume - anterior.volume) / anterior.volume) * 100;
+        const sobe = pct >= 0;
+        const cor = Math.abs(pct) < 1 ? 'text-slate-400' : (sobe ? 'text-emerald-400' : 'text-amber-400');
+        const seta = Math.abs(pct) < 1 ? '=' : (sobe ? '▲' : '▼');
+        variacao = `<span class="${cor} font-black text-xs">${seta} ${Math.abs(pct).toFixed(0)}%</span>`;
+      } else if (anterior && anterior.volume === 0 && atual.volume > 0) {
+        // "retomada" so faz sentido se houve treino em alguma semana anterior; na primeira
+        // semana de uso nao ha o que retomar, entao nao mostra comparacao nenhuma
+        const houveAntes = semanas.slice(0, -1).some(w => w.volume > 0);
+        if (houveAntes) variacao = `<span class="text-emerald-400 font-black text-xs">▲ retomada</span>`;
+      }
+
+      // grafico so com semanas que tiveram treino, para uma pausa nao achatar a curva
+      const comTreino = semanas.filter(w => w.volume > 0);
+      const grafico = comTreino.length >= 2
+        ? `<div class="bg-slate-950/50 border border-slate-800 rounded-xl p-3 mb-3">
+             ${renderSparkline(semanas.map(w => w.volume), { color: '#a78bfa', fill: 'rgba(167,139,250,0.14)' })}
+             <div class="flex justify-between mt-1.5 text-[9px] text-slate-600 font-bold">
+               <span>${formatDateBR(semanas[0].inicio).slice(0,5)}</span>
+               <span>8 semanas</span>
+               <span>${formatDateBR(atual.inicio).slice(0,5)}</span>
+             </div>
+           </div>`
+        : '';
+
+      const fmt = (n) => n > 0 ? n.toLocaleString('pt-BR') : '--';
+
+      body.innerHTML = `
+        ${grafico}
+        <div class="grid grid-cols-2 gap-2">
+          <div class="bg-slate-950/50 border border-slate-800 rounded-xl px-3 py-2.5">
+            <p class="text-[9px] text-slate-500 font-bold uppercase tracking-wider">Esta semana</p>
+            <p class="text-lg font-black text-white leading-tight">${fmt(atual.volume)}<span class="text-[10px] text-slate-500 ml-0.5">kg</span></p>
+            <p class="text-[9px] text-slate-600">${atual.treinos} treino${atual.treinos === 1 ? '' : 's'}</p>
+          </div>
+          <div class="bg-slate-950/50 border border-slate-800 rounded-xl px-3 py-2.5">
+            <p class="text-[9px] text-slate-500 font-bold uppercase tracking-wider">Semana passada</p>
+            <p class="text-lg font-black text-slate-300 leading-tight">${fmt(anterior ? anterior.volume : 0)}<span class="text-[10px] text-slate-500 ml-0.5">kg</span></p>
+            <p class="text-[9px] text-slate-600">${anterior ? anterior.treinos : 0} treino${(anterior && anterior.treinos === 1) ? '' : 's'}</p>
+          </div>
+        </div>
+        ${variacao ? `<div class="flex items-center justify-center gap-2 mt-3">${variacao}<span class="text-[10px] text-slate-600">em relação à semana passada</span></div>` : ''}
+        ${(atual.treinos === 0)
+          ? `<p class="text-[10px] text-slate-600 text-center mt-3">Semana ainda sem treino registrado.</p>`
+          : ''}
+      `;
+    }
 
     // ---------- HISTÓRICO DE TREINOS POR DATA ----------
     // O sessionLog é indexado por exercício; para responder "o que eu fiz na quarta passada?"

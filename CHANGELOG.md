@@ -6,6 +6,44 @@ Todas as mudanças relevantes do app ficam registradas aqui. Ao lançar uma nova
    atualizar o app instalado
 3. Adicione uma entrada aqui, nesse formato
 
+## [2.15.0] - 2026-08-27
+### Adicionado
+- **Volume semanal** em Perfil > Progresso (`buildWeeklyVolume()`, `renderWeeklyVolume()`,
+  `getMondayOf()`). O app ja tinha volume por treino e o acumulado de sempre (conquistas),
+  mas faltava a escala do meio — a semana —, que e onde a progressao de carga aparece: uma
+  sessao isolada oscila por sono, alimentacao e humor, enquanto a soma semanal mostra
+  tendencia
+- Exibe volume desta semana, da semana passada, a variacao percentual entre elas, a
+  contagem de treinos de cada uma, e um grafico das ultimas 8 semanas reaproveitando
+  `renderSparkline()`
+- Semana vai de **segunda a domingo**, coerente com `getMondayOfCurrentWeek()` e com o
+  calendario de check-ins. `getMondayOf()` resolve a segunda de qualquer data com
+  `T12:00:00`, para o fuso nao empurrar para o dia anterior — o caso critico e o domingo,
+  que pertence a semana iniciada na segunda **anterior** (verificado)
+- Semanas sem treino aparecem como zero em vez de sumirem: uma pausa e informacao sobre o
+  treino, nao ausencia de dado. O grafico so e desenhado com duas ou mais semanas treinadas
+
+### Notas
+- Casos de borda tratados e verificados: sem nenhum treino (mensagem explicativa em vez de
+  zeros), primeira semana de uso (**sem** comparacao — "retomada" so aparece se houve treino
+  em alguma semana anterior, senao nao ha o que retomar), semana atual ainda sem treino
+  (aviso proprio), e treino so de cardio (conta como treino, volume fica em "--")
+- Recalculado ao abrir a aba, ao finalizar um treino, ao concluir pelo check-in automatico e
+  apos correcoes no historico
+- Desempenho: 2,5 ms com 400 sessoes cobrindo dois anos
+- `CACHE_NAME`: `treino-cache-v37` -> `treino-cache-v38`
+
+## [2.14.1] - 2026-08-27
+### Alterado
+- **`RELEASE_NOTES` podado de 32 para 8 versoes** (22,6 KB -> 7,8 KB). O array e baixado
+  junto com o app a cada atualizacao, mas `RELEASE_NOTES_NA_TELA` exibe apenas 5 entradas —
+  as demais eram texto que nunca chegava a tela. As 8 mantidas dao folga para quem passou
+  algumas versoes sem atualizar. O historico completo permanece **neste arquivo**, que e
+  onde ele deve viver
+- Ao publicar novas versoes, remover as entradas mais antigas do array para ele nao voltar a
+  crescer indefinidamente
+- `CACHE_NAME`: `treino-cache-v36` -> `treino-cache-v37`
+
 ## [2.14.0] - 2026-08-26
 
 ### Alterado
