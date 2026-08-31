@@ -183,6 +183,8 @@
     .active\:text-amber-300:active { color: #fcd34d; }
     .bg-slate-950\/40 { background-color: rgba(2, 6, 23, 0.4); }
     .border-blue-800\/40 { border-color: rgba(30, 64, 175, 0.4); }
+    .justify-end { justify-content: flex-end; }
+    .mr-1 { margin-right: 0.25rem; }
   </style>
 </head>
 <body class="bg-slate-950 text-slate-100 font-sans pb-12 min-h-screen">
@@ -318,6 +320,89 @@
         </button>
       </div>
       <div id="progressBody"></div>
+    </div>
+  </div>
+
+  <!-- Gerador de prompt para IA. O app nao conversa com nenhuma IA: monta o texto com os
+       dados que ja estao no aparelho e entrega para voce colar onde quiser. Nada sai daqui
+       sem voce copiar e colar. -->
+  <div id="aiPlanOverlay" class="hidden fixed inset-0 bg-slate-950/95 backdrop-blur-sm z-[100] flex items-start justify-center p-4 overflow-y-auto">
+    <div class="bg-slate-900 rounded-2xl border border-slate-800 shadow-2xl max-w-md w-full p-5 my-8 space-y-4">
+
+      <div class="flex items-start justify-between gap-3">
+        <div class="min-w-0">
+          <p class="text-[10px] font-black text-blue-400 uppercase tracking-wider">Montar treino</p>
+          <h2 class="text-base font-black text-white leading-tight">Prompt para IA</h2>
+        </div>
+        <button type="button" onclick="closeAIPlan()" aria-label="Fechar" class="flex-shrink-0 w-9 h-9 rounded-full bg-slate-800 active:bg-slate-700 text-slate-400 flex items-center justify-center transition-all active:scale-90">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+        </button>
+      </div>
+
+      <p class="text-[11px] text-slate-500 leading-relaxed text-justify">O app junta seus dados e monta um texto pronto. Copie e cole na IA que você preferir — ChatGPT, Claude, Gemini — para receber um plano feito para o seu caso. O app não envia nada: quem cola é você.</p>
+
+      <div>
+        <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Objetivo</label>
+        <select id="aiGoal" onchange="renderAIPrompt()" class="mt-1 w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2.5 text-white text-sm focus:outline-none focus:ring-1 focus:ring-blue-600 appearance-none">
+          <option value="hipertrofia">Ganhar massa muscular</option>
+          <option value="emagrecimento">Emagrecer preservando músculo</option>
+          <option value="recomposicao">Perder gordura e ganhar músculo</option>
+          <option value="forca">Ganhar força</option>
+          <option value="condicionamento">Condicionamento geral</option>
+        </select>
+      </div>
+
+      <div class="grid grid-cols-2 gap-3">
+        <div>
+          <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Dias por semana</label>
+          <input type="number" id="aiDays" min="1" max="7" oninput="renderAIPrompt()" class="mt-1 w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2.5 text-white text-sm focus:outline-none focus:ring-1 focus:ring-blue-600"/>
+        </div>
+        <div>
+          <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Tempo por treino</label>
+          <select id="aiMinutes" onchange="renderAIPrompt()" class="mt-1 w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2.5 text-white text-sm focus:outline-none focus:ring-1 focus:ring-blue-600 appearance-none">
+            <option value="30">30 min</option>
+            <option value="45">45 min</option>
+            <option value="60" selected>60 min</option>
+            <option value="90">90 min</option>
+          </select>
+        </div>
+      </div>
+
+      <div>
+        <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Algo que a IA precisa saber?</label>
+        <textarea id="aiNotes" rows="3" oninput="renderAIPrompt()" placeholder="Lesões, equipamentos que sua academia tem, exercícios que você não gosta, preferências..." class="mt-1 w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2.5 text-white text-sm focus:outline-none focus:ring-1 focus:ring-blue-600 resize-none"></textarea>
+        <p class="text-[10px] text-slate-600 mt-1">É aqui que o plano deixa de ser genérico. Quanto mais específico, melhor a resposta.</p>
+      </div>
+
+      <div class="bg-slate-950/50 border border-slate-800 rounded-xl px-3">
+        <div class="flex items-center justify-between gap-3 py-2.5">
+          <div class="min-w-0">
+            <p class="text-xs font-bold text-slate-300">Incluir meus dados de saúde</p>
+            <p class="text-[10px] text-slate-600">Idade, sexo, altura, peso, IMC, gordura corporal</p>
+          </div>
+          <button type="button" id="aiHealthToggle" onclick="toggleAIOption('incluirSaude')" aria-pressed="true" class="relative w-11 h-6 rounded-full bg-slate-700 transition-all duration-200 flex-shrink-0"></button>
+        </div>
+        <div class="flex items-center justify-between gap-3 py-2.5 border-t border-slate-800/60">
+          <div class="min-w-0">
+            <p class="text-xs font-bold text-slate-300">Incluir meu treino atual</p>
+            <p class="text-[10px] text-slate-600">Exercícios e as cargas que você usa hoje</p>
+          </div>
+          <button type="button" id="aiCurrentToggle" onclick="toggleAIOption('incluirTreino')" aria-pressed="true" class="relative w-11 h-6 rounded-full bg-slate-700 transition-all duration-200 flex-shrink-0"></button>
+        </div>
+      </div>
+
+      <div>
+        <div class="flex items-center justify-between mb-1">
+          <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Texto gerado</label>
+          <span id="aiPromptSize" class="text-[9px] text-slate-600 font-bold"></span>
+        </div>
+        <textarea id="aiPromptOutput" readonly rows="9" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-slate-400 font-mono text-[10px] leading-relaxed resize-none focus:outline-none"></textarea>
+      </div>
+
+      <button type="button" id="aiPromptCopy" onclick="copyAIPrompt()" class="w-full bg-blue-600 active:bg-blue-500 text-white font-extrabold text-sm py-3 rounded-xl transition-all active:scale-[0.99]">📋 Copiar prompt</button>
+
+      <p class="text-[10px] text-amber-300 bg-amber-950/30 border border-amber-800/40 rounded-xl px-3 py-2 leading-relaxed text-justify">A IA não substitui um profissional. Revise o plano antes de seguir, principalmente se você tem alguma lesão ou condição de saúde.</p>
+      <p class="text-[10px] text-slate-600 leading-relaxed text-justify">Por enquanto o plano que a IA devolver precisa ser digitado aqui em <strong class="text-slate-500">Planos</strong>. A importação automática da resposta vem numa próxima versão.</p>
     </div>
   </div>
 
@@ -546,6 +631,10 @@
       <button type="button" onclick="openProfileEditor(null)" class="w-full bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-500 hover:to-blue-600 text-white font-extrabold text-sm py-3.5 rounded-2xl shadow-lg transition-all active:scale-[0.99] flex items-center justify-center space-x-2">
         <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" /></svg>
         <span>Criar Novo Perfil de Treino</span>
+      </button>
+      <button type="button" onclick="openAIPlan()" class="w-full bg-slate-900 border border-slate-700 active:border-blue-600 text-slate-200 font-extrabold text-sm py-3.5 rounded-2xl transition-all active:scale-[0.99] flex items-center justify-center space-x-2">
+        <span>🤖</span>
+        <span>Montar treino com IA</span>
       </button>
       <div id="profileList" class="space-y-3"></div>
     </div>
@@ -944,11 +1033,29 @@
   </div>
 
   <script>
-    const APP_VERSION = '2.15.0'; // manter sincronizado com CACHE_NAME em sw.js e com o CHANGELOG.md
+    const APP_VERSION = '2.16.0'; // manter sincronizado com CACHE_NAME em sw.js e com o CHANGELOG.md
 
     // ---------- NOVIDADES (tela para testadores — só experiência do usuário, sem termos técnicos) ----------
     // Detalhes técnicos ficam só no CHANGELOG.md interno. Ordem: mais recente primeiro.
     const RELEASE_NOTES = [
+      {
+        version: '2.16.0', date: '2026-08-31',
+        highlights: [
+          '🤖 <strong>Montar treino com IA.</strong> Em <em>Planos</em>, o app junta seus dados — objetivo, dias disponíveis, seu treino atual e as cargas que você realmente usa — e monta um texto pronto para colar em qualquer IA (ChatGPT, Claude, Gemini) e receber um plano feito para o seu caso.',
+          '🔒 <strong>Nada sai do aparelho sozinho.</strong> O app não conversa com IA nenhuma: ele só escreve o texto. Quem copia e cola é você. E dá para desligar os dados de saúde antes de copiar, se preferir não incluí-los.',
+          '💬 O campo de observações é o que tira o plano do genérico: escreva lesões, o equipamento que sua academia tem, exercícios que você não gosta.',
+          '📏 <strong>Escolha quanto o gráfico mostra.</strong> Em cima de cada gráfico apareceu <em>Mostrar: 5 · 7 · Tudo</em>. Com muitos registros a linha virava um emaranhado e as variações recentes ficavam espremidas — agora dá para olhar só as últimas semanas ou o histórico inteiro.',
+          'ℹ️ A escolha vale por gráfico e fica guardada: o que você escolher em peso não mexe no de volume semanal.'
+        ]
+      },
+      {
+        version: '2.15.1', date: '2026-08-31',
+        highlights: [
+          '📍 <strong>Os gráficos agora respondem ao toque.</strong> Toque em qualquer ponto do gráfico de peso e IMC e ele mostra a data e os valores daquele registro. Antes a linha mostrava a tendência, mas não dava para saber a que dia cada subida ou queda correspondia.',
+          '📊 <strong>Vale para todos os gráficos:</strong> peso e IMC, volume semanal e evolução de cada exercício. No de peso aparece a data com o peso e o IMC; no semanal, o período com o volume e o número de treinos; no do exercício, a data com as séries e a carga daquele dia.',
+          '👆 Não precisa acertar a bolinha: toque em qualquer lugar do gráfico e ele mostra o registro mais próximo, com o ponto destacado para você saber qual é.'
+        ]
+      },
       {
         version: '2.15.0', date: '2026-08-27',
         highlights: [
@@ -2832,15 +2939,22 @@
         list.innerHTML = `<p class="text-xs text-slate-600 text-center py-4">Nenhum registro ainda. Salve seus dados para começar o histórico.</p>`;
         return;
       }
-      // gráfico primeiro (ordem cronológica), lista logo abaixo (mais recente no topo)
-      const chrono = entries.slice().reverse();
+      // gráfico primeiro (ordem cronológica), lista logo abaixo (mais recente no topo).
+      // O gráfico usa o histórico completo, não os 15 da lista: "Tudo" precisa querer dizer
+      // tudo mesmo para quem já registrou mais que isso.
+      const todos = [...(userProfile.weightHistory || [])].filter(e => entryDateKey(e)).sort(compareByDate);
+      const chrono = applyChartRange('peso', todos);
       const chart = chrono.length >= 2
-        ? `<div class="bg-slate-950/50 border border-slate-800 rounded-xl p-3 mb-3">
-             ${renderSparkline(chrono.map(e => e.weight), { color: '#34d399', fill: 'rgba(52,211,153,0.14)' })}
+        ? `${chartRangeControls('peso', todos.length)}<div class="bg-slate-950/50 border border-slate-800 rounded-xl p-3 mb-3">
+             ${renderSparkline(chrono.map(e => e.weight), {
+               color: '#34d399', fill: 'rgba(52,211,153,0.14)',
+               tips: chrono.map(e => `${formatDateBR(e.date)} · ${e.weight}kg · IMC ${Number(e.imc || 0).toFixed(1)}`)
+             })}
              <div class="flex justify-between mt-1.5 text-[9px] text-slate-600 font-bold">
                <span>${formatDateBR(chrono[0].date)}</span>
                <span>${formatDateBR(chrono[chrono.length - 1].date)}</span>
              </div>
+             ${chartHint()}
            </div>`
         : '';
 
@@ -3128,37 +3242,137 @@
 
     // ---------- MINI-GRÁFICO DE LINHA (SVG puro, sem biblioteca) ----------
     // Desenhado à mão em SVG para o app continuar sendo um único arquivo offline.
+    // Guarda os pontos de cada grafico desenhado, para que um toque saiba o que responder.
+    // A chave e o id do proprio elemento; series de graficos que sairam da tela sao
+    // descartadas no render seguinte.
+    let sparkSeries = {};
+    let sparkSeq = 0;
+
+    // options.tips: uma legenda por valor ("12/08/2026 - 82,5kg"). Quando existe, o grafico
+    // passa a responder ao toque mostrando o ponto mais proximo.
     function renderSparkline(values, options) {
-      const opts = Object.assign({ width: 280, height: 64, color: '#60a5fa', fill: 'rgba(96,165,250,0.14)' }, options || {});
-      const pts = values.filter(v => typeof v === 'number' && isFinite(v));
-      if (pts.length < 2) return '';
+      const opts = Object.assign({ width: 280, height: 64, color: '#60a5fa', fill: 'rgba(96,165,250,0.14)', tips: null }, options || {});
+      const legendas = Array.isArray(opts.tips) ? opts.tips : null;
+
+      // valor e legenda precisam andar juntos: descartar um valor invalido sem descartar a
+      // legenda correspondente deslocaria todas as datas seguintes em uma posicao
+      const dados = values
+        .map((v, i) => ({ v: v, tip: legendas ? legendas[i] : null }))
+        .filter(d => typeof d.v === 'number' && isFinite(d.v));
+      if (dados.length < 2) return '';
 
       const w = opts.width, h = opts.height, pad = 6;
-      const min = Math.min.apply(null, pts);
-      const max = Math.max.apply(null, pts);
+      const vals = dados.map(d => d.v);
+      const min = Math.min.apply(null, vals);
+      const max = Math.max.apply(null, vals);
       const span = (max - min) || 1; // série constante: linha reta no meio, sem divisão por zero
-      const stepX = (w - pad * 2) / (pts.length - 1);
+      const stepX = (w - pad * 2) / (dados.length - 1);
 
-      const coords = pts.map((v, i) => {
+      const coords = dados.map((d, i) => {
         const x = pad + i * stepX;
-        const y = h - pad - ((v - min) / span) * (h - pad * 2);
+        const y = h - pad - ((d.v - min) / span) * (h - pad * 2);
         return [x, y];
       });
 
       const line = coords.map((c, i) => `${i === 0 ? 'M' : 'L'}${c[0].toFixed(1)},${c[1].toFixed(1)}`).join(' ');
       const area = `${line} L${coords[coords.length - 1][0].toFixed(1)},${h - pad} L${coords[0][0].toFixed(1)},${h - pad} Z`;
-      const last = coords[coords.length - 1];
       // comprimento aproximado do traço, usado pela animação de "desenhar" a linha
       let len = 0;
       for (let i = 1; i < coords.length; i++) {
         len += Math.hypot(coords[i][0] - coords[i - 1][0], coords[i][1] - coords[i - 1][1]);
       }
 
-      return `<svg viewBox="0 0 ${w} ${h}" width="100%" height="${h}" preserveAspectRatio="none" role="img" aria-label="Gráfico de evolução">
-        <path d="${area}" fill="${opts.fill}" stroke="none"/>
-        <path d="${line}" fill="none" stroke="${opts.color}" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="chart-line" style="--chart-len:${len.toFixed(0)}"/>
-        <circle cx="${last[0].toFixed(1)}" cy="${last[1].toFixed(1)}" r="3.5" fill="${opts.color}"/>
-      </svg>`;
+      // descarta series de graficos que ja nao estao na tela, para o mapa nao crescer a cada
+      // vez que a aba e reaberta
+      Object.keys(sparkSeries).forEach(k => { if (!document.getElementById(k)) delete sparkSeries[k]; });
+      const id = `spark${++sparkSeq}`;
+      sparkSeries[id] = { coords: coords, tips: dados.map(d => d.tip), w: w };
+
+      // Os pontos vao como elementos HTML sobre o SVG, e nao como <circle>: o grafico usa
+      // preserveAspectRatio="none" para ocupar toda a largura disponivel, o que esticaria
+      // qualquer circulo em elipse. Como a altura e fixa, o y ja esta em pixels e o x vira
+      // porcentagem — a posicao fica exata em qualquer largura de tela.
+      // Com muitos registros as bolinhas ficam a poucos pixels uma da outra e viram uma
+      // faixa continua; nesse caso so o ultimo ponto aparece, e os demais surgem ao toque.
+      const mostrarTodos = stepX >= 8;
+      const bolinhas = coords.map((c, i) => {
+        const ultimo = i === coords.length - 1;
+        if (!mostrarTodos && !ultimo) return '';
+        const tam = ultimo ? 7 : 5;
+        return `<span style="position:absolute;left:${(c[0] / w * 100).toFixed(2)}%;top:${c[1].toFixed(1)}px;width:${tam}px;height:${tam}px;margin:${-tam / 2}px 0 0 ${-tam / 2}px;border-radius:50%;background:${opts.color};${ultimo ? '' : 'opacity:.7;'}"></span>`;
+      }).join('');
+
+      const grafico = `<div id="${id}"${legendas ? ` onclick="showChartPoint(event,'${id}')" style="position:relative;cursor:pointer"` : ' style="position:relative"'}>
+        <svg viewBox="0 0 ${w} ${h}" width="100%" height="${h}" preserveAspectRatio="none" role="img" aria-label="Gráfico de evolução" style="display:block">
+          <path d="${area}" fill="${opts.fill}" stroke="none"/>
+          <path d="${line}" fill="none" stroke="${opts.color}" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="chart-line" style="--chart-len:${len.toFixed(0)}"/>
+        </svg>
+        <div style="position:absolute;top:0;left:0;right:0;height:${h}px;pointer-events:none">
+          <span data-guia style="display:none;position:absolute;top:0;height:${h}px;width:1px;background:${opts.color};opacity:.4"></span>
+          ${bolinhas}
+          <span data-sel style="display:none;position:absolute;width:11px;height:11px;margin:-5.5px 0 0 -5.5px;border-radius:50%;background:${opts.color};box-shadow:0 0 0 3px rgba(2,6,23,.95)"></span>
+        </div>
+      </div>`;
+
+      return grafico;
+    }
+
+    // ---------- QUANTOS REGISTROS O GRAFICO MOSTRA ----------
+    // Com muitos registros a linha vira um emaranhado e as variacoes recentes — as que
+    // interessam para decidir o proximo treino — ficam espremidas em alguns pixels. O
+    // seletor deixa escolher entre uma janela curta e o historico inteiro. A escolha fica
+    // guardada por grafico, junto das outras preferencias.
+    const CHART_RANGES = [5, 7];
+
+    function getChartRange(key) {
+      const guardado = (settings.chartRange || {})[key];
+      return guardado === 5 || guardado === 7 ? guardado : 'tudo';
+    }
+
+    function applyChartRange(key, lista) {
+      const faixa = getChartRange(key);
+      return faixa === 'tudo' ? lista : lista.slice(-faixa);
+    }
+
+    // Fica FORA do bloco do grafico de proposito: com uma faixa curta o grafico pode nao ter
+    // dados suficientes para ser desenhado, e o controle iria junto — deixando o usuario sem
+    // como voltar para "Tudo".
+    function chartRangeControls(key, total) {
+      const opcoes = CHART_RANGES.filter(n => n < total);
+      if (opcoes.length === 0) return '';   // com poucos registros nao ha o que recortar
+      const atual = getChartRange(key);
+      const botao = (valor, rotulo) => {
+        const ativo = String(atual) === String(valor);
+        return `<button type="button" onclick="setChartRange('${key}','${valor}')" class="px-2.5 py-1 rounded-lg border text-[10px] font-black transition-all active:scale-95 ${
+          ativo ? 'bg-blue-600 border-blue-500 text-white' : 'bg-slate-950/60 border-slate-800 text-slate-500'
+        }">${rotulo}</button>`;
+      };
+      return `<div class="flex items-center justify-end gap-1 mb-2">
+        <span class="text-[9px] font-bold text-slate-600 uppercase tracking-wider mr-1">Mostrar</span>
+        ${opcoes.map(n => botao(n, `${n}`)).join('')}
+        ${botao('tudo', 'Tudo')}
+      </div>`;
+    }
+
+    const CHART_RERENDER = {
+      peso: () => renderWeightHistory(),
+      volume: () => renderWeeklyVolume(),
+      // o grafico do exercicio vive num modal: redesenhar significa remontar o conteudo com
+      // o mesmo exercicio que ja estava aberto
+      exercicio: () => { if (progressContext) openExerciseProgress(progressContext.historyKey, progressContext.name); }
+    };
+
+    window.setChartRange = function(key, valor) {
+      settings.chartRange = settings.chartRange || {};
+      settings.chartRange[key] = valor === 'tudo' ? 'tudo' : parseInt(valor, 10);
+      saveSettings();
+      if (CHART_RERENDER[key]) CHART_RERENDER[key]();
+    };
+
+    // Linha de apoio dos graficos consultaveis: sem ela os pontos nao anunciam que respondem
+    // ao toque. Fica abaixo das datas, para nao separar o grafico da sua propria legenda.
+    function chartHint() {
+      return `<p class="text-[9px] text-slate-700 font-bold text-center mt-1">toque no gráfico para ver cada registro</p>`;
     }
 
     // ---------- MARCADOR PERSISTENTE DE "HORA DE SUBIR CARGA" ----------
@@ -3924,6 +4138,197 @@
       return h > 0 ? `${h}h${String(m).padStart(2, '0')}` : `${m}min`;
     }
 
+    // ---------- GERADOR DE PROMPT PARA IA ----------
+    // O app nao conversa com IA nenhuma. Ele junta o que ja sabe sobre voce num texto e
+    // entrega para voce colar onde quiser: sem chave de API, sem servidor, sem custo por
+    // usuario, e nenhum dado saindo do aparelho por conta propria — quem cola e voce.
+    let aiOptions = { incluirSaude: true, incluirTreino: true };
+
+    const AI_GOALS = {
+      hipertrofia:     'ganhar massa muscular (hipertrofia)',
+      emagrecimento:   'emagrecer preservando a massa muscular que já tenho',
+      recomposicao:    'perder gordura e ganhar músculo ao mesmo tempo',
+      forca:           'ganhar força nos principais movimentos',
+      condicionamento: 'melhorar meu condicionamento físico geral'
+    };
+    const AI_ATIVIDADE = { sedentario: 'sedentário', moderado: 'moderado', intenso: 'intenso' };
+
+    function contarDiasComTreino() {
+      const perfil = getActiveProfile();
+      if (!perfil) return 3;
+      const n = DAY_ORDER.filter(k => perfil.schedule[k] && (perfil.schedule[k].exercises || []).length > 0).length;
+      return n || 3;
+    }
+
+    window.openAIPlan = function() {
+      const perfil = getActiveProfile();
+
+      // objetivo sugerido pela distancia ate o peso alvo — e so um ponto de partida, da para trocar
+      const peso = parseFloat(userProfile.weight);
+      const alvo = parseFloat(userProfile.targetWeight);
+      let sugerido = 'hipertrofia';
+      if (peso && alvo) {
+        if (alvo < peso - 1) sugerido = 'emagrecimento';
+        else if (alvo > peso + 1) sugerido = 'hipertrofia';
+        else sugerido = 'recomposicao';
+      }
+
+      document.getElementById('aiGoal').value = sugerido;
+      document.getElementById('aiDays').value = (perfil && perfil.daysPerWeek) || contarDiasComTreino();
+      document.getElementById('aiMinutes').value = '60';
+      renderAIToggles();
+      renderAIPrompt();
+      document.getElementById('aiPlanOverlay').classList.remove('hidden');
+    };
+
+    window.closeAIPlan = function() {
+      document.getElementById('aiPlanOverlay').classList.add('hidden');
+    };
+
+    window.toggleAIOption = function(chave) {
+      aiOptions[chave] = !aiOptions[chave];
+      renderAIToggles();
+      renderAIPrompt();
+    };
+
+    function renderAIToggles() {
+      [['aiHealthToggle', 'incluirSaude'], ['aiCurrentToggle', 'incluirTreino']].forEach(par => {
+        const el = document.getElementById(par[0]);
+        if (!el) return;
+        const on = !!aiOptions[par[1]];
+        el.setAttribute('aria-pressed', on ? 'true' : 'false');
+        el.className = `relative w-11 h-6 rounded-full transition-all duration-200 flex-shrink-0 ${on ? 'bg-emerald-600' : 'bg-slate-700'}`;
+        el.innerHTML = `<span class="absolute top-0.5 w-5 h-5 bg-white rounded-full shadow transition-all duration-200 ${on ? 'left-[1.375rem]' : 'left-0.5'}"></span>`;
+      });
+    }
+
+    // O plano atual com as cargas REAIS do historico, nao as metas cadastradas: e a diferenca
+    // entre a IA propor a partir do que voce levanta e propor a partir de um numero que voce
+    // digitou uma vez e nunca mais.
+    function buildCurrentPlanLines() {
+      const perfil = getActiveProfile();
+      if (!perfil) return [];
+      const out = [];
+      DAY_ORDER.forEach(chave => {
+        const dia = perfil.schedule[chave];
+        if (!dia || !(dia.exercises || []).length) return;
+        out.push(`${dia.name || chave}${dia.focus ? ` — foco: ${dia.focus}` : ''}`);
+        dia.exercises.forEach(ex => {
+          if (!ex.name || !ex.name.trim()) return;
+          const ultima = getLastSessionForExercise(ex.id, ex.name);
+          let detalhe;
+          if (ultima) {
+            detalhe = `${describeEntry(ultima)} (última vez em ${formatDateBR(ultima.date)})`;
+          } else if (ex.type === 'cardio') {
+            detalhe = `${ex.targetDuration || 20}min${ex.targetDistance ? ` · ${ex.targetDistance}km` : ''} (ainda não registrado)`;
+          } else {
+            detalhe = `${ex.targetSets || 3}x${ex.targetReps || 10}${ex.targetWeight ? ` · ${ex.targetWeight}kg` : ''} (ainda não registrado)`;
+          }
+          out.push(`  - ${ex.name}: ${detalhe}`);
+        });
+        out.push('');
+      });
+      while (out.length && out[out.length - 1] === '') out.pop();
+      return out;
+    }
+
+    function buildVolumeLines() {
+      const semanas = buildWeeklyVolume(4).filter(w => w.treinos > 0);
+      if (!semanas.length) return [];
+      return semanas.map(w =>
+        `- ${formatDateBR(w.inicio).slice(0, 5)} a ${formatDateBR(w.fim).slice(0, 5)}: ${w.volume.toLocaleString('pt-BR')} kg levantados em ${w.treinos} ${w.treinos === 1 ? 'treino' : 'treinos'}`);
+    }
+
+    function buildAIPrompt() {
+      const objetivo = document.getElementById('aiGoal').value;
+      const dias = Math.min(7, Math.max(1, parseInt(document.getElementById('aiDays').value, 10) || contarDiasComTreino()));
+      const minutos = document.getElementById('aiMinutes').value || '60';
+      const notas = (document.getElementById('aiNotes').value || '').trim();
+      const L = [];
+
+      L.push('Quero que você monte um plano de treino de musculação para mim.');
+      L.push('');
+
+      if (aiOptions.incluirSaude) {
+        const idade = calculateAge(userProfile.birthdate);
+        const peso = parseFloat(userProfile.weight);
+        const altura = parseFloat(userProfile.height);
+        const alvo = parseFloat(userProfile.targetWeight);
+        const imc = computeIMC(peso, altura);
+        const d = [];
+        if (idade !== null) d.push(`- Idade: ${idade} anos`);
+        if (userProfile.sex) d.push(`- Sexo: ${userProfile.sex}`);
+        if (altura) d.push(`- Altura: ${altura} cm`);
+        if (peso) d.push(`- Peso atual: ${peso} kg`);
+        if (alvo) d.push(`- Peso que quero atingir: ${alvo} kg`);
+        if (imc) d.push(`- IMC: ${imc.toFixed(1)} (${classifyIMC(imc).label.toLowerCase()})`);
+        if (userProfile.bodyFatPercent) d.push(`- Gordura corporal: ${userProfile.bodyFatPercent}%`);
+        d.push(`- Nível de atividade no dia a dia: ${AI_ATIVIDADE[userProfile.activityLevel] || 'moderado'}`);
+        const formula = TMB_FORMULAS[userProfile.tmbFormula || 'mifflin'];
+        const tmb = formula.compute(peso, altura, idade, userProfile.sex, userProfile.bodyFatPercent);
+        const tdee = computeTDEE(tmb, userProfile.activityLevel);
+        if (tdee) d.push(`- Gasto calórico diário estimado: ${Math.round(tdee)} kcal (metabolismo basal ${Math.round(tmb)} kcal)`);
+        if (d.length) { L.push('## SOBRE MIM'); d.forEach(x => L.push(x)); L.push(''); }
+      }
+
+      L.push('## MEU OBJETIVO');
+      L.push(`Quero ${AI_GOALS[objetivo] || AI_GOALS.hipertrofia}.`);
+      L.push('');
+
+      L.push('## MINHA DISPONIBILIDADE');
+      L.push(`- ${dias} ${dias === 1 ? 'dia' : 'dias'} de treino por semana`);
+      L.push(`- Cerca de ${minutos} minutos por treino`);
+      L.push('');
+
+      if (aiOptions.incluirTreino) {
+        const plano = buildCurrentPlanLines();
+        if (plano.length) {
+          L.push('## O QUE EU TREINO HOJE');
+          plano.forEach(x => L.push(x));
+          L.push('');
+          // a frase precisa valer para os dois casos: exercicio com historico e exercicio
+          // que ainda nao foi feito. Dizer que tudo ali e carga real seria falso.
+          L.push('Onde aparece uma data, essa é a carga que eu realmente usei da última vez. Onde está escrito "ainda não registrado", é a carga que está planejada mas que eu ainda não confirmei na prática.');
+          L.push('');
+        }
+        const volume = buildVolumeLines();
+        if (volume.length) {
+          L.push('## MEU VOLUME DAS ÚLTIMAS SEMANAS');
+          volume.forEach(x => L.push(x));
+          L.push('');
+        }
+      }
+
+      if (notas) { L.push('## OBSERVAÇÕES IMPORTANTES'); L.push(notas); L.push(''); }
+
+      L.push('## O QUE EU PRECISO QUE VOCÊ FAÇA');
+      L.push(`Monte um plano semanal com ${dias} ${dias === 1 ? 'dia' : 'dias'} de treino. Para cada dia, informe:`);
+      L.push('- um nome curto para o dia e o foco muscular');
+      L.push('- a lista de exercícios, cada um com o número de séries e de repetições');
+      L.push('');
+      L.push('Siga estas regras:');
+      L.push('1. NÃO invente cargas para os exercícios que eu já faço — mantenha as que eu já venho usando.');
+      L.push('2. Para exercícios novos, não chute um peso: escreva "definir na prática" e explique em uma linha como eu encontro a carga certa.');
+      L.push('3. Respeite as limitações, lesões e equipamentos que eu citei nas observações.');
+      L.push('4. Use os nomes de exercícios como são conhecidos em academia no Brasil.');
+      L.push('5. Explique em uma frase por que dividiu a semana desse jeito.');
+      L.push('6. Se algum dado meu indicar que eu deveria falar com um médico ou educador físico antes de começar, me diga isso primeiro.');
+
+      return L.join('\n');
+    }
+
+    window.renderAIPrompt = function() {
+      const texto = buildAIPrompt();
+      document.getElementById('aiPromptOutput').value = texto;
+      const linhas = texto.split('\n').length;
+      document.getElementById('aiPromptSize').textContent = `${linhas} linhas · ${texto.length} caracteres`;
+    };
+
+    window.copyAIPrompt = async function() {
+      const ok = await copyTextToClipboard(document.getElementById('aiPromptOutput').value);
+      showToast(ok ? '📋 Prompt copiado! Cole na IA da sua preferência.' : '❌ Não foi possível copiar o prompt.');
+    };
+
     // ---------- BOLHA COM O NOME COMPLETO ----------
     // Nomes longos sao truncados no card. Tocar no titulo abre uma bolha com o texto
     // inteiro, posicionada logo abaixo do proprio titulo e presa dentro da tela.
@@ -3942,17 +4347,19 @@
       tip.textContent = texto;
       tip.classList.remove('hidden');
 
-      // posiciona abaixo do titulo, corrigindo caso ultrapasse as bordas
-      const r = alvo.getBoundingClientRect();
-      const larguraTip = tip.offsetWidth;
+      positionBubble(tip, alvo.getBoundingClientRect());
+    };
+
+    // Prende a bolha dentro da tela: logo abaixo do alvo quando cabe, acima quando nao cabe.
+    // Se o alvo estiver fora da area visivel, as duas posicoes cairiam fora junto — dai a
+    // trava final, para a bolha nunca aparecer em lugar nenhum.
+    function positionBubble(tip, r) {
       const margem = 16;
       let left = r.left;
-      if (left + larguraTip > window.innerWidth - margem) left = window.innerWidth - larguraTip - margem;
+      if (left + tip.offsetWidth > window.innerWidth - margem) left = window.innerWidth - tip.offsetWidth - margem;
       if (left < margem) left = margem;
       let top = r.bottom + 6;
       if (top + tip.offsetHeight > window.innerHeight - margem) top = r.top - tip.offsetHeight - 6;
-      // se o titulo estiver fora da area visivel, as duas posicoes acima cairiam fora junto:
-      // prende a bolha dentro da tela para ela nunca aparecer em lugar nenhum
       const maxTop = window.innerHeight - tip.offsetHeight - margem;
       if (top > maxTop) top = maxTop;
       if (top < margem) top = margem;
@@ -3962,12 +4369,55 @@
 
       clearTimeout(tooltipTimer);
       tooltipTimer = setTimeout(hideNameTooltip, 3500);
+    }
+
+    // Toque em qualquer ponto do grafico revela o registro mais proximo. E o toque em
+    // qualquer lugar, nao na bolinha: com muitos registros elas ficam a poucos pixels uma da
+    // outra e acertar uma delas no celular seria sorte.
+    window.showChartPoint = function(ev, id) {
+      const serie = sparkSeries[id];
+      const box = document.getElementById(id);
+      const tip = document.getElementById('nameTooltip');
+      if (!serie || !box || !tip) return;
+      if (ev.stopPropagation) ev.stopPropagation();   // nao fecha o card nem a bolha junto
+
+      const r = box.getBoundingClientRect();
+      if (!r.width) return;
+      const fracao = Math.min(1, Math.max(0, (ev.clientX - r.left) / r.width));
+      const alvoX = fracao * serie.w;
+
+      let idx = 0, menor = Infinity;
+      serie.coords.forEach((c, i) => {
+        const d = Math.abs(c[0] - alvoX);
+        if (d < menor) { menor = d; idx = i; }
+      });
+      const texto = serie.tips[idx];
+      if (!texto) return;
+
+      // destaca o ponto escolhido com uma bolinha maior e uma guia vertical: sem isso,
+      // com os pontos proximos, nao daria para saber qual deles a bolha esta descrevendo
+      const c = serie.coords[idx];
+      const pctX = `${(c[0] / serie.w * 100).toFixed(2)}%`;
+      const sel = box.querySelector('[data-sel]');
+      const guia = box.querySelector('[data-guia]');
+      if (sel) { sel.style.left = pctX; sel.style.top = `${c[1].toFixed(1)}px`; sel.style.display = 'block'; }
+      if (guia) { guia.style.left = pctX; guia.style.display = 'block'; }
+
+      tip.textContent = texto;
+      tip.classList.remove('hidden');
+
+      const dotX = r.left + (c[0] / serie.w) * r.width;
+      const dotY = r.top + c[1];
+      positionBubble(tip, { left: dotX - 8, right: dotX + 8, top: dotY - 8, bottom: dotY + 8 });
     };
 
     function hideNameTooltip() {
       clearTimeout(tooltipTimer);
       const tip = document.getElementById('nameTooltip');
       if (tip) tip.classList.add('hidden');
+      // o ponto destacado sai junto: deixa-lo aceso apontaria para uma informacao que ja
+      // nao esta mais na tela
+      document.querySelectorAll('[data-sel],[data-guia]').forEach(el => { el.style.display = 'none'; });
     }
 
     // qualquer toque fora fecha a bolha
@@ -4765,22 +5215,40 @@
         if (houveAntes) variacao = `<span class="text-emerald-400 font-black text-xs">▲ retomada</span>`;
       }
 
-      // grafico so com semanas que tiveram treino, para uma pausa nao achatar a curva
-      const comTreino = semanas.filter(w => w.volume > 0);
+      // grafico so quando ha ao menos duas semanas com treino, para uma pausa nao achatar a curva
+      const visiveis = applyChartRange('volume', semanas);
+      const comTreino = visiveis.filter(w => w.volume > 0);
       const grafico = comTreino.length >= 2
         ? `<div class="bg-slate-950/50 border border-slate-800 rounded-xl p-3 mb-3">
-             ${renderSparkline(semanas.map(w => w.volume), { color: '#a78bfa', fill: 'rgba(167,139,250,0.14)' })}
+             ${renderSparkline(visiveis.map(w => w.volume), {
+               color: '#a78bfa', fill: 'rgba(167,139,250,0.14)',
+               tips: visiveis.map(w => {
+                 const periodo = `${formatDateBR(w.inicio).slice(0, 5)} a ${formatDateBR(w.fim).slice(0, 5)}`;
+                 return w.treinos > 0
+                   ? `${periodo} · ${w.volume.toLocaleString('pt-BR')} kg · ${w.treinos} treino${w.treinos === 1 ? '' : 's'}`
+                   : `${periodo} · sem treino`;
+               })
+             })}
              <div class="flex justify-between mt-1.5 text-[9px] text-slate-600 font-bold">
-               <span>${formatDateBR(semanas[0].inicio).slice(0,5)}</span>
-               <span>8 semanas</span>
-               <span>${formatDateBR(atual.inicio).slice(0,5)}</span>
+               <span>${formatDateBR(visiveis[0].inicio).slice(0,5)}</span>
+               <span>${visiveis.length} semanas</span>
+               <span>${formatDateBR(visiveis[visiveis.length - 1].inicio).slice(0,5)}</span>
              </div>
+             ${chartHint()}
            </div>`
-        : '';
+        // sem o aviso, escolher uma faixa curta deixaria um controle solto sobre um vazio
+        // sem explicacao
+        : `<p class="text-[10px] text-slate-600 text-center bg-slate-950/50 border border-slate-800 rounded-xl px-3 py-3 mb-3 leading-relaxed">Você treinou em menos de duas das últimas ${visiveis.length} semanas.<br/>${
+             // "escolha um periodo maior" so faz sentido se houver periodo maior para escolher
+             getChartRange('volume') === 'tudo'
+               ? 'Complete treinos em pelo menos duas semanas para ver o gráfico.'
+               : 'Escolha um período maior para ver o gráfico.'
+           }</p>`;
 
       const fmt = (n) => n > 0 ? n.toLocaleString('pt-BR') : '--';
 
       body.innerHTML = `
+        ${chartRangeControls('volume', semanas.length)}
         ${grafico}
         <div class="grid grid-cols-2 gap-2">
           <div class="bg-slate-950/50 border border-slate-800 rounded-xl px-3 py-2.5">
@@ -5127,12 +5595,19 @@
             <span class="text-[10px] text-slate-600">desde a primeira sessão</span>
           </div>`;
 
+        const noGrafico = applyChartRange('exercicio', list);
         const chartHtml = list.length >= 2
-          ? `<div class="bg-slate-950/50 border border-slate-800 rounded-xl p-3 mt-4">${renderSparkline(values, { color: isCardio ? '#22d3ee' : '#60a5fa', fill: isCardio ? 'rgba(34,211,238,0.14)' : 'rgba(96,165,250,0.14)' })}
+          ? `<div class="mt-4">${chartRangeControls('exercicio', list.length)}</div>
+             <div class="bg-slate-950/50 border border-slate-800 rounded-xl p-3">${renderSparkline(noGrafico.map(e => isCardio ? (parseFloat(e.duration) || 0) : (parseFloat(e.weight) || 0)), {
+                 color: isCardio ? '#22d3ee' : '#60a5fa',
+                 fill: isCardio ? 'rgba(34,211,238,0.14)' : 'rgba(96,165,250,0.14)',
+                 tips: noGrafico.map(e => `${formatDateBR(e.date)} · ${describeEntry(e)}`)
+               })}
                <div class="flex justify-between mt-1.5 text-[9px] text-slate-600 font-bold">
-                 <span>${formatDateBR(list[0].date)}</span>
-                 <span>${formatDateBR(list[list.length - 1].date)}</span>
+                 <span>${formatDateBR(noGrafico[0].date)}</span>
+                 <span>${formatDateBR(noGrafico[noGrafico.length - 1].date)}</span>
                </div>
+               ${chartHint()}
              </div>`
           : `<p class="text-[11px] text-slate-600 text-center py-4">Registre pelo menos duas sessões para ver o gráfico.</p>`;
 

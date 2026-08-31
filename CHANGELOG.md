@@ -6,6 +6,105 @@ Todas as mudanças relevantes do app ficam registradas aqui. Ao lançar uma nova
    atualizar o app instalado
 3. Adicione uma entrada aqui, nesse formato
 
+## [2.16.0] - 2026-08-31
+
+### Adicionado
+- **Gerador de prompt para IA** (`aiPlanOverlay`, aberto pelo botão "Montar treino com IA" na aba
+  Planos). Monta um texto com o perfil, o objetivo, a disponibilidade, o plano atual e o volume
+  recente, para o usuário colar na IA que preferir. O app não faz nenhuma chamada de rede: sem
+  chave de API, sem servidor, sem custo por usuário, e nenhum dado sai do aparelho por conta
+  própria.
+  - `buildAIPrompt()` monta o texto; `buildCurrentPlanLines()` e `buildVolumeLines()` montam as
+    seções de treino e volume.
+  - O plano atual usa a **carga real do histórico** (`getLastSessionForExercise` + `describeEntry`),
+    não a meta cadastrada — é a diferença entre a IA propor a partir do que a pessoa levanta e
+    propor a partir de um número digitado uma vez e nunca mais.
+  - Exercícios sem histórico saem marcados como "(ainda não registrado)", e o texto explica a
+    distinção. Dizer que tudo ali é carga real seria falso para quem acabou de montar o plano.
+  - Objetivo pré-selecionado pela distância até o peso alvo (`alvo < peso - 1` → emagrecimento,
+    `alvo > peso + 1` → hipertrofia, senão recomposição). É só um ponto de partida.
+  - Dois interruptores: incluir dados de saúde e incluir o treino atual. Desligar o primeiro
+    remove a seção inteira — verificado que peso, idade e IMC não sobram em nenhum outro ponto
+    do texto.
+  - A instrução pedida à IA inclui não inventar cargas para exercícios já em uso, escrever
+    "definir na prática" para exercícios novos, e avisar o usuário caso algum dado indique
+    procurar um profissional antes.
+- **Seletor de faixa nos gráficos** (`chartRangeControls`, `applyChartRange`, `getChartRange`,
+  `setChartRange`): "Mostrar 5 · 7 · Tudo" nos três gráficos de linha. A escolha é por gráfico e
+  fica em `settings.chartRange`, já coberto por `BACKUP_KEYS` via `treino_settings`.
+
+### Alterado
+- O gráfico de peso passou a usar o histórico **completo**, não os 15 registros da lista abaixo
+  dele. "Tudo" mostrando 15 seria mentira para quem já registrou mais que isso. A lista segue
+  limitada a 15 linhas.
+- No modal de evolução, a variação total ("desde a primeira sessão") continua calculada sobre a
+  lista inteira mesmo com o gráfico recortado — é o que o rótulo promete, e recortar a vista não
+  muda de onde a pessoa partiu.
+- O rótulo central do gráfico semanal deixou de ser "8 semanas" fixo e passou a refletir a faixa.
+
+### Corrigido
+- **O controle de faixa sumia junto com o gráfico no volume semanal.** Esse gráfico só é desenhado
+  quando há ao menos duas semanas com treino; com a faixa em 5 e treinos esparsos, a condição
+  falhava, o bloco inteiro sumia e levava o próprio seletor junto — deixando o usuário preso na
+  faixa curta sem caminho de volta para "Tudo". O controle passou a ser emitido fora do bloco
+  condicional, e o vazio ganhou uma explicação ("Você treinou em menos de duas das últimas N
+  semanas"), com texto diferente quando a faixa já é "Tudo" — sugerir um período maior não faz
+  sentido quando não existe período maior.
+
+### Notas
+- Verificado com dados controlados: 8 registros de peso e 8 semanas de volume (faixas 5/7/8 com
+  os pontos e rótulos de data corretos em cada uma), 60 sessões de um exercício, e a volta de
+  "5" para "Tudo" pelo próprio controle. Prompt conferido com os dois interruptores ligados,
+  desligados, com observações preenchidas e com objetivo e dias alterados.
+- Duas classes precisaram ser definidas à mão no CSS purgado: `justify-end` e `mr-1`. Auditoria
+  final com 0 classes órfãs.
+
+## [2.15.1] - 2026-08-31
+
+### Adicionado
+- **Pontos consultáveis em todos os gráficos de linha.** `renderSparkline()` passa a aceitar
+  `options.tips` — uma legenda por valor. Quando informada, o gráfico desenha um ponto por
+  registro e responde ao toque exibindo a legenda do ponto mais próximo, com bolinha destacada
+  e guia vertical marcando qual é.
+- `chartHint()`: linha de apoio ("toque no gráfico para ver cada registro") emitida pelas
+  chamadas, abaixo das datas. Sem ela os pontos não anunciam que são consultáveis.
+- Legendas definidas em cada chamada, com o conteúdo que faz sentido para aquele gráfico:
+  - peso/IMC → `01/06/2026 · 88kg · IMC 28.7`
+  - volume semanal → `13/07 a 19/07 · 2.613 kg · 2 treinos` (ou `· sem treino`)
+  - evolução do exercício → `02/03/2026 · 10/9 · 40kg` (via `describeEntry`)
+
+### Alterado
+- **Os pontos são elementos HTML posicionados sobre o SVG, não `<circle>`.** O gráfico usa
+  `preserveAspectRatio="none"` para ocupar toda a largura disponível, o que esticaria qualquer
+  círculo em elipse. Como a altura é fixa, o `y` do ponto já está em pixels e o `x` vira
+  porcentagem — a posição fica exata em qualquer largura de tela. O `<circle>` do último ponto
+  foi removido do SVG.
+- `renderSparkline()` passou a filtrar valor e legenda em par. Descartar um valor inválido sem
+  descartar a legenda correspondente deslocaria todas as datas seguintes em uma posição.
+- O toque é capturado no contêiner do gráfico, não nas bolinhas: com muitos registros elas
+  ficam a poucos pixels uma da outra e acertar uma delas no celular seria sorte. O índice é
+  resolvido pela distância horizontal ao ponto mais próximo.
+- Degradação por densidade: com `stepX < 8px` (acima de ~35 registros) só o último ponto é
+  desenhado, para as bolinhas não virarem uma faixa contínua. A consulta ao toque continua
+  funcionando em todos os registros.
+- `positionBubble()` extraída de `showNameTooltip()` e agora compartilhada com os gráficos —
+  mesma lógica de prender a bolha dentro da tela, abaixo do alvo quando cabe e acima quando não.
+- `hideNameTooltip()` apaga também a marcação do ponto (`[data-sel]`, `[data-guia]`): deixá-la
+  acesa apontaria para uma informação que já não está na tela.
+- O `<svg>` recebeu `display:block`, e todo o posicionamento dos pontos usa estilo inline —
+  sem classes novas, sem risco de regra ausente no CSS purgado.
+
+### Notas
+- `sparkSeries` guarda os pontos de cada gráfico desenhado, com o id do elemento como chave.
+  Séries de gráficos que saíram da tela são descartadas no render seguinte, para o mapa não
+  crescer a cada reabertura da aba.
+- Verificado com dados controlados: 6 registros de peso (toque em 0%, 20%, 45%, 62%, 85% e 100%
+  da largura devolveu os 6 registros na ordem correta), 8 semanas de volume e 60 sessões do
+  mesmo exercício (caso denso, `stepX` 4,5px). Regressão da bolha de nome truncado conferida.
+- Auditoria de CSS: 0 classes órfãs. Nenhuma função sem uso.
+- O único erro de console no ambiente de teste é a recusa do painel de preview em registrar o
+  service worker (`sw.js` responde HTTP 200 normalmente) — não vem do app.
+
 ## [2.15.0] - 2026-08-27
 ### Adicionado
 - **Volume semanal** em Perfil > Progresso (`buildWeeklyVolume()`, `renderWeeklyVolume()`,
