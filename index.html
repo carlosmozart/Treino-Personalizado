@@ -185,6 +185,14 @@
     .border-blue-800\/40 { border-color: rgba(30, 64, 175, 0.4); }
     .justify-end { justify-content: flex-end; }
     .mr-1 { margin-right: 0.25rem; }
+    .aspect-square { aspect-ratio: 1 / 1; }
+    .inline-block { display: inline-block; }
+    .max-h-80 { max-height: 20rem; }
+    .text-amber-500\/80 { color: rgba(245, 158, 11, 0.8); }
+    .opacity-30 { opacity: 0.3; }
+    .opacity-50 { opacity: 0.5; }
+    .active\:bg-rose-500:active { background-color: #f43f5e; }
+    .border-emerald-700\/60 { border-color: rgba(4, 120, 87, 0.6); }
   </style>
 </head>
 <body class="bg-slate-950 text-slate-100 font-sans pb-12 min-h-screen">
@@ -957,8 +965,24 @@
           <h3 class="text-xs font-black uppercase tracking-widest text-slate-400">Treinos Realizados</h3>
           <span id="workoutHistoryCount" class="text-[10px] font-black text-blue-400 uppercase tracking-wider bg-blue-950/40 border border-blue-800/60 px-2.5 py-1 rounded-full">0</span>
         </div>
-        <p class="text-[10px] text-slate-600 mb-4">Toque num treino para ver tudo que você registrou naquele dia.</p>
-        <div id="workoutHistoryList" class="space-y-2"></div>
+        <p class="text-[10px] text-slate-600 mb-4">Toque num dia para ver tudo que você registrou nele.</p>
+
+        <div class="bg-slate-950/50 border border-slate-800 rounded-xl p-3 mb-4">
+          <div class="flex items-center justify-between mb-3">
+            <button type="button" id="calPrev" onclick="changeCalendarMonth(-1)" aria-label="Mês anterior" class="w-8 h-8 rounded-lg bg-slate-900 border border-slate-700 text-slate-400 active:text-white flex items-center justify-center transition-all active:scale-90">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg>
+            </button>
+            <p id="calMonthLabel" class="text-xs font-black text-white uppercase tracking-wider">--</p>
+            <button type="button" id="calNext" onclick="changeCalendarMonth(1)" aria-label="Próximo mês" class="w-8 h-8 rounded-lg bg-slate-900 border border-slate-700 text-slate-400 active:text-white flex items-center justify-center transition-all active:scale-90">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
+            </button>
+          </div>
+          <div id="calWeekdays" class="grid grid-cols-7 gap-1 mb-1"></div>
+          <div id="calGrid" class="grid grid-cols-7 gap-1"></div>
+          <p id="calSummary" class="text-[10px] text-slate-600 text-center mt-3"></p>
+        </div>
+
+        <div id="workoutHistoryList" class="space-y-2 max-h-80 overflow-y-auto"></div>
         <button type="button" id="workoutHistoryMore" onclick="showMoreWorkoutHistory()" class="hidden mt-3 w-full bg-slate-800 active:bg-slate-700 text-slate-300 font-bold text-xs py-2.5 rounded-xl transition-all active:scale-[0.99]">Ver mais</button>
       </section>
 
@@ -1033,11 +1057,22 @@
   </div>
 
   <script>
-    const APP_VERSION = '2.16.0'; // manter sincronizado com CACHE_NAME em sw.js e com o CHANGELOG.md
+    const APP_VERSION = '2.17.0'; // manter sincronizado com CACHE_NAME em sw.js e com o CHANGELOG.md
 
     // ---------- NOVIDADES (tela para testadores — só experiência do usuário, sem termos técnicos) ----------
     // Detalhes técnicos ficam só no CHANGELOG.md interno. Ordem: mais recente primeiro.
     const RELEASE_NOTES = [
+      {
+        version: '2.17.0', date: '2026-08-31',
+        highlights: [
+          '☆ <strong>Exercício opcional.</strong> No editor do plano, cada exercício agora pode ser marcado como opcional. Ele não segura mais a conclusão do treino: nos dias em que você não fizer aquele cardio de 10 minutos, o check-in automático, o XP cheio e o registro no histórico acontecem do mesmo jeito. Se fizer, ele entra no volume e no gasto estimado normalmente.',
+          '📅 <strong>Calendário de treinos.</strong> Em Perfil > Progresso, a lista que crescia sem parar ganhou um calendário em cima. Um mês inteiro cabe em cinco linhas — dias treinados aparecem em verde com o volume, dias só de cardio em azul, e é só tocar para ver o treino daquele dia. As setas voltam mês a mês até o seu primeiro registro.',
+          '📜 A lista de treinos continua embaixo, agora com rolagem própria — ela não empurra mais o resto da tela para baixo.',
+          '🔥 <strong>Gasto estimado por treino.</strong> Cada treino agora mostra uma estimativa de calorias, calculada com seu peso e a duração. Serve para comparar seus treinos entre si — qual dia pesou mais, se hoje rendeu menos que o normal.',
+          '⚠️ A estimativa de calorias <em>não</em> serve para fechar conta de dieta: a margem de erro para uma pessoa específica é grande. O app diz isso na tela, ao lado do número.',
+          '🎨 Três detalhes visuais que nunca funcionaram foram corrigidos: séries concluídas agora escurecem de verdade, as setas de reordenar exercício apagam quando não dá para mover, e o botão vermelho de confirmação reage ao toque.'
+        ]
+      },
       {
         version: '2.16.0', date: '2026-08-31',
         highlights: [
@@ -1880,12 +1915,16 @@
               <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
             </button>
           </div>
-          <div class="flex items-center gap-2">
+          <div class="flex items-center gap-2 flex-wrap">
             <span class="text-[8px] font-bold text-slate-500 uppercase">Tipo:</span>
             <button type="button" onclick="toggleExerciseType(${idx})" class="text-[10px] font-black px-2.5 py-1 rounded-full border transition-all ${
               isCardio ? 'bg-cyan-950/40 border-cyan-700 text-cyan-300' : 'bg-blue-950/40 border-blue-700 text-blue-300'
             }">${isCardio ? '🏃 Cardio' : '💪 Força'} — trocar</button>
+            <button type="button" onclick="toggleExerciseOptional(${idx})" title="Exercícios opcionais não seguram a conclusão do treino" class="text-[10px] font-black px-2.5 py-1 rounded-full border transition-all ${
+              ex.optional ? 'bg-amber-950/40 border-amber-700 text-amber-300' : 'bg-slate-950/60 border-slate-700 text-slate-500'
+            }">${ex.optional ? '☆ Opcional' : 'Obrigatório'}</button>
           </div>
+          ${ex.optional ? `<p class="text-[9px] text-amber-500/80 leading-relaxed">Não fazer este exercício não impede o treino de ser dado como completo. Se você fizer, ele é registrado normalmente.</p>` : ''}
           ${fieldsHtml}
           <div class="flex items-center gap-2">
             <label class="text-[8px] font-bold text-slate-500 uppercase flex-shrink-0">Descanso (s)</label>
@@ -1908,6 +1947,13 @@
       if (!day.exercises[idx].backups) day.exercises[idx].backups = [{ name: '', type: 'forca' }, { name: '', type: 'forca' }];
       const existing = day.exercises[idx].backups[bIdx] || { type: 'forca' };
       day.exercises[idx].backups[bIdx] = { name: value, type: isCardioExerciseName(value) ? 'cardio' : (existing.type || 'forca') };
+    };
+
+    window.toggleExerciseOptional = function(idx) {
+      const day = editorState.schedule[editorState.currentDay];
+      if (!day.exercises[idx]) return;
+      day.exercises[idx].optional = !day.exercises[idx].optional;
+      renderExerciseEditorRows();
     };
 
     window.toggleExerciseType = function(idx) {
@@ -1941,7 +1987,7 @@
         showToast(`⚠️ Limite de ${MAX_EXERCISES_PER_DAY} exercícios por dia atingido.`);
         return;
       }
-      day.exercises.push({ id: makeId('ex'), name: '', type: 'forca', targetSets: 3, targetReps: 10, targetWeight: 0, targetDuration: 20, targetDistance: 0, backups: [{ name: '', type: 'forca' }, { name: '', type: 'forca' }] });
+      day.exercises.push({ id: makeId('ex'), name: '', type: 'forca', optional: false, targetSets: 3, targetReps: 10, targetWeight: 0, targetDuration: 20, targetDistance: 0, backups: [{ name: '', type: 'forca' }, { name: '', type: 'forca' }] });
       renderExerciseEditorRows();
       renderEditorDayTabs();
     };
@@ -2644,9 +2690,25 @@
       saveJSON(GAMIFICATION_KEY, gamification);
     }
 
+    // Exercicios marcados como opcionais nao seguram a conclusao do treino. Sem isso, um
+    // cardio no fim do dia — que so da tempo de fazer as vezes — travava o check-in
+    // automatico, o XP cheio e o registro no historico nos dias em que fosse pulado.
+    function requiredExercisesOf(workout) {
+      return (workout.exercises || []).filter(ex => !ex.optional);
+    }
+
     function areAllExercisesDoneForActiveWorkout() {
       const workout = getActiveProfile().schedule[activeWorkoutKey];
-      return workout.exercises.length > 0 && workout.exercises.every(ex => formData[ex.id] && formData[ex.id].done);
+      if (!workout.exercises.length) return false;
+
+      const obrigatorios = requiredExercisesOf(workout);
+      // um dia SO com exercicios opcionais nao pode se dar por concluido sozinho: com a
+      // lista vazia, every() devolveria true de cara e o check-in aconteceria sem que nada
+      // tivesse sido feito. Nesse caso basta um exercicio marcado.
+      if (obrigatorios.length === 0) {
+        return workout.exercises.some(ex => formData[ex.id] && formData[ex.id].done);
+      }
+      return obrigatorios.every(ex => formData[ex.id] && formData[ex.id].done);
     }
 
     // ---------- IDADE E ANIVERSÁRIO ----------
@@ -3716,6 +3778,7 @@
                 </div>
                 <div class="min-w-0">
                   <h3 onclick="showNameTooltip(event, '${escapeJs(state.name)}')" title="${escapeHtml(state.name)}" class="font-extrabold text-base md:text-lg text-white leading-tight truncate ${state.done ? 'line-through decoration-emerald-500 decoration-2 text-slate-400' : ''}">${escapeHtml(state.name)}</h3>
+                  ${ex.optional ? `<span class="inline-block text-[8px] font-black uppercase tracking-wider text-amber-400 bg-amber-950/40 border border-amber-800/50 px-1.5 py-0.5 rounded mt-1">☆ Opcional</span>` : ''}
                   ${isCollapsed ? '' : subtitleHtml}
                 </div>
               </div>
@@ -3948,6 +4011,10 @@
         report += '---------------------------------------------\n';
         if (totalVolume > 0) report += `Volume total: ${Math.round(totalVolume).toLocaleString('pt-BR')} kg\n`;
         if (minutos) report += `Duração: ${formatDuration(minutos)}\n`;
+        // o historico ja foi gravado acima, entao o dia de hoje ja esta montado com a duracao
+        const hojeNoHistorico = buildWorkoutHistory().find(d => d.date === today);
+        const kcalHoje = hojeNoHistorico ? estimateWorkoutCalories(hojeNoHistorico) : null;
+        if (kcalHoje) report += `Gasto estimado: ~${kcalHoje.kcal.toLocaleString('pt-BR')} kcal\n`;
       }
 
       clearDraft(); // treino fechado: o rascunho do dia já virou histórico
@@ -3986,8 +4053,11 @@
       }
       // treino incompleto: pede confirmação antes de finalizar, já que isso reduz o XP pela metade
       const workout = getActiveProfile().schedule[activeWorkoutKey];
-      const total = workout.exercises.length;
-      const doneCount = workout.exercises.filter(ex => formData[ex.id] && formData[ex.id].done).length;
+      // conta so os obrigatorios: dizer "3 de 4" incluindo um opcional pulado sugeriria um
+      // treino incompleto que na verdade esta completo
+      const obrigatorios = requiredExercisesOf(workout);
+      const total = obrigatorios.length;
+      const doneCount = obrigatorios.filter(ex => formData[ex.id] && formData[ex.id].done).length;
       document.getElementById('confirmFinishText').textContent =
         `Você concluiu ${doneCount} de ${total} exercícios. Finalizar agora vai valer apenas metade do XP do check-in (${getHalfCheckinXP()} XP em vez de ${getFullCheckinXP()} XP). Quer voltar e completar os exercícios restantes, ou finalizar assim mesmo?`;
       document.getElementById('confirmFinishOverlay').classList.remove('hidden');
@@ -5371,6 +5441,189 @@
       return NOME_DESCONHECIDO;
     }
 
+    // ---------- CALORIAS ESTIMADAS POR TREINO ----------
+    // Formula padrao: kcal = MET x peso(kg) x horas. MET e uma media populacional — para uma
+    // pessoa especifica erra com facilidade uns 30% para mais ou para menos, e nao considera
+    // o gasto elevado que continua depois do treino. NAO serve para fechar conta de dieta.
+    // Serve, e bem, para comparar seus proprios treinos entre si: mesma formula, mesmo peso,
+    // diferenca real de esforco entre um dia e outro.
+    const MET_FORCA = 5.0;          // musculacao com intervalos, esforco moderado a vigoroso
+    const MET_CARDIO_PADRAO = 6.0;  // usado quando nao da para calcular a velocidade
+
+    function metDoCardio(entry) {
+      const min = parseFloat(entry.duration) || 0;
+      const km = parseFloat(entry.distance) || 0;
+      if (!min || !km) return MET_CARDIO_PADRAO;
+      const kmh = km / (min / 60);
+      if (kmh < 5.5) return 3.5;    // caminhada
+      if (kmh < 6.5) return 5.0;    // caminhada rapida
+      if (kmh < 8) return 7.0;      // trote
+      if (kmh < 10) return 9.0;
+      if (kmh < 12) return 11.0;
+      return 12.5;
+    }
+
+    // Quando o cronometro nao registrou a duracao (treinos antigos), estima a partir do que
+    // foi feito: cada serie custa o tempo de execucao mais o descanso configurado.
+    const SEGUNDOS_POR_SERIE = 45;
+
+    function estimarMinutosDeForca(exercicios) {
+      const descanso = settings.restSeconds || 90;
+      let seg = 0;
+      exercicios.forEach(e => {
+        if (e.type === 'cardio') return;
+        const series = getEntrySeries(e).length || parseInt(e.sets, 10) || 0;
+        seg += series * (SEGUNDOS_POR_SERIE + descanso);
+      });
+      return seg / 60;
+    }
+
+    // Devolve { kcal, medido } ou null quando falta o peso — sem peso nao ha estimativa
+    // possivel, e chutar um valor padrao daria um numero que parece pessoal sem ser.
+    function estimateWorkoutCalories(dia) {
+      const peso = parseFloat(userProfile.weight);
+      if (!peso || !dia || !dia.exercicios || !dia.exercicios.length) return null;
+
+      const cardios = dia.exercicios.filter(e => e.type === 'cardio');
+      const minutosCardio = cardios.reduce((t, e) => t + (parseFloat(e.duration) || 0), 0);
+
+      let kcal = 0;
+      cardios.forEach(e => {
+        const min = parseFloat(e.duration) || 0;
+        kcal += metDoCardio(e) * peso * (min / 60);
+      });
+
+      // duracao medida inclui o cardio: o que sobra e o tempo de musculacao
+      const estimado = estimarMinutosDeForca(dia.exercicios);
+      let minutosForca = dia.minutos ? Math.max(0, dia.minutos - minutosCardio) : estimado;
+      let medido = !!dia.minutos;
+
+      // O cronometro so comeca a contar quando voce mexe em algum valor. Quem treina e so
+      // marca tudo no fim registra 2 minutos para uma hora de treino, e a estimativa sairia
+      // ridicula. O tempo calculado pelas series e pelo descanso e um piso fisico — nao da
+      // para fazer doze series com noventa segundos de intervalo em dois minutos —, entao
+      // uma medicao muito abaixo dele e sinal de que o cronometro perdeu o treino.
+      if (medido && estimado > 0 && minutosForca < estimado * 0.5) {
+        minutosForca = estimado;
+        medido = false;
+      }
+      kcal += MET_FORCA * peso * (minutosForca / 60);
+
+      if (kcal <= 0) return null;
+      return { kcal: Math.round(kcal), medido };
+    }
+
+    // ---------- CALENDARIO DE TREINOS ----------
+    // A lista crescia uma linha por treino e empurrava o resto da aba para baixo sem limite.
+    // O calendario resolve o problema de altura de vez: um mes inteiro cabe em cinco ou seis
+    // linhas, nao importa quantos treinos tenham acontecido nele.
+    // A lista continua embaixo, agora com rolagem: as duas respondem perguntas diferentes —
+    // o calendario diz "treinei no dia 12?", a lista diz "quais foram os ultimos treinos?".
+    let calendarMonth = null;   // primeiro dia do mes exibido
+
+    function currentMonthStart() {
+      const d = new Date();
+      return new Date(d.getFullYear(), d.getMonth(), 1);
+    }
+
+    // Os limites tambem valem aqui, e nao so no estado dos botoes: um botao desabilitado
+    // impede o clique, mas nao impede uma segunda chamada ja engatilhada nem qualquer outro
+    // caminho que venha a chamar esta funcao. O clamp mora onde o mes muda.
+    function calendarBounds() {
+      const atual = currentMonthStart();
+      const datas = (workoutHistoryCache || []).map(d => d.date).sort();
+      const primeira = datas.length ? new Date(datas[0] + 'T12:00:00') : atual;
+      return { min: new Date(primeira.getFullYear(), primeira.getMonth(), 1), max: atual };
+    }
+
+    window.changeCalendarMonth = function(delta) {
+      if (!calendarMonth) calendarMonth = currentMonthStart();
+      const alvo = new Date(calendarMonth.getFullYear(), calendarMonth.getMonth() + delta, 1);
+      const lim = calendarBounds();
+      if (alvo < lim.min || alvo > lim.max) return;
+      calendarMonth = alvo;
+      renderWorkoutCalendar();
+    };
+
+    function renderWorkoutCalendar() {
+      const grid = document.getElementById('calGrid');
+      const label = document.getElementById('calMonthLabel');
+      if (!grid || !label) return;
+
+      if (!calendarMonth) calendarMonth = currentMonthStart();
+
+      const porDia = {};
+      (workoutHistoryCache || []).forEach(d => { porDia[d.date] = d; });
+
+      const ano = calendarMonth.getFullYear();
+      const mes = calendarMonth.getMonth();
+      label.textContent = `${MESES_PT[mes]} ${ano}`;
+
+      // cabecalho comeca na segunda, igual a tirinha de check-in da tela de treino
+      const wd = document.getElementById('calWeekdays');
+      if (wd && !wd.dataset.pronto) {
+        // as tres letras, iguais as da tira de check-in: com uma so, Segunda, Sexta e Sabado
+        // virariam todas "S" e Quarta e Quinta virariam "Q"
+        wd.innerHTML = DAY_LABELS.map(d => `<span class="text-[8px] font-black text-slate-600 uppercase text-center">${d}</span>`).join('');
+        wd.dataset.pronto = '1';
+      }
+
+      // limites de navegacao: nao ha o que ver depois do mes atual nem antes do primeiro
+      // registro, e botoes que nao levam a lugar nenhum so confundem
+      const lim = calendarBounds();
+      const podeVoltar = calendarMonth > lim.min;
+      const podeAvancar = calendarMonth < lim.max;
+      [['calPrev', podeVoltar], ['calNext', podeAvancar]].forEach(par => {
+        const b = document.getElementById(par[0]);
+        if (!b) return;
+        b.disabled = !par[1];
+        b.classList.toggle('opacity-40', !par[1]);
+      });
+
+      const primeiroDia = new Date(ano, mes, 1);
+      const diasNoMes = new Date(ano, mes + 1, 0).getDate();
+      // getDay(): 0 = domingo. Como a semana comeca na segunda, domingo vai para a coluna 6.
+      const offset = (primeiroDia.getDay() + 6) % 7;
+      const hoje = todayKey();
+
+      let html = '';
+      for (let i = 0; i < offset; i++) html += '<span></span>';
+
+      let treinosNoMes = 0, volumeNoMes = 0;
+      for (let dia = 1; dia <= diasNoMes; dia++) {
+        const dateStr = formatLocalDateKey(new Date(ano, mes, dia));
+        const registro = porDia[dateStr];
+        const isHoje = dateStr === hoje;
+        if (registro) { treinosNoMes++; volumeNoMes += registro.volume; }
+
+        if (registro) {
+          const soCardio = registro.volume === 0;
+          html += `<button type="button" onclick="openWorkoutDay('${dateStr}')" title="${escapeHtml(registro.workoutName)}" class="aspect-square rounded-lg border flex flex-col items-center justify-center transition-all active:scale-90 ${
+            soCardio ? 'bg-cyan-950/40 border-cyan-700/60 text-cyan-300' : 'bg-emerald-950/40 border-emerald-700/60 text-emerald-300'
+          } ${isHoje ? 'border-blue-500' : ''}">
+            <span class="text-[11px] font-black leading-none">${dia}</span>
+            <span class="text-[7px] font-bold leading-none mt-0.5">${soCardio ? 'cardio' : Math.round(registro.volume / 100) / 10 + 'k'}</span>
+          </button>`;
+        } else {
+          html += `<span class="aspect-square rounded-lg border ${isHoje ? 'border-blue-500' : 'border-slate-800/60'} flex items-center justify-center text-[11px] font-bold ${
+            isHoje ? 'text-blue-300' : 'text-slate-700'
+          }">${dia}</span>`;
+        }
+      }
+      grid.innerHTML = html;
+
+      const resumo = document.getElementById('calSummary');
+      if (resumo) {
+        resumo.textContent = treinosNoMes === 0
+          ? 'Nenhum treino registrado neste mês.'
+          : `${treinosNoMes} treino${treinosNoMes === 1 ? '' : 's'} neste mês` +
+            (volumeNoMes > 0 ? ` · ${Math.round(volumeNoMes).toLocaleString('pt-BR')} kg no total` : '');
+      }
+    }
+
+    const MESES_PT = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
+                      'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
+
     let workoutHistoryLimit = 10;      // quantos dias mostrar antes do "Ver mais"
     let workoutHistoryCache = [];
 
@@ -5387,6 +5640,7 @@
 
       workoutHistoryCache = buildWorkoutHistory();
       countEl.textContent = workoutHistoryCache.length;
+      renderWorkoutCalendar();   // depende do cache recem-construido
 
       if (workoutHistoryCache.length === 0) {
         list.innerHTML = `<p class="text-xs text-slate-600 text-center py-6 leading-relaxed">Nenhum treino registrado ainda.<br/>Finalize um treino para ele aparecer aqui.</p>`;
@@ -5468,6 +5722,7 @@
         `<p class="text-[10px] font-black text-slate-500 uppercase tracking-wider mt-4 mb-2">${titulo}</p>
          <div class="space-y-1.5">${itens.map(linha).join('')}</div>`;
 
+      const calorias = estimateWorkoutCalories(dia);
       document.getElementById('workoutDayBody').innerHTML = `
         <div class="grid grid-cols-2 gap-2">
           <div class="bg-slate-950/50 border border-slate-800 rounded-xl px-3 py-2.5 text-center">
@@ -5479,10 +5734,17 @@
             <p class="text-[9px] text-slate-600 font-bold uppercase tracking-wider">Volume total</p>
           </div>
         </div>
-        ${dia.minutos ? `<div class="bg-slate-950/50 border border-slate-800 rounded-xl px-3 py-2.5 text-center mt-2">
-          <p class="text-lg font-black text-white">${formatDuration(dia.minutos)}</p>
-          <p class="text-[9px] text-slate-600 font-bold uppercase tracking-wider">Duração do treino</p>
+        ${(dia.minutos || calorias) ? `<div class="grid grid-cols-${(dia.minutos && calorias) ? '2' : '1'} gap-2 mt-2">
+          ${dia.minutos ? `<div class="bg-slate-950/50 border border-slate-800 rounded-xl px-3 py-2.5 text-center">
+            <p class="text-lg font-black text-white">${formatDuration(dia.minutos)}</p>
+            <p class="text-[9px] text-slate-600 font-bold uppercase tracking-wider">Duração</p>
+          </div>` : ''}
+          ${calorias ? `<div class="bg-slate-950/50 border border-slate-800 rounded-xl px-3 py-2.5 text-center">
+            <p class="text-lg font-black text-amber-300">~${calorias.kcal.toLocaleString('pt-BR')}<span class="text-[10px] text-slate-500 ml-0.5">kcal</span></p>
+            <p class="text-[9px] text-slate-600 font-bold uppercase tracking-wider">Gasto estimado</p>
+          </div>` : ''}
         </div>` : ''}
+        ${calorias ? `<p class="text-[9px] text-slate-600 leading-relaxed mt-2 text-justify">Estimativa a partir do seu peso${calorias.medido ? ' e da duração medida' : ', com a duração calculada pelas séries e pelo descanso'}. Serve para comparar seus treinos entre si, não para fechar conta de dieta — a margem de erro para uma pessoa específica é grande.</p>` : ''}
         ${bloco('Força', forca)}
         ${bloco('Cardio', cardio)}
       `;
@@ -5500,6 +5762,7 @@
         if (dia.volume > 0 || dia.minutos) {
           txt += '---------------------------------------------\n';
           if (dia.volume > 0) txt += `Volume total: ${Math.round(dia.volume).toLocaleString('pt-BR')} kg\n`;
+          if (calorias) txt += `Gasto estimado: ~${calorias.kcal.toLocaleString('pt-BR')} kcal\n`;
           if (dia.minutos) txt += `Duração: ${formatDuration(dia.minutos)}\n`;
         }
         const ok = await copyTextToClipboard(txt);

@@ -6,6 +6,68 @@ Todas as mudanças relevantes do app ficam registradas aqui. Ao lançar uma nova
    atualizar o app instalado
 3. Adicione uma entrada aqui, nesse formato
 
+## [2.17.0] - 2026-08-31
+
+### Adicionado
+- **Exercício opcional** (`ex.optional`). O conceito já existia no nível do dia (`dia.optional`);
+  faltava no nível do exercício. `requiredExercisesOf()` filtra os obrigatórios e
+  `areAllExercisesDoneForActiveWorkout()` passou a considerar só eles.
+  - Guarda-costas para um dia composto **só** de opcionais: com a lista de obrigatórios vazia,
+    `every()` devolveria `true` de imediato e o check-in aconteceria sem que nada tivesse sido
+    feito. Nesse caso exige-se ao menos um exercício marcado.
+  - A contagem do aviso de treino incompleto ("X de Y exercícios") também ignora opcionais —
+    dizer "3 de 4" por causa de um opcional pulado sugeriria um treino incompleto que está
+    completo.
+  - Botão no editor ao lado do seletor de tipo, selo `☆ Opcional` no card, e o campo acompanha
+    a duplicação de plano (já coberto pelo `Object.assign` existente).
+- **Calendário de treinos** em Perfil > Progresso (`renderWorkoutCalendar`, `changeCalendarMonth`,
+  `calendarBounds`). Semana começa na segunda, igual à tira de check-in. Dias com treino de força
+  em verde com o volume abreviado, dias só de cardio em azul, hoje com borda azul. Toque abre o
+  `openWorkoutDay` que já existia — a camada de dados não precisou de nada novo.
+  - Navegação limitada ao intervalo entre o primeiro registro e o mês atual. O clamp vive dentro
+    de `changeCalendarMonth`, não só no estado `disabled` dos botões: um botão desabilitado
+    impede o clique, mas não impede uma segunda chamada já engatilhada nem outro caminho que
+    venha a chamar a função.
+- **Gasto calórico estimado por treino** (`estimateWorkoutCalories`). Fórmula `MET × peso × horas`,
+  com `MET_FORCA = 5.0` e MET de cardio derivado da velocidade quando há distância registrada
+  (3,5 para caminhada até 12,5 para corrida acima de 12 km/h).
+  - Aparece no detalhe do dia, no resumo copiável do dia e no relatório de finalização.
+  - Sem peso cadastrado não há estimativa: devolve `null` em vez de chutar um padrão, que daria
+    um número com cara de pessoal sem ser.
+  - Piso de duração: o cronômetro só começa quando você mexe em algum valor, então quem marca
+    tudo no fim registra 2 minutos para uma hora de treino. O tempo calculado pelas séries e
+    pelo descanso é um piso físico — não dá para fazer doze séries com noventa segundos de
+    intervalo em dois minutos —, então uma medição abaixo de metade dele é descartada em favor
+    da estimativa, e o rótulo passa a dizer que a duração foi calculada, não medida.
+
+### Alterado
+- `workoutHistoryList` ganhou `max-h-80 overflow-y-auto`. Era a única lista longa da aba sem
+  limite de altura — `weightHistoryList` já tinha `max-h-64` desde sempre.
+
+### Corrigido
+- **Três classes usadas mas ausentes do CSS purgado**, todas anteriores a esta versão:
+  - `opacity-50`: séries marcadas como concluídas deveriam escurecer e nunca escureciam.
+  - `opacity-30`: as setas de reordenar exercício no editor não apagavam quando não havia para
+    onde mover.
+  - `active:bg-rose-500`: o botão de confirmação destrutiva não tinha cor de pressionado.
+- **A auditoria de CSS não enxergava metade das classes.** `audit_css2.py` lia apenas
+  `class="..."` e **descartava** o conteúdo de cada `${...}` — e boa parte das classes deste app
+  é escolhida por ternário dentro da interpolação. Foi assim que as três acima passaram, e foi
+  assim que `ring-1`/`ring-blue-500` quase entraram nesta versão (nenhuma regra `.ring-` existe
+  no CSS purgado; a marcação de "hoje" no calendário passou a usar `border-blue-500`).
+  `audit_css3.py` passa a varrer também as strings dentro das interpolações, os
+  `classList.add/remove/toggle` e as atribuições de `className`, filtrando por prefixos de
+  utilitário. Encontrou as quatro pendências de imediato.
+
+### Notas
+- Verificado com dados controlados: conclusão do treino com o opcional pulado (check-in
+  automático dispara, 3 de 4 exercícios gravados, o opcional não entra no histórico), dia
+  composto só de opcionais (não se dá por concluído sozinho), calendário em três meses com
+  contagens e volumes conferidos, alinhamento do primeiro dia (1/8/2026 é sábado → 5 células
+  vazias), limites de navegação, e a estimativa de calorias contra o cálculo manual: 75 min →
+  521 kcal (`5,0 × 83,3 × 1,25`), cardio de 4,5 km em 30 min → 375 kcal (`9,0 × 83,3 × 0,5`).
+- Auditoria final: 0 classes ausentes em 437 conferidas. Nenhuma função sem uso.
+
 ## [2.16.0] - 2026-08-31
 
 ### Adicionado
