@@ -6,6 +6,44 @@ Todas as mudanças relevantes do app ficam registradas aqui. Ao lançar uma nova
    atualizar o app instalado
 3. Adicione uma entrada aqui, nesse formato
 
+## [2.17.2] - 2026-08-31
+
+Segunda rodada de ajustes a partir de uma resposta real — desta vez ao prompt da 2.17.1, que
+funcionou bem no conteúdo e mal no transporte.
+
+### O que a amostra provou
+- **O bloco chegou em uma linha só.** O markdown do chat colapsou todas as quebras de linha: as
+  6 linhas `DIA` e as 42 linhas `EX` viraram um parágrafo contínuo.
+- **Os delimitadores foram mastigados:** `===PLANO===` chegou como `=PLANO=`, `===FIM===` como
+  `=FIM=`. Uma linha de `===` em markdown é marcação de título, e parte dos sinais foi consumida.
+- O conteúdo, porém, obedeceu tudo: dias da semana em vez de "Dia 1", um número único de
+  repetições, `tempo | 3 | 45` para a prancha, 25 séries por sessão (exatamente a conta de 2 min
+  por série + 10 de aquecimento que o prompt pediu), e "Atenção articular / Alternativa segura"
+  em 13 exercícios, sem nenhuma observação ter sido preenchida.
+
+### Alterado
+- **O bloco passa a ser pedido dentro de ``` (bloco de código)**, que preserva as quebras de linha
+  em qualquer chat, e os delimitadores viraram `[PLANO]` / `[FIM]` — colchetes são inertes em
+  markdown, `===` não é.
+- **Sexto campo em `EX`: a alternativa mais segura.** Era a informação mais valiosa da resposta e
+  ficava só na prosa, perdida na importação. Vai alimentar `backups[0]` de cada exercício — o
+  botão de trocar exercício que já existe.
+- O prompt passou a dizer explicitamente que dias de descanso não entram no bloco. A amostra já
+  tinha acertado isso sozinha (omitiu o domingo), mas era sorte, não instrução.
+
+### Notas
+- Protótipo do interpretador escrito e rodado contra a amostra real (`scratchpad/parser_proto.py`,
+  amostra em `scratchpad/amostras/gemini_2.txt`). Resultado: 6 dias, 42 exercícios, 25 séries por
+  dia, zero avisos, `tempo` reconhecido.
+- **Requisito de projeto que a amostra impôs:** `DIA` e `EX` são os delimitadores de registro, não
+  a quebra de linha, e o reconhecimento do bloco tolera qualquer quantidade de `=` ou `[` em volta
+  das palavras `PLANO` e `FIM`. Um parser baseado em `split('\n')` teria devolvido um único
+  registro gigante nesta amostra.
+- O protótipo foi verificado nos dois formatos: a amostra achatada de 5 campos e o formato novo,
+  em bloco de código, com 6 campos, `cardio` e `tempo`.
+- Ainda falta uma amostra de outra IA antes de escrever o importador de verdade. As duas amostras
+  que existem são do mesmo modelo.
+
 ## [2.17.1] - 2026-08-31
 
 Ajustes no gerador de prompt a partir de um teste real: a resposta de uma IA ao prompt da 2.16.0,
