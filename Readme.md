@@ -1,5 +1,56 @@
 # Changelog — Treino Personalizado
 
+## [2.17.1] - 2026-08-31
+
+Ajustes no gerador de prompt a partir de um teste real: a resposta de uma IA ao prompt da 2.16.0,
+com o treino atual desligado e as observações vazias.
+
+### Adicionado
+- **Bloco estruturado no fim do prompt.** A IA passa a repetir o plano em formato fixo, delimitado
+  por `===PLANO===` e `===FIM===`:
+
+      DIA | SEG | Push A | Peito, Ombros e Tríceps
+      EX | Supino Reto com Barra | forca | 4 | 8 |
+      EX | Prancha Abdominal | tempo | 3 | 45 |
+
+  Campos de `EX`: nome, tipo, séries, repetições, carga. O tipo é `forca`, `tempo` (contado em
+  segundos) ou `cardio` (em minutos), e nesses dois o campo de repetições recebe os segundos ou
+  minutos. É o que vai permitir o importador da próxima versão ler o plano em vez de adivinhá-lo.
+  O exemplo já inclui uma linha `tempo`, que é o caso que a prosa livre resolve pior.
+- **Aviso na tela quando as observações estão vazias** (`aiNotesWarning`), explicando o que se
+  perde. A maioria vai copiar sem preencher — o aviso é para quem olha, e a mudança abaixo é para
+  quem não olha.
+
+### Alterado
+- **Regras agora são montadas e numeradas conforme o que foi enviado.** "NÃO invente cargas para
+  os exercícios que eu já faço" só aparece quando o treino atual foi de fato incluído; sem isso
+  era uma referência solta a dados que a IA nunca recebeu.
+- **Observações vazias deixaram de significar seção ausente.** O prompt passa a dizer
+  explicitamente que nenhuma limitação foi informada e a pedir que a IA aponte os exercícios mais
+  exigentes para coluna, joelho e ombro, com alternativa para cada um. No teste, sem observações,
+  vieram agachamento livre, passada com halteres, stiff com barra e abdominal na barra fixa — para
+  um usuário cujo plano real se chama "Legs A (Adaptado ao Joelho)" e cuja descrição de perfil diz
+  "adaptado a escoliose e joelho".
+- Nova regra: um número único de repetições, nunca faixa. `targetReps` é um inteiro, e "8 a 10"
+  exigiria escolher o piso na importação.
+- Nova regra: dimensionar o dia pelo tempo informado, com a aritmética explícita (≈2 min por série
+  contando descanso, 10 min de aquecimento). O teste veio com 7 exercícios e 23 séries para uma
+  sessão declarada de 60 minutos.
+- O plano legível passou a ser pedido com **dia da semana**, não "Dia 1..Dia 6" — as chaves do app
+  são SEG..DOM.
+
+### Notas
+- `MAX_EXERCISES_PER_DAY` é 10; os 7 exercícios por dia do teste cabem sem truncar.
+- Verificados os quatro estados do prompt: com e sem treino atual, com e sem observações. A
+  contagem de regras cai de 7 para 6 quando o treino é omitido, com a renumeração correta, e a
+  regra de observações troca de texto conforme o campo esteja preenchido ou não.
+- Lacuna conhecida do modelo de dados, registrada para o importador: não existe exercício de força
+  medido em tempo (a prancha do teste). Vira `forca` com o número em segundos ou `cardio`; nenhuma
+  das duas é limpa, e a decisão deve aparecer na tela de conferência da importação.
+- Falta uma segunda amostra, de outra IA, antes de escrever o interpretador — com uma só não dá
+  para separar o que é formato estável do que era jeito do Gemini.
+
+
 ## [2.17.0] - 2026-08-31
 
 ### Adicionado
