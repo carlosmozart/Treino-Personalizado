@@ -380,6 +380,7 @@
         <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Algo que a IA precisa saber?</label>
         <textarea id="aiNotes" rows="3" oninput="renderAIPrompt()" placeholder="Lesões, equipamentos que sua academia tem, exercícios que você não gosta, preferências..." class="mt-1 w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2.5 text-white text-sm focus:outline-none focus:ring-1 focus:ring-blue-600 resize-none"></textarea>
         <p class="text-[10px] text-slate-600 mt-1">É aqui que o plano deixa de ser genérico. Quanto mais específico, melhor a resposta.</p>
+        <p id="aiNotesWarning" class="hidden text-[10px] text-amber-300 bg-amber-950/30 border border-amber-800/40 rounded-xl px-3 py-2 mt-2 leading-relaxed text-justify">Sem nada aqui, a IA não sabe de nenhuma lesão sua e pode sugerir exercícios que você deveria evitar. O prompt pede que ela avise sobre os mais exigentes, mas nada substitui você citar o que já sabe do seu corpo.</p>
       </div>
 
       <div class="bg-slate-950/50 border border-slate-800 rounded-xl px-3">
@@ -1057,11 +1058,20 @@
   </div>
 
   <script>
-    const APP_VERSION = '2.17.0'; // manter sincronizado com CACHE_NAME em sw.js e com o CHANGELOG.md
+    const APP_VERSION = '2.17.1'; // manter sincronizado com CACHE_NAME em sw.js e com o CHANGELOG.md
 
     // ---------- NOVIDADES (tela para testadores — só experiência do usuário, sem termos técnicos) ----------
     // Detalhes técnicos ficam só no CHANGELOG.md interno. Ordem: mais recente primeiro.
     const RELEASE_NOTES = [
+      {
+        version: '2.17.1', date: '2026-08-31',
+        highlights: [
+          '🤖 <strong>O prompt para IA ficou bem melhor.</strong> Depois de testar a resposta de uma IA de verdade, o texto passou a pedir dias da semana em vez de "Dia 1", um número único de repetições em vez de faixas como "8 a 10", e que os exercícios caibam mesmo no tempo de treino que você informou.',
+          '📋 O prompt agora pede também um bloco final em formato fixo. Você não precisa fazer nada com ele — é o que vai permitir, numa próxima versão, o app importar o plano direto da resposta em vez de você digitar tudo.',
+          '⚠️ <strong>Se você deixar as observações em branco</strong>, o prompt agora pede que a IA aponte os exercícios mais exigentes para coluna, joelho e ombro, e ofereça alternativa para cada um. No teste, sem observações, a IA sugeriu agachamento livre e stiff com barra para quem tem o plano adaptado a joelho — o pedido de cuidado passa a ir junto mesmo quando você não escreve nada.',
+          '💬 E a tela avisa, ali mesmo, o que você perde deixando o campo vazio.'
+        ]
+      },
       {
         version: '2.17.0', date: '2026-08-31',
         highlights: [
@@ -4350,8 +4360,10 @@
       L.push(`- Cerca de ${minutos} minutos por treino`);
       L.push('');
 
+      let temPlanoAtual = false;
       if (aiOptions.incluirTreino) {
         const plano = buildCurrentPlanLines();
+        temPlanoAtual = plano.length > 0;
         if (plano.length) {
           L.push('## O QUE EU TREINO HOJE');
           plano.forEach(x => L.push(x));
@@ -4369,25 +4381,77 @@
         }
       }
 
-      if (notas) { L.push('## OBSERVAÇÕES IMPORTANTES'); L.push(notas); L.push(''); }
+      L.push('## OBSERVAÇÕES IMPORTANTES');
+      if (notas) {
+        L.push(notas);
+      } else {
+        // A maioria copia sem preencher nada. Sem observacoes a IA nao tem como saber de
+        // lesao alguma, e o teste com o Gemini mostrou o resultado: agachamento livre, stiff
+        // com barra e avanco com halteres para quem tem o plano real adaptado a joelho e
+        // escoliose. Como o campo fica vazio, o prompt pede o cuidado no lugar do usuario.
+        L.push('Não informei limitações físicas. Parta do princípio de que você não sabe nada sobre lesões, dores ou restrições que eu possa ter: para todo exercício que exija mais técnica ou que carregue mais a coluna, o joelho ou o ombro, avise e ofereça uma alternativa mais segura.');
+      }
+      L.push('');
 
       L.push('## O QUE EU PRECISO QUE VOCÊ FAÇA');
-      L.push(`Monte um plano semanal com ${dias} ${dias === 1 ? 'dia' : 'dias'} de treino. Para cada dia, informe:`);
-      L.push('- um nome curto para o dia e o foco muscular');
-      L.push('- a lista de exercícios, cada um com o número de séries e de repetições');
+      L.push(`Monte um plano semanal com ${dias} ${dias === 1 ? 'dia' : 'dias'} de treino.`);
       L.push('');
+      L.push('Primeiro escreva o plano de forma legível, dia a dia, com:');
+      L.push('- o dia da semana, um nome curto para o treino e o foco muscular');
+      L.push('- a lista de exercícios, cada um com o número de séries e de repetições');
+      L.push('- uma frase explicando por que você dividiu a semana desse jeito');
+      L.push('');
+      // As regras sao montadas e numeradas conforme o que foi de fato enviado. Mandar
+      // "mantenha as cargas que eu ja uso" sem ter mandado o treino atual e uma referencia
+      // solta: a IA nao tem a que obedecer, e a instrucao so gera ruido.
+      const regras = [];
+      if (aiOptions.incluirTreino && temPlanoAtual) {
+        regras.push('NÃO invente cargas para os exercícios que eu já faço — mantenha as que eu já venho usando.');
+      }
+      regras.push('Para exercícios novos, não chute um peso: escreva "definir na prática" e explique em uma linha como eu encontro a carga certa.');
+      // sem isso a resposta vem com faixas ("8 a 10") e o app guarda um numero so
+      regras.push('Use UM número de repetições por exercício, nunca uma faixa. Em vez de "8 a 10 repetições", escreva 8.');
+      // sem isso o tempo informado vira decorativo: o teste veio com 7 exercicios e 23 series
+      // para uma sessao de 60 minutos
+      regras.push(`Distribua os exercícios para caberem nos ${minutos} minutos que eu tenho: cada série consome cerca de 2 minutos entre execução e descanso, e reserve 10 minutos para aquecimento.`);
+      regras.push(notas
+        ? 'Respeite as limitações, lesões e equipamentos que eu citei nas observações.'
+        : 'Trate as observações acima como parte do pedido: aponte os exercícios mais exigentes e ofereça alternativa para cada um.');
+      regras.push('Use os nomes de exercícios como são conhecidos em academia no Brasil.');
+      regras.push('Se algum dado meu indicar que eu deveria falar com um médico ou educador físico antes de começar, me diga isso primeiro.');
+
       L.push('Siga estas regras:');
-      L.push('1. NÃO invente cargas para os exercícios que eu já faço — mantenha as que eu já venho usando.');
-      L.push('2. Para exercícios novos, não chute um peso: escreva "definir na prática" e explique em uma linha como eu encontro a carga certa.');
-      L.push('3. Respeite as limitações, lesões e equipamentos que eu citei nas observações.');
-      L.push('4. Use os nomes de exercícios como são conhecidos em academia no Brasil.');
-      L.push('5. Explique em uma frase por que dividiu a semana desse jeito.');
-      L.push('6. Se algum dado meu indicar que eu deveria falar com um médico ou educador físico antes de começar, me diga isso primeiro.');
+      regras.forEach((r, i) => L.push(`${i + 1}. ${r}`));
+      L.push('');
+      // O bloco existe para o app conseguir ler o plano de volta. Sem ele a resposta e prosa
+      // livre, e cada detalhe — faixa de repeticoes, "Dia 1" em vez de segunda-feira,
+      // exercicio contado em segundos — vira adivinhacao na hora de importar.
+      L.push('Por último, repita o plano inteiro no formato exato abaixo, para eu conseguir importar no meu app:');
+      L.push('');
+      L.push('===PLANO===');
+      L.push('DIA | SEG | Push A | Peito, Ombros e Tríceps');
+      L.push('EX | Supino Reto com Barra | forca | 4 | 8 |');
+      L.push('EX | Prancha Abdominal | tempo | 3 | 45 |');
+      L.push('DIA | TER | Pull A | Costas e Bíceps');
+      L.push('EX | Puxada Frontal na Polia | forca | 4 | 8 |');
+      L.push('===FIM===');
+      L.push('');
+      L.push('Regras do bloco:');
+      L.push('- Uma linha DIA para cada dia de treino, seguida das linhas EX daquele dia.');
+      L.push('- O dia da semana é uma destas siglas: SEG, TER, QUA, QUI, SEX, SAB, DOM.');
+      L.push('- Campos de DIA, nesta ordem: sigla | nome do treino | foco muscular');
+      L.push('- Campos de EX, nesta ordem: nome | tipo | séries | repetições | carga');
+      L.push('- O tipo é "forca", "tempo" (exercícios contados em segundos, como prancha) ou "cardio" (contados em minutos).');
+      L.push('- Nos tipos "tempo" e "cardio", o campo de repetições recebe os segundos ou os minutos.');
+      L.push('- A carga vai em kg, ou fica vazia quando for para definir na prática.');
+      L.push('- Não use o caractere | dentro dos nomes, e não escreva mais nada dentro do bloco.');
 
       return L.join('\n');
     }
 
     window.renderAIPrompt = function() {
+      const semNotas = !(document.getElementById('aiNotes').value || '').trim();
+      document.getElementById('aiNotesWarning').classList.toggle('hidden', !semNotas);
       const texto = buildAIPrompt();
       document.getElementById('aiPromptOutput').value = texto;
       const linhas = texto.split('\n').length;
