@@ -1,5 +1,60 @@
 # Changelog — Treino Personalizado
 
+## [2.18.0] - 2026-09-01
+
+Importador do plano gerado por IA. Escrito depois — e só depois — de duas respostas reais de
+modelos diferentes (Claude e ChatGPT). Cada tolerância do interpretador existe porque uma
+amostra a exigiu.
+
+### Adicionado
+- **Passo 2 na tela do prompt**: campo para colar a resposta da IA e botão "Ler plano".
+- **Interpretador do bloco** (`extrairBlocosDoPlano`, `parseBlocoDoPlano`, `parsePlanoDaIA`):
+  - `DIA` e `EX` são os delimitadores de registro, **não a quebra de linha**. Uma das amostras
+    chegou com o bloco inteiro numa única linha, porque o markdown do chat colapsou as quebras;
+    um `split('\n')` teria devolvido um registro só.
+  - Reconhecimento tolerante dos delimitadores (`=PLANO=`, `===PLANO===`, `[PLANO]`): a mesma
+    amostra veio com os sinais de igual mastigados, já que uma linha de `===` é marcação de
+    título em markdown.
+  - **Com mais de um bloco no texto, vence o que tem mais exercícios.** O próprio prompt carrega
+    um bloco de exemplo; quem colar a conversa inteira faria um interpretador ingênuo importar o
+    exemplo no lugar do plano. Verificado: colando prompt + resposta, escolhe os 36 exercícios e
+    não os 4 do exemplo.
+  - Campos faltando caem em padrões; tipo desconhecido vira `forca` com aviso; exercício sem dia
+    ou sem nome é descartado com aviso.
+- **Tela de conferência** (`aiImportOverlay`): resumo, o que foi adaptado, a lista dia a dia com
+  séries e marcação de reserva, e o nome do plano. Nada é criado antes da confirmação.
+- **Criação como plano novo.** `applyAIPlan()` sempre gera um `makeId('profile')`; nenhum plano
+  existente é tocado e o plano ativo não muda.
+
+### Mapeamento para as estruturas do app
+- `alternativa` (6º campo) → `backups[0]`, alimentando o botão de trocar exercício que já existe.
+  O tipo da reserva sai de `isCardioExerciseName()`.
+- `cardio` → `type: 'cardio'` com `targetDuration` nos minutos, e **`optional: true`**: é o
+  exercício que se faz quando sobra tempo, e travar a conclusão do treino por causa dele foi
+  exatamente o problema resolvido na 2.17.0.
+- `tempo` → `forca` com os segundos no lugar das repetições. Mandar para `cardio` somaria segundos
+  como se fossem minutos e sujaria o volume e a estimativa de calorias. A adaptação é declarada na
+  tela de conferência, não decidida em silêncio.
+- Dias acima de `MAX_EXERCISES_PER_DAY` (10) são truncados, com aviso nomeando o dia e quantos
+  ficaram de fora.
+
+### Notas
+- Verificado com as respostas reais das duas IAs, e o interpretador em JS bate exatamente com o
+  protótipo em Python (`scratchpad/parser_v2.py`):
+  - Claude: 6 dias, 36 exercícios, 12 com reserva, 2 exercícios em segundos adaptados.
+  - ChatGPT: 6 dias, 36 exercícios, 6 com reserva, 6 cardios marcados como opcionais.
+  - Conversa inteira colada (prompt + resposta): 2 blocos encontrados, escolheu o certo.
+  - Zero avisos de parse nas três entradas.
+- Fluxo completo verificado até o fim: plano criado → ativado → 6 cards renderizados com o selo
+  "Opcional" no cardio e a reserva no botão de trocar → marcar só os 5 obrigatórios dispara o
+  check-in automático e grava 5 exercícios, deixando o cardio de fora.
+- Entradas inválidas (texto sem bloco, campo vazio) não abrem a tela de conferência.
+- **Observação sobre as amostras:** o arquivo enviado trazia três seções, mas a primeira era o
+  próprio prompt, não uma resposta. O interpretador foi validado contra duas respostas reais, de
+  dois modelos distintos — o suficiente para separar formato estável de comportamento de um
+  modelo só.
+
+
 ## [2.17.1] - 2026-08-31
 
 Ajustes no gerador de prompt a partir de um teste real: a resposta de uma IA ao prompt da 2.16.0,
