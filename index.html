@@ -193,6 +193,10 @@
     .opacity-50 { opacity: 0.5; }
     .active\:bg-rose-500:active { background-color: #f43f5e; }
     .border-emerald-700\/60 { border-color: rgba(4, 120, 87, 0.6); }
+    .bg-emerald-700 { background-color: #047857; }
+    .active\:bg-emerald-600:active { background-color: #059669; }
+    .active\:bg-emerald-500:active { background-color: #10b981; }
+    .space-y-0\.5 > :not([hidden]) ~ :not([hidden]) { margin-top: 0.125rem; }
   </style>
 </head>
 <body class="bg-slate-950 text-slate-100 font-sans pb-12 min-h-screen">
@@ -410,8 +414,50 @@
 
       <button type="button" id="aiPromptCopy" onclick="copyAIPrompt()" class="w-full bg-blue-600 active:bg-blue-500 text-white font-extrabold text-sm py-3 rounded-xl transition-all active:scale-[0.99]">📋 Copiar prompt</button>
 
+      <div class="border-t border-slate-800 pt-4">
+        <p class="text-[10px] font-black text-emerald-400 uppercase tracking-wider">Passo 2</p>
+        <h3 class="text-sm font-black text-white leading-tight mb-1">Já tem a resposta? Cole aqui.</h3>
+        <p class="text-[11px] text-slate-500 leading-relaxed text-justify mb-2">Cole a resposta inteira da IA — pode ser a conversa toda, o app acha o plano sozinho. Você confere tudo antes de qualquer coisa ser criada.</p>
+        <textarea id="aiImportInput" rows="4" placeholder="Cole aqui a resposta da IA..." class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2.5 text-white text-sm focus:outline-none focus:ring-1 focus:ring-blue-600 resize-none font-mono text-[10px]"></textarea>
+        <button type="button" onclick="readAIPlan()" class="mt-2 w-full bg-emerald-700 active:bg-emerald-600 text-white font-extrabold text-sm py-3 rounded-xl transition-all active:scale-[0.99]">🔍 Ler plano</button>
+      </div>
+
       <p class="text-[10px] text-amber-300 bg-amber-950/30 border border-amber-800/40 rounded-xl px-3 py-2 leading-relaxed text-justify">A IA não substitui um profissional. Revise o plano antes de seguir, principalmente se você tem alguma lesão ou condição de saúde.</p>
       <p class="text-[10px] text-slate-600 leading-relaxed text-justify">Por enquanto o plano que a IA devolver precisa ser digitado aqui em <strong class="text-slate-500">Planos</strong>. A importação automática da resposta vem numa próxima versão.</p>
+    </div>
+  </div>
+
+  <!-- Conferencia da importacao. Nada e criado antes desta tela: o plano so vira perfil
+       depois que voce ve exatamente o que sera criado, incluindo o que o app teve que
+       adaptar. -->
+  <div id="aiImportOverlay" class="hidden fixed inset-0 bg-slate-950/95 backdrop-blur-sm z-[105] flex items-start justify-center p-4 overflow-y-auto">
+    <div class="bg-slate-900 rounded-2xl border border-slate-800 shadow-2xl max-w-md w-full p-5 my-8 space-y-4">
+
+      <div class="flex items-start justify-between gap-3">
+        <div class="min-w-0">
+          <p class="text-[10px] font-black text-emerald-400 uppercase tracking-wider">Conferência</p>
+          <h2 class="text-base font-black text-white leading-tight">Plano encontrado</h2>
+        </div>
+        <button type="button" onclick="closeAIImport()" aria-label="Fechar" class="flex-shrink-0 w-9 h-9 rounded-full bg-slate-800 active:bg-slate-700 text-slate-400 flex items-center justify-center transition-all active:scale-90">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+        </button>
+      </div>
+
+      <div id="aiImportSummary" class="grid grid-cols-2 gap-2"></div>
+      <div id="aiImportNotes"></div>
+      <div id="aiImportDays" class="space-y-2 max-h-80 overflow-y-auto"></div>
+
+      <div>
+        <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Nome do novo plano</label>
+        <input type="text" id="aiImportName" class="mt-1 w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2.5 text-white text-sm focus:outline-none focus:ring-1 focus:ring-blue-600"/>
+      </div>
+
+      <p class="text-[10px] text-slate-600 leading-relaxed text-justify">Isto cria um plano <strong class="text-slate-500">novo</strong>. Nenhum plano seu é alterado ou apagado, e você continua treinando o de sempre até trocar na lista.</p>
+
+      <div class="flex gap-2">
+        <button type="button" onclick="closeAIImport()" class="flex-1 bg-slate-800 active:bg-slate-700 text-slate-300 font-extrabold text-sm py-3 rounded-xl transition-all active:scale-[0.99]">Cancelar</button>
+        <button type="button" onclick="applyAIPlan()" class="flex-1 bg-emerald-600 active:bg-emerald-500 text-white font-extrabold text-sm py-3 rounded-xl transition-all active:scale-[0.99]">Criar plano</button>
+      </div>
     </div>
   </div>
 
@@ -1058,11 +1104,21 @@
   </div>
 
   <script>
-    const APP_VERSION = '2.17.2'; // manter sincronizado com CACHE_NAME em sw.js e com o CHANGELOG.md
+    const APP_VERSION = '2.18.0'; // manter sincronizado com CACHE_NAME em sw.js e com o CHANGELOG.md
 
     // ---------- NOVIDADES (tela para testadores — só experiência do usuário, sem termos técnicos) ----------
     // Detalhes técnicos ficam só no CHANGELOG.md interno. Ordem: mais recente primeiro.
     const RELEASE_NOTES = [
+      {
+        version: '2.18.0', date: '2026-09-01',
+        highlights: [
+          '📥 <strong>Importar o plano da IA.</strong> Agora o caminho fecha: copie o prompt, cole numa IA, e cole a resposta de volta no app. Ele lê o plano e monta tudo — dias, exercícios, séries e repetições — sem você digitar nada.',
+          '👀 <strong>Você confere antes.</strong> Nada é criado até você ver a tela com o que será montado, dia a dia, e o que o app precisou adaptar. É um plano <strong>novo</strong>: nenhum plano seu é alterado ou apagado, e você continua treinando o de sempre até trocar na lista.',
+          '🔄 <strong>As alternativas viram exercício reserva.</strong> Quando a IA sugere "se este exercício incomodar o joelho, faça aquele", a sugestão vira a reserva do card — pronta no botão de trocar.',
+          '🏃 <strong>Cardio importado entra como opcional</strong>, para não segurar a conclusão do treino nos dias em que você não tiver tempo.',
+          '📋 Pode colar a conversa inteira, com o prompt junto — o app acha o plano de verdade sozinho.'
+        ]
+      },
       {
         version: '2.17.2', date: '2026-08-31',
         highlights: [
@@ -4480,6 +4536,228 @@
     window.copyAIPrompt = async function() {
       const ok = await copyTextToClipboard(document.getElementById('aiPromptOutput').value);
       showToast(ok ? '📋 Prompt copiado! Cole na IA da sua preferência.' : '❌ Não foi possível copiar o prompt.');
+    };
+
+    // ---------- IMPORTAR O PLANO QUE A IA DEVOLVEU ----------
+    // O formato do bloco e as regras deste interpretador saem de respostas reais de tres
+    // modelos, nao de suposicao. Cada tolerancia abaixo existe porque uma amostra a exigiu.
+    const IMPORT_TIPOS = ['forca', 'tempo', 'cardio'];
+
+    // Tolera =PLANO=, ===PLANO===, [PLANO]: a primeira amostra chegou com os sinais de igual
+    // mastigados pelo markdown do chat, que trata uma linha de === como marcacao de titulo.
+    function extrairBlocosDoPlano(texto) {
+      const blocos = [];
+      const re = /[=[\s]*\bPLANO\b[=\]\s]*/g;
+      let m;
+      while ((m = re.exec(texto)) !== null) {
+        const resto = texto.slice(m.index + m[0].length);
+        const fim = resto.match(/[=[\s/]*\bFIM\b[=\]\s]*/);
+        blocos.push(fim ? resto.slice(0, fim.index) : resto);
+      }
+      return blocos;
+    }
+
+    function parseBlocoDoPlano(bloco) {
+      const dias = [], avisos = [];
+      // DIA e EX sao os delimitadores de registro, NAO a quebra de linha: uma das amostras
+      // chegou com o bloco inteiro numa unica linha, e dividir por \n devolveria um registro so.
+      const partes = bloco.split(/(?:^|\s)(DIA|EX)\s*\|/);
+
+      for (let i = 1; i < partes.length - 1; i += 2) {
+        const marcador = partes[i];
+        const campos = String(partes[i + 1]).split('|').map(c => c.trim());
+        while (campos.length && campos[campos.length - 1] === '') campos.pop();
+
+        if (marcador === 'DIA') {
+          const sigla = (campos[0] || '').toUpperCase().slice(0, 3);
+          if (DAY_ORDER.indexOf(sigla) === -1) {
+            avisos.push(`Dia não reconhecido: "${campos[0] || ''}" — ignorado.`);
+            dias.push(null);   // marcador de dia invalido, para os EX seguintes caírem fora
+            continue;
+          }
+          dias.push({ dia: sigla, nome: campos[1] || '', foco: campos[2] || '', exercicios: [] });
+          continue;
+        }
+
+        const atual = dias.length ? dias[dias.length - 1] : null;
+        const nome = campos[0] || '';
+        if (!atual) { avisos.push(`"${nome}" veio antes de qualquer dia — ignorado.`); continue; }
+        if (!nome) { avisos.push('Um exercício veio sem nome e foi ignorado.'); continue; }
+
+        let tipo = (campos[1] || 'forca').toLowerCase();
+        if (IMPORT_TIPOS.indexOf(tipo) === -1) {
+          avisos.push(`Tipo desconhecido em "${nome}" (${campos[1] || 'vazio'}) — tratado como força.`);
+          tipo = 'forca';
+        }
+        const num = (idx, padrao) => {
+          if (campos.length <= idx) return padrao;
+          const n = parseFloat(String(campos[idx]).replace(/[^0-9.]/g, ''));
+          return isFinite(n) && n > 0 ? Math.round(n) : padrao;
+        };
+        atual.exercicios.push({
+          nome, tipo,
+          series: num(2, 3),
+          valor: num(3, 10),                                   // reps, segundos ou minutos
+          carga: num(4, 0),
+          alternativa: (campos[5] || '').trim()
+        });
+      }
+
+      return { dias: dias.filter(d => d && d.exercicios.length), avisos };
+    }
+
+    // Com mais de um bloco no texto, vale o maior. O proprio prompt carrega um bloco de
+    // exemplo com poucos exercicios: quem colar a conversa inteira faria um interpretador
+    // ingenuo importar o exemplo no lugar do plano.
+    function parsePlanoDaIA(texto) {
+      const blocos = extrairBlocosDoPlano(texto || '');
+      if (!blocos.length) return null;
+      let melhor = null, melhorN = -1;
+      blocos.forEach(b => {
+        const r = parseBlocoDoPlano(b);
+        const n = r.dias.reduce((t, d) => t + d.exercicios.length, 0);
+        if (n > melhorN) { melhor = r; melhorN = n; }
+      });
+      return melhorN > 0 ? melhor : null;
+    }
+
+    // Converte o plano lido para a estrutura de agenda do app, devolvendo junto tudo que
+    // precisou ser adaptado — o usuario ve as adaptacoes antes de confirmar.
+    function planoParaSchedule(plano) {
+      const schedule = buildEmptySchedule();
+      const notas = [];
+      let totalEx = 0, cardios = 0, tempos = 0;
+
+      plano.dias.forEach(d => {
+        const dia = schedule[d.dia];
+        dia.name = d.nome || `${DAY_FULL_NAMES[d.dia]}: Treino`;
+        dia.focus = d.foco || '';
+
+        let lista = d.exercicios;
+        if (lista.length > MAX_EXERCISES_PER_DAY) {
+          notas.push(`${d.nome || d.dia}: ${lista.length} exercícios vieram, mas o app aceita ${MAX_EXERCISES_PER_DAY} por dia. Os últimos ${lista.length - MAX_EXERCISES_PER_DAY} ficaram de fora.`);
+          lista = lista.slice(0, MAX_EXERCISES_PER_DAY);
+        }
+
+        dia.exercises = lista.map(e => {
+          const isCardio = e.tipo === 'cardio';
+          if (isCardio) cardios++;
+          if (e.tipo === 'tempo') tempos++;
+          const alt = e.alternativa || '';
+          return {
+            id: makeId('ex'),
+            name: e.nome,
+            // "tempo" nao tem equivalente no app: vira forca com os segundos no lugar das
+            // repeticoes. E a menos ruim das duas — mandar para cardio somaria segundos como
+            // se fossem minutos e sujaria as estatisticas.
+            type: isCardio ? 'cardio' : 'forca',
+            // cardio entra como opcional: e o exercicio que se faz quando sobra tempo, e
+            // travar a conclusao do treino por causa dele foi o problema que a 2.17.0 resolveu
+            optional: isCardio,
+            targetSets: isCardio ? 1 : e.series,
+            targetReps: isCardio ? 10 : e.valor,
+            targetWeight: e.carga || 0,
+            targetDuration: isCardio ? e.valor : 20,
+            targetDistance: 0,
+            backups: [
+              { name: alt, type: isCardioExerciseName(alt) ? 'cardio' : 'forca' },
+              { name: '', type: 'forca' }
+            ]
+          };
+        });
+        totalEx += dia.exercises.length;
+      });
+
+      if (tempos) notas.push(`${tempos} exercício${tempos > 1 ? 's são contados' : ' é contado'} em segundos (prancha e parecidos). O app ainda não tem esse tipo, então ${tempos > 1 ? 'eles entraram' : 'ele entrou'} como força, com os segundos no lugar das repetições.`);
+      if (cardios) notas.push(`${cardios} exercício${cardios > 1 ? 's de cardio entraram marcados' : ' de cardio entrou marcado'} como opcional — não vai segurar a conclusão do treino nos dias em que você pular. Dá para mudar no editor.`);
+
+      return { schedule, notas, totalEx, dias: plano.dias.length };
+    }
+
+    let aiImportPendente = null;   // o que sera criado se voce confirmar
+
+    window.readAIPlan = function() {
+      const texto = document.getElementById('aiImportInput').value || '';
+      if (!texto.trim()) { showToast('⚠️ Cole a resposta da IA no campo antes de ler.'); return; }
+
+      const plano = parsePlanoDaIA(texto);
+      if (!plano || !plano.dias.length) {
+        showToast('❌ Não encontrei o bloco do plano nessa resposta. Peça à IA para repetir o bloco entre [PLANO] e [FIM].');
+        return;
+      }
+
+      const montado = planoParaSchedule(plano);
+      aiImportPendente = montado;
+
+      document.getElementById('aiImportSummary').innerHTML = `
+        <div class="bg-slate-950/50 border border-slate-800 rounded-xl px-3 py-2.5 text-center">
+          <p class="text-lg font-black text-white">${montado.dias}</p>
+          <p class="text-[9px] text-slate-600 font-bold uppercase tracking-wider">Dias de treino</p>
+        </div>
+        <div class="bg-slate-950/50 border border-slate-800 rounded-xl px-3 py-2.5 text-center">
+          <p class="text-lg font-black text-white">${montado.totalEx}</p>
+          <p class="text-[9px] text-slate-600 font-bold uppercase tracking-wider">Exercícios</p>
+        </div>`;
+
+      const todasNotas = plano.avisos.concat(montado.notas);
+      document.getElementById('aiImportNotes').innerHTML = todasNotas.length
+        ? `<div class="bg-amber-950/30 border border-amber-800/40 rounded-xl px-3 py-2.5 space-y-1.5">
+             <p class="text-[9px] font-black text-amber-400 uppercase tracking-wider">O que o app adaptou</p>
+             ${todasNotas.map(n => `<p class="text-[10px] text-amber-300 leading-relaxed text-justify">• ${escapeHtml(n)}</p>`).join('')}
+           </div>`
+        : '';
+
+      document.getElementById('aiImportDays').innerHTML = DAY_ORDER
+        .filter(k => montado.schedule[k].exercises.length)
+        .map(k => {
+          const dia = montado.schedule[k];
+          const series = dia.exercises.reduce((t, e) => t + (e.type === 'cardio' ? 0 : e.targetSets), 0);
+          return `<div class="bg-slate-950/50 border border-slate-800 rounded-xl px-3 py-2.5">
+            <div class="flex items-center justify-between gap-2">
+              <p class="text-xs font-bold text-white truncate">${escapeHtml(dia.name)}</p>
+              <span class="text-[9px] font-black text-blue-300 flex-shrink-0">${dia.exercises.length} ex · ${series} séries</span>
+            </div>
+            ${dia.focus ? `<p class="text-[10px] text-slate-500 truncate">${escapeHtml(dia.focus)}</p>` : ''}
+            <div class="mt-1.5 space-y-0.5">
+              ${dia.exercises.map(e => `<p class="text-[10px] text-slate-400 truncate">· ${escapeHtml(e.name)} <span class="text-slate-600">${
+                e.type === 'cardio' ? `${e.targetDuration}min` : `${e.targetSets}x${e.targetReps}`
+              }${e.optional ? ' · opcional' : ''}${e.backups[0].name ? ' · tem reserva' : ''}</span></p>`).join('')}
+            </div>
+          </div>`;
+        }).join('');
+
+      document.getElementById('aiImportName').value = `Plano da IA — ${formatDateBR(todayKey())}`;
+      document.getElementById('aiImportOverlay').classList.remove('hidden');
+    };
+
+    window.closeAIImport = function() {
+      document.getElementById('aiImportOverlay').classList.add('hidden');
+      aiImportPendente = null;
+    };
+
+    window.applyAIPlan = function() {
+      if (!aiImportPendente) return;
+      const nome = (document.getElementById('aiImportName').value || '').trim();
+      if (!nome) { showToast('⚠️ Dê um nome ao plano antes de criar.'); return; }
+
+      const id = makeId('profile');
+      profiles[id] = {
+        id,
+        name: nome,
+        description: 'Plano montado por IA e importado pelo app.',
+        daysPerWeek: aiImportPendente.dias,
+        trainingTime: '',
+        schedule: aiImportPendente.schedule,
+        createdAt: todayKey(),
+        updatedAt: todayKey()
+      };
+      if (!saveJSON(PROFILES_KEY, profiles)) { showToast('❌ Não foi possível salvar o plano.'); return; }
+
+      closeAIImport();
+      closeAIPlan();
+      renderProfileList();
+      checkAchievements();
+      showToast(`✅ "${nome}" criado! Ative na lista quando quiser começar.`);
     };
 
     // ---------- BOLHA COM O NOME COMPLETO ----------
