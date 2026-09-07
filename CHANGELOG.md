@@ -6,6 +6,13 @@ Todas as mudanças relevantes do app ficam registradas aqui. Ao lançar uma nova
    atualizar o app instalado
 3. Adicione uma entrada aqui, nesse formato
 
+## [2.19.1] - 2026-09-07
+
+### Corrigido
+- Ícone oficial aplicado aos recursos usados pelo launcher Android.
+- A primeira execução agora oferece a restauração de backup da versão web antes do cadastro.
+- `versionCode` Android elevado para `21901`, permitindo atualizar o APK 2.19.0.
+
 ## [2.19.0] - 2026-09-07
 
 ### Adicionado
