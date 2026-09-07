@@ -6,6 +6,18 @@ Todas as mudanças relevantes do app ficam registradas aqui. Ao lançar uma nova
    atualizar o app instalado
 3. Adicione uma entrada aqui, nesse formato
 
+## [2.18.1] - 2026-09-07
+
+### Corrigido
+- A importação de backup agora valida todas as chaves e os dados JSON antes de substituir o
+  armazenamento local, impedindo uma restauração parcial com arquivo inválido ou corrompido.
+- O service worker ignora requisições que não podem ser guardadas no Cache Storage e aguarda as
+  gravações de cache; também passa a descartar respostas de erro.
+
+### Alterado
+- Cache offline renovado para `treino-cache-v2.18.1`, garantindo a limpeza do cache anterior na
+  atualização do PWA instalado.
+
 ## [2.18.0] - 2026-09-01
 
 Importador do plano gerado por IA. Escrito depois — e só depois — de duas respostas reais de

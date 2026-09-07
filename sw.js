@@ -1,4 +1,4 @@
-const CACHE_NAME = 'treino-cache-v44';
+const CACHE_NAME = 'treino-cache-v2.18.1';
 const ASSETS = [
   './',
   './index.html',
@@ -40,16 +40,29 @@ self.addEventListener('activate', (event) => {
 // toda vez que o app for aberto com internet, a versão mais recente é usada.
 // Para os demais arquivos (ícones, manifest), usa cache-first, já que raramente mudam.
 self.addEventListener('fetch', (event) => {
+  // Cache Storage só aceita requisições GET. Deixar POST/PUT/etc. passarem evita que uma
+  // futura integração de formulário/API falhe por uma tentativa indevida de cachear a resposta.
+  if (event.request.method !== 'GET') return;
+
+  const cacheResponse = (request, response) => {
+    // Não guardar páginas de erro; uma resposta opaca é válida para recursos de outra origem.
+    if (!response || (!response.ok && response.type !== 'opaque')) return;
+    event.waitUntil(
+      caches.open(CACHE_NAME)
+        .then((cache) => cache.put(request, response.clone()))
+        .catch(() => { /* cache é uma melhoria; a resposta de rede continua válida */ })
+    );
+  };
+
   const acceptHeader = event.request.headers.get('accept') || '';
   const isNavigation = event.request.mode === 'navigate' ||
-    (event.request.method === 'GET' && acceptHeader.indexOf('text/html') !== -1);
+    acceptHeader.indexOf('text/html') !== -1;
 
   if (isNavigation) {
     event.respondWith(
       fetch(event.request)
         .then((response) => {
-          const copy = response.clone();
-          caches.open(CACHE_NAME).then((cache) => cache.put(event.request, copy));
+          cacheResponse(event.request, response);
           return response;
         })
         .catch(() => caches.match(event.request).then((cached) => cached || caches.match('./index.html')))
@@ -60,8 +73,7 @@ self.addEventListener('fetch', (event) => {
   event.respondWith(
     caches.match(event.request).then((cached) => {
       return cached || fetch(event.request).then((response) => {
-        const copy = response.clone();
-        caches.open(CACHE_NAME).then((cache) => cache.put(event.request, copy));
+        cacheResponse(event.request, response);
         return response;
       }).catch(() => cached);
     })

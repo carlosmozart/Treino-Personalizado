@@ -1104,11 +1104,18 @@
   </div>
 
   <script>
-    const APP_VERSION = '2.18.0'; // manter sincronizado com CACHE_NAME em sw.js e com o CHANGELOG.md
+    const APP_VERSION = '2.18.1'; // manter sincronizado com CACHE_NAME em sw.js e com o CHANGELOG.md
 
     // ---------- NOVIDADES (tela para testadores — só experiência do usuário, sem termos técnicos) ----------
     // Detalhes técnicos ficam só no CHANGELOG.md interno. Ordem: mais recente primeiro.
     const RELEASE_NOTES = [
+      {
+        version: '2.18.1', date: '2026-09-07',
+        highlights: [
+          '🛡️ <strong>Restauração de backup mais segura.</strong> O app agora confere a estrutura do arquivo antes de substituir seus dados, evitando restaurar um backup corrompido por engano.',
+          '🔄 <strong>Atualizações do app instalado mais confiáveis.</strong> A nova versão renova corretamente o cache offline.'
+        ]
+      },
       {
         version: '2.18.0', date: '2026-09-01',
         highlights: [
@@ -1461,6 +1468,40 @@
       'treino_last_backup_nag', 'treino_optional_migrated', 'treino_workout_meta',
       'treino_log_sanitized'
     ];
+    // Chaves serializadas como JSON. As demais guardam textos simples, como o perfil ativo
+    // e as marcas de migração. Validar antes de importar evita trocar todo o progresso por
+    // um arquivo truncado ou por dados de outro aplicativo.
+    const JSON_BACKUP_KEYS = new Set([
+      'treino_exercise_history', 'treino_checkins', 'treino_gamification', 'treino_user_profile',
+      'treino_water_log', 'treino_daily_completion', 'treino_hints_seen', 'treino_profiles',
+      'treino_session_log', 'treino_settings', 'treino_workout_draft', 'treino_workout_meta'
+    ]);
+
+    function isValidBackupData(data) {
+      if (!data || typeof data !== 'object' || Array.isArray(data) || Object.keys(data).length === 0) return false;
+      return Object.entries(data).every(([key, raw]) => {
+        if (!BACKUP_KEYS.includes(key) || typeof raw !== 'string') return false;
+        if (!JSON_BACKUP_KEYS.has(key)) return true;
+        try {
+          const parsed = JSON.parse(raw);
+          if (parsed === null || typeof parsed !== 'object' || Array.isArray(parsed)) return false;
+          if (key === 'treino_session_log') {
+            return Object.values(parsed).every((entries) =>
+              Array.isArray(entries) && entries.every((entry) => entry && typeof entry === 'object' && !Array.isArray(entry))
+            );
+          }
+          if (key === 'treino_profiles') {
+            return Object.values(parsed).every((profile) =>
+              profile && typeof profile === 'object' && !Array.isArray(profile) &&
+              profile.schedule && typeof profile.schedule === 'object' && !Array.isArray(profile.schedule)
+            );
+          }
+          return true;
+        } catch (_) {
+          return false;
+        }
+      });
+    }
 
     function buildBackupObject() {
       const data = {};
@@ -1555,9 +1596,9 @@
     };
 
     function openImportConfirm(fileName) {
-      if (!pendingImport || pendingImport.app !== 'treino-personalizado' || !pendingImport.data) {
+      if (!pendingImport || pendingImport.app !== 'treino-personalizado' || !isValidBackupData(pendingImport.data)) {
         pendingImport = null;
-        showToast('❌ Backup não reconhecido. Use um arquivo exportado por este app.');
+        showToast('❌ Backup inválido ou corrompido. Use um arquivo exportado por este app.');
         return;
       }
       const d = pendingImport.data;
