@@ -1,11 +1,13 @@
 {
   "name": "treino-personalizado",
-  "version": "2.19.1",
+  "version": "2.19.2",
   "private": true,
   "description": "Aplicativo local de treino, preparado para PWA e Android com Capacitor.",
   "scripts": {
     "prepare:web": "node scripts/prepare-web.mjs",
     "check": "node scripts/check-web.mjs",
+    "test": "node tests/release-readiness.mjs",
+    "verify": "npm run check && npm run test",
     "generate:android-icons": "capacitor-assets generate --android",
     "sync:android": "npm run prepare:web && npx cap sync android",
     "open:android": "npm run sync:android && npx cap open android",

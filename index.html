@@ -87,6 +87,12 @@
     /* Rolagem suave e com inércia nas listas internas */
     .overflow-y-auto, .overflow-x-auto { -webkit-overflow-scrolling: touch; }
 
+    /* O foco precisa permanecer bem visível para teclado, leitor de tela e controles externos. */
+    :focus-visible {
+      outline: 3px solid #60a5fa;
+      outline-offset: 3px;
+    }
+
     /* ---------- TOAST CENTRALIZADO ----------
        A posicao horizontal e fixa no centro; so o eixo Y anima. Antes o toast era ancorado
        pela direita, entao mensagens curtas ficavam num canto e mensagens longas se
@@ -203,7 +209,7 @@
 
   <!-- Ancorado ao centro: preso a direita, a largura variavel do texto fazia o toast
        parecer mudar de lugar a cada mensagem. -->
-  <div id="toast" class="fixed top-6 bg-gradient-to-r from-emerald-600 to-teal-500 text-white px-5 py-3 rounded-xl shadow-2xl flex items-center space-x-3 z-50 border border-emerald-400 transition-all duration-300 opacity-0 pointer-events-none">
+  <div id="toast" role="status" aria-live="polite" aria-atomic="true" class="fixed top-6 bg-gradient-to-r from-emerald-600 to-teal-500 text-white px-5 py-3 rounded-xl shadow-2xl flex items-center space-x-3 z-50 border border-emerald-400 transition-all duration-300 opacity-0 pointer-events-none">
     <svg class="w-5 h-5 stroke-[3]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
       <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
     </svg>
@@ -238,7 +244,7 @@
   </div>
 
   <!-- Campo de arquivo escondido, acionado pelo botão "Restaurar backup" -->
-  <input type="file" id="importBackupInput" accept="application/json,.json" class="hidden" onchange="handleImportFile(this)"/>
+  <input type="file" id="importBackupInput" accept="application/json,.json" aria-label="Escolher arquivo de backup" class="hidden" onchange="handleImportFile(this)"/>
 
   <!-- Biblioteca de exercicios como datalist: uma unica lista no documento inteiro.
        Antes cada linha do editor montava 3 <select> com 77 opcoes cada (231 por linha,
@@ -269,7 +275,7 @@
           <p class="text-[10px] font-black text-blue-400 uppercase tracking-wider">Corrigir registro</p>
           <h2 id="editEntryName" class="text-sm font-black text-white leading-tight truncate">--</h2>
         </div>
-        <button type="button" onclick="closeEditEntry()" class="flex-shrink-0 w-9 h-9 rounded-full bg-slate-800 active:bg-slate-700 text-slate-400 flex items-center justify-center transition-all active:scale-90">
+        <button type="button" onclick="closeEditEntry()" aria-label="Fechar correção de registro" class="flex-shrink-0 w-9 h-9 rounded-full bg-slate-800 active:bg-slate-700 text-slate-400 flex items-center justify-center transition-all active:scale-90">
           <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
         </button>
       </div>
@@ -292,7 +298,7 @@
           <p class="text-[10px] font-black text-amber-400 uppercase tracking-wider">Trocar exercício</p>
           <h2 id="swapPickerCurrent" class="text-sm font-black text-white leading-tight truncate">--</h2>
         </div>
-        <button type="button" onclick="closeSwapPicker()" class="flex-shrink-0 w-9 h-9 rounded-full bg-slate-800 active:bg-slate-700 text-slate-400 flex items-center justify-center transition-all active:scale-90">
+        <button type="button" onclick="closeSwapPicker()" aria-label="Fechar seletor de exercícios" class="flex-shrink-0 w-9 h-9 rounded-full bg-slate-800 active:bg-slate-700 text-slate-400 flex items-center justify-center transition-all active:scale-90">
           <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
         </button>
       </div>
@@ -558,7 +564,7 @@
     </div>
   </header>
 
-  <nav id="bottomNav" class="fixed bottom-4 left-1/2 -translate-x-1/2 z-50 w-[calc(100%-2rem)] max-w-xs">
+  <nav id="bottomNav" aria-label="Navegação principal" class="fixed bottom-4 left-1/2 -translate-x-1/2 z-50 w-[calc(100%-2rem)] max-w-xs">
     <div class="flex items-center justify-between bg-slate-900/80 backdrop-blur-xl border border-white/10 rounded-2xl px-2 py-2 shadow-[0_8px_32px_rgba(0,0,0,0.55),inset_0_1px_0_rgba(255,255,255,0.06)]">
       <button id="navTreino" type="button" onclick="switchView('treino')" class="flex-1 flex flex-col items-center gap-0.5 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-wider transition-all duration-150">
         <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 9h16.5m-16.5 6.75h16.5" /></svg>
@@ -1106,11 +1112,19 @@
   </div>
 
   <script>
-    const APP_VERSION = '2.19.1'; // manter sincronizado com CACHE_NAME em sw.js e com o CHANGELOG.md
+    const APP_VERSION = '2.19.2'; // manter sincronizado com CACHE_NAME em sw.js e com o CHANGELOG.md
 
     // ---------- NOVIDADES (tela para testadores — só experiência do usuário, sem termos técnicos) ----------
     // Detalhes técnicos ficam só no CHANGELOG.md interno. Ordem: mais recente primeiro.
     const RELEASE_NOTES = [
+      {
+        version: '2.19.2', date: '2026-09-07',
+        highlights: [
+          '🧭 <strong>Navegação mais estável.</strong> O cabeçalho deixa de oscilar ao rolar a página.',
+          '🛡️ <strong>Backup mais protegido.</strong> A restauração agora confere também a versão do arquivo e evita arquivos excessivamente grandes.',
+          '⌨️ <strong>Melhor uso no celular.</strong> Campos ficam mais seguros com o teclado aberto e os controles ganharam melhorias de acessibilidade.'
+        ]
+      },
       {
         version: '2.19.1', date: '2026-09-07',
         highlights: [
@@ -1485,6 +1499,9 @@
       'treino_last_backup_nag', 'treino_optional_migrated', 'treino_workout_meta',
       'treino_log_sanitized'
     ];
+    // Um limite protege o app de tentar ler um arquivo incorreto ou excessivamente grande.
+    // É generoso para históricos longos, mas evita pressão de memória em celulares modestos.
+    const MAX_BACKUP_BYTES = 15 * 1024 * 1024;
     // Chaves serializadas como JSON. As demais guardam textos simples, como o perfil ativo
     // e as marcas de migração. Validar antes de importar evita trocar todo o progresso por
     // um arquivo truncado ou por dados de outro aplicativo.
@@ -1598,6 +1615,10 @@
       const file = input.files && input.files[0];
       input.value = ''; // permite reimportar o mesmo arquivo depois
       if (!file) return;
+      if (file.size > MAX_BACKUP_BYTES) {
+        showToast('❌ Backup muito grande. O limite é de 15 MB.');
+        return;
+      }
       const reader = new FileReader();
       reader.onload = () => {
         try {
@@ -1613,7 +1634,7 @@
     };
 
     function openImportConfirm(fileName) {
-      if (!pendingImport || pendingImport.app !== 'treino-personalizado' || !isValidBackupData(pendingImport.data)) {
+      if (!pendingImport || pendingImport.app !== 'treino-personalizado' || pendingImport.backupVersion !== 1 || !isValidBackupData(pendingImport.data)) {
         pendingImport = null;
         showToast('❌ Backup inválido ou corrompido. Use um arquivo exportado por este app.');
         return;
@@ -2489,8 +2510,12 @@
 
     // ---------- CABEÇALHO ENCOLHE AO ROLAR (ganha espaço de tela) ----------
     let headerCompact = false;
+    let headerScrollFrame = null;
     function updateHeaderOnScroll() {
-      const shouldCompact = window.scrollY > 40;
+      const scrollY = window.scrollY;
+      // Usa duas faixas de ativação para que a alteração de altura do cabeçalho
+      // não faça a página alternar entre os estados perto do mesmo ponto.
+      const shouldCompact = headerCompact ? scrollY > 20 : scrollY > 72;
       if (shouldCompact === headerCompact) return;
       headerCompact = shouldCompact;
       const header = document.getElementById('appHeader');
@@ -2526,7 +2551,15 @@
         levelBarWrap.classList.remove('mt-1.5');
       }
     }
-    window.addEventListener('scroll', updateHeaderOnScroll, { passive: true });
+    function scheduleHeaderUpdate() {
+      if (headerScrollFrame !== null) return;
+      headerScrollFrame = window.requestAnimationFrame(() => {
+        headerScrollFrame = null;
+        updateHeaderOnScroll();
+      });
+    }
+    window.addEventListener('scroll', scheduleHeaderUpdate, { passive: true });
+    updateHeaderOnScroll();
 
     // ---------- TOAST GENÉRICO (com fila) ----------
     // Vários eventos podem disparar toasts quase ao mesmo tempo (ex: concluir o último
@@ -3892,7 +3925,7 @@
             <button type="button" onclick="openExerciseProgress('${historyKey}', '${escapeJs(state.name)}')" class="flex-1 bg-slate-950/60 border border-slate-700 active:border-emerald-600 text-slate-300 active:text-emerald-300 text-[11px] font-black py-2.5 rounded-xl transition-all active:scale-[0.98] flex items-center justify-center gap-1.5">
               <span>📊</span> Evolução
             </button>
-            <button type="button" onclick="openSwapPicker('${ex.id}')" title="Trocar por outro exercício" class="flex-shrink-0 w-11 h-11 bg-slate-950/60 border border-slate-700 active:border-amber-600 text-slate-300 active:text-amber-300 rounded-xl transition-all active:scale-[0.98] flex items-center justify-center">
+            <button type="button" onclick="openSwapPicker('${ex.id}')" title="Trocar por outro exercício" aria-label="Procurar exercício para substituir ${escapeHtml(state.name)}" class="flex-shrink-0 w-11 h-11 bg-slate-950/60 border border-slate-700 active:border-amber-600 text-slate-300 active:text-amber-300 rounded-xl transition-all active:scale-[0.98] flex items-center justify-center">
               <span class="text-sm">🔍</span>
             </button>
           </div>

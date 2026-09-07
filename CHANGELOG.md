@@ -6,6 +6,18 @@ Todas as mudanças relevantes do app ficam registradas aqui. Ao lançar uma nova
    atualizar o app instalado
 3. Adicione uma entrada aqui, nesse formato
 
+## [2.19.2] - 2026-09-07
+
+### Corrigido
+- Cabeçalho estável durante a rolagem: os estados expandido e compacto não oscilam perto do topo.
+- Importação de backup limitada a 15 MB e protegida por verificação explícita da versão do arquivo.
+- Testes Android agora usam o identificador real do aplicativo.
+
+### Alterado
+- Android mantém o app em retrato e redimensiona a tela quando o teclado é aberto.
+- Foco de teclado, anúncios de status e botões de ícone receberam melhorias de acessibilidade.
+- O pipeline de APK valida contratos web e teste unitário Android antes de assinar a distribuição.
+
 ## [2.19.1] - 2026-09-07
 
 ### Corrigido
