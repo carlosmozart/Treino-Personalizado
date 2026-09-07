@@ -6,6 +6,17 @@ Todas as mudanças relevantes do app ficam registradas aqui. Ao lançar uma nova
    atualizar o app instalado
 3. Adicione uma entrada aqui, nesse formato
 
+## [2.19.0] - 2026-09-07
+
+### Adicionado
+- Estrutura de empacotamento Android com Capacitor: configuração, preparação dos arquivos web e
+  comandos npm para sincronizar, abrir e gerar o APK.
+- Guia de publicação Android com pré-requisitos e comandos reproduzíveis.
+
+### Alterado
+- O service worker continua ativo no site/PWA, mas é desativado no contêiner nativo, que já
+  recebe os arquivos locais versionados no momento do empacotamento.
+
 ## [2.18.1] - 2026-09-07
 
 ### Corrigido

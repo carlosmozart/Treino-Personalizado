@@ -461,7 +461,7 @@
     </div>
   </div>
 
-  <div id="importConfirmOverlay" class="hidden fixed inset-0 bg-slate-950/95 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
+  <div id="importConfirmOverlay" class="hidden fixed inset-0 bg-slate-950/95 backdrop-blur-sm z-[110] flex items-center justify-center p-4">
     <div class="bg-slate-900 rounded-2xl border border-amber-800/50 shadow-2xl max-w-sm w-full p-6">
       <div class="text-center mb-4">
         <span class="text-4xl">♻️</span>
@@ -523,6 +523,8 @@
       </div>
       <p id="onboardingError" class="hidden text-[11px] text-rose-400 font-bold mt-3 text-center"></p>
       <button type="button" onclick="submitOnboarding()" class="mt-5 w-full bg-blue-600 hover:bg-blue-500 text-white font-extrabold text-sm py-3 rounded-xl transition-all active:scale-[0.99]">Começar</button>
+      <button type="button" onclick="triggerImportBackup()" class="mt-3 w-full bg-slate-900 border border-slate-700 active:border-amber-600 text-amber-300 font-extrabold text-sm py-3 rounded-xl transition-all active:scale-[0.99]">♻️ Já usa o app? Restaurar backup</button>
+      <p class="mt-2 text-[10px] text-slate-500 text-center leading-relaxed">Exporte o backup na versão web e escolha o arquivo aqui para trazer seus dados.</p>
       <p class="text-[9px] text-slate-600 mt-3 text-justify">Nome, data de nascimento, altura e peso são obrigatórios. Tudo fica salvo apenas no seu aparelho.</p>
     </div>
   </div>
@@ -1104,11 +1106,18 @@
   </div>
 
   <script>
-    const APP_VERSION = '2.18.1'; // manter sincronizado com CACHE_NAME em sw.js e com o CHANGELOG.md
+    const APP_VERSION = '2.19.0'; // manter sincronizado com CACHE_NAME em sw.js e com o CHANGELOG.md
 
     // ---------- NOVIDADES (tela para testadores — só experiência do usuário, sem termos técnicos) ----------
     // Detalhes técnicos ficam só no CHANGELOG.md interno. Ordem: mais recente primeiro.
     const RELEASE_NOTES = [
+      {
+        version: '2.19.0', date: '2026-09-07',
+        highlights: [
+          '📱 <strong>Preparado para Android.</strong> O app agora pode ser empacotado como aplicativo Android, mantendo seus dados no aparelho.',
+          '🧭 <strong>Funcionamento mais estável no app instalado.</strong> O cache do navegador fica no site/PWA; no aplicativo Android, a versão enviada já é usada diretamente.'
+        ]
+      },
       {
         version: '2.18.1', date: '2026-09-07',
         highlights: [
@@ -1379,7 +1388,8 @@
         (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1); // iPadOS se identifica como Mac
       const isStandalone = window.matchMedia('(display-mode: standalone)').matches ||
         window.navigator.standalone === true; // window.navigator.standalone é específico do iOS
-      return { isIOS, isStandalone, isAndroid: /Android/.test(ua) };
+      const isNative = !!(window.Capacitor && typeof window.Capacitor.isNativePlatform === 'function' && window.Capacitor.isNativePlatform());
+      return { isIOS, isStandalone, isAndroid: /Android/.test(ua), isNative };
     })();
 
     // ---------- ESCAPE DE HTML ----------
@@ -6719,7 +6729,9 @@
       }
     });
 
-    if ('serviceWorker' in navigator) {
+    // O APK do Capacitor já carrega arquivos locais versionados. Service workers são úteis no
+    // site/PWA, mas podem criar uma segunda camada de cache desnecessária dentro do WebView.
+    if (!PLATFORM.isNative && 'serviceWorker' in navigator) {
       window.addEventListener('load', () => {
         navigator.serviceWorker.register('sw.js').then((registration) => {
           // Verifica se ha versao nova toda vez que o app abre. Offline isso SEMPRE falha, e
