@@ -6,6 +6,16 @@ Todas as mudanças relevantes do app ficam registradas aqui. Ao lançar uma nova
    atualizar o app instalado
 3. Adicione uma entrada aqui, nesse formato
 
+## [2.19.3] - 2026-09-07
+
+### Adicionado
+- Lembretes semanais de treino no Android, configurados pelo horário do plano e executados pelo sistema mesmo com o app fechado.
+- Notificação ao fim do descanso quando o aplicativo vai para segundo plano.
+
+### Alterado
+- Lembretes usam alarmes inexatos, adequados a avisos de treino e sem exigir a permissão especial de alarmes exatos.
+- Novo ícone monocromático de notificação e canal próprio para os avisos do Meu Treino.
+
 ## [2.19.2] - 2026-09-07
 
 ### Corrigido

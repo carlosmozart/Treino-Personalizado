@@ -16,9 +16,9 @@ android {
         applicationId "com.treinopersonalizado.app"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        // O código deve crescer a cada publicação na Play Store; 2.19.2 -> 21902.
-        versionCode 21902
-        versionName "2.19.2"
+        // O código deve crescer a cada publicação na Play Store; 2.19.3 -> 21903.
+        versionCode 21903
+        versionName "2.19.3"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         aaptOptions {
              // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.

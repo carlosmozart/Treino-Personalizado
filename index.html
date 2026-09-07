@@ -863,6 +863,30 @@
       </div>
     </section>
 
+    <section class="bg-slate-900 rounded-2xl p-5 border border-slate-800 shadow-sm">
+      <div class="flex items-center gap-2 mb-1">
+        <span class="text-base">🔔</span>
+        <h3 class="text-xs font-black uppercase tracking-widest text-slate-400">Lembretes no Celular</h3>
+      </div>
+      <p id="notificationSupportText" class="text-[10px] text-slate-600 mb-4">Ative no APK para receber avisos mesmo com o app fechado.</p>
+
+      <div class="flex items-center justify-between gap-3 py-2">
+        <div class="min-w-0">
+          <p class="text-xs font-bold text-slate-300">Lembrete de treino</p>
+          <p class="text-[10px] text-slate-600">Nos dias do plano, no horário configurado</p>
+        </div>
+        <button type="button" id="trainingRemindersToggle" onclick="toggleNotificationSetting('trainingReminders')" aria-pressed="false" aria-label="Ativar lembretes de treino" class="relative w-11 h-6 rounded-full bg-slate-700 transition-all duration-200 flex-shrink-0"></button>
+      </div>
+
+      <div class="flex items-center justify-between gap-3 py-2 border-t border-slate-800/60">
+        <div class="min-w-0">
+          <p class="text-xs font-bold text-slate-300">Aviso de descanso em segundo plano</p>
+          <p class="text-[10px] text-slate-600">Quando o cronômetro terminar fora do app</p>
+        </div>
+        <button type="button" id="restBackgroundNotificationToggle" onclick="toggleNotificationSetting('restBackgroundNotification')" aria-pressed="false" aria-label="Ativar avisos de descanso em segundo plano" class="relative w-11 h-6 rounded-full bg-slate-700 transition-all duration-200 flex-shrink-0"></button>
+      </div>
+    </section>
+
     <section class="bg-slate-900 rounded-2xl p-5 border border-blue-900/40 shadow-sm">
       <div class="flex items-center gap-2 mb-1">
         <span class="text-base">🛟</span>
@@ -1112,11 +1136,18 @@
   </div>
 
   <script>
-    const APP_VERSION = '2.19.2'; // manter sincronizado com CACHE_NAME em sw.js e com o CHANGELOG.md
+    const APP_VERSION = '2.19.3'; // manter sincronizado com CACHE_NAME em sw.js e com o CHANGELOG.md
 
     // ---------- NOVIDADES (tela para testadores — só experiência do usuário, sem termos técnicos) ----------
     // Detalhes técnicos ficam só no CHANGELOG.md interno. Ordem: mais recente primeiro.
     const RELEASE_NOTES = [
+      {
+        version: '2.19.3', date: '2026-09-07',
+        highlights: [
+          '🔔 <strong>Lembretes no Android.</strong> Ative avisos semanais para o horário do seu treino, mesmo com o app fechado.',
+          '⏰ <strong>Descanso sem perder o tempo.</strong> O celular avisa quando o cronômetro terminar enquanto você estiver em outro app.'
+        ]
+      },
       {
         version: '2.19.2', date: '2026-09-07',
         highlights: [
@@ -1482,7 +1513,9 @@
       restSeconds: 90,
       restAutoStart: true,
       restSound: true,
-      restVibrate: true
+      restVibrate: true,
+      trainingReminders: false,
+      restBackgroundNotification: false
     }, loadJSON(SETTINGS_KEY));
 
     function saveSettings() { saveJSON(SETTINGS_KEY, settings); }
@@ -1856,6 +1889,7 @@
       renderExercises();
       renderCheckinGrid();
       renderLevelBar();
+      syncTrainingReminders(false).catch(() => {});
       showToast(`Perfil "${profiles[profileId].name}" selecionado!`);
       switchView('treino');
       checkAchievements();
@@ -2203,6 +2237,7 @@
         renderHeader();
         renderExercises();
       }
+      syncTrainingReminders(false).catch(() => {});
     };
 
     // Formata uma data usando o fuso horário LOCAL do aparelho (não UTC). Isso é essencial:
@@ -3105,6 +3140,7 @@
       renderWeightHistory();
       renderGoalRoadmap();
       renderRestSettings();
+      renderNotificationSettings();
       renderBackupStatus();
       renderWeeklyVolume();
       renderWorkoutHistory();
@@ -6438,6 +6474,174 @@
       renderBackupStatus();
     }
 
+    // ---------- NOTIFICAÇÕES LOCAIS (ANDROID) ----------
+    // O plugin agenda no sistema operacional; por isso o lembrete não depende do JavaScript
+    // continuar ativo quando o WebView estiver fechado. Na versão web os controles continuam
+    // visíveis, mas explicam que esse recurso pertence ao APK.
+    const TRAINING_NOTIFICATION_IDS = DAY_ORDER.reduce((ids, day, index) => {
+      ids[day] = 4100 + index;
+      return ids;
+    }, {});
+    const REST_NOTIFICATION_ID = 4199;
+
+    function localNotifications() {
+      return PLATFORM.isNative && window.Capacitor && window.Capacitor.Plugins
+        ? window.Capacitor.Plugins.LocalNotifications
+        : null;
+    }
+
+    function parseTrainingTime(value) {
+      const match = /^(\d{1,2}):(\d{2})$/.exec(String(value || ''));
+      if (!match) return null;
+      const hour = Number(match[1]);
+      const minute = Number(match[2]);
+      return hour >= 0 && hour <= 23 && minute >= 0 && minute <= 59 ? { hour, minute } : null;
+    }
+
+    async function ensureNotificationPermission() {
+      const plugin = localNotifications();
+      if (!plugin) return { display: 'denied', unavailable: true };
+      let permission = await plugin.checkPermissions();
+      if (permission.display !== 'granted') permission = await plugin.requestPermissions();
+      return permission;
+    }
+
+    async function cancelTrainingReminders() {
+      const plugin = localNotifications();
+      if (!plugin) return;
+      await plugin.cancel({ notifications: DAY_ORDER.map(day => ({ id: TRAINING_NOTIFICATION_IDS[day] })) });
+    }
+
+    async function ensureNotificationChannel(plugin) {
+      await plugin.createChannel({
+        id: 'treino-lembretes',
+        name: 'Lembretes de treino',
+        description: 'Horários de treino e descansos',
+        importance: 4,
+        visibility: 1
+      });
+    }
+
+    async function syncTrainingReminders(requestPermission) {
+      const plugin = localNotifications();
+      if (!plugin || !settings.trainingReminders) return;
+      const profile = getActiveProfile();
+      const time = parseTrainingTime(profile && profile.trainingTime);
+      if (!time) {
+        settings.trainingReminders = false;
+        saveSettings();
+        renderNotificationSettings();
+        showToast('⚠️ Defina o horário do treino no plano para ativar lembretes.');
+        return;
+      }
+
+      const permission = requestPermission
+        ? await ensureNotificationPermission()
+        : await plugin.checkPermissions();
+      if (permission.display !== 'granted') {
+        settings.trainingReminders = false;
+        saveSettings();
+        renderNotificationSettings();
+        if (requestPermission) showToast('🔕 Permissão de notificações não concedida.');
+        return;
+      }
+
+      await cancelTrainingReminders();
+      const notifications = DAY_ORDER
+        .filter(day => {
+          const workoutDay = profile && profile.schedule && profile.schedule[day];
+          return workoutDay && !workoutDay.optional && (workoutDay.exercises || []).some(ex => ex && ex.name && ex.name.trim());
+        })
+        .map(day => {
+          const workoutDay = profile.schedule[day];
+          return {
+            id: TRAINING_NOTIFICATION_IDS[day],
+            title: 'Hora do treino 💪',
+            body: workoutDay.name ? `Hoje: ${workoutDay.name}` : 'Seu treino está pronto para começar.',
+            channelId: 'treino-lembretes',
+            extra: { targetView: 'treino', type: 'training-reminder' },
+            // Weekday do Capacitor começa no domingo (1); SEG é segunda-feira (2).
+            schedule: { on: { weekday: DAY_ORDER.indexOf(day) + 2, hour: time.hour, minute: time.minute }, allowWhileIdle: true },
+            isExactNotification: false
+          };
+        });
+      if (!notifications.length) return;
+      await ensureNotificationChannel(plugin);
+      await plugin.schedule({ notifications });
+    }
+
+    async function scheduleRestBackgroundNotification() {
+      const plugin = localNotifications();
+      if (!plugin || !settings.restBackgroundNotification || !restTimer.running) return;
+      const permission = await plugin.checkPermissions();
+      if (permission.display !== 'granted') return;
+      const at = new Date(restTimer.endsAt);
+      if (at <= new Date()) return;
+      await ensureNotificationChannel(plugin);
+      await plugin.schedule({ notifications: [{
+        id: REST_NOTIFICATION_ID,
+        title: 'Descanso concluído ⏰',
+        body: restTimer.exerciseName ? `Volte para ${restTimer.exerciseName}.` : 'Bora para a próxima série!',
+        channelId: 'treino-lembretes',
+        extra: { targetView: 'treino', type: 'rest-finished' },
+        schedule: { at, allowWhileIdle: true },
+        isExactNotification: false
+      }] });
+    }
+
+    async function cancelRestBackgroundNotification() {
+      const plugin = localNotifications();
+      if (!plugin) return;
+      try { await plugin.cancel({ notifications: [{ id: REST_NOTIFICATION_ID }] }); } catch (_) {}
+    }
+
+    function renderNotificationSettings() {
+      const text = document.getElementById('notificationSupportText');
+      if (text) text.textContent = PLATFORM.isNative
+        ? 'Os avisos são agendados no Android e funcionam com o app fechado.'
+        : 'Disponível no APK Android. Na versão web, os lembretes dependem do navegador aberto.';
+      [['trainingRemindersToggle', 'trainingReminders'], ['restBackgroundNotificationToggle', 'restBackgroundNotification']].forEach(([id, field]) => {
+        const el = document.getElementById(id);
+        if (!el) return;
+        const on = !!settings[field];
+        el.disabled = !PLATFORM.isNative;
+        el.setAttribute('aria-pressed', on ? 'true' : 'false');
+        el.className = `relative w-11 h-6 rounded-full transition-all duration-200 flex-shrink-0 ${on ? 'bg-blue-600' : 'bg-slate-700'} ${PLATFORM.isNative ? '' : 'opacity-40 cursor-not-allowed'}`;
+        el.innerHTML = `<span class="absolute top-0.5 w-5 h-5 bg-white rounded-full shadow transition-all duration-200 ${on ? 'left-[1.375rem]' : 'left-0.5'}"></span>`;
+      });
+    }
+
+    window.toggleNotificationSetting = async function(field) {
+      try {
+        if (!PLATFORM.isNative) {
+          showToast('📱 Ative este recurso no APK Android.');
+          return;
+        }
+        const next = !settings[field];
+        if (!next) {
+          settings[field] = false;
+          saveSettings();
+          renderNotificationSettings();
+          if (field === 'trainingReminders') await cancelTrainingReminders();
+          if (field === 'restBackgroundNotification') await cancelRestBackgroundNotification();
+          return;
+        }
+        const permission = await ensureNotificationPermission();
+        if (permission.display !== 'granted') {
+          showToast('🔕 Permissão de notificações não concedida.');
+          return;
+        }
+        settings[field] = true;
+        saveSettings();
+        renderNotificationSettings();
+        if (field === 'trainingReminders') await syncTrainingReminders(false);
+        showToast(field === 'trainingReminders' ? '🔔 Lembretes de treino ativados!' : '⏰ Aviso de descanso em segundo plano ativado!');
+      } catch (error) {
+        console.error('Não foi possível atualizar as notificações.', error);
+        showToast('⚠️ Não foi possível configurar os avisos agora.');
+      }
+    };
+
     // ---------- CRONÔMETRO DE DESCANSO ENTRE SÉRIES ----------
     // O tempo é calculado a partir do horário de término (Date.now()), nunca contando ticks:
     // iOS e Android congelam os timers de JS quando o app vai para segundo plano ou a tela
@@ -6491,6 +6695,7 @@
 
     window.startRestTimer = function(seconds, exerciseName) {
       unlockAudio(); // veio de um toque do usuário: melhor momento para liberar o áudio no iOS
+      cancelRestBackgroundNotification();
       const total = Math.max(5, parseInt(seconds, 10) || settings.restSeconds);
       restTimer.total = total;
       restTimer.endsAt = Date.now() + total * 1000;
@@ -6536,6 +6741,7 @@
     function finishRestTimer() {
       clearInterval(restTimer.interval);
       restTimer.running = false;
+      cancelRestBackgroundNotification();
       const el = document.getElementById('restTimerWidget');
       el.classList.remove('timer-pop');
       el.classList.add('timer-finish');
@@ -6549,6 +6755,7 @@
     window.stopRestTimer = function() {
       clearInterval(restTimer.interval);
       restTimer.running = false;
+      cancelRestBackgroundNotification();
       const el = document.getElementById('restTimerWidget');
       el.classList.add('hidden');
       el.classList.remove('timer-pop', 'timer-finish');
@@ -6561,13 +6768,18 @@
       // impede o ajuste negativo de jogar o fim para o passado e encerrar sem querer
       const minEnd = Date.now() + 1000;
       if (restTimer.endsAt < minEnd) restTimer.endsAt = minEnd;
+      if (document.hidden) scheduleRestBackgroundNotification().catch(() => {});
       tickRestTimer();
     };
 
     // Ao voltar do segundo plano, recalcula na hora em vez de esperar o próximo tick —
     // se o tempo acabou enquanto o app estava fechado, avisa imediatamente.
     document.addEventListener('visibilitychange', () => {
-      if (document.hidden) return;
+      if (document.hidden) {
+        scheduleRestBackgroundNotification().catch(() => {});
+        return;
+      }
+      cancelRestBackgroundNotification().catch(() => {});
       if (restTimer.running) tickRestTimer();
       // app que fica dias aberto em segundo plano: ao voltar, o que esta na tela pode
       // estar desatualizado
@@ -6599,6 +6811,7 @@
       // vibração não existe no iOS: mostra o motivo em vez de um botão que não faz nada
       const vibrateRow = document.getElementById('restVibrateRow');
       if (vibrateRow) vibrateRow.classList.toggle('hidden', !navigator.vibrate);
+      renderNotificationSettings();
     }
 
     window.toggleRestSetting = function(field) {
@@ -6752,6 +6965,8 @@
       renderExercises();
       renderCheckinGrid();
       renderLevelBar();
+      renderNotificationSettings();
+      syncTrainingReminders(false).catch(() => {});
       switchView('treino');
       document.getElementById('appVersion').textContent = `v${APP_VERSION}`;
       checkBirthday();

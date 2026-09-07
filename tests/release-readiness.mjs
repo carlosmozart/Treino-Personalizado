@@ -4,7 +4,7 @@ import { resolve } from 'node:path';
 
 const root = process.cwd();
 const read = (file) => readFile(resolve(root, file), 'utf8');
-const [html, worker, manifest, pkg, lockfile, gradle, androidManifest, unitTest, deviceTest] = await Promise.all([
+const [html, worker, manifest, pkg, lockfile, gradle, androidManifest, capacitorGradle, capacitorSettings, capacitorConfig, unitTest, deviceTest] = await Promise.all([
   read('index.html'),
   read('sw.js'),
   read('manifest.json'),
@@ -12,6 +12,9 @@ const [html, worker, manifest, pkg, lockfile, gradle, androidManifest, unitTest,
   read('package-lock.json'),
   read('android/app/build.gradle'),
   read('android/app/src/main/AndroidManifest.xml'),
+  read('android/app/capacitor.build.gradle'),
+  read('android/capacitor.settings.gradle'),
+  read('capacitor.config.json'),
   read('android/app/src/test/java/com/treinopersonalizado/app/ExampleUnitTest.java'),
   read('android/app/src/androidTest/java/com/treinopersonalizado/app/ExampleInstrumentedTest.java')
 ]);
@@ -33,6 +36,13 @@ assert.match(unitTest, /BuildConfig\.APPLICATION_ID/, 'Teste unitário deve prot
 assert.match(deviceTest, /com\.treinopersonalizado\.app/, 'Teste em aparelho deve conferir o identificador.');
 assert.match(androidManifest, /android:screenOrientation="portrait"/, 'Android deve respeitar o layout retrato.');
 assert.match(androidManifest, /android:windowSoftInputMode="adjustResize"/, 'Teclado Android deve redimensionar a tela.');
+assert.match(androidManifest, /SCHEDULE_EXACT_ALARM[\s\S]*tools:node="remove"/, 'Alarmes exatos não devem ser pedidos para lembretes comuns.');
+assert.match(capacitorGradle, /capacitor-local-notifications/, 'Plugin de notificações deve entrar no app Android.');
+assert.match(capacitorSettings, /capacitor-local-notifications/, 'Plugin de notificações deve ser registrado no Gradle.');
+assert.match(capacitorConfig, /"LocalNotifications"/, 'Ícone de notificações deve estar configurado.');
+assert.match(pkg, /@capacitor\/local-notifications/, 'Pacote de notificações deve permanecer instalado.');
+assert.match(html, /isExactNotification: false/, 'Lembretes devem evitar alarmes exatos sem necessidade.');
+assert.match(html, /weekday: DAY_ORDER\.indexOf\(day\) \+ 2/, 'Cada lembrete precisa manter o dia correto do treino.');
 
 assert.match(html, /const MAX_BACKUP_BYTES = 15 \* 1024 \* 1024/, 'Importação precisa limitar o tamanho do backup.');
 assert.match(html, /file\.size > MAX_BACKUP_BYTES/, 'Limite do backup deve ser conferido antes da leitura.');

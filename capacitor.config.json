@@ -1,5 +1,11 @@
 {
   "appId": "com.treinopersonalizado.app",
   "appName": "Meu Treino",
-  "webDir": "www"
+  "webDir": "www",
+  "plugins": {
+    "LocalNotifications": {
+      "smallIcon": "ic_stat_treino",
+      "iconColor": "#2563EB"
+    }
+  }
 }
