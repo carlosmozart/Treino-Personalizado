@@ -1,0 +1,64 @@
+Bloco de Notas — Treino Personalizado (Melhorias)
+Organizado a partir da análise de 13/09/2026. Itens marcados com prioridade.
+
+A. Testes e Qualidade
+#	Sugestão	Prioridade
+A1	Testes unitários para funções puras: formatLocalDateKey, getMondayOf, isRestDay, calculateStreak, sessionVolume, describeEntry, parsePlanoDaIA, estimateWorkoutCalories, normalizeExerciseName	Alta
+A2	Testes de fumaça com Playwright: onboarding → treino → check-in automático → histórico; importador da IA com as duas amostras (Claude/ChatGPT)	Alta
+A3	GitHub Actions rodando testes a cada push	Alta
+A4	Adicionar package.json com devDependencies (vitest, playwright, eslint) — sem bundler, só para CI	Média
+A5	Varredura por console.log residual	Baixa
+B. Persistência e Dados
+#	Sugestão	Prioridade
+B1	Migrar sessionLog e exerciseHistory para IndexedDB antes do teto de ~5 MB (localStorage)	Alta
+B2	Se não migrar de imediato: expurgo por política (manter N sessões mais recentes *e* as mais pesadas por exercício)	Alta
+B3	Compressão dos dados no localStorage (ex.: LZ-string) enquanto a migração não acontece	Média
+B4	CACHE_NAME derivado de hash do commit (git rev-parse --short HEAD) em vez de manual (treino-cache-v38)	Média
+B5	Manter RELEASE_NOTES_ARCHIVE em arquivo separado com link no app (usuário que salta da 2.5 para 2.18 perde notas intermediárias)	Baixa
+C. Parser da IA
+#	Sugestão	Prioridade
+C1	Fallback explícito em vez de mais tolerâncias: rejeitar o que não casa com o schema e mostrar o trecho cru ao usuário com instrução de formato	Alta
+C2	Documentar no prompt: "se não conseguir produzir o bloco, avise"	Média
+C3	Preparar o parser para variações previsíveis (DIA: SEG, EX - Supino) sem quebrar silenciosamente	Média
+D. Segurança e Privacidade do Backup
+#	Sugestão	Prioridade
+D1	Aviso na exportação: "este arquivo contém seus dados de saúde; guarde com cuidado"	Média
+D2	Criptografia opcional no backup (PBKDF2 + AES-GCM via WebCrypto, tudo local)	Média
+D3	Ajustar navigator.share({ files }) no iOS — risco de cair em app errado; usar text/plain com preview	Baixa
+E. Estimativa de Calorias
+#	Sugestão	Prioridade
+E1	Refinar MET_FORCA: usar dados já disponíveis (séries, reps, carga, duração) para estimar densidade — 3x12 leve ≠ 5x3 pesado	Média
+E2	Aviso quando o peso cadastrado tem X dias ("peso de 90 dias atrás")	Média
+E3	Garantir que o "≈" esteja visível na UI (não só no changelog)	Baixa
+F. Acessibilidade e i18n
+#	Sugestão	Prioridade
+F1	aria-modal e focus trap em overlays	Média
+F2	Testes com leitor de tela (TalkBack/VoiceOver)	Média
+F3	i18n (pt-BR / en) via Intl — fácil agora, impossível depois	Baixa
+G. Arquitetura e Manutenção
+#	Sugestão	Prioridade
+G1	Modularizar o monolito single-file: módulos ES (<script type="module">) com arquivos .js independentes; SW cacheia e offline continua	Média
+G2	No mínimo, separar dados (RELEASE_NOTES, EXERCISE_LIBRARY, ACHIEVEMENTS, MET_*) de lógica de render	Média
+H. Build e Distribuição (APK)
+#	Sugestão	Prioridade
+H1	Manter Capacitor para o caso atual (ver análise abaixo)	—
+H2	Considerar Capacitor só se precisar de notificações agendadas, acesso a arquivos ou criptografia nativa	—
+H3	Se Capacitor se mostrar limitante: migrar gradualmente para Kotlin Multiplatform (KMP) — compartilha lógica, UI nativa	Baixa
+H4	Evitar reescrita completa em Kotlin puro (custo alto, ganho marginal para este domínio)	—
+I. Pequenos Ajustes
+#	Sugestão
+I1	Adicionar @capacitor/local-notifications se notificações agendadas forem necessárias
+I2	Testar cache.addAll + cache: 'reload' em device real mais cedo (comportamento varia em WebView/TWA)
+I3	Revisar stopPropagation na bolha de nome — pode quebrar acessibilidade
+J. Decisão Tecnológica: Composer vs Kotlin
+Resposta curta: continue com Capacitor. Kotlin puro não compensa para este projeto.
+
+Comparação
+Critério	Capacitor	Kotlin Nativo
+Performance	WebView; diferença perceptível só em jogos, animações complexas, ML embarcado 	Máxima
+Custo	1 codebase; você já tem o web pronto	2 codebases (iOS + Android) ou só Android
+Manutenção	Web ecosystem; plugins variam de qualidade 	Ferramentas maduras
+Curva de aprendizado	Você já domina	Nova stack para manter
+Distribuição	1 build → ambos os stores	Build separado por plataforma
+Deep hardware	Via plugins (BLE, NFC, câmera avançada) 	Acesso direto
+Notificações agendadas	Requer plugin (@capacitor/local-notifications) 	Sim
