@@ -6,6 +6,16 @@ Todas as mudanças relevantes do app ficam registradas aqui. Ao lançar uma nova
    atualizar o app instalado
 3. Adicione uma entrada aqui, nesse formato
 
+## [2.19.4] - 2026-09-19
+
+### Adicionado
+- Aviso de descanso usa alarme exato no Android quando o usuário autoriza essa configuração do sistema.
+- Canal de notificações com alerta sonoro, vibração e maior destaque visual ao fim do descanso.
+
+### Alterado
+- Modais, nomes de exercícios truncados e aviso de término receberam melhorias de acessibilidade.
+- O APK gerado pelo GitHub Actions agora expira automaticamente em 24 horas.
+
 ## [2.19.3] - 2026-09-07
 
 ### Adicionado

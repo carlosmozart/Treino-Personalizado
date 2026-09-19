@@ -1140,11 +1140,18 @@
   </div>
 
   <script>
-    const APP_VERSION = '2.19.3'; // manter sincronizado com CACHE_NAME em sw.js e com o CHANGELOG.md
+    const APP_VERSION = '2.19.4'; // manter sincronizado com CACHE_NAME em sw.js e com o CHANGELOG.md
 
     // ---------- NOVIDADES (tela para testadores — só experiência do usuário, sem termos técnicos) ----------
     // Detalhes técnicos ficam só no CHANGELOG.md interno. Ordem: mais recente primeiro.
     const RELEASE_NOTES = [
+      {
+        version: '2.19.4', date: '2026-09-19',
+        highlights: [
+          '⏰ <strong>Aviso de descanso mais confiável.</strong> No Android, você pode autorizar alarmes exatos para receber o aviso no horário certo mesmo fora do app.',
+          '♿ <strong>Melhorias de acessibilidade.</strong> Janelas e nomes de exercícios agora funcionam melhor com teclado e leitor de tela.'
+        ]
+      },
       {
         version: '2.19.3', date: '2026-09-07',
         highlights: [
