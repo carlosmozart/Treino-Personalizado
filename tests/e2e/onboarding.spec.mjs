@@ -36,20 +36,65 @@ test.beforeAll(async () => {
 
 test.afterAll(async () => new Promise(resolveServer => server.close(resolveServer)));
 
-test('onboarding leva a uma tela de treino utilizável', async ({ page }) => {
-  await page.goto(baseUrl);
-  await expect(page.locator('#onboardingOverlay')).toBeVisible();
-  await expect(page.locator('#appVersion')).not.toHaveText('');
+async function completeOnboarding(page) {
   await page.waitForTimeout(150);
   await page.locator('#onbName').fill('Pessoa Teste');
   await page.locator('#onbBirthdate').fill('1995-09-19');
   await page.locator('#onbHeight').fill('175');
   await page.locator('#onbWeight').fill('70');
   await page.getByRole('button', { name: 'Começar' }).click();
-
   await expect(page.locator('#onboardingOverlay')).toBeHidden();
+}
+
+test('onboarding leva a uma tela de treino utilizável', async ({ page }) => {
+  await page.goto(baseUrl);
+  await expect(page.locator('#onboardingOverlay')).toBeVisible();
+  await expect(page.locator('#appVersion')).not.toHaveText('');
+  await completeOnboarding(page);
   await expect(page.locator('#workoutSelect')).toBeVisible();
   await expect(page.locator('#restSoundToggle')).toHaveAttribute('aria-pressed', /true|false/);
+});
+
+test('concluir todos os exercícios registra check-in e histórico', async ({ page }) => {
+  await page.goto(baseUrl);
+  await completeOnboarding(page);
+
+  const concluir = page.locator('#exercisesContainer button[title="Marcar como concluído"]');
+  const total = await concluir.count();
+  expect(total).toBeGreaterThan(0);
+  for (let index = 0; index < total; index++) await concluir.nth(index).click();
+
+  await page.waitForTimeout(700);
+  await page.locator('#navPerfil').click();
+  await page.locator('#perfilSubProgresso').click();
+  await expect(page.locator('#workoutHistoryCount')).toHaveText('1');
+  await expect(page.locator('#workoutHistoryList')).not.toContainText('Nenhum treino registrado ainda');
+});
+
+test('importa um plano válido retornado pela IA após a conferência', async ({ page }) => {
+  await page.goto(baseUrl);
+  await completeOnboarding(page);
+  await page.locator('#navPlanos').click();
+  await page.getByRole('button', { name: /Montar treino com IA/ }).click();
+
+  await page.locator('#aiImportInput').fill(`
+    [PLANO]
+    DIA|SEG|Peito e tríceps|Hipertrofia|
+    EX|Supino Reto|forca|3|10|40|Crucifixo máquina|
+    EX|Tríceps na polia|forca|3|12|20|
+    DIA|QUA|Costas|Hipertrofia|
+    EX|Puxada Frontal|forca|3|12|35|
+    [FIM]
+  `);
+  await page.getByRole('button', { name: /Ler plano/ }).click();
+  await expect(page.locator('#aiImportOverlay')).toBeVisible();
+  await expect(page.locator('#aiImportSummary')).toContainText('2');
+  await expect(page.locator('#aiImportDays')).toContainText('Supino Reto');
+  await page.locator('#aiImportName').fill('Plano automatizado de teste');
+  await page.getByRole('button', { name: 'Criar plano' }).click();
+
+  await expect(page.locator('#aiImportOverlay')).toBeHidden();
+  await expect(page.locator('#profileList')).toContainText('Plano automatizado de teste');
 });
 
 test('migra o histórico existente para IndexedDB', async ({ page }) => {

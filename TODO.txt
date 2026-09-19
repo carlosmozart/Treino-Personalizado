@@ -4,7 +4,7 @@ Organizado a partir da análise de 13/09/2026. Itens marcados com prioridade.
 A. Testes e Qualidade
 #	Sugestão	Prioridade
 A1	Testes unitários para funções puras: formatLocalDateKey, getMondayOf, isRestDay, calculateStreak, sessionVolume, describeEntry, parsePlanoDaIA, estimateWorkoutCalories, normalizeExerciseName	Alta
-A2	Testes de fumaça com Playwright: onboarding → treino → check-in automático → histórico; importador da IA com as duas amostras (Claude/ChatGPT)	Alta
+A2	🟡 Testes de fumaça com Playwright: onboarding → treino → check-in automático → histórico; importador da IA coberto com uma amostra — falta segunda amostra (Claude/ChatGPT)	Alta
 A3	✅ GitHub Actions rodando testes a cada push	Alta
 A4	Adicionar package.json com devDependencies (vitest, playwright, eslint) — sem bundler, só para CI	Média
 A5	✅ Varredura por console.log residual — apenas saídas esperadas nos scripts de validação e preparação	Baixa
