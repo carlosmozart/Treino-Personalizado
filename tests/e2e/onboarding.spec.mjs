@@ -56,7 +56,11 @@ test('migra o histórico existente para IndexedDB', async ({ page }) => {
   const legacyLog = {
     'supino-reto': [{ type: 'forca', name: 'Supino Reto', date: '2026-09-19', series: [{ reps: 10, weight: 40 }] }]
   };
+  const legacyExerciseHistory = {
+    'supino-reto': legacyLog['supino-reto'][0]
+  };
   await page.addInitScript(value => localStorage.setItem('treino_session_log', JSON.stringify(value)), legacyLog);
+  await page.addInitScript(value => localStorage.setItem('treino_exercise_history', JSON.stringify(value)), legacyExerciseHistory);
   await page.goto(baseUrl);
   await expect(page.locator('#appVersion')).not.toHaveText('');
 
@@ -65,13 +69,15 @@ test('migra o histórico existente para IndexedDB', async ({ page }) => {
     request.onerror = () => reject(request.error);
     request.onsuccess = () => {
       const transaction = request.result.transaction('state', 'readonly');
-      const read = transaction.objectStore('state').get('current');
-      read.onerror = () => reject(read.error);
-      read.onsuccess = () => resolve(read.result);
+      const store = transaction.objectStore('state');
+      const sessionRead = store.get('current');
+      const historyRead = store.get('exerciseHistory');
+      transaction.onerror = () => reject(transaction.error);
+      transaction.oncomplete = () => resolve({ sessionLog: sessionRead.result, exerciseHistory: historyRead.result });
     };
   }));
 
-  expect(migrated).toEqual(legacyLog);
+  expect(migrated).toEqual({ sessionLog: legacyLog, exerciseHistory: legacyExerciseHistory });
 });
 
 test('mantém o IndexedDB como fonte do histórico após recarregar', async ({ page }) => {

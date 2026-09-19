@@ -1530,6 +1530,7 @@
     const SESSION_DB_NAME = 'treino-session-log';
     const SESSION_DB_STORE = 'state';
     const SESSION_DB_KEY = 'current';
+    const EXERCISE_HISTORY_DB_KEY = 'exerciseHistory';
     let sessionDb = null;
     let sessionDbReady = false;
     let sessionDbGeneration = 0;
@@ -1544,9 +1545,9 @@
       });
     }
 
-    function readSessionDb(db) {
+    function readSessionDb(db, key = SESSION_DB_KEY) {
       return new Promise((resolve, reject) => {
-        const request = db.transaction(SESSION_DB_STORE, 'readonly').objectStore(SESSION_DB_STORE).get(SESSION_DB_KEY);
+        const request = db.transaction(SESSION_DB_STORE, 'readonly').objectStore(SESSION_DB_STORE).get(key);
         request.onsuccess = () => resolve(request.result || null);
         request.onerror = () => reject(request.error);
       });
@@ -1557,6 +1558,16 @@
       return new Promise((resolve, reject) => {
         const transaction = sessionDb.transaction(SESSION_DB_STORE, 'readwrite');
         transaction.objectStore(SESSION_DB_STORE).put(sessionLog, SESSION_DB_KEY);
+        transaction.oncomplete = () => resolve(true);
+        transaction.onerror = () => reject(transaction.error);
+      });
+    }
+
+    function writeExerciseHistoryDb() {
+      if (!sessionDbReady || !sessionDb) return Promise.resolve(false);
+      return new Promise((resolve, reject) => {
+        const transaction = sessionDb.transaction(SESSION_DB_STORE, 'readwrite');
+        transaction.objectStore(SESSION_DB_STORE).put(exerciseHistory, EXERCISE_HISTORY_DB_KEY);
         transaction.oncomplete = () => resolve(true);
         transaction.onerror = () => reject(transaction.error);
       });
@@ -1585,6 +1596,16 @@
       return true;
     }
 
+    function saveExerciseHistory() {
+      if (!sessionDbReady) return saveJSON(HISTORY_KEY, exerciseHistory);
+      writeExerciseHistoryDb().catch(error => {
+        console.error('Falha ao gravar histórico de exercícios no IndexedDB; usando armazenamento local.', error);
+        sessionDbReady = false;
+        saveJSON(HISTORY_KEY, exerciseHistory);
+      });
+      return true;
+    }
+
     async function initializeSessionLogStorage() {
       const generation = sessionDbGeneration;
       try {
@@ -1598,6 +1619,7 @@
         }
         sessionDb = db;
         const stored = await readSessionDb(db);
+        const storedExerciseHistory = await readSessionDb(db, EXERCISE_HISTORY_DB_KEY);
         if (generation !== sessionDbGeneration) {
           db.close();
           if (sessionDb === db) sessionDb = null;
@@ -1606,6 +1628,8 @@
         sessionDbReady = true;
         if (stored && typeof stored === 'object') sessionLog = stored;
         else await writeSessionDb();
+        if (storedExerciseHistory && typeof storedExerciseHistory === 'object') exerciseHistory = storedExerciseHistory;
+        else await writeExerciseHistoryDb();
         // A cópia local continua sendo a rota de migração e backup desta versão.
         // Escritas novas passam a ir para o IndexedDB, que suporta históricos maiores.
       } catch (error) {
@@ -1684,6 +1708,7 @@
       // Após a migração, o histórico mais recente mora no IndexedDB. O backup continua
       // no mesmo formato para preservar compatibilidade com versões anteriores do app.
       data[SESSIONS_KEY] = JSON.stringify(sessionLog);
+      data[HISTORY_KEY] = JSON.stringify(exerciseHistory);
       return {
         app: 'treino-personalizado',
         backupVersion: 1,
@@ -4296,7 +4321,7 @@
       });
 
       saveJSON(COMPLETION_KEY, dailyCompletion);
-      saveJSON(HISTORY_KEY, exerciseHistory);
+      saveExerciseHistory();
       saveSessionLog();
       workoutHistoryCache = [];
       return { volume, linhas, falhas, recordes };
@@ -5252,7 +5277,7 @@
       const lista = sessionLog[historyKey] || [];
       if (lista.length === 0) delete exerciseHistory[historyKey];
       else exerciseHistory[historyKey] = lista[lista.length - 1];
-      saveJSON(HISTORY_KEY, exerciseHistory);
+      saveExerciseHistory();
     }
 
     // Redesenha o que estiver aberto depois de uma correcao.
