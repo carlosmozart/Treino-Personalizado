@@ -36,12 +36,14 @@ assert.match(unitTest, /BuildConfig\.APPLICATION_ID/, 'Teste unitário deve prot
 assert.match(deviceTest, /com\.treinopersonalizado\.app/, 'Teste em aparelho deve conferir o identificador.');
 assert.match(androidManifest, /android:screenOrientation="portrait"/, 'Android deve respeitar o layout retrato.');
 assert.match(androidManifest, /android:windowSoftInputMode="adjustResize"/, 'Teclado Android deve redimensionar a tela.');
-assert.match(androidManifest, /SCHEDULE_EXACT_ALARM[\s\S]*tools:node="remove"/, 'Alarmes exatos não devem ser pedidos para lembretes comuns.');
+assert.match(androidManifest, /<uses-permission android:name="android\.permission\.SCHEDULE_EXACT_ALARM"\s*\/>/, 'O fim do descanso precisa poder usar alarmes exatos.');
 assert.match(capacitorGradle, /capacitor-local-notifications/, 'Plugin de notificações deve entrar no app Android.');
 assert.match(capacitorSettings, /capacitor-local-notifications/, 'Plugin de notificações deve ser registrado no Gradle.');
 assert.match(capacitorConfig, /"LocalNotifications"/, 'Ícone de notificações deve estar configurado.');
 assert.match(pkg, /@capacitor\/local-notifications/, 'Pacote de notificações deve permanecer instalado.');
-assert.match(html, /isExactNotification: false/, 'Lembretes devem evitar alarmes exatos sem necessidade.');
+assert.match(html, /isExactNotification: false/, 'Lembretes semanais devem evitar alarmes exatos sem necessidade.');
+assert.match(html, /id: REST_NOTIFICATION_ID,[\s\S]*isExactNotification: true/, 'O aviso de descanso deve usar alarme exato.');
+assert.match(html, /checkExactNotificationSetting/, 'O app precisa verificar a autorização de alarmes exatos.');
 assert.match(html, /weekday: DAY_ORDER\.indexOf\(day\) \+ 2/, 'Cada lembrete precisa manter o dia correto do treino.');
 
 assert.match(html, /const MAX_BACKUP_BYTES = 15 \* 1024 \* 1024/, 'Importação precisa limitar o tamanho do backup.');

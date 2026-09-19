@@ -113,6 +113,9 @@
 
     @keyframes timerFinish { 0%, 100% { transform: translate(-50%, 0) scale(1); } 25% { transform: translate(-50%, 0) scale(1.06); } 50% { transform: translate(-50%, 0) scale(0.98); } 75% { transform: translate(-50%, 0) scale(1.04); } }
     .timer-finish { animation: timerFinish 0.6s ease-in-out 2; }
+    .timer-finish > div { border-color: rgba(52,211,153,.9); box-shadow: 0 0 0 3px rgba(16,185,129,.18),0 8px 32px rgba(16,185,129,.3); }
+    @keyframes timerRingFinish { 50% { opacity: .35; stroke-width: 8; } }
+    .timer-finish #restTimerRingFill { stroke: #34d399; animation: timerRingFinish .55s ease-in-out 3; }
 
     #restTimerRing circle { transition: stroke-dashoffset 0.3s linear; }
 
@@ -233,7 +236,7 @@
       </div>
 
       <div class="flex-1 min-w-0">
-        <p id="restTimerLabel" class="text-[11px] font-black text-blue-300 uppercase tracking-wider truncate">Descanso</p>
+        <p id="restTimerLabel" role="status" aria-live="polite" class="text-[11px] font-black text-blue-300 uppercase tracking-wider truncate">Descanso</p>
         <div class="flex items-center gap-1.5 mt-1.5">
           <button type="button" onclick="adjustRestTimer(-15)" class="bg-slate-800 active:bg-slate-700 text-slate-300 text-[10px] font-black px-2.5 py-1.5 rounded-lg transition-all active:scale-95">-15s</button>
           <button type="button" onclick="adjustRestTimer(30)" class="bg-slate-800 active:bg-slate-700 text-slate-300 text-[10px] font-black px-2.5 py-1.5 rounded-lg transition-all active:scale-95">+30s</button>
@@ -885,6 +888,7 @@
         </div>
         <button type="button" id="restBackgroundNotificationToggle" onclick="toggleNotificationSetting('restBackgroundNotification')" aria-pressed="false" aria-label="Ativar avisos de descanso em segundo plano" class="relative w-11 h-6 rounded-full bg-slate-700 transition-all duration-200 flex-shrink-0"></button>
       </div>
+      <p id="notificationBatteryNote" class="hidden mt-3 text-[10px] leading-relaxed text-amber-300 bg-amber-950/30 border border-amber-800/40 rounded-xl px-3 py-2">⚠️ A economia de bateria do Android pode atrasar avisos. Para maior confiabilidade, permita notificações e evite restringir a bateria do Meu Treino nas configurações do celular. Se você usar “Forçar parada”, abra o app de novo para que os avisos voltem a funcionar.</p>
     </section>
 
     <section class="bg-slate-900 rounded-2xl p-5 border border-blue-900/40 shadow-sm">
@@ -1515,7 +1519,8 @@
       restSound: true,
       restVibrate: true,
       trainingReminders: false,
-      restBackgroundNotification: false
+      restBackgroundNotification: false,
+      restBackgroundHintShown: false
     }, loadJSON(SETTINGS_KEY));
 
     function saveSettings() { saveJSON(SETTINGS_KEY, settings); }
@@ -3978,7 +3983,7 @@
                   }
                 </div>
                 <div class="min-w-0">
-                  <h3 onclick="showNameTooltip(event, '${escapeJs(state.name)}')" title="${escapeHtml(state.name)}" class="font-extrabold text-base md:text-lg text-white leading-tight truncate ${state.done ? 'line-through decoration-emerald-500 decoration-2 text-slate-400' : ''}">${escapeHtml(state.name)}</h3>
+                  <h3 class="min-w-0"><button type="button" onclick="showNameTooltip(event, '${escapeJs(state.name)}')" title="${escapeHtml(state.name)}" aria-label="Mostrar nome completo: ${escapeHtml(state.name)}" class="block w-full text-left font-extrabold text-base md:text-lg text-white leading-tight truncate focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 rounded ${state.done ? 'line-through decoration-emerald-500 decoration-2 text-slate-400' : ''}">${escapeHtml(state.name)}</button></h3>
                   ${ex.optional ? `<span class="inline-block text-[8px] font-black uppercase tracking-wider text-amber-400 bg-amber-950/40 border border-amber-800/50 px-1.5 py-0.5 rounded mt-1">☆ Opcional</span>` : ''}
                   ${isCollapsed ? '' : subtitleHtml}
                 </div>
@@ -6198,7 +6203,7 @@
         const obs = e.obs ? `<p class="text-[10px] text-amber-300/80 mt-1 italic">"${escapeHtml(e.obs)}"</p>` : '';
         return `<div class="bg-slate-950/50 rounded-xl px-3 py-2.5 border border-slate-800/60">
           <div class="flex items-start justify-between gap-2">
-            <p onclick="showNameTooltip(event, '${escapeJs(e.name || NOME_DESCONHECIDO)}')" title="${escapeHtml(e.name || NOME_DESCONHECIDO)}" class="text-xs font-bold ${e.name && e.name !== NOME_DESCONHECIDO ? 'text-white' : 'text-slate-500 italic'} min-w-0 flex-1 truncate">${escapeHtml(e.name || NOME_DESCONHECIDO)}</p>
+            <button type="button" onclick="showNameTooltip(event, '${escapeJs(e.name || NOME_DESCONHECIDO)}')" title="${escapeHtml(e.name || NOME_DESCONHECIDO)}" aria-label="Mostrar nome completo: ${escapeHtml(e.name || NOME_DESCONHECIDO)}" class="text-left text-xs font-bold ${e.name && e.name !== NOME_DESCONHECIDO ? 'text-white' : 'text-slate-500 italic'} min-w-0 flex-1 truncate rounded focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500">${escapeHtml(e.name || NOME_DESCONHECIDO)}</button>
             <span class="text-xs font-black text-blue-300 flex-shrink-0">${escapeHtml(detalhe)}</span>
             <button type="button" onclick="openEditEntry('${escapeJs(e.historyKey || '')}','${escapeJs(e.date)}')" aria-label="Corrigir ${escapeHtml(e.name || 'registro')}" class="w-7 h-7 rounded-lg bg-slate-900 border border-slate-700 active:border-blue-600 text-slate-400 active:text-blue-300 flex items-center justify-center flex-shrink-0 text-[10px]">✏️</button>
           </div>
@@ -6506,19 +6511,39 @@
       return permission;
     }
 
+    async function ensureExactRestAlarmPermission(plugin) {
+      // Android 12+ deixa essa autorização nas configurações do sistema. Em versões
+      // anteriores o plugin retorna "granted" sem abrir nenhuma tela.
+      if (!plugin || typeof plugin.checkExactNotificationSetting !== 'function') return false;
+      let permission = await plugin.checkExactNotificationSetting();
+      if (permission.exact_alarm === 'granted') return true;
+      if (typeof plugin.changeExactNotificationSetting === 'function') {
+        await plugin.changeExactNotificationSetting();
+        permission = await plugin.checkExactNotificationSetting();
+      }
+      return permission.exact_alarm === 'granted';
+    }
+
     async function cancelTrainingReminders() {
       const plugin = localNotifications();
       if (!plugin) return;
       await plugin.cancel({ notifications: DAY_ORDER.map(day => ({ id: TRAINING_NOTIFICATION_IDS[day] })) });
     }
 
+    // O ID versionado é intencional: o Android mantém a configuração do canal
+    // depois de criado e não aplica mudanças de som/vibração ao canal antigo.
+    const NOTIFICATION_CHANNEL_ID = 'treino-avisos-v2';
+
     async function ensureNotificationChannel(plugin) {
       await plugin.createChannel({
-        id: 'treino-lembretes',
-        name: 'Lembretes de treino',
-        description: 'Horários de treino e descansos',
-        importance: 4,
-        visibility: 1
+        id: NOTIFICATION_CHANNEL_ID,
+        name: 'Avisos de treino',
+        description: 'Horários de treino e fim dos descansos',
+        importance: 5,
+        visibility: 1,
+        sound: 'default',
+        vibration: true,
+        lights: true
       });
     }
 
@@ -6558,7 +6583,9 @@
             id: TRAINING_NOTIFICATION_IDS[day],
             title: 'Hora do treino 💪',
             body: workoutDay.name ? `Hoje: ${workoutDay.name}` : 'Seu treino está pronto para começar.',
-            channelId: 'treino-lembretes',
+            channelId: NOTIFICATION_CHANNEL_ID,
+            sound: 'default',
+            vibrate: true,
             extra: { targetView: 'treino', type: 'training-reminder' },
             // Weekday do Capacitor começa no domingo (1); SEG é segunda-feira (2).
             schedule: { on: { weekday: DAY_ORDER.indexOf(day) + 2, hour: time.hour, minute: time.minute }, allowWhileIdle: true },
@@ -6582,10 +6609,12 @@
         id: REST_NOTIFICATION_ID,
         title: 'Descanso concluído ⏰',
         body: restTimer.exerciseName ? `Volte para ${restTimer.exerciseName}.` : 'Bora para a próxima série!',
-        channelId: 'treino-lembretes',
+        channelId: NOTIFICATION_CHANNEL_ID,
+        sound: 'default',
+        vibrate: true,
         extra: { targetView: 'treino', type: 'rest-finished' },
         schedule: { at, allowWhileIdle: true },
-        isExactNotification: false
+        isExactNotification: true
       }] });
     }
 
@@ -6600,6 +6629,8 @@
       if (text) text.textContent = PLATFORM.isNative
         ? 'Os avisos são agendados no Android e funcionam com o app fechado.'
         : 'Disponível no APK Android. Na versão web, os lembretes dependem do navegador aberto.';
+      const batteryNote = document.getElementById('notificationBatteryNote');
+      if (batteryNote) batteryNote.classList.toggle('hidden', !PLATFORM.isNative);
       [['trainingRemindersToggle', 'trainingReminders'], ['restBackgroundNotificationToggle', 'restBackgroundNotification']].forEach(([id, field]) => {
         const el = document.getElementById(id);
         if (!el) return;
@@ -6629,6 +6660,10 @@
         const permission = await ensureNotificationPermission();
         if (permission.display !== 'granted') {
           showToast('🔕 Permissão de notificações não concedida.');
+          return;
+        }
+        if (field === 'restBackgroundNotification' && !await ensureExactRestAlarmPermission(localNotifications())) {
+          showToast('⏱️ Para avisar no horário exato, permita alarmes e lembretes nas configurações do Android.');
           return;
         }
         settings[field] = true;
@@ -6712,6 +6747,14 @@
       clearInterval(restTimer.interval);
       restTimer.interval = setInterval(tickRestTimer, 200);
       tickRestTimer();
+
+      // O timer continua funcionando normalmente sem isso, mas no APK o aviso
+      // agendado é o que permite ser notificado quando o app fica em segundo plano.
+      if (PLATFORM.isNative && !settings.restBackgroundNotification && !settings.restBackgroundHintShown) {
+        settings.restBackgroundHintShown = true;
+        saveSettings();
+        setTimeout(() => showToast('💡 Quer ser avisado fora do app? Ative “Aviso de descanso em segundo plano” em Perfil > Dados.'), 350);
+      }
     };
 
     function remainingRestSeconds() {
@@ -6745,6 +6788,8 @@
       const el = document.getElementById('restTimerWidget');
       el.classList.remove('timer-pop');
       el.classList.add('timer-finish');
+      const ring = document.getElementById('restTimerRingFill');
+      if (ring) ring.setAttribute('stroke', '#34d399');
       document.getElementById('restTimerDisplay').textContent = '0:00';
       document.getElementById('restTimerLabel').textContent = '⏰ Bora pra próxima série!';
       playBeep(3);
@@ -6945,7 +6990,78 @@
     setInterval(checkDateRollover, 60000); // verifica a virada do dia a cada minuto
     document.addEventListener('visibilitychange', () => { if (!document.hidden) checkDateRollover(); });
 
+    // Mantém o teclado dentro do diálogo aberto e devolve o foco ao controle de origem.
+    // Isso vale para todos os overlays, inclusive os criados antes desta melhoria.
+    function setupModalAccessibility() {
+      const overlays = Array.from(document.querySelectorAll('[id$="Overlay"]'));
+      const previousFocus = new Map();
+      const activeStack = [];
+      const focusable = '[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
+      const activeOverlay = () => activeStack.at(-1);
+
+      overlays.forEach(overlay => {
+        overlay.setAttribute('role', 'dialog');
+        overlay.setAttribute('aria-modal', 'true');
+        overlay.tabIndex = -1;
+        if (!overlay.hasAttribute('aria-label') && !overlay.hasAttribute('aria-labelledby')) {
+          const heading = overlay.querySelector('h1, h2, h3');
+          if (heading) {
+            if (!heading.id) heading.id = `${overlay.id}Title`;
+            overlay.setAttribute('aria-labelledby', heading.id);
+          } else {
+            overlay.setAttribute('aria-label', 'Janela de diálogo');
+          }
+        }
+      });
+
+      document.addEventListener('keydown', event => {
+        if (event.key !== 'Tab') return;
+        const active = activeOverlay();
+        if (!active) return;
+        const controls = Array.from(active.querySelectorAll(focusable))
+          .filter(control => !control.closest('.hidden'));
+        if (!controls.length) {
+          event.preventDefault();
+          active.focus();
+          return;
+        }
+        const first = controls[0];
+        const last = controls[controls.length - 1];
+        if (event.shiftKey && document.activeElement === first) {
+          event.preventDefault();
+          last.focus();
+        } else if (!event.shiftKey && document.activeElement === last) {
+          event.preventDefault();
+          first.focus();
+        }
+      });
+
+      const observer = new MutationObserver(records => {
+        records.forEach(record => {
+          const overlay = record.target;
+          if (overlay.classList.contains('hidden')) {
+            const index = activeStack.indexOf(overlay);
+            if (index !== -1) activeStack.splice(index, 1);
+            const trigger = previousFocus.get(overlay);
+            previousFocus.delete(overlay);
+            if (trigger && document.contains(trigger)) trigger.focus();
+            return;
+          }
+          const index = activeStack.indexOf(overlay);
+          if (index !== -1) activeStack.splice(index, 1);
+          activeStack.push(overlay);
+          previousFocus.set(overlay, document.activeElement);
+          requestAnimationFrame(() => {
+            const firstControl = overlay.querySelector(focusable);
+            (firstControl || overlay).focus();
+          });
+        });
+      });
+      overlays.forEach(overlay => observer.observe(overlay, { attributes: true, attributeFilter: ['class'] }));
+    }
+
     window.addEventListener('DOMContentLoaded', () => {
+      setupModalAccessibility();
       if (!storageAvailable) {
         const warn = document.createElement('div');
         warn.className = 'max-w-3xl mx-auto px-4 mt-4';

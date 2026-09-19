@@ -50,6 +50,23 @@ I. Pequenos Ajustes
 I1	Adicionar @capacitor/local-notifications se notificações agendadas forem necessárias
 I2	Testar cache.addAll + cache: 'reload' em device real mais cedo (comportamento varia em WebView/TWA)
 I3	Revisar stopPropagation na bolha de nome — pode quebrar acessibilidade
+K. Notificações, Timer e Uso em Segundo Plano
+#	Sugestão	Prioridade
+K1	✅ Explicar/solicitar a ativação de "Aviso de descanso em segundo plano" no primeiro uso do timer	Alta
+K2	✅ Alarme exato para o fim do descanso; requer permissão SCHEDULE_EXACT_ALARM e autorização do usuário	Média
+K3	✅ Adicionar orientação sobre "Forçar parada" e economia de bateria do Android	Média
+K4	Testar notificações em aparelhos Samsung, Xiaomi, Motorola e Android puro, com tela bloqueada e música tocando	Alta
+K5	✅ Criar lembrete periódico para exportação do backup local	Média
+K6	Avaliar migração do histórico para IndexedDB antes do limite prático do localStorage	Alta
+L. UX e Acessibilidade
+#	Sugestão	Prioridade
+L1	✅ Orientar no primeiro uso do timer que o aviso em segundo plano precisa ser ativado em Perfil > Dados	Alta
+L2	✅ Informar na tela de configurações que economia de bateria pode atrasar notificações	Média
+L3	✅ Adicionar foco adequado e focus trap aos modais	Média
+L4	Testar os fluxos principais com TalkBack e VoiceOver	Média
+L5	✅ Reforçar visualmente o término do descanso combinando notificação, vibração e animação	Baixa
+L6	✅ Adicionar lembrete periódico para exportar o backup local	Média
+L7	✅ Revisar stopPropagation da bolha de nome e seu impacto na acessibilidade	Baixa
 J. Decisão Tecnológica: Composer vs Kotlin
 Resposta curta: continue com Capacitor. Kotlin puro não compensa para este projeto.
 
