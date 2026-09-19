@@ -64,3 +64,4 @@ jobs:
           name: treino-personalizado-release-apk
           path: android/app/build/outputs/apk/release/*.apk
           if-no-files-found: error
+          retention-days: 1
