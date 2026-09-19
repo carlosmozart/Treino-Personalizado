@@ -121,6 +121,23 @@ test('reconhece a segunda variação de bloco de plano da IA', async ({ page }) 
   await expect(page.locator('#aiImportDays')).toContainText('Elevação lateral');
 });
 
+test('explica como corrigir uma resposta de IA sem bloco importável', async ({ page }) => {
+  await page.goto(baseUrl);
+  await completeOnboarding(page);
+  await page.locator('#navPlanos').click();
+  await page.getByRole('button', { name: /Montar treino com IA/ }).click();
+
+  const invalidResponse = 'Treine peito duas vezes por semana e aumente a carga aos poucos.';
+  await page.locator('#aiImportInput').fill(invalidResponse);
+  await page.getByRole('button', { name: /Ler plano/ }).click();
+
+  await expect(page.locator('#aiImportOverlay')).toBeHidden();
+  await expect(page.locator('#aiImportError')).toBeVisible();
+  await expect(page.locator('#aiImportError')).toContainText('[PLANO]');
+  await expect(page.locator('#aiImportErrorSnippet')).toHaveText(invalidResponse);
+  await expect(page.getByRole('button', { name: /Copiar formato para enviar à IA/ })).toBeVisible();
+});
+
 test('migra o histórico existente para IndexedDB', async ({ page }) => {
   const legacyLog = {
     'supino-reto': [{ type: 'forca', name: 'Supino Reto', date: '2026-09-19', series: [{ reps: 10, weight: 40 }] }]

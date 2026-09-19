@@ -429,6 +429,12 @@
         <p class="text-[11px] text-slate-500 leading-relaxed text-justify mb-2">Cole a resposta inteira da IA — pode ser a conversa toda, o app acha o plano sozinho. Você confere tudo antes de qualquer coisa ser criada.</p>
         <textarea id="aiImportInput" rows="4" placeholder="Cole aqui a resposta da IA..." class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2.5 text-white text-sm focus:outline-none focus:ring-1 focus:ring-blue-600 resize-none font-mono text-[10px]"></textarea>
         <button type="button" onclick="readAIPlan()" class="mt-2 w-full bg-emerald-700 active:bg-emerald-600 text-white font-extrabold text-sm py-3 rounded-xl transition-all active:scale-[0.99]">🔍 Ler plano</button>
+        <div id="aiImportError" class="hidden mt-3 bg-rose-950/30 border border-rose-800/50 rounded-xl p-3 space-y-2" role="alert">
+          <p class="text-xs font-black text-rose-300">Não encontrei um plano que o app consiga importar.</p>
+          <p class="text-[10px] text-slate-400 leading-relaxed">Peça à IA para repetir o plano entre <strong class="text-slate-200">[PLANO]</strong> e <strong class="text-slate-200">[FIM]</strong>, com linhas <strong class="text-slate-200">DIA|...</strong> e <strong class="text-slate-200">EX|...</strong>.</p>
+          <pre id="aiImportErrorSnippet" class="max-h-28 overflow-auto whitespace-pre-wrap break-words bg-slate-950/70 border border-slate-800 rounded-lg p-2 text-[10px] leading-relaxed text-slate-400"></pre>
+          <button type="button" onclick="copyAIImportFormat()" class="text-[10px] font-black text-rose-200 underline underline-offset-2">Copiar formato para enviar à IA</button>
+        </div>
       </div>
 
       <p class="text-[10px] text-amber-300 bg-amber-950/30 border border-amber-800/40 rounded-xl px-3 py-2 leading-relaxed text-justify">A IA não substitui um profissional. Revise o plano antes de seguir, principalmente se você tem alguma lesão ou condição de saúde.</p>
@@ -4804,6 +4810,10 @@
     // O formato do bloco e as regras deste interpretador saem de respostas reais de tres
     // modelos, nao de suposicao. Cada tolerancia abaixo existe porque uma amostra a exigiu.
     const IMPORT_TIPOS = ['forca', 'tempo', 'cardio'];
+    const AI_IMPORT_FORMAT = `[PLANO]
+DIA|SEG|Nome do treino|Foco|
+EX|Nome do exercício|forca|3|10|20|Alternativa opcional|
+[FIM]`;
 
     // Tolera =PLANO=, ===PLANO===, [PLANO]: a primeira amostra chegou com os sinais de igual
     // mastigados pelo markdown do chat, que trata uma linha de === como marcacao de titulo.
@@ -4938,12 +4948,25 @@
 
     let aiImportPendente = null;   // o que sera criado se voce confirmar
 
+    function showAIImportError(texto) {
+      const trecho = texto.trim().slice(0, 1200);
+      document.getElementById('aiImportErrorSnippet').textContent = trecho || '(nenhum texto recebido)';
+      document.getElementById('aiImportError').classList.remove('hidden');
+    }
+
+    window.copyAIImportFormat = async function() {
+      const ok = await copyTextToClipboard(`Repita apenas o plano neste formato:\n${AI_IMPORT_FORMAT}`);
+      showToast(ok ? '📋 Formato copiado! Cole na conversa com a IA.' : '❌ Não foi possível copiar o formato.');
+    };
+
     window.readAIPlan = function() {
       const texto = document.getElementById('aiImportInput').value || '';
-      if (!texto.trim()) { showToast('⚠️ Cole a resposta da IA no campo antes de ler.'); return; }
+      document.getElementById('aiImportError').classList.add('hidden');
+      if (!texto.trim()) { showAIImportError(texto); showToast('⚠️ Cole a resposta da IA no campo antes de ler.'); return; }
 
       const plano = parsePlanoDaIA(texto);
       if (!plano || !plano.dias.length) {
+        showAIImportError(texto);
         showToast('❌ Não encontrei o bloco do plano nessa resposta. Peça à IA para repetir o bloco entre [PLANO] e [FIM].');
         return;
       }
