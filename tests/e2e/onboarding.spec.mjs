@@ -106,11 +106,11 @@ test('reconhece a segunda variação de bloco de plano da IA', async ({ page }) 
   await page.locator('#aiImportInput').fill(`
     Aqui está seu plano adaptado. Revise a execução e a progressão semanal.
     =PLANO=
-    DIA | TER | Pernas | Quadríceps e posteriores |
-    EX | Agachamento guiado | forca | 4 | 8 | 60 | Leg press |
-    EX | Mesa flexora | forca | 3 | 12 | 25 |
-    DIA | SEX | Ombros | Deltoides |
-    EX | Elevação lateral | forca | 3 | 15 | 8 |
+    DIA: TER | Pernas | Quadríceps e posteriores |
+    EX - Agachamento guiado | forca | 4 | 8 | 60 | Leg press |
+    EX - Mesa flexora | forca | 3 | 12 | 25 |
+    DIA: SEX | Ombros | Deltoides |
+    EX - Elevação lateral | forca | 3 | 15 | 8 |
     =FIM=
   `);
   await page.getByRole('button', { name: /Ler plano/ }).click();

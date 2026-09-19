@@ -65,4 +65,16 @@ describe('regras centrais do treino', () => {
     expect(plano.dias[0].exercicios).toHaveLength(2);
     expect(plano.dias[1].exercicios[0].nome).toBe('Puxada Frontal');
   });
+
+  it('aceita marcadores previsíveis com dois-pontos e hífen', () => {
+    const plano = logic.parsePlanoDaIA(`
+      [PLANO]
+      DIA: SEG|Peito|Hipertrofia|
+      EX - Supino Inclinado|forca|3|10|30|
+      [FIM]
+    `);
+    expect(plano.dias).toHaveLength(1);
+    expect(plano.dias[0].dia).toBe('SEG');
+    expect(plano.dias[0].exercicios[0].nome).toBe('Supino Inclinado');
+  });
 });

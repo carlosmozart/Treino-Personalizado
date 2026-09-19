@@ -20,7 +20,7 @@ C. Parser da IA
 #	Sugestão	Prioridade
 C1	✅ Fallback explícito em vez de mais tolerâncias: rejeitar o que não casa com o schema e mostrar o trecho cru ao usuário com instrução de formato	Alta
 C2	✅ Documentar no prompt: "se não conseguir produzir o bloco, avise"	Média
-C3	Preparar o parser para variações previsíveis (DIA: SEG, EX - Supino) sem quebrar silenciosamente	Média
+C3	✅ Preparar o parser para variações previsíveis (DIA: SEG, EX - Supino) sem quebrar silenciosamente	Média
 D. Segurança e Privacidade do Backup
 #	Sugestão	Prioridade
 D1	✅ Aviso na exportação: "este arquivo contém seus dados de saúde; guarde com cuidado"	Média

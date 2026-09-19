@@ -4834,10 +4834,13 @@ EX|Nome do exercício|forca|3|10|20|Alternativa opcional|
       const dias = [], avisos = [];
       // DIA e EX sao os delimitadores de registro, NAO a quebra de linha: uma das amostras
       // chegou com o bloco inteiro numa unica linha, e dividir por \n devolveria um registro so.
-      const partes = bloco.split(/(?:^|\s)(DIA|EX)\s*\|/);
+      // Algumas IAs trocam apenas o separador depois do marcador ("DIA: SEG"
+      // ou "EX - Supino"), mas preservam os campos com |. Aceitamos essas
+      // formas previsíveis sem tentar adivinhar planos escritos em prosa.
+      const partes = bloco.split(/(?:^|\s)(DIA|EX)\s*(?:\||:|-)\s*/i);
 
       for (let i = 1; i < partes.length - 1; i += 2) {
-        const marcador = partes[i];
+        const marcador = partes[i].toUpperCase();
         const campos = String(partes[i + 1]).split('|').map(c => c.trim());
         while (campos.length && campos[campos.length - 1] === '') campos.pop();
 
