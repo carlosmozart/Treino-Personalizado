@@ -25,7 +25,7 @@ D. Segurança e Privacidade do Backup
 #	Sugestão	Prioridade
 D1	✅ Aviso na exportação: "este arquivo contém seus dados de saúde; guarde com cuidado"	Média
 D2	✅ Criptografia opcional no backup (PBKDF2 + AES-GCM via WebCrypto, tudo local)	Média
-D3	Ajustar navigator.share({ files }) no iOS — risco de cair em app errado; usar text/plain com preview	Baixa
+D3	✅ Ajustar navigator.share({ files }) no iOS — usa text/plain com prévia e preserva extensão .json	Baixa
 E. Estimativa de Calorias
 #	Sugestão	Prioridade
 E1	✅ Refinar MET_FORCA: usar dados já disponíveis (séries, reps, carga, duração) para estimar densidade — 3x12 leve ≠ 5x3 pesado	Média

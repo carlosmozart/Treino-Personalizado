@@ -1540,6 +1540,10 @@
       return `treino-backup-${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}.json`;
     }
 
+    function isIOS() {
+      return /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+    }
+
     function bytesToBase64(bytes) {
       let text = '';
       bytes.forEach(byte => { text += String.fromCharCode(byte); });
@@ -1601,9 +1605,16 @@
       // conteúdo como texto. O caminho que funciona lá é a folha de compartilhamento do
       // sistema, que também é mais prática no Android (manda direto pro Drive, WhatsApp...).
       try {
-        const file = new File([json], fileName, { type: 'application/json' });
+        // O iOS costuma oferecer destinos inadequados para application/json. Como o backup
+        // é texto, text/plain dá uma prévia legível na folha de compartilhamento; a extensão
+        // .json continua permitindo que o app o reconheça na restauração.
+        const file = new File([json], fileName, { type: isIOS() ? 'text/plain' : 'application/json' });
         if (navigator.canShare && navigator.canShare({ files: [file] })) {
-          await navigator.share({ files: [file], title: 'Backup do Treino' });
+          await navigator.share({
+            files: [file],
+            title: protectedBackup ? 'Backup protegido do Treino' : 'Backup do Treino',
+            text: protectedBackup ? 'Backup protegido por senha do Treino Personalizado.' : 'Backup do Treino Personalizado — arquivo local para restauração.'
+          });
           markBackupDone();
           showToast(protectedBackup ? '🔐 Backup protegido gerado! Guarde a senha.' : '✅ Backup gerado! Salve num lugar seguro.');
           return;

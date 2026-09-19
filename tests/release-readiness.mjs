@@ -49,6 +49,7 @@ assert.match(html, /weekday: DAY_ORDER\.indexOf\(day\) \+ 2/, 'Cada lembrete pre
 assert.match(html, /const MAX_BACKUP_BYTES = 15 \* 1024 \* 1024/, 'Importação precisa limitar o tamanho do backup.');
 assert.match(html, /file\.size > MAX_BACKUP_BYTES/, 'Limite do backup deve ser conferido antes da leitura.');
 assert.match(html, /pendingImport\.backupVersion !== 1/, 'Versão do backup deve ser conferida na restauração.');
+assert.match(html, /type: isIOS\(\) \? 'text\/plain' : 'application\/json'/, 'Compartilhamento no iOS precisa usar texto simples com prévia.');
 
 assert.match(html, /:focus-visible\s*\{[\s\S]*outline:/, 'Foco visível é obrigatório.');
 assert.match(html, /id="toast" role="status" aria-live="polite"/, 'Toast deve anunciar mensagens assistivas.');
