@@ -1152,6 +1152,7 @@
 
   <script src="data/static-config.js"></script>
   <script src="js/core/date-utils.js"></script>
+  <script src="js/core/storage-utils.js"></script>
   <script>
     const APP_VERSION = '2.19.5'; // manter sincronizado com CACHE_NAME em sw.js e com o CHANGELOG.md
 
@@ -1294,8 +1295,7 @@
     }
 
     function loadJSON(key) {
-      if (!storageAvailable) return {};
-      try { return JSON.parse(localStorage.getItem(key)) || {}; } catch (e) { return {}; }
+      return TREINO_STORAGE.loadJSON(key, storageAvailable);
     }
 
     // Avisa uma única vez por sessão quando o armazenamento enche — antes o erro era engolido
@@ -1796,12 +1796,10 @@
     }
 
     function loadString(key) {
-      if (!storageAvailable) return null;
-      try { return localStorage.getItem(key); } catch (e) { return null; }
+      return TREINO_STORAGE.loadString(key, storageAvailable);
     }
     function saveString(key, value) {
-      if (!storageAvailable) return;
-      try { localStorage.setItem(key, value); } catch (e) { /* indisponível */ }
+      return TREINO_STORAGE.saveString(key, value, storageAvailable);
     }
 
     function makeId(prefix) {
