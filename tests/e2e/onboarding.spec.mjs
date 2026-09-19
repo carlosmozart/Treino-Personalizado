@@ -97,6 +97,30 @@ test('importa um plano válido retornado pela IA após a conferência', async ({
   await expect(page.locator('#profileList')).toContainText('Plano automatizado de teste');
 });
 
+test('reconhece a segunda variação de bloco de plano da IA', async ({ page }) => {
+  await page.goto(baseUrl);
+  await completeOnboarding(page);
+  await page.locator('#navPlanos').click();
+  await page.getByRole('button', { name: /Montar treino com IA/ }).click();
+
+  await page.locator('#aiImportInput').fill(`
+    Aqui está seu plano adaptado. Revise a execução e a progressão semanal.
+    =PLANO=
+    DIA | TER | Pernas | Quadríceps e posteriores |
+    EX | Agachamento guiado | forca | 4 | 8 | 60 | Leg press |
+    EX | Mesa flexora | forca | 3 | 12 | 25 |
+    DIA | SEX | Ombros | Deltoides |
+    EX | Elevação lateral | forca | 3 | 15 | 8 |
+    =FIM=
+  `);
+  await page.getByRole('button', { name: /Ler plano/ }).click();
+
+  await expect(page.locator('#aiImportOverlay')).toBeVisible();
+  await expect(page.locator('#aiImportSummary')).toContainText('2');
+  await expect(page.locator('#aiImportDays')).toContainText('Agachamento guiado');
+  await expect(page.locator('#aiImportDays')).toContainText('Elevação lateral');
+});
+
 test('migra o histórico existente para IndexedDB', async ({ page }) => {
   const legacyLog = {
     'supino-reto': [{ type: 'forca', name: 'Supino Reto', date: '2026-09-19', series: [{ reps: 10, weight: 40 }] }]
