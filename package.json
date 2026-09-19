@@ -10,20 +10,18 @@
     "test:unit": "vitest run",
     "test:smoke": "playwright test",
     "verify": "npm run check && npm run test && npm run test:unit",
-    "generate:android-icons": "capacitor-assets generate --android",
     "sync:android": "npm run prepare:web && npx cap sync android",
     "open:android": "npm run sync:android && npx cap open android",
     "build:apk": "npm run sync:android && cd android && gradlew.bat assembleRelease",
     "build:aab": "npm run sync:android && cd android && gradlew.bat bundleRelease"
   },
   "dependencies": {
-    "@capacitor/android": "^8.0.0",
-    "@capacitor/core": "^8.0.0",
+    "@capacitor/android": "^8.5.2",
+    "@capacitor/core": "^8.5.2",
     "@capacitor/local-notifications": "^8.3.1"
   },
   "devDependencies": {
-    "@capacitor/assets": "^3.0.5",
-    "@capacitor/cli": "^8.0.0",
+    "@capacitor/cli": "^8.5.2",
     "@playwright/test": "^1.63.0",
     "vitest": "^5.0.1"
   }
