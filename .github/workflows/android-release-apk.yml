@@ -32,6 +32,12 @@ jobs:
       - name: Validate web release contracts
         run: npm run verify
 
+      - name: Install Chromium for smoke tests
+        run: npx playwright install --with-deps chromium
+
+      - name: Test onboarding flow
+        run: npm run test:smoke
+
       - name: Restore signing key
         env:
           ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}

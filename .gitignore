@@ -10,3 +10,5 @@ android/keystore.properties
 *.aab
 local.properties
 .DS_Store
+playwright-report/
+test-results/
