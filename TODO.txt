@@ -29,8 +29,8 @@ D3	Ajustar navigator.share({ files }) no iOS — risco de cair em app errado; us
 E. Estimativa de Calorias
 #	Sugestão	Prioridade
 E1	✅ Refinar MET_FORCA: usar dados já disponíveis (séries, reps, carga, duração) para estimar densidade — 3x12 leve ≠ 5x3 pesado	Média
-E2	Aviso quando o peso cadastrado tem X dias ("peso de 90 dias atrás")	Média
-E3	Garantir que o "≈" esteja visível na UI (não só no changelog)	Baixa
+E2	✅ Aviso quando o peso cadastrado tem X dias ("peso de 90 dias atrás")	Média
+E3	✅ Garantir que o "≈" esteja visível na UI (não só no changelog)	Baixa
 F. Acessibilidade e i18n
 #	Sugestão	Prioridade
 F1	aria-modal e focus trap em overlays	Média

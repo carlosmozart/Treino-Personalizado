@@ -808,6 +808,7 @@
           <div>
             <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Peso Atual (kg)</label>
             <input type="number" step="0.1" id="profileWeight" placeholder="Ex: 75" class="mt-1 w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2.5 text-white text-sm focus:outline-none focus:ring-1 focus:ring-blue-600"/>
+            <p id="weightFreshnessWarning" class="hidden mt-2 text-[10px] text-amber-300 bg-amber-950/30 border border-amber-800/40 rounded-lg px-2 py-1.5"></p>
           </div>
           <div>
             <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Peso Alvo (kg)</label>
@@ -3341,6 +3342,7 @@
       renderMetabolismCard();
       renderWaterCard();
       renderWeightHistory();
+      renderWeightFreshnessWarning();
       renderGoalRoadmap();
       renderRestSettings();
       renderNotificationSettings();
@@ -3433,6 +3435,15 @@
           <button type="button" onclick="deleteWeightEntry('${escapeJs(e.date)}')" aria-label="Apagar registro de ${d}/${m}/${y}" class="w-6 h-6 rounded bg-slate-900 border border-slate-700 active:border-rose-600 text-slate-500 active:text-rose-400 flex items-center justify-center flex-shrink-0 text-[10px] font-black">×</button>
         </div>`;
       }).join('');
+    }
+
+    function renderWeightFreshnessWarning() {
+      const warning = document.getElementById('weightFreshnessWarning');
+      const latest = [...(userProfile.weightHistory || [])].filter(e => entryDateKey(e)).sort(compareByDate).pop();
+      if (!latest) return warning.classList.add('hidden');
+      const days = Math.floor((Date.now() - new Date(`${entryDateKey(latest)}T12:00:00`).getTime()) / 86400000);
+      warning.textContent = `⚠️ Seu último peso foi registrado há ${days} dias. Atualize-o para melhorar as estimativas.`;
+      warning.classList.toggle('hidden', days < 90);
     }
 
     window.deleteWeightEntry = async function(dateStr) {
@@ -3533,6 +3544,7 @@
       renderMetabolismCard();
       renderWaterCard();
       renderWeightHistory();
+      renderWeightFreshnessWarning();
       renderGoalRoadmap();
       checkWaterBonus();
       checkBirthday();
@@ -6471,8 +6483,8 @@ EX|Nome do exercício|forca|3|10|20|Alternativa opcional|
             <p class="text-[9px] text-slate-600 font-bold uppercase tracking-wider">Duração</p>
           </div>` : ''}
           ${calorias ? `<div class="bg-slate-950/50 border border-slate-800 rounded-xl px-3 py-2.5 text-center">
-            <p class="text-lg font-black text-amber-300">~${calorias.kcal.toLocaleString('pt-BR')}<span class="text-[10px] text-slate-500 ml-0.5">kcal</span></p>
-            <p class="text-[9px] text-slate-600 font-bold uppercase tracking-wider">Gasto estimado</p>
+            <p class="text-lg font-black text-amber-300"><span aria-label="aproximadamente">≈</span>${calorias.kcal.toLocaleString('pt-BR')}<span class="text-[10px] text-slate-500 ml-0.5">kcal</span></p>
+            <p class="text-[9px] text-slate-600 font-bold uppercase tracking-wider">Estimativa aproximada</p>
           </div>` : ''}
         </div>` : ''}
         ${calorias ? `<p class="text-[9px] text-slate-600 leading-relaxed mt-2 text-justify">Estimativa a partir do seu peso${calorias.medido ? ' e da duração medida' : ', com a duração calculada pelas séries e pelo descanso'}. Serve para comparar seus treinos entre si, não para fechar conta de dieta — a margem de erro para uma pessoa específica é grande.</p>` : ''}
