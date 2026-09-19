@@ -11,7 +11,7 @@ A5	Varredura por console.log residual	Baixa
 A6	Revisar as vulnerabilidades transitivas apontadas após adicionar Vitest/Playwright; evitar npm audit fix automático sem avaliar impactos	Média
 B. Persistência e Dados
 #	Sugestão	Prioridade
-B1	Migrar sessionLog e exerciseHistory para IndexedDB antes do teto de ~5 MB (localStorage)	Alta
+B1	🟡 Migrar sessionLog e exerciseHistory para IndexedDB antes do teto de ~5 MB (localStorage) — sessionLog em andamento	Alta
 B2	Se não migrar de imediato: expurgo por política (manter N sessões mais recentes *e* as mais pesadas por exercício)	Alta
 B3	Compressão dos dados no localStorage (ex.: LZ-string) enquanto a migração não acontece	Média
 B4	CACHE_NAME derivado de hash do commit (git rev-parse --short HEAD) em vez de manual (treino-cache-v38)	Média

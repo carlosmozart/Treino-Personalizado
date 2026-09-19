@@ -1140,11 +1140,17 @@
   </div>
 
   <script>
-    const APP_VERSION = '2.19.4'; // manter sincronizado com CACHE_NAME em sw.js e com o CHANGELOG.md
+    const APP_VERSION = '2.19.5'; // manter sincronizado com CACHE_NAME em sw.js e com o CHANGELOG.md
 
     // ---------- NOVIDADES (tela para testadores — só experiência do usuário, sem termos técnicos) ----------
     // Detalhes técnicos ficam só no CHANGELOG.md interno. Ordem: mais recente primeiro.
     const RELEASE_NOTES = [
+      {
+        version: '2.19.5', date: '2026-09-19',
+        highlights: [
+          '🗂️ <strong>Histórico preparado para crescer.</strong> O app começou a guardar as sessões em um banco local mais robusto, preservando a compatibilidade com seus backups.'
+        ]
+      },
       {
         version: '2.19.4', date: '2026-09-19',
         highlights: [
@@ -1520,6 +1526,76 @@
 
     let workoutMeta = loadJSON(WORKOUT_META_KEY);
     let sessionLog = loadJSON(SESSIONS_KEY);     // { historyKey: [ { date, ...dados }, ... ] } — ordem cronológica
+    const SESSION_DB_NAME = 'treino-session-log';
+    const SESSION_DB_STORE = 'state';
+    const SESSION_DB_KEY = 'current';
+    let sessionDb = null;
+    let sessionDbReady = false;
+
+    function openSessionDb() {
+      if (!('indexedDB' in window)) return Promise.reject(new Error('IndexedDB indisponível'));
+      return new Promise((resolve, reject) => {
+        const request = indexedDB.open(SESSION_DB_NAME, 1);
+        request.onupgradeneeded = () => request.result.createObjectStore(SESSION_DB_STORE);
+        request.onsuccess = () => resolve(request.result);
+        request.onerror = () => reject(request.error);
+      });
+    }
+
+    function readSessionDb(db) {
+      return new Promise((resolve, reject) => {
+        const request = db.transaction(SESSION_DB_STORE, 'readonly').objectStore(SESSION_DB_STORE).get(SESSION_DB_KEY);
+        request.onsuccess = () => resolve(request.result || null);
+        request.onerror = () => reject(request.error);
+      });
+    }
+
+    function writeSessionDb() {
+      if (!sessionDbReady || !sessionDb) return Promise.resolve(false);
+      return new Promise((resolve, reject) => {
+        const transaction = sessionDb.transaction(SESSION_DB_STORE, 'readwrite');
+        transaction.objectStore(SESSION_DB_STORE).put(sessionLog, SESSION_DB_KEY);
+        transaction.oncomplete = () => resolve(true);
+        transaction.onerror = () => reject(transaction.error);
+      });
+    }
+
+    function clearSessionDb() {
+      if (!('indexedDB' in window)) return Promise.resolve();
+      if (sessionDb) sessionDb.close();
+      sessionDb = null;
+      sessionDbReady = false;
+      return new Promise(resolve => {
+        const request = indexedDB.deleteDatabase(SESSION_DB_NAME);
+        request.onsuccess = request.onerror = request.onblocked = () => resolve();
+      });
+    }
+
+    function saveSessionLog() {
+      volumeTotalCache = null;
+      if (!sessionDbReady) return saveJSON(SESSIONS_KEY, sessionLog);
+      writeSessionDb().catch(error => {
+        console.error('Falha ao gravar histórico no IndexedDB; usando armazenamento local.', error);
+        sessionDbReady = false;
+        saveJSON(SESSIONS_KEY, sessionLog);
+      });
+      return true;
+    }
+
+    async function initializeSessionLogStorage() {
+      try {
+        sessionDb = await openSessionDb();
+        const stored = await readSessionDb(sessionDb);
+        sessionDbReady = true;
+        if (stored && typeof stored === 'object') sessionLog = stored;
+        else await writeSessionDb();
+        // A cópia local continua sendo a rota de migração e backup desta versão.
+        // Escritas novas passam a ir para o IndexedDB, que suporta históricos maiores.
+      } catch (error) {
+        console.warn('IndexedDB indisponível; histórico seguirá no armazenamento local.', error);
+        sessionDbReady = false;
+      }
+    }
     let settings = Object.assign({
       restSeconds: 90,
       restAutoStart: true,
@@ -1588,6 +1664,9 @@
         const raw = storageAvailable ? localStorage.getItem(k) : null;
         if (raw !== null) data[k] = raw;
       });
+      // Após a migração, o histórico mais recente mora no IndexedDB. O backup continua
+      // no mesmo formato para preservar compatibilidade com versões anteriores do app.
+      data[SESSIONS_KEY] = JSON.stringify(sessionLog);
       return {
         app: 'treino-personalizado',
         backupVersion: 1,
@@ -1707,7 +1786,7 @@
       document.getElementById('importConfirmOverlay').classList.add('hidden');
     };
 
-    window.confirmImport = function() {
+    window.confirmImport = async function() {
       if (!pendingImport) return;
       try {
         // Substitui tudo: só as chaves do app são tocadas, e as ausentes no backup são
@@ -1720,13 +1799,15 @@
           }
         });
         pendingImport = null;
-        document.getElementById('importConfirmOverlay').classList.add('hidden');
-        showToast('✅ Backup restaurado! Reabrindo o app...');
-        setTimeout(() => window.location.reload(), 900);
       } catch (err) {
         console.error('Falha ao importar:', err);
         showToast('❌ Erro ao restaurar o backup.');
+        return;
       }
+      await clearSessionDb();
+      document.getElementById('importConfirmOverlay').classList.add('hidden');
+      showToast('✅ Backup restaurado! Reabrindo o app...');
+      setTimeout(() => window.location.reload(), 900);
     };
 
     // ---------- CÓPIA PARA A ÁREA DE TRANSFERÊNCIA (compatível com iOS) ----------
@@ -1835,7 +1916,7 @@
         if (limpa.length === 0) delete sessionLog[k];
         else { limpa.sort(compareByDate); sessionLog[k] = limpa; }
       });
-      if (removidas > 0) saveJSON(SESSIONS_KEY, sessionLog);
+      if (removidas > 0) saveSessionLog();
       saveString('treino_log_sanitized', '1');
     }
 
@@ -3512,7 +3593,7 @@
         if (!h || !h.date) return;
         sessionLog[key] = [Object.assign({}, h)];
       });
-      saveJSON(SESSIONS_KEY, sessionLog);
+      saveSessionLog();
     }
 
     // ---------- MINI-GRÁFICO DE LINHA (SVG puro, sem biblioteca) ----------
@@ -4199,7 +4280,7 @@
 
       saveJSON(COMPLETION_KEY, dailyCompletion);
       saveJSON(HISTORY_KEY, exerciseHistory);
-      saveJSON(SESSIONS_KEY, sessionLog);
+      saveSessionLog();
       workoutHistoryCache = [];
       return { volume, linhas, falhas, recordes };
     }
@@ -5118,7 +5199,7 @@
         });
       }
       sessionLog[historyKey] = lista;
-      saveJSON(SESSIONS_KEY, sessionLog);
+      saveSessionLog();
       syncExerciseHistoryFor(historyKey);
 
       closeEditEntry();
@@ -5140,7 +5221,7 @@
 
       sessionLog[historyKey] = (sessionLog[historyKey] || []).filter(e => entryDateKey(e) !== date);
       if (sessionLog[historyKey].length === 0) delete sessionLog[historyKey];
-      saveJSON(SESSIONS_KEY, sessionLog);
+      saveSessionLog();
       syncExerciseHistoryFor(historyKey);
 
       closeEditEntry();
@@ -5194,7 +5275,7 @@
         else sessionLog[k] = restante;
         syncExerciseHistoryFor(k);
       });
-      saveJSON(SESSIONS_KEY, sessionLog);
+      saveSessionLog();
 
       revokeCheckinXP(dateStr);          // devolve o XP concedido
       delete checkins[dateStr];
@@ -7080,6 +7161,10 @@
       sanitizeSessionLog();
       buildExerciseDatalist();
       migrateHistoryToSessionLog(); // semeia o log de sessões para quem já usava versões anteriores
+      initializeSessionLogStorage().then(() => {
+        workoutHistoryCache = [];
+        if (!perfilView.classList.contains('hidden')) renderWorkoutHistory();
+      });
       renderWorkoutSelectOptions();
       const startKey = getTodaysWorkoutKey();
       workoutSelect.value = startKey;

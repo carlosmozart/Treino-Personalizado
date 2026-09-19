@@ -6,6 +6,11 @@ Todas as mudanças relevantes do app ficam registradas aqui. Ao lançar uma nova
    atualizar o app instalado
 3. Adicione uma entrada aqui, nesse formato
 
+## [2.19.5] - 2026-09-19
+
+### Alterado
+- Primeira etapa da migração do histórico de sessões para IndexedDB, com fallback para armazenamento local e backup compatível.
+
 ## [2.19.4] - 2026-09-19
 
 ### Adicionado
