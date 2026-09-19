@@ -34,6 +34,7 @@ test('onboarding leva a uma tela de treino utilizável', async ({ page }) => {
   await page.goto(baseUrl);
   await expect(page.locator('#onboardingOverlay')).toBeVisible();
   await expect(page.locator('#appVersion')).not.toHaveText('');
+  await page.waitForTimeout(150);
   await page.locator('#onbName').fill('Pessoa Teste');
   await page.locator('#onbBirthdate').fill('1995-09-19');
   await page.locator('#onbHeight').fill('175');
@@ -43,4 +44,26 @@ test('onboarding leva a uma tela de treino utilizável', async ({ page }) => {
   await expect(page.locator('#onboardingOverlay')).toBeHidden();
   await expect(page.locator('#workoutSelect')).toBeVisible();
   await expect(page.locator('#restSoundToggle')).toHaveAttribute('aria-pressed', /true|false/);
+});
+
+test('migra o histórico existente para IndexedDB', async ({ page }) => {
+  const legacyLog = {
+    'supino-reto': [{ type: 'forca', name: 'Supino Reto', date: '2026-09-19', series: [{ reps: 10, weight: 40 }] }]
+  };
+  await page.addInitScript(value => localStorage.setItem('treino_session_log', JSON.stringify(value)), legacyLog);
+  await page.goto(baseUrl);
+  await expect(page.locator('#appVersion')).not.toHaveText('');
+
+  const migrated = await page.evaluate(async () => new Promise((resolve, reject) => {
+    const request = indexedDB.open('treino-session-log', 1);
+    request.onerror = () => reject(request.error);
+    request.onsuccess = () => {
+      const transaction = request.result.transaction('state', 'readonly');
+      const read = transaction.objectStore('state').get('current');
+      read.onerror = () => reject(read.error);
+      read.onsuccess = () => resolve(read.result);
+    };
+  }));
+
+  expect(migrated).toEqual(legacyLog);
 });
