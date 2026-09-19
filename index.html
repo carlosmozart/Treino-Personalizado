@@ -914,6 +914,8 @@
           <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
           Exportar Backup
         </button>
+        <button type="button" onclick="exportBackup(true)" class="w-full bg-slate-800 active:bg-slate-700 border border-slate-700 text-blue-200 font-extrabold text-xs py-2.5 rounded-xl transition-all active:scale-[0.99]">🔐 Exportar backup protegido por senha</button>
+        <p class="text-[10px] text-slate-600 leading-relaxed text-center">A senha não fica salva. Se esquecê-la, não será possível restaurar o arquivo protegido.</p>
 
         <div class="grid grid-cols-2 gap-2">
           <button type="button" onclick="copyBackupToClipboard()" class="bg-slate-800 active:bg-slate-700 text-slate-300 font-bold text-xs py-2.5 rounded-xl transition-all active:scale-[0.99]">📋 Copiar</button>
@@ -1670,6 +1672,7 @@
     // Um limite protege o app de tentar ler um arquivo incorreto ou excessivamente grande.
     // É generoso para históricos longos, mas evita pressão de memória em celulares modestos.
     const MAX_BACKUP_BYTES = 15 * 1024 * 1024;
+    const BACKUP_PBKDF2_ITERATIONS = 310000;
     // Chaves serializadas como JSON. As demais guardam textos simples, como o perfil ativo
     // e as marcas de migração. Validar antes de importar evita trocar todo o progresso por
     // um arquivo truncado ou por dados de outro aplicativo.
@@ -1730,9 +1733,62 @@
       return `treino-backup-${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}.json`;
     }
 
-    window.exportBackup = async function() {
-      const json = JSON.stringify(buildBackupObject(), null, 2);
-      const fileName = backupFileName();
+    function bytesToBase64(bytes) {
+      let text = '';
+      bytes.forEach(byte => { text += String.fromCharCode(byte); });
+      return btoa(text);
+    }
+
+    function base64ToBytes(text) {
+      const binary = atob(text);
+      return Uint8Array.from(binary, char => char.charCodeAt(0));
+    }
+
+    async function backupKeyFromPassword(password, salt) {
+      const material = await crypto.subtle.importKey('raw', new TextEncoder().encode(password), 'PBKDF2', false, ['deriveKey']);
+      return crypto.subtle.deriveKey(
+        { name: 'PBKDF2', salt, iterations: BACKUP_PBKDF2_ITERATIONS, hash: 'SHA-256' },
+        material, { name: 'AES-GCM', length: 256 }, false, ['encrypt', 'decrypt']
+      );
+    }
+
+    async function encryptBackup(backup, password) {
+      if (!window.crypto || !crypto.subtle) throw new Error('Criptografia indisponível');
+      const salt = crypto.getRandomValues(new Uint8Array(16));
+      const iv = crypto.getRandomValues(new Uint8Array(12));
+      const key = await backupKeyFromPassword(password, salt);
+      const plain = new TextEncoder().encode(JSON.stringify(backup));
+      const ciphertext = await crypto.subtle.encrypt({ name: 'AES-GCM', iv }, key, plain);
+      return {
+        app: 'treino-personalizado', backupVersion: 2, encrypted: true, appVersion: APP_VERSION,
+        exportedAt: backup.exportedAt, algorithm: 'AES-GCM',
+        kdf: { name: 'PBKDF2', hash: 'SHA-256', iterations: BACKUP_PBKDF2_ITERATIONS },
+        salt: bytesToBase64(salt), iv: bytesToBase64(iv), ciphertext: bytesToBase64(new Uint8Array(ciphertext))
+      };
+    }
+
+    async function decryptBackup(wrapper, password) {
+      if (!window.crypto || !crypto.subtle || wrapper.algorithm !== 'AES-GCM' || !wrapper.kdf || wrapper.kdf.name !== 'PBKDF2' || wrapper.kdf.hash !== 'SHA-256' || !Number.isInteger(wrapper.kdf.iterations) || wrapper.kdf.iterations < 100000) throw new Error('Formato de criptografia inválido');
+      const salt = base64ToBytes(wrapper.salt), iv = base64ToBytes(wrapper.iv);
+      const key = await backupKeyFromPassword(password, salt);
+      const plain = await crypto.subtle.decrypt({ name: 'AES-GCM', iv }, key, base64ToBytes(wrapper.ciphertext));
+      return JSON.parse(new TextDecoder().decode(plain));
+    }
+
+    window.exportBackup = async function(protectedBackup = false) {
+      let backup = buildBackupObject();
+      let fileName = backupFileName();
+      if (protectedBackup) {
+        const password = window.prompt('Crie uma senha para proteger este backup (mínimo de 8 caracteres):');
+        if (password === null) return;
+        if (password.length < 8) { showToast('⚠️ Use uma senha com pelo menos 8 caracteres.'); return; }
+        const confirmation = window.prompt('Repita a senha do backup:');
+        if (confirmation !== password) { showToast('⚠️ As senhas não coincidem.'); return; }
+        try { backup = await encryptBackup(backup, password); }
+        catch (_) { showToast('❌ Não foi possível proteger o backup neste aparelho.'); return; }
+        fileName = backupFileName().replace('treino-backup-', 'treino-backup-protegido-');
+      }
+      const json = JSON.stringify(backup, null, 2);
 
       // No iOS, um link com o atributo "download" não salva o arquivo — o Safari abre o
       // conteúdo como texto. O caminho que funciona lá é a folha de compartilhamento do
@@ -1742,7 +1798,7 @@
         if (navigator.canShare && navigator.canShare({ files: [file] })) {
           await navigator.share({ files: [file], title: 'Backup do Treino' });
           markBackupDone();
-          showToast('✅ Backup gerado! Salve num lugar seguro.');
+          showToast(protectedBackup ? '🔐 Backup protegido gerado! Guarde a senha.' : '✅ Backup gerado! Salve num lugar seguro.');
           return;
         }
       } catch (err) {
@@ -1761,7 +1817,7 @@
         document.body.removeChild(a);
         setTimeout(() => URL.revokeObjectURL(url), 1000);
         markBackupDone();
-        showToast('✅ Backup exportado! Confira em Downloads.');
+        showToast(protectedBackup ? '🔐 Backup protegido exportado! Guarde a senha.' : '✅ Backup exportado! Confira em Downloads.');
       } catch (err) {
         console.error('Falha ao exportar backup:', err);
         showToast('❌ Não foi possível exportar. Tente o botão de copiar.');
@@ -1792,11 +1848,17 @@
         return;
       }
       const reader = new FileReader();
-      reader.onload = () => {
+      reader.onload = async () => {
         try {
           pendingImport = JSON.parse(String(reader.result));
+          if (pendingImport && pendingImport.app === 'treino-personalizado' && pendingImport.backupVersion === 2 && pendingImport.encrypted === true) {
+            const password = window.prompt('Digite a senha deste backup protegido:');
+            if (password === null) { pendingImport = null; return; }
+            pendingImport = await decryptBackup(pendingImport, password);
+          }
         } catch (e) {
-          showToast('❌ Arquivo inválido: não parece ser um backup do app.');
+          pendingImport = null;
+          showToast('❌ Não foi possível abrir o backup. Confira a senha e o arquivo.');
           return;
         }
         openImportConfirm(file.name);

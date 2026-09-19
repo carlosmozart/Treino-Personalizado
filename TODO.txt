@@ -24,7 +24,7 @@ C3	✅ Preparar o parser para variações previsíveis (DIA: SEG, EX - Supino) s
 D. Segurança e Privacidade do Backup
 #	Sugestão	Prioridade
 D1	✅ Aviso na exportação: "este arquivo contém seus dados de saúde; guarde com cuidado"	Média
-D2	Criptografia opcional no backup (PBKDF2 + AES-GCM via WebCrypto, tudo local)	Média
+D2	✅ Criptografia opcional no backup (PBKDF2 + AES-GCM via WebCrypto, tudo local)	Média
 D3	Ajustar navigator.share({ files }) no iOS — risco de cair em app errado; usar text/plain com preview	Baixa
 E. Estimativa de Calorias
 #	Sugestão	Prioridade

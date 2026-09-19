@@ -147,6 +147,19 @@ test('o prompt pede uma falha explícita se a IA não puder gerar o bloco', asyn
   await expect(page.locator('#aiPromptOutput')).toHaveValue(/NÃO CONSEGUI GERAR BLOCO IMPORTÁVEL/);
 });
 
+test('gera backup protegido após confirmar a senha', async ({ page }) => {
+  await page.goto(baseUrl);
+  await completeOnboarding(page);
+  await page.locator('#navPerfil').click();
+  const password = 'senha-de-teste';
+  page.on('dialog', dialog => dialog.accept(password));
+  const [download] = await Promise.all([
+    page.waitForEvent('download'),
+    page.getByRole('button', { name: /Exportar backup protegido/ }).click()
+  ]);
+  expect(download.suggestedFilename()).toContain('treino-backup-protegido-');
+});
+
 test('migra o histórico existente para IndexedDB', async ({ page }) => {
   const legacyLog = {
     'supino-reto': [{ type: 'forca', name: 'Supino Reto', date: '2026-09-19', series: [{ reps: 10, weight: 40 }] }]
