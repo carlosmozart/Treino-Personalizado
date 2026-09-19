@@ -138,6 +138,15 @@ test('explica como corrigir uma resposta de IA sem bloco importável', async ({ 
   await expect(page.getByRole('button', { name: /Copiar formato para enviar à IA/ })).toBeVisible();
 });
 
+test('o prompt pede uma falha explícita se a IA não puder gerar o bloco', async ({ page }) => {
+  await page.goto(baseUrl);
+  await completeOnboarding(page);
+  await page.locator('#navPlanos').click();
+  await page.getByRole('button', { name: /Montar treino com IA/ }).click();
+
+  await expect(page.locator('#aiPromptOutput')).toHaveValue(/NÃO CONSEGUI GERAR BLOCO IMPORTÁVEL/);
+});
+
 test('migra o histórico existente para IndexedDB', async ({ page }) => {
   const legacyLog = {
     'supino-reto': [{ type: 'forca', name: 'Supino Reto', date: '2026-09-19', series: [{ reps: 10, weight: 40 }] }]
