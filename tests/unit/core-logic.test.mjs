@@ -16,6 +16,10 @@ const logic = loadInlineFunctions([
   DAY_ORDER: ['SEG', 'TER', 'QUA', 'QUI', 'SEX', 'SAB', 'DOM'],
   IMPORT_TIPOS: ['forca', 'tempo', 'cardio'],
   MET_FORCA: 5.0
+  , TREINO_DATE: {
+    formatLocalDateKey(date) { return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`; },
+    getMondayOf(dateStr) { const d = new Date(dateStr + 'T12:00:00'); const day = d.getDay(); d.setDate(d.getDate() + (day === 0 ? -6 : 1 - day)); d.setHours(0, 0, 0, 0); return d; }
+  }
 });
 
 describe('regras centrais do treino', () => {

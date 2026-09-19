@@ -1151,6 +1151,7 @@
   </div>
 
   <script src="data/static-config.js"></script>
+  <script src="js/core/date-utils.js"></script>
   <script>
     const APP_VERSION = '2.19.5'; // manter sincronizado com CACHE_NAME em sw.js e com o CHANGELOG.md
 
@@ -2255,10 +2256,7 @@
     // de UTC (como o Brasil, UTC-3) a "virada do dia" acontecia horas mais cedo do que a
     // meia-noite local (por volta das 21h-22h), fazendo água/check-in resetarem cedo demais.
     function formatLocalDateKey(date) {
-      const y = date.getFullYear();
-      const m = String(date.getMonth() + 1).padStart(2, '0');
-      const d = String(date.getDate()).padStart(2, '0');
-      return `${y}-${m}-${d}`;
+      return TREINO_DATE.formatLocalDateKey(date);
     }
 
     function todayKey(offsetDays = 0) {
@@ -5745,12 +5743,7 @@ EX|Nome do exercício|forca|3|10|20|Alternativa opcional|
     // sessao isolada varia por sono, alimentacao e humor, mas a soma da semana mostra
     // tendencia.
     function getMondayOf(dateStr) {
-      // meio-dia evita que o fuso empurre para o dia anterior
-      const d = new Date(dateStr + 'T12:00:00');
-      const dia = d.getDay();                    // 0 = domingo
-      d.setDate(d.getDate() + (dia === 0 ? -6 : 1 - dia));
-      d.setHours(0, 0, 0, 0);
-      return d;
+      return TREINO_DATE.getMondayOf(dateStr);
     }
 
     // Devolve as ultimas `quantas` semanas em ordem cronologica, incluindo as sem treino —
