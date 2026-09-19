@@ -13,5 +13,6 @@ for (const file of ['index.html', 'manifest.json', 'sw.js']) {
   await cp(resolve(root, file), resolve(webDir, file));
 }
 await cp(resolve(root, 'icons'), resolve(webDir, 'icons'), { recursive: true });
+await cp(resolve(root, 'data'), resolve(webDir, 'data'), { recursive: true });
 
 console.log('Arquivos web preparados em www/.');

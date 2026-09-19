@@ -2,6 +2,7 @@ const CACHE_NAME = 'treino-cache-v2.19.5';
 const ASSETS = [
   './',
   './index.html',
+  './data/static-config.js',
   './manifest.json',
   './icons/icon-192-v3.png',
   './icons/icon-512-v3.png'

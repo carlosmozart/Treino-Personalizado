@@ -1149,6 +1149,7 @@
     </div>
   </div>
 
+  <script src="data/static-config.js"></script>
   <script>
     const APP_VERSION = '2.19.5'; // manter sincronizado com CACHE_NAME em sw.js e com o CHANGELOG.md
 
@@ -1966,7 +1967,7 @@
     // ---------- PERFIS DE TREINO (multi-perfil) ----------
     const PROFILES_KEY = 'treino_profiles';
     const ACTIVE_PROFILE_KEY = 'treino_active_profile_id';
-    const DAY_ORDER = ['SEG', 'TER', 'QUA', 'QUI', 'SEX', 'SAB', 'DOM'];
+    const DAY_ORDER = TREINO_STATIC.dayOrder;
     const DAY_FULL_NAMES = { SEG: 'Segunda', TER: 'Terça', QUA: 'Quarta', QUI: 'Quinta', SEX: 'Sexta', SAB: 'Sábado', DOM: 'Domingo' };
     const MAX_EXERCISES_PER_DAY = 10;
 
@@ -6171,8 +6172,8 @@ EX|Nome do exercício|forca|3|10|20|Alternativa opcional|
     // o gasto elevado que continua depois do treino. NAO serve para fechar conta de dieta.
     // Serve, e bem, para comparar seus proprios treinos entre si: mesma formula, mesmo peso,
     // diferenca real de esforco entre um dia e outro.
-    const MET_FORCA = 5.0;          // musculacao com intervalos, esforco moderado a vigoroso
-    const MET_CARDIO_PADRAO = 6.0;  // usado quando nao da para calcular a velocidade
+    const MET_FORCA = TREINO_STATIC.metForca;
+    const MET_CARDIO_PADRAO = TREINO_STATIC.metCardioPadrao;
 
     function metDoCardio(entry) {
       const min = parseFloat(entry.duration) || 0;
