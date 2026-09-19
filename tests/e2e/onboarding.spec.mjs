@@ -11,6 +11,12 @@ let baseUrl;
 test.beforeAll(async () => {
   server = createServer(async (request, response) => {
     const url = new URL(request.url || '/', 'http://localhost');
+    // O service worker do app força uma recarga ao assumir o controle. Ele é
+    // validado no pacote de release; aqui isolamos os fluxos da interface.
+    if (url.pathname === '/sw.js') {
+      response.writeHead(404).end();
+      return;
+    }
     const relative = url.pathname === '/' ? 'index.html' : decodeURIComponent(url.pathname).replace(/^\/+/, '');
     const file = resolve(root, relative);
     if (!file.startsWith(`${root}${sep}`) && file !== resolve(root, 'index.html')) {
@@ -66,4 +72,32 @@ test('migra o histórico existente para IndexedDB', async ({ page }) => {
   }));
 
   expect(migrated).toEqual(legacyLog);
+});
+
+test('mantém o IndexedDB como fonte do histórico após recarregar', async ({ page }) => {
+  const indexedLog = {
+    'remada-baixa': [{ type: 'forca', name: 'Remada Baixa', date: '2026-09-18', series: [{ reps: 12, weight: 35 }] }]
+  };
+  const staleLocalLog = {
+    'supino-reto': [{ type: 'forca', name: 'Dados antigos', date: '2026-09-10', series: [{ reps: 1, weight: 1 }] }]
+  };
+  await page.addInitScript(value => localStorage.setItem('treino_session_log', JSON.stringify(value)), indexedLog);
+  await page.goto(baseUrl);
+  await expect(page.locator('#appVersion')).not.toHaveText('');
+
+  await page.evaluate(value => localStorage.setItem('treino_session_log', JSON.stringify(value)), staleLocalLog);
+  await page.reload();
+  await expect(page.locator('#appVersion')).not.toHaveText('');
+
+  const persisted = await page.evaluate(async () => new Promise((resolve, reject) => {
+    const request = indexedDB.open('treino-session-log', 1);
+    request.onerror = () => reject(request.error);
+    request.onsuccess = () => {
+      const read = request.result.transaction('state', 'readonly').objectStore('state').get('current');
+      read.onerror = () => reject(read.error);
+      read.onsuccess = () => resolve(read.result);
+    };
+  }));
+
+  expect(persisted).toEqual(indexedLog);
 });

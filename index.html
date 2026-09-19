@@ -1532,6 +1532,7 @@
     const SESSION_DB_KEY = 'current';
     let sessionDb = null;
     let sessionDbReady = false;
+    let sessionDbGeneration = 0;
 
     function openSessionDb() {
       if (!('indexedDB' in window)) return Promise.reject(new Error('IndexedDB indisponível'));
@@ -1563,6 +1564,7 @@
 
     function clearSessionDb() {
       if (!('indexedDB' in window)) return Promise.resolve();
+      sessionDbGeneration++;
       if (sessionDb) sessionDb.close();
       sessionDb = null;
       sessionDbReady = false;
@@ -1584,9 +1586,23 @@
     }
 
     async function initializeSessionLogStorage() {
+      const generation = sessionDbGeneration;
       try {
-        sessionDb = await openSessionDb();
-        const stored = await readSessionDb(sessionDb);
+        const db = await openSessionDb();
+        // Uma restauração de backup pode ocorrer enquanto a abertura do banco ainda
+        // está pendente. Nesse caso, descarta esta conexão antiga para que ela não
+        // restaure por engano o histórico anterior ao backup.
+        if (generation !== sessionDbGeneration) {
+          db.close();
+          return;
+        }
+        sessionDb = db;
+        const stored = await readSessionDb(db);
+        if (generation !== sessionDbGeneration) {
+          db.close();
+          if (sessionDb === db) sessionDb = null;
+          return;
+        }
         sessionDbReady = true;
         if (stored && typeof stored === 'object') sessionLog = stored;
         else await writeSessionDb();
