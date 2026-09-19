@@ -7,13 +7,15 @@ const logic = loadInlineFunctions([
   'getEntrySeries',
   'describeEntry',
   'sessionVolume',
+  'metDaForca',
   'normalizeExerciseName',
   'extrairBlocosDoPlano',
   'parseBlocoDoPlano',
   'parsePlanoDaIA'
 ], {
   DAY_ORDER: ['SEG', 'TER', 'QUA', 'QUI', 'SEX', 'SAB', 'DOM'],
-  IMPORT_TIPOS: ['forca', 'tempo', 'cardio']
+  IMPORT_TIPOS: ['forca', 'tempo', 'cardio'],
+  MET_FORCA: 5.0
 });
 
 describe('regras centrais do treino', () => {
@@ -76,5 +78,11 @@ describe('regras centrais do treino', () => {
     expect(plano.dias).toHaveLength(1);
     expect(plano.dias[0].dia).toBe('SEG');
     expect(plano.dias[0].exercicios[0].nome).toBe('Supino Inclinado');
+  });
+
+  it('estima maior intensidade para carga relativamente mais alta', () => {
+    const leve = [{ type: 'forca', series: [{ reps: 12, weight: 20 }, { reps: 12, weight: 20 }, { reps: 12, weight: 20 }] }];
+    const pesado = [{ type: 'forca', series: [{ reps: 3, weight: 80 }, { reps: 3, weight: 80 }, { reps: 3, weight: 80 }, { reps: 3, weight: 80 }, { reps: 3, weight: 80 }] }];
+    expect(logic.metDaForca(pesado, 80, 30)).toBeGreaterThan(logic.metDaForca(leve, 80, 30));
   });
 });
