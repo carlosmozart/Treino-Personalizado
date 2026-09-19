@@ -39,7 +39,7 @@ F3	i18n (pt-BR / en) via Intl — fácil agora, impossível depois	Baixa
 G. Arquitetura e Manutenção
 #	Sugestão	Prioridade
 G1	Modularizar o monolito single-file: módulos ES (<script type="module">) com arquivos .js independentes; SW cacheia e offline continua	Média
-G2	🟡 Separar dados de lógica: configurações MET_* e calendário extraídas; faltam EXERCISE_LIBRARY, ACHIEVEMENTS e RELEASE_NOTES	Média
+G2	🟡 Separar dados de lógica: configurações, RELEASE_NOTES e EXERCISE_LIBRARY extraídos; ACHIEVEMENTS permanece por conter funções ligadas ao estado	Média
 H. Build e Distribuição (APK)
 #	Sugestão	Prioridade
 H1	Manter Capacitor para o caso atual (ver análise abaixo)	—
