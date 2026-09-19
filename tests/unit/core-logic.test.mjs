@@ -85,4 +85,10 @@ describe('regras centrais do treino', () => {
     const pesado = [{ type: 'forca', series: [{ reps: 3, weight: 80 }, { reps: 3, weight: 80 }, { reps: 3, weight: 80 }, { reps: 3, weight: 80 }, { reps: 3, weight: 80 }] }];
     expect(logic.metDaForca(pesado, 80, 30)).toBeGreaterThan(logic.metDaForca(leve, 80, 30));
   });
+
+  it('mantém o MET de força em uma faixa conservadora', () => {
+    const extremo = [{ type: 'forca', series: [{ reps: 1, weight: 1000 }] }];
+    expect(logic.metDaForca(extremo, 50, 1)).toBeLessThanOrEqual(6);
+    expect(logic.metDaForca([], 80, 30)).toBe(5);
+  });
 });

@@ -3,7 +3,7 @@ Organizado a partir da análise de 13/09/2026. Itens marcados com prioridade.
 
 A. Testes e Qualidade
 #	Sugestão	Prioridade
-A1	Testes unitários para funções puras: formatLocalDateKey, getMondayOf, isRestDay, calculateStreak, sessionVolume, describeEntry, parsePlanoDaIA, estimateWorkoutCalories, normalizeExerciseName	Alta
+A1	🟡 Testes unitários para funções puras ampliados (datas, sessões, parser e MET); isRestDay/calculateStreak dependem de perfil e ficam para refatoração de estado	Alta
 A2	✅ Testes de fumaça com Playwright: onboarding → treino → check-in automático → histórico; importador da IA com duas variações de resposta	Alta
 A3	✅ GitHub Actions rodando testes a cada push	Alta
 A4	Adicionar package.json com devDependencies (vitest, playwright, eslint) — sem bundler, só para CI	Média
@@ -15,7 +15,7 @@ B1	✅ Migrar sessionLog e exerciseHistory para IndexedDB antes do teto de ~5 MB
 B2	Se não migrar de imediato: expurgo por política (manter N sessões mais recentes *e* as mais pesadas por exercício)	Alta
 B3	Compressão dos dados no localStorage (ex.: LZ-string) enquanto a migração não acontece	Média
 B4	CACHE_NAME derivado de hash do commit (git rev-parse --short HEAD) em vez de manual (treino-cache-v38)	Média
-B5	Manter RELEASE_NOTES_ARCHIVE em arquivo separado com link no app (usuário que salta da 2.5 para 2.18 perde notas intermediárias)	Baixa
+B5	✅ Histórico completo de versões no CHANGELOG.md com link no app	Baixa
 C. Parser da IA
 #	Sugestão	Prioridade
 C1	✅ Fallback explícito em vez de mais tolerâncias: rejeitar o que não casa com o schema e mostrar o trecho cru ao usuário com instrução de formato	Alta
