@@ -8,6 +8,7 @@ A2	Testes de fumaça com Playwright: onboarding → treino → check-in automát
 A3	GitHub Actions rodando testes a cada push	Alta
 A4	Adicionar package.json com devDependencies (vitest, playwright, eslint) — sem bundler, só para CI	Média
 A5	Varredura por console.log residual	Baixa
+A6	Revisar as vulnerabilidades transitivas apontadas após adicionar Vitest/Playwright; evitar npm audit fix automático sem avaliar impactos	Média
 B. Persistência e Dados
 #	Sugestão	Prioridade
 B1	Migrar sessionLog e exerciseHistory para IndexedDB antes do teto de ~5 MB (localStorage)	Alta
