@@ -20,6 +20,12 @@ const logic = loadInlineFunctions([
     formatLocalDateKey(date) { return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`; },
     getMondayOf(dateStr) { const d = new Date(dateStr + 'T12:00:00'); const day = d.getDay(); d.setDate(d.getDate() + (day === 0 ? -6 : 1 - day)); d.setHours(0, 0, 0, 0); return d; }
   }
+  , TREINO_CALORIES: {
+    strengthMet(exercises, weight, minutes, getSeries, defaultMet) {
+      let sets = 0, reps = 0, volume = 0; exercises.forEach(e => getSeries(e).forEach(s => { const r = +s.reps || 0, load = +s.weight || 0; sets++; reps += r; volume += r * load; }));
+      if (!sets) return defaultMet; return Math.max(4.2, Math.min(6, 4.1 + Math.min(1.4, Math.max(0, volume / reps / weight) * 1.25) + Math.min(.5, (sets / minutes) * 2)));
+    }
+  }
 });
 
 describe('regras centrais do treino', () => {

@@ -1157,6 +1157,7 @@
   <script src="js/core/backup-crypto.js"></script>
   <script src="js/core/backup-utils.js"></script>
   <script src="js/core/display-utils.js"></script>
+  <script src="js/core/calorie-utils.js"></script>
   <script>
     const APP_VERSION = '2.19.5'; // manter sincronizado com CACHE_NAME em sw.js e com o CHANGELOG.md
 
@@ -5904,16 +5905,7 @@ EX|Nome do exercício|forca|3|10|20|Alternativa opcional|
     const MET_CARDIO_PADRAO = TREINO_STATIC.metCardioPadrao;
 
     function metDoCardio(entry) {
-      const min = parseFloat(entry.duration) || 0;
-      const km = parseFloat(entry.distance) || 0;
-      if (!min || !km) return MET_CARDIO_PADRAO;
-      const kmh = km / (min / 60);
-      if (kmh < 5.5) return 3.5;    // caminhada
-      if (kmh < 6.5) return 5.0;    // caminhada rapida
-      if (kmh < 8) return 7.0;      // trote
-      if (kmh < 10) return 9.0;
-      if (kmh < 12) return 11.0;
-      return 12.5;
+      return TREINO_CALORIES.cardioMet(entry, MET_CARDIO_PADRAO);
     }
 
     // Quando o cronometro nao registrou a duracao (treinos antigos), estima a partir do que
@@ -5934,19 +5926,7 @@ EX|Nome do exercício|forca|3|10|20|Alternativa opcional|
     // Ajuste conservador: além do tempo, considera carga média relativa ao peso corporal
     // e a densidade de séries. Mantém a estimativa dentro de uma faixa plausível.
     function metDaForca(exercicios, peso, minutos) {
-      let series = 0, reps = 0, volume = 0;
-      exercicios.forEach(e => {
-        if (e.type === 'cardio') return;
-        getEntrySeries(e).forEach(s => {
-          const r = parseFloat(s.reps) || 0, c = parseFloat(s.weight) || 0;
-          series++; reps += r; volume += r * c;
-        });
-      });
-      if (!series) return MET_FORCA;
-      const cargaRelativa = reps && peso ? volume / reps / peso : 0.25;
-      const densidade = minutos ? series / minutos : 0.12;
-      const met = 4.1 + Math.min(1.4, Math.max(0, cargaRelativa) * 1.25) + Math.min(0.5, densidade * 2);
-      return Math.max(4.2, Math.min(6.0, met));
+      return TREINO_CALORIES.strengthMet(exercicios, peso, minutos, getEntrySeries, MET_FORCA);
     }
 
     // Devolve { kcal, medido } ou null quando falta o peso — sem peso nao ha estimativa
