@@ -1158,6 +1158,7 @@
   <script src="js/core/backup-utils.js"></script>
   <script src="js/core/display-utils.js"></script>
   <script src="js/core/calorie-utils.js"></script>
+  <script src="js/core/level-utils.js"></script>
   <script>
     const APP_VERSION = '2.19.5'; // manter sincronizado com CACHE_NAME em sw.js e com o CHANGELOG.md
 
@@ -2729,19 +2730,10 @@
       }).join('');
     }
 
-    function xpForLevel(level) { return 100 + (level - 1) * 15; } // XP necessário para SAIR desse nível
+    function xpForLevel(level) { return TREINO_LEVELS.xpForLevel(level); }
 
     function getLevelInfo(totalXP) {
-      let level = 1;
-      let xpAtLevelStart = 0;
-      while (level < MAX_LEVEL) {
-        const need = xpForLevel(level);
-        if (totalXP - xpAtLevelStart < need) break;
-        xpAtLevelStart += need;
-        level++;
-      }
-      const need = level < MAX_LEVEL ? xpForLevel(level) : 0;
-      return { level, xpIntoLevel: totalXP - xpAtLevelStart, xpToNext: need, totalXP };
+      return TREINO_LEVELS.getLevelInfo(totalXP, MAX_LEVEL);
     }
 
     function renderLevelBar() {
