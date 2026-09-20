@@ -5,6 +5,13 @@ window.TREINO_STATIC = {
   metCardioPadrao: 6.0,
   releaseNotes: [
       {
+        version: '2.20.0', date: '2026-09-20',
+        highlights: [
+          '🛟 <strong>Dados e backups mais protegidos.</strong> Seu histórico agora suporta mais registros, e o backup pode ser protegido por senha.',
+          '✨ <strong>Melhorias de confiabilidade.</strong> O app ficou mais preparado para funcionar offline e receber evoluções sem perder estabilidade.'
+        ]
+      },
+      {
         version: '2.19.5', date: '2026-09-19',
         highlights: [
           '🗂️ <strong>Histórico preparado para crescer.</strong> O app começou a guardar as sessões em um banco local mais robusto, preservando a compatibilidade com seus backups.'

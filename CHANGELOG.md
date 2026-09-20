@@ -6,6 +6,12 @@ Todas as mudanças relevantes do app ficam registradas aqui. Ao lançar uma nova
    atualizar o app instalado
 3. Adicione uma entrada aqui, nesse formato
 
+## [2.20.0] - 2026-09-20
+
+- Histórico e backup mais robustos, com IndexedDB e opção de arquivo protegido por senha.
+- Melhorias no importador de planos de IA, acessibilidade, notificações e estimativas de treino.
+- Regras e dados do app começaram a ser separados em módulos locais, mantendo o funcionamento offline no APK.
+
 ## [2.19.5] - 2026-09-19
 
 ### Alterado
