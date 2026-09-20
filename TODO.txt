@@ -3,7 +3,7 @@ Organizado a partir da análise de 13/09/2026. Itens marcados com prioridade.
 
 A. Testes e Qualidade
 #	Sugestão	Prioridade
-A1	🟡 Testes unitários para funções puras ampliados (datas, sessões, parser e MET); isRestDay/calculateStreak dependem de perfil e ficam para refatoração de estado	Alta
+A1	✅ Testes unitários para funções puras: datas, sessões, parser, MET, dias de descanso e sequência	Alta
 A2	✅ Testes de fumaça com Playwright: onboarding → treino → check-in automático → histórico; importador da IA com duas variações de resposta	Alta
 A3	✅ GitHub Actions rodando testes a cada push	Alta
 A4	Adicionar package.json com devDependencies (vitest, playwright, eslint) — sem bundler, só para CI	Média

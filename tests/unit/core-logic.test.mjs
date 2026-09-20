@@ -1,5 +1,18 @@
 import { describe, expect, it } from 'vitest';
+import { readFile } from 'node:fs/promises';
+import { resolve } from 'node:path';
+import vm from 'node:vm';
 import { loadInlineFunctions } from '../helpers/inline-functions.mjs';
+
+async function loadBrowserModule(file, name) {
+  const context = { window: {} };
+  vm.createContext(context);
+  vm.runInContext(await readFile(resolve(process.cwd(), file), 'utf8'), context);
+  return context.window[name];
+}
+
+const profileRules = await loadBrowserModule('js/core/profile-utils.js', 'TREINO_PROFILES');
+const streakRules = await loadBrowserModule('js/core/streak-utils.js', 'TREINO_STREAK');
 
 const logic = loadInlineFunctions([
   'formatLocalDateKey',
@@ -100,5 +113,17 @@ describe('regras centrais do treino', () => {
     const extremo = [{ type: 'forca', series: [{ reps: 1, weight: 1000 }] }];
     expect(logic.metDaForca(extremo, 50, 1)).toBeLessThanOrEqual(6);
     expect(logic.metDaForca([], 80, 30)).toBe(5);
+  });
+
+  it('considera dias opcionais como descanso planejado', () => {
+    const profile = { schedule: { DOM: { optional: true, exercises: [{ id: 'x' }] } } };
+    expect(profileRules.isRestDay(profile, new Date('2026-09-20T12:00:00'), ['DOM'])).toBe(true);
+  });
+
+  it('mantém sequência através de descanso e a interrompe em treino perdido', () => {
+    const checkins = { '2026-09-18': 'SEG', '2026-09-16': 'SEG' };
+    const rest = date => date.getDay() === 4; // quinta
+    const key = date => `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+    expect(streakRules.calculate({ checkins, isRestDay: rest, formatDateKey: key, now: new Date('2026-09-18T12:00:00') })).toBe(2);
   });
 });
