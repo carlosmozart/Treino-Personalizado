@@ -1160,6 +1160,7 @@
   <script src="js/core/calorie-utils.js"></script>
   <script src="js/core/level-utils.js"></script>
   <script src="js/core/streak-utils.js"></script>
+  <script src="js/core/checkin-xp-utils.js"></script>
   <script>
     const APP_VERSION = '2.19.5'; // manter sincronizado com CACHE_NAME em sw.js e com o CHANGELOG.md
 
@@ -2587,16 +2588,16 @@
 
     function getFullCheckinXP() {
       const dpw = (getActiveProfile() && getActiveProfile().daysPerWeek) || 6;
-      return Math.max(20, Math.round(WEEKLY_XP_POOL / dpw));
+      return TREINO_CHECKIN_XP.full(dpw, WEEKLY_XP_POOL);
     }
     function getHalfCheckinXP() {
-      return Math.round(getFullCheckinXP() / 2);
+      return TREINO_CHECKIN_XP.half(getFullCheckinXP());
     }
     function getWaterBonusXP() {
-      return Math.max(1, Math.round(getFullCheckinXP() * WATER_BONUS_PCT));
+      return TREINO_CHECKIN_XP.bonus(getFullCheckinXP(), WATER_BONUS_PCT);
     }
     function getStreakBonusXP() {
-      return Math.max(1, Math.round(getFullCheckinXP() * STREAK_BONUS_PCT));
+      return TREINO_CHECKIN_XP.bonus(getFullCheckinXP(), STREAK_BONUS_PCT);
     }
 
     // ---------- CONQUISTAS (estilo Steam) ----------
