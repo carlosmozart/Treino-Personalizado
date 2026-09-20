@@ -1153,6 +1153,7 @@
   <script src="data/static-config.js"></script>
   <script src="js/core/date-utils.js"></script>
   <script src="js/core/storage-utils.js"></script>
+  <script src="js/core/history-utils.js"></script>
   <script>
     const APP_VERSION = '2.19.5'; // manter sincronizado com CACHE_NAME em sw.js e com o CHANGELOG.md
 
@@ -5865,32 +5866,9 @@ EX|Nome do exercício|forca|3|10|20|Alternativa opcional|
     // é preciso inverter esse índice e agrupar por data. Feito sob demanda (só ao abrir a aba
     // Progresso), porque percorre todo o log.
     function buildWorkoutHistory() {
-      const porData = {};
-
-      Object.keys(sessionLog).forEach(historyKey => {
-        (sessionLog[historyKey] || []).forEach(entry => {
-          const data = entryDateKey(entry);  // aceita string ou Date, descarta o resto
-          if (!data) return;
-          if (!porData[data]) porData[data] = { date: data, exercicios: [], volume: 0 };
-          // guarda a chave e um nome garantido, para a linha nunca sair so com numeros
-          porData[data].exercicios.push(Object.assign({}, entry, {
-            date: data,
-            historyKey,
-            name: resolveExerciseName(historyKey, entry)
-          }));
-          porData[data].volume += sessionVolume(entry);
-        });
+      return TREINO_HISTORY.buildWorkoutHistory(sessionLog, checkins, workoutMeta, {
+        entryDateKey, resolveExerciseName, sessionVolume, resolveWorkoutName, compareByDate
       });
-
-      // enriquece com o treino que foi registrado no check-in daquele dia
-      Object.keys(porData).forEach(date => {
-        const workoutKey = checkins[date];
-        porData[date].workoutKey = workoutKey || null;
-        porData[date].workoutName = resolveWorkoutName(workoutKey, date);
-        porData[date].minutos = (workoutMeta[date] && workoutMeta[date].minutos) || null;
-      });
-
-      return Object.values(porData).sort((a, b) => compareByDate(b, a)); // mais recente primeiro
     }
 
     // Dia da semana derivado da DATA, nunca da chave do treino registrado. E possivel fazer
