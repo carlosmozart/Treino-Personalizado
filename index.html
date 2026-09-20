@@ -1155,6 +1155,7 @@
   <script src="js/core/storage-utils.js"></script>
   <script src="js/core/history-utils.js"></script>
   <script src="js/core/backup-crypto.js"></script>
+  <script src="js/core/backup-utils.js"></script>
   <script>
     const APP_VERSION = '2.19.5'; // manter sincronizado com CACHE_NAME em sw.js e com o CHANGELOG.md
 
@@ -1519,22 +1520,8 @@
     }
 
     function buildBackupObject() {
-      const data = {};
-      BACKUP_KEYS.forEach(k => {
-        const raw = storageAvailable ? localStorage.getItem(k) : null;
-        if (raw !== null) data[k] = raw;
-      });
-      // Após a migração, o histórico mais recente mora no IndexedDB. O backup continua
-      // no mesmo formato para preservar compatibilidade com versões anteriores do app.
-      data[SESSIONS_KEY] = JSON.stringify(sessionLog);
-      data[HISTORY_KEY] = JSON.stringify(exerciseHistory);
-      return {
-        app: 'treino-personalizado',
-        backupVersion: 1,
-        appVersion: APP_VERSION,
-        exportedAt: new Date().toISOString(),
-        data
-      };
+      return TREINO_BACKUP.build({ keys: BACKUP_KEYS, storageAvailable, sessionKey: SESSIONS_KEY,
+        historyKey: HISTORY_KEY, sessionLog, exerciseHistory, appVersion: APP_VERSION });
     }
 
     function backupFileName() {
