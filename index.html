@@ -1156,6 +1156,7 @@
   <script src="js/core/history-utils.js"></script>
   <script src="js/core/backup-crypto.js"></script>
   <script src="js/core/backup-utils.js"></script>
+  <script src="js/core/display-utils.js"></script>
   <script>
     const APP_VERSION = '2.19.5'; // manter sincronizado com CACHE_NAME em sw.js e com o CHANGELOG.md
 
@@ -5831,12 +5832,11 @@ EX|Nome do exercício|forca|3|10|20|Alternativa opcional|
     const WEEKDAY_NAMES_ACENTUADOS = ['domingo', 'segunda-feira', 'ter\u00e7a-feira', 'quarta-feira', 'quinta-feira', 'sexta-feira', 's\u00e1bado'];
 
     function weekdayOf(dateStr) {
-      // meio-dia: evita que o fuso empurre a data para o dia anterior
-      return WEEKDAY_NAMES_ACENTUADOS[new Date(dateStr + 'T12:00:00').getDay()] || '';
+      return TREINO_DISPLAY.weekdayOf(dateStr);
     }
 
     function capitalizar(txt) {
-      return txt ? txt.charAt(0).toUpperCase() + txt.slice(1) : '';
+      return TREINO_DISPLAY.capitalize(txt);
     }
 
     function formatDateWithWeekday(dateStr) {

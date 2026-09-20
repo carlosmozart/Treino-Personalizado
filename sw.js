@@ -8,6 +8,7 @@ const ASSETS = [
   './js/core/history-utils.js',
   './js/core/backup-crypto.js',
   './js/core/backup-utils.js',
+  './js/core/display-utils.js',
   './manifest.json',
   './icons/icon-192-v3.png',
   './icons/icon-512-v3.png'
