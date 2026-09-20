@@ -2373,11 +2373,7 @@
     // (Opcional)", que antes zerava o contador de quem simplesmente nao treinava domingo.
     function isRestDay(dateObj) {
       const profile = getActiveProfile();
-      if (!profile) return false;
-      const workout = profile.schedule[DOW_TO_KEY[dateObj.getDay()]];
-      if (!workout) return false;
-      if (workout.optional) return true;
-      return (workout.exercises || []).length === 0;
+      return TREINO_PROFILES.isRestDay(profile, dateObj, DOW_TO_KEY);
     }
 
     const STREAK_MAX_LOOKBACK_DAYS = 730; // 2 anos: teto de segurança contra plano só de descanso
