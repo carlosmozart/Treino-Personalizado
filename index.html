@@ -1154,6 +1154,7 @@
   <script src="js/core/date-utils.js"></script>
   <script src="js/core/storage-utils.js"></script>
   <script src="js/core/history-utils.js"></script>
+  <script src="js/core/backup-crypto.js"></script>
   <script>
     const APP_VERSION = '2.19.5'; // manter sincronizado com CACHE_NAME em sw.js e com o CHANGELOG.md
 
@@ -1546,46 +1547,12 @@
       return /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
     }
 
-    function bytesToBase64(bytes) {
-      let text = '';
-      bytes.forEach(byte => { text += String.fromCharCode(byte); });
-      return btoa(text);
-    }
-
-    function base64ToBytes(text) {
-      const binary = atob(text);
-      return Uint8Array.from(binary, char => char.charCodeAt(0));
-    }
-
-    async function backupKeyFromPassword(password, salt) {
-      const material = await crypto.subtle.importKey('raw', new TextEncoder().encode(password), 'PBKDF2', false, ['deriveKey']);
-      return crypto.subtle.deriveKey(
-        { name: 'PBKDF2', salt, iterations: BACKUP_PBKDF2_ITERATIONS, hash: 'SHA-256' },
-        material, { name: 'AES-GCM', length: 256 }, false, ['encrypt', 'decrypt']
-      );
-    }
-
     async function encryptBackup(backup, password) {
-      if (!window.crypto || !crypto.subtle) throw new Error('Criptografia indisponível');
-      const salt = crypto.getRandomValues(new Uint8Array(16));
-      const iv = crypto.getRandomValues(new Uint8Array(12));
-      const key = await backupKeyFromPassword(password, salt);
-      const plain = new TextEncoder().encode(JSON.stringify(backup));
-      const ciphertext = await crypto.subtle.encrypt({ name: 'AES-GCM', iv }, key, plain);
-      return {
-        app: 'treino-personalizado', backupVersion: 2, encrypted: true, appVersion: APP_VERSION,
-        exportedAt: backup.exportedAt, algorithm: 'AES-GCM',
-        kdf: { name: 'PBKDF2', hash: 'SHA-256', iterations: BACKUP_PBKDF2_ITERATIONS },
-        salt: bytesToBase64(salt), iv: bytesToBase64(iv), ciphertext: bytesToBase64(new Uint8Array(ciphertext))
-      };
+      return TREINO_BACKUP_CRYPTO.encrypt(backup, password, BACKUP_PBKDF2_ITERATIONS, APP_VERSION);
     }
 
     async function decryptBackup(wrapper, password) {
-      if (!window.crypto || !crypto.subtle || wrapper.algorithm !== 'AES-GCM' || !wrapper.kdf || wrapper.kdf.name !== 'PBKDF2' || wrapper.kdf.hash !== 'SHA-256' || !Number.isInteger(wrapper.kdf.iterations) || wrapper.kdf.iterations < 100000) throw new Error('Formato de criptografia inválido');
-      const salt = base64ToBytes(wrapper.salt), iv = base64ToBytes(wrapper.iv);
-      const key = await backupKeyFromPassword(password, salt);
-      const plain = await crypto.subtle.decrypt({ name: 'AES-GCM', iv }, key, base64ToBytes(wrapper.ciphertext));
-      return JSON.parse(new TextDecoder().decode(plain));
+      return TREINO_BACKUP_CRYPTO.decrypt(wrapper, password);
     }
 
     window.exportBackup = async function(protectedBackup = false) {

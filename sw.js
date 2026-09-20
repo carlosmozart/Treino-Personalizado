@@ -6,6 +6,7 @@ const ASSETS = [
   './js/core/date-utils.js',
   './js/core/storage-utils.js',
   './js/core/history-utils.js',
+  './js/core/backup-crypto.js',
   './manifest.json',
   './icons/icon-192-v3.png',
   './icons/icon-512-v3.png'
