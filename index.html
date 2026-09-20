@@ -1159,6 +1159,7 @@
   <script src="js/core/display-utils.js"></script>
   <script src="js/core/calorie-utils.js"></script>
   <script src="js/core/level-utils.js"></script>
+  <script src="js/core/streak-utils.js"></script>
   <script>
     const APP_VERSION = '2.19.5'; // manter sincronizado com CACHE_NAME em sw.js e com o CHANGELOG.md
 
@@ -2379,26 +2380,7 @@
     const STREAK_MAX_LOOKBACK_DAYS = 730; // 2 anos: teto de segurança contra plano só de descanso
 
     function calculateStreak() {
-      let streak = 0;
-      let d = new Date();
-      d.setHours(0, 0, 0, 0);
-      let firstDay = true;
-
-      for (let i = 0; i < STREAK_MAX_LOOKBACK_DAYS; i++) {
-        const key = formatLocalDateKey(d);
-        if (checkins[key]) {
-          streak++;                       // treinou: conta
-        } else if (firstDay) {
-          // hoje ainda pode ser treinado; não quebra a sequência
-        } else if (isRestDay(d)) {
-          // descanso planejado: pula sem contar e sem quebrar
-        } else {
-          break;                          // dia de treino que ficou sem check-in: fim da sequência
-        }
-        firstDay = false;
-        d.setDate(d.getDate() - 1);
-      }
-      return streak;
+      return TREINO_STREAK.calculate({ checkins, isRestDay, formatDateKey: formatLocalDateKey, maxLookbackDays: STREAK_MAX_LOOKBACK_DAYS });
     }
 
     function calculateMonthlyCount() {

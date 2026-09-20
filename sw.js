@@ -11,6 +11,7 @@ const ASSETS = [
   './js/core/display-utils.js',
   './js/core/calorie-utils.js',
   './js/core/level-utils.js',
+  './js/core/streak-utils.js',
   './manifest.json',
   './icons/icon-192-v3.png',
   './icons/icon-512-v3.png'
