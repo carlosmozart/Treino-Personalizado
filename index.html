@@ -1161,6 +1161,7 @@
   <script src="js/core/level-utils.js"></script>
   <script src="js/core/streak-utils.js"></script>
   <script src="js/core/checkin-xp-utils.js"></script>
+  <script src="js/core/volume-utils.js"></script>
   <script>
     const APP_VERSION = '2.19.5'; // manter sincronizado com CACHE_NAME em sw.js e com o CHANGELOG.md
 
@@ -2637,11 +2638,7 @@
     // pode ter milhares de entradas; o cache cai sempre que o log muda.
     function getTotalVolume() {
       if (volumeTotalCache !== null) return volumeTotalCache;
-      let total = 0;
-      Object.keys(sessionLog).forEach(k => {
-        (sessionLog[k] || []).forEach(e => { total += sessionVolume(e); });
-      });
-      volumeTotalCache = Math.round(total);
+      volumeTotalCache = TREINO_VOLUME.total(sessionLog, sessionVolume);
       return volumeTotalCache;
     }
 
