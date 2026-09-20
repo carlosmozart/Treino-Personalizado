@@ -1162,6 +1162,7 @@
   <script src="js/core/streak-utils.js"></script>
   <script src="js/core/checkin-xp-utils.js"></script>
   <script src="js/core/volume-utils.js"></script>
+  <script src="js/core/profile-utils.js"></script>
   <script>
     const APP_VERSION = '2.19.5'; // manter sincronizado com CACHE_NAME em sw.js e com o CHANGELOG.md
 
@@ -1841,11 +1842,11 @@
     }
 
     function getActiveProfile() {
-      return profiles[activeProfileId];
+      return TREINO_PROFILES.active(profiles, activeProfileId);
     }
 
     function selectProfile(profileId) {
-      if (!profiles[profileId]) return;
+      if (!TREINO_PROFILES.has(profiles, profileId)) return;
       activeProfileId = profileId;
       saveString(ACTIVE_PROFILE_KEY, activeProfileId);
       gamification.equippedProfiles = gamification.equippedProfiles || {};
