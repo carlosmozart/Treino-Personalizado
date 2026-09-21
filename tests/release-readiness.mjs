@@ -4,7 +4,7 @@ import { resolve } from 'node:path';
 
 const root = process.cwd();
 const read = (file) => readFile(resolve(root, file), 'utf8');
-const [html, worker, manifest, pkg, lockfile, gradle, androidManifest, capacitorGradle, capacitorSettings, capacitorConfig, unitTest, deviceTest] = await Promise.all([
+const [html, worker, manifest, pkg, lockfile, gradle, androidManifest, capacitorGradle, capacitorSettings, capacitorConfig, unitTest, deviceTest, mainActivity] = await Promise.all([
   read('index.html'),
   read('sw.js'),
   read('manifest.json'),
@@ -16,7 +16,8 @@ const [html, worker, manifest, pkg, lockfile, gradle, androidManifest, capacitor
   read('android/capacitor.settings.gradle'),
   read('capacitor.config.json'),
   read('android/app/src/test/java/com/treinopersonalizado/app/ExampleUnitTest.java'),
-  read('android/app/src/androidTest/java/com/treinopersonalizado/app/ExampleInstrumentedTest.java')
+  read('android/app/src/androidTest/java/com/treinopersonalizado/app/ExampleInstrumentedTest.java'),
+  read('android/app/src/main/java/com/treinopersonalizado/app/MainActivity.java')
 ]);
 
 const appVersion = html.match(/const APP_VERSION = '([^']+)'/)?.[1];
@@ -43,6 +44,9 @@ assert.match(capacitorConfig, /"LocalNotifications"/, 'Ícone de notificações 
 assert.match(pkg, /@capacitor\/local-notifications/, 'Pacote de notificações deve permanecer instalado.');
 assert.match(html, /isExactNotification: false/, 'Lembretes semanais devem evitar alarmes exatos sem necessidade.');
 assert.match(html, /id: REST_NOTIFICATION_ID,[\s\S]*isExactNotification: true/, 'O aviso de descanso deve usar alarme exato.');
+assert.match(html, /REST_NOTIFICATION_CHANNEL_ID = 'treino-descanso-v3'/, 'O descanso precisa de canal próprio de alarme.');
+assert.match(mainActivity, /AudioAttributes\.USAGE_ALARM/, 'Canal de descanso precisa usar o volume de alarmes do Android.');
+assert.match(mainActivity, /RingtoneManager\.TYPE_ALARM/, 'Canal de descanso precisa usar toque de alarme.');
 assert.match(html, /checkExactNotificationSetting/, 'O app precisa verificar a autorização de alarmes exatos.');
 assert.match(html, /weekday: DAY_ORDER\.indexOf\(day\) \+ 2/, 'Cada lembrete precisa manter o dia correto do treino.');
 

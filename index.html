@@ -1164,7 +1164,7 @@
   <script src="js/core/volume-utils.js"></script>
   <script src="js/core/profile-utils.js"></script>
   <script>
-    const APP_VERSION = '2.20.0'; // manter sincronizado com CACHE_NAME em sw.js e com o CHANGELOG.md
+    const APP_VERSION = '2.20.1'; // manter sincronizado com CACHE_NAME em sw.js e com o CHANGELOG.md
 
     const RELEASE_NOTES = TREINO_STATIC.releaseNotes;
 
@@ -6461,6 +6461,9 @@ EX|Nome do exercício|forca|3|10|20|Alternativa opcional|
     // O ID versionado é intencional: o Android mantém a configuração do canal
     // depois de criado e não aplica mudanças de som/vibração ao canal antigo.
     const NOTIFICATION_CHANNEL_ID = 'treino-avisos-v2';
+    // Criado nativamente com uso de alarme: o volume segue "Alarmes" do Android,
+    // não o volume de mídia que pode estar sendo usado pela música.
+    const REST_NOTIFICATION_CHANNEL_ID = 'treino-descanso-v3';
 
     async function ensureNotificationChannel(plugin) {
       await plugin.createChannel({
@@ -6537,7 +6540,7 @@ EX|Nome do exercício|forca|3|10|20|Alternativa opcional|
         id: REST_NOTIFICATION_ID,
         title: 'Descanso concluído ⏰',
         body: restTimer.exerciseName ? `Volte para ${restTimer.exerciseName}.` : 'Bora para a próxima série!',
-        channelId: NOTIFICATION_CHANNEL_ID,
+        channelId: REST_NOTIFICATION_CHANNEL_ID,
         sound: 'default',
         vibrate: true,
         extra: { targetView: 'treino', type: 'rest-finished' },

@@ -5,6 +5,12 @@ window.TREINO_STATIC = {
   metCardioPadrao: 6.0,
   releaseNotes: [
       {
+        version: '2.20.1', date: '2026-09-21',
+        highlights: [
+          '🔊 <strong>Aviso de descanso mais forte.</strong> No Android, o fim do descanso agora usa o canal de alarmes e uma vibração reforçada para se destacar melhor durante música.'
+        ]
+      },
+      {
         version: '2.20.0', date: '2026-09-20',
         highlights: [
           '🛟 <strong>Dados e backups mais protegidos.</strong> Seu histórico agora suporta mais registros, e o backup pode ser protegido por senha.',

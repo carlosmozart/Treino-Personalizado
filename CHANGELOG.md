@@ -6,6 +6,10 @@ Todas as mudanças relevantes do app ficam registradas aqui. Ao lançar uma nova
    atualizar o app instalado
 3. Adicione uma entrada aqui, nesse formato
 
+## [2.20.1] - 2026-09-21
+
+- O aviso de fim do descanso agora usa o canal de alarmes do Android e vibração reforçada, para ser percebido melhor durante música.
+
 ## [2.20.0] - 2026-09-20
 
 - Histórico e backup mais robustos, com IndexedDB e opção de arquivo protegido por senha.
