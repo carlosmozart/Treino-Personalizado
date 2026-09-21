@@ -38,7 +38,7 @@ F2	Testes com leitor de tela (TalkBack/VoiceOver)	Média
 F3	i18n (pt-BR / en) via Intl — fácil agora, impossível depois	Baixa
 G. Arquitetura e Manutenção
 #	Sugestão	Prioridade
-G1	🟡 Modularizar o monolito: utilitários de data/armazenamento e agregação do histórico extraídos e cacheados offline; faltam backup e renderização ligada ao estado global	Média
+G1	🟡 Modularizar o monolito: utilitários, histórico e validação/resumo de backup extraídos e cacheados offline; faltam fluxos de interface de backup e renderização ligada ao estado global	Média
 G2	🟡 Separar dados de lógica: configurações, RELEASE_NOTES e EXERCISE_LIBRARY extraídos; ACHIEVEMENTS permanece por conter funções ligadas ao estado	Média
 H. Build e Distribuição (APK)
 #	Sugestão	Prioridade

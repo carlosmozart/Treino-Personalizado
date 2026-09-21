@@ -1156,6 +1156,7 @@
   <script src="js/core/history-utils.js"></script>
   <script src="js/core/backup-crypto.js"></script>
   <script src="js/core/backup-utils.js"></script>
+  <script src="js/core/backup-validation.js"></script>
   <script src="js/core/display-utils.js"></script>
   <script src="js/core/calorie-utils.js"></script>
   <script src="js/core/level-utils.js"></script>
@@ -1500,32 +1501,6 @@
       'treino_session_log', 'treino_settings', 'treino_workout_draft', 'treino_workout_meta'
     ]);
 
-    function isValidBackupData(data) {
-      if (!data || typeof data !== 'object' || Array.isArray(data) || Object.keys(data).length === 0) return false;
-      return Object.entries(data).every(([key, raw]) => {
-        if (!BACKUP_KEYS.includes(key) || typeof raw !== 'string') return false;
-        if (!JSON_BACKUP_KEYS.has(key)) return true;
-        try {
-          const parsed = JSON.parse(raw);
-          if (parsed === null || typeof parsed !== 'object' || Array.isArray(parsed)) return false;
-          if (key === 'treino_session_log') {
-            return Object.values(parsed).every((entries) =>
-              Array.isArray(entries) && entries.every((entry) => entry && typeof entry === 'object' && !Array.isArray(entry))
-            );
-          }
-          if (key === 'treino_profiles') {
-            return Object.values(parsed).every((profile) =>
-              profile && typeof profile === 'object' && !Array.isArray(profile) &&
-              profile.schedule && typeof profile.schedule === 'object' && !Array.isArray(profile.schedule)
-            );
-          }
-          return true;
-        } catch (_) {
-          return false;
-        }
-      });
-    }
-
     function buildBackupObject() {
       return TREINO_BACKUP.build({ keys: BACKUP_KEYS, storageAvailable, sessionKey: SESSIONS_KEY,
         historyKey: HISTORY_KEY, sessionLog, exerciseHistory, appVersion: APP_VERSION });
@@ -1649,19 +1624,13 @@
     };
 
     function openImportConfirm(fileName) {
-      if (!pendingImport || pendingImport.app !== 'treino-personalizado' || pendingImport.backupVersion !== 1 || !isValidBackupData(pendingImport.data)) {
+      if (!pendingImport || pendingImport.app !== 'treino-personalizado' || pendingImport.backupVersion !== 1 || !TREINO_BACKUP_VALIDATION.isValidData(pendingImport.data, BACKUP_KEYS, JSON_BACKUP_KEYS)) {
         pendingImport = null;
         showToast('❌ Backup inválido ou corrompido. Use um arquivo exportado por este app.');
         return;
       }
       const d = pendingImport.data;
-      let checkinCount = 0, sessionCount = 0, level = 1;
-      try { checkinCount = Object.keys(JSON.parse(d['treino_checkins'] || '{}')).length; } catch (e) {}
-      try {
-        const log = JSON.parse(d['treino_session_log'] || '{}');
-        sessionCount = Object.values(log).reduce((sum, arr) => sum + (Array.isArray(arr) ? arr.length : 0), 0);
-      } catch (e) {}
-      try { level = getLevelInfo(JSON.parse(d['treino_gamification'] || '{}').totalXP || 0).level; } catch (e) {}
+      const { checkinCount, sessionCount, level } = TREINO_BACKUP_VALIDATION.summarize(d, getLevelInfo);
 
       const when = pendingImport.exportedAt ? formatDateBR(pendingImport.exportedAt.slice(0, 10)) : 'data desconhecida';
       document.getElementById('importSummary').innerHTML =

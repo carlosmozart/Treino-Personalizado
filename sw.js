@@ -8,6 +8,7 @@ const ASSETS = [
   './js/core/history-utils.js',
   './js/core/backup-crypto.js',
   './js/core/backup-utils.js',
+  './js/core/backup-validation.js',
   './js/core/display-utils.js',
   './js/core/calorie-utils.js',
   './js/core/level-utils.js',

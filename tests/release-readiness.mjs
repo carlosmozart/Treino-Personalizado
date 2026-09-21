@@ -4,7 +4,7 @@ import { resolve } from 'node:path';
 
 const root = process.cwd();
 const read = (file) => readFile(resolve(root, file), 'utf8');
-const [html, worker, manifest, pkg, lockfile, gradle, androidManifest, capacitorGradle, capacitorSettings, capacitorConfig, unitTest, deviceTest, mainActivity] = await Promise.all([
+const [html, worker, manifest, pkg, lockfile, gradle, androidManifest, capacitorGradle, capacitorSettings, capacitorConfig, unitTest, deviceTest, mainActivity, backupValidation] = await Promise.all([
   read('index.html'),
   read('sw.js'),
   read('manifest.json'),
@@ -17,7 +17,8 @@ const [html, worker, manifest, pkg, lockfile, gradle, androidManifest, capacitor
   read('capacitor.config.json'),
   read('android/app/src/test/java/com/treinopersonalizado/app/ExampleUnitTest.java'),
   read('android/app/src/androidTest/java/com/treinopersonalizado/app/ExampleInstrumentedTest.java'),
-  read('android/app/src/main/java/com/treinopersonalizado/app/MainActivity.java')
+  read('android/app/src/main/java/com/treinopersonalizado/app/MainActivity.java'),
+  read('js/core/backup-validation.js')
 ]);
 
 const appVersion = html.match(/const APP_VERSION = '([^']+)'/)?.[1];
@@ -54,6 +55,9 @@ assert.match(html, /const MAX_BACKUP_BYTES = 15 \* 1024 \* 1024/, 'Importação 
 assert.match(html, /file\.size > MAX_BACKUP_BYTES/, 'Limite do backup deve ser conferido antes da leitura.');
 assert.match(html, /pendingImport\.backupVersion !== 1/, 'Versão do backup deve ser conferida na restauração.');
 assert.match(html, /type: isIOS\(\) \? 'text\/plain' : 'application\/json'/, 'Compartilhamento no iOS precisa usar texto simples com prévia.');
+assert.match(html, /js\/core\/backup-validation\.js/, 'A validação de backup precisa ficar em módulo próprio.');
+assert.match(worker, /js\/core\/backup-validation\.js/, 'A validação de backup precisa funcionar offline.');
+assert.match(backupValidation, /isValidData/, 'Módulo de backup precisa validar dados importados.');
 
 assert.match(html, /:focus-visible\s*\{[\s\S]*outline:/, 'Foco visível é obrigatório.');
 assert.match(html, /id="toast" role="status" aria-live="polite"/, 'Toast deve anunciar mensagens assistivas.');
