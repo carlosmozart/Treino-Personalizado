@@ -6,14 +6,14 @@ A. Testes e Qualidade
 A1	✅ Testes unitários para funções puras: datas, sessões, parser, MET, dias de descanso e sequência	Alta
 A2	✅ Testes de fumaça com Playwright: onboarding → treino → check-in automático → histórico; importador da IA com duas variações de resposta	Alta
 A3	✅ GitHub Actions rodando testes a cada push	Alta
-A4	Adicionar package.json com devDependencies (vitest, playwright, eslint) — sem bundler, só para CI	Média
+A4	✅ Dependências de teste registradas no package.json e usadas pelo CI	Média
 A5	✅ Varredura por console.log residual — apenas saídas esperadas nos scripts de validação e preparação	Baixa
 A6	✅ Revisar vulnerabilidades transitivas: removido @capacitor/assets legado e atualizado Capacitor 8.5.2; restam 3 alertas moderados transitivos do suporte iOS do CLI, sem correção compatível	Média
 B. Persistência e Dados
 #	Sugestão	Prioridade
 B1	✅ Migrar sessionLog e exerciseHistory para IndexedDB antes do teto de ~5 MB (localStorage)	Alta
-B2	Se não migrar de imediato: expurgo por política (manter N sessões mais recentes *e* as mais pesadas por exercício)	Alta
-B3	Compressão dos dados no localStorage (ex.: LZ-string) enquanto a migração não acontece	Média
+B2	✅ Absorvido pela migração para IndexedDB; não é necessário expurgo no localStorage	Alta
+B3	✅ Não necessário: o histórico principal já usa IndexedDB	Média
 B4	CACHE_NAME derivado de hash do commit (git rev-parse --short HEAD) em vez de manual (treino-cache-v38)	Média
 B5	✅ Histórico completo de versões no CHANGELOG.md com link no app	Baixa
 C. Parser da IA
@@ -33,8 +33,8 @@ E2	✅ Aviso quando o peso cadastrado tem X dias ("peso de 90 dias atrás")	Méd
 E3	✅ Garantir que o "≈" esteja visível na UI (não só no changelog)	Baixa
 F. Acessibilidade e i18n
 #	Sugestão	Prioridade
-F1	aria-modal e focus trap em overlays	Média
-F2	Testes com leitor de tela (TalkBack/VoiceOver)	Média
+F1	✅ aria-modal e focus trap em overlays	Média
+F2	🟡 Testar os fluxos principais com leitor de tela (TalkBack; VoiceOver se houver versão iOS)	Média
 F3	i18n (pt-BR / en) via Intl — fácil agora, impossível depois	Baixa
 G. Arquitetura e Manutenção
 #	Sugestão	Prioridade
@@ -43,31 +43,31 @@ G2	🟡 Separar dados de lógica: configurações, RELEASE_NOTES e EXERCISE_LIBR
 H. Build e Distribuição (APK)
 #	Sugestão	Prioridade
 H1	Manter Capacitor para o caso atual (ver análise abaixo)	—
-H2	Considerar Capacitor só se precisar de notificações agendadas, acesso a arquivos ou criptografia nativa	—
+H2	✅ Capacitor já atende notificações agendadas, acesso a arquivos e o empacotamento Android	—
 H3	Se Capacitor se mostrar limitante: migrar gradualmente para Kotlin Multiplatform (KMP) — compartilha lógica, UI nativa	Baixa
 H4	Evitar reescrita completa em Kotlin puro (custo alto, ganho marginal para este domínio)	—
 I. Pequenos Ajustes
 #	Sugestão
-I1	Adicionar @capacitor/local-notifications se notificações agendadas forem necessárias
-I2	Testar cache.addAll + cache: 'reload' em device real mais cedo (comportamento varia em WebView/TWA)
-I3	Revisar stopPropagation na bolha de nome — pode quebrar acessibilidade
+I1	✅ @capacitor/local-notifications instalado e integrado
+I2	✅ Cache offline e atualização foram validados no fluxo do aplicativo
+I3	✅ stopPropagation da bolha de nome revisado
 K. Notificações, Timer e Uso em Segundo Plano
 #	Sugestão	Prioridade
 K1	✅ Explicar/solicitar a ativação de "Aviso de descanso em segundo plano" no primeiro uso do timer	Alta
 K2	✅ Alarme exato para o fim do descanso; requer permissão SCHEDULE_EXACT_ALARM e autorização do usuário	Média
 K3	✅ Adicionar orientação sobre "Forçar parada" e economia de bateria do Android	Média
-K4	Testar notificações em aparelhos Samsung, Xiaomi, Motorola e Android puro, com tela bloqueada e música tocando	Alta
+K4	🟡 Testar notificações em aparelhos Samsung, Xiaomi, Motorola e Android puro, com tela bloqueada e música tocando	Alta
 K5	✅ Criar lembrete periódico para exportação do backup local	Média
-K6	Avaliar migração do histórico para IndexedDB antes do limite prático do localStorage	Alta
+K6	✅ Absorvido por B1: histórico já migrado para IndexedDB	Alta
 L. UX e Acessibilidade
 #	Sugestão	Prioridade
 L1	✅ Orientar no primeiro uso do timer que o aviso em segundo plano precisa ser ativado em Perfil > Dados	Alta
 L2	✅ Informar na tela de configurações que economia de bateria pode atrasar notificações	Média
 L3	✅ Adicionar foco adequado e focus trap aos modais	Média
-L4	Testar os fluxos principais com TalkBack e VoiceOver	Média
+L4	🟡 Absorvido por F2: testar os fluxos principais com TalkBack; VoiceOver se houver versão iOS	Média
 L5	✅ Reforçar visualmente o término do descanso combinando notificação, vibração e animação	Baixa
 L6	✅ Adicionar lembrete periódico para exportar o backup local	Média
-L7	✅ Revisar stopPropagation da bolha de nome e seu impacto na acessibilidade	Baixa
+L7	✅ Absorvido por I3	Baixa
 J. Decisão Tecnológica: Composer vs Kotlin
 Resposta curta: continue com Capacitor. Kotlin puro não compensa para este projeto.
 
