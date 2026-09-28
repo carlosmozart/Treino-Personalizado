@@ -500,26 +500,26 @@
       </div>
       <div class="space-y-3">
         <div>
-          <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Nome</label>
+          <label for="onbName" class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Nome</label>
           <input type="text" id="onbName" placeholder="Seu nome" class="mt-1 w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2.5 text-white text-sm focus:outline-none focus:ring-1 focus:ring-blue-600"/>
         </div>
         <div>
-          <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Data de Nascimento</label>
+          <label for="onbBirthdate" class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Data de Nascimento</label>
           <input type="date" id="onbBirthdate" class="mt-1 w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2.5 text-white text-sm focus:outline-none focus:ring-1 focus:ring-blue-600"/>
         </div>
         <div class="grid grid-cols-2 gap-3">
           <div>
-            <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Altura (cm)</label>
+            <label for="onbHeight" class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Altura (cm)</label>
             <input type="number" id="onbHeight" placeholder="Ex: 170" class="mt-1 w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2.5 text-white text-sm focus:outline-none focus:ring-1 focus:ring-blue-600"/>
           </div>
           <div>
-            <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Peso (kg)</label>
+            <label for="onbWeight" class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Peso (kg)</label>
             <input type="number" step="0.1" id="onbWeight" placeholder="Ex: 75" class="mt-1 w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2.5 text-white text-sm focus:outline-none focus:ring-1 focus:ring-blue-600"/>
           </div>
         </div>
         <div class="grid grid-cols-2 gap-3">
           <div>
-            <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Sexo</label>
+            <label for="onbSex" class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Sexo</label>
             <select id="onbSex" class="mt-1 w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2.5 text-white text-sm focus:outline-none focus:ring-1 focus:ring-blue-600 appearance-none">
               <option value="">Não informar</option>
               <option value="masculino">Masculino</option>
@@ -527,7 +527,7 @@
             </select>
           </div>
           <div>
-            <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Atividade</label>
+            <label for="onbActivity" class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Atividade</label>
             <select id="onbActivity" class="mt-1 w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2.5 text-white text-sm focus:outline-none focus:ring-1 focus:ring-blue-600 appearance-none">
               <option value="sedentario">Sedentário</option>
               <option value="moderado" selected>Moderado</option>
@@ -536,7 +536,7 @@
           </div>
         </div>
       </div>
-      <p id="onboardingError" class="hidden text-[11px] text-rose-400 font-bold mt-3 text-center"></p>
+      <p id="onboardingError" role="alert" class="hidden text-[11px] text-rose-400 font-bold mt-3 text-center"></p>
       <button type="button" onclick="submitOnboarding()" class="mt-5 w-full bg-blue-600 hover:bg-blue-500 text-white font-extrabold text-sm py-3 rounded-xl transition-all active:scale-[0.99]">Começar</button>
       <button type="button" onclick="triggerImportBackup()" class="mt-3 w-full bg-slate-900 border border-slate-700 active:border-amber-600 text-amber-300 font-extrabold text-sm py-3 rounded-xl transition-all active:scale-[0.99]">♻️ Já usa o app? Restaurar backup</button>
       <p class="mt-2 text-[10px] text-slate-500 text-center leading-relaxed">Exporte o backup na versão web e escolha o arquivo aqui para trazer seus dados.</p>
@@ -793,29 +793,29 @@
         <h3 class="text-xs font-black uppercase tracking-widest text-slate-400 mb-4">Meus Dados</h3>
         <div class="grid grid-cols-2 gap-3">
           <div class="col-span-2">
-            <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Nome</label>
+            <label for="profileName" class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Nome</label>
             <input type="text" id="profileName" placeholder="Seu nome" class="mt-1 w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2.5 text-white text-sm focus:outline-none focus:ring-1 focus:ring-blue-600"/>
           </div>
           <div>
-            <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Data de Nascimento</label>
+            <label for="profileBirthdate" class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Data de Nascimento</label>
             <input type="date" id="profileBirthdate" class="mt-1 w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2.5 text-white text-sm focus:outline-none focus:ring-1 focus:ring-blue-600"/>
             <p id="profileAgeDisplay" class="text-[10px] text-slate-600 mt-1"></p>
           </div>
           <div>
-            <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Altura (cm)</label>
+            <label for="profileHeight" class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Altura (cm)</label>
             <input type="number" id="profileHeight" placeholder="Ex: 170" class="mt-1 w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2.5 text-white text-sm focus:outline-none focus:ring-1 focus:ring-blue-600"/>
           </div>
           <div>
-            <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Peso Atual (kg)</label>
+            <label for="profileWeight" class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Peso Atual (kg)</label>
             <input type="number" step="0.1" id="profileWeight" placeholder="Ex: 75" class="mt-1 w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2.5 text-white text-sm focus:outline-none focus:ring-1 focus:ring-blue-600"/>
             <p id="weightFreshnessWarning" class="hidden mt-2 text-[10px] text-amber-300 bg-amber-950/30 border border-amber-800/40 rounded-lg px-2 py-1.5"></p>
           </div>
           <div>
-            <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Peso Alvo (kg)</label>
+            <label for="profileTargetWeight" class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Peso Alvo (kg)</label>
             <input type="number" step="0.1" id="profileTargetWeight" placeholder="Ex: 80" class="mt-1 w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2.5 text-white text-sm focus:outline-none focus:ring-1 focus:ring-blue-600"/>
           </div>
           <div>
-            <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Sexo</label>
+            <label for="profileSex" class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Sexo</label>
             <select id="profileSex" class="mt-1 w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2.5 text-white text-sm focus:outline-none focus:ring-1 focus:ring-blue-600 appearance-none">
               <option value="">Prefiro não informar</option>
               <option value="masculino">Masculino</option>
@@ -823,7 +823,7 @@
             </select>
           </div>
           <div>
-            <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Nível de Atividade</label>
+            <label for="profileActivity" class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Nível de Atividade</label>
             <select id="profileActivity" class="mt-1 w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2.5 text-white text-sm focus:outline-none focus:ring-1 focus:ring-blue-600 appearance-none">
               <option value="sedentario">Sedentário</option>
               <option value="moderado" selected>Moderado</option>
@@ -831,6 +831,7 @@
             </select>
           </div>
         </div>
+        <p id="profileValidationError" role="alert" class="hidden text-sm text-rose-400 mt-3"></p>
         <button id="btnSaveProfile" type="button" class="mt-4 w-full bg-blue-600 hover:bg-blue-500 text-white font-extrabold text-sm py-3 rounded-xl transition-all active:scale-[0.99]">Salvar e Atualizar</button>
         <p class="text-[10px] text-slate-600 mt-2 text-justify">Salvar registra seu peso de hoje no histórico. As estimativas de IMC e água são orientativas — consulte um profissional de saúde para metas personalizadas.</p>
         <p class="text-[10px] text-slate-600 mt-1 text-justify">ℹ️ O cálculo e a classificação do IMC (OMS) são os mesmos independente do sexo — pedimos essa informação apenas para deixar seu perfil mais completo e para eventuais métricas futuras (como % de gordura corporal), não para alterar o resultado do IMC.</p>
@@ -845,7 +846,7 @@
           <p class="text-xs font-bold text-slate-300">Tempo padrão</p>
           <p class="text-[10px] text-slate-600">Em segundos (ex: 90)</p>
         </div>
-        <input type="number" id="restSecondsInput" min="5" max="600" step="5" value="90" oninput="updateRestSetting('restSeconds', this.value)" class="w-20 bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-white text-sm text-center font-bold focus:outline-none focus:ring-1 focus:ring-blue-600"/>
+        <input type="number" id="restSecondsInput" aria-label="Tempo padrão de descanso em segundos" min="5" max="600" step="5" value="90" oninput="updateRestSetting('restSeconds', this.value)" class="w-20 bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-white text-sm text-center font-bold focus:outline-none focus:ring-1 focus:ring-blue-600"/>
       </div>
 
       <div class="flex items-center justify-between gap-3 py-2 border-t border-slate-800/60">
@@ -853,7 +854,7 @@
           <p class="text-xs font-bold text-slate-300">Iniciar automaticamente</p>
           <p class="text-[10px] text-slate-600">Ao marcar um exercício como concluído</p>
         </div>
-        <button type="button" id="restAutoStartToggle" onclick="toggleRestSetting('restAutoStart')" aria-pressed="false" class="relative w-11 h-6 rounded-full bg-slate-700 transition-all duration-200 flex-shrink-0"></button>
+        <button type="button" id="restAutoStartToggle" aria-label="Iniciar descanso automaticamente" onclick="toggleRestSetting('restAutoStart')" aria-pressed="false" class="relative w-11 h-6 rounded-full bg-slate-700 transition-all duration-200 flex-shrink-0"></button>
       </div>
 
       <div class="flex items-center justify-between gap-3 py-2 border-t border-slate-800/60">
@@ -861,7 +862,7 @@
           <p class="text-xs font-bold text-slate-300">Apitar ao terminar</p>
           <p class="text-[10px] text-slate-600">Toque para testar o som</p>
         </div>
-        <button type="button" id="restSoundToggle" onclick="toggleRestSetting('restSound')" aria-pressed="false" class="relative w-11 h-6 rounded-full bg-slate-700 transition-all duration-200 flex-shrink-0"></button>
+        <button type="button" id="restSoundToggle" aria-label="Apitar ao terminar" onclick="toggleRestSetting('restSound')" aria-pressed="false" class="relative w-11 h-6 rounded-full bg-slate-700 transition-all duration-200 flex-shrink-0"></button>
       </div>
 
       <div id="restVibrateRow" class="flex items-center justify-between gap-3 py-2 border-t border-slate-800/60">
@@ -869,7 +870,7 @@
           <p class="text-xs font-bold text-slate-300">Vibrar ao terminar</p>
           <p class="text-[10px] text-slate-600">Indisponível em iPhone/iPad</p>
         </div>
-        <button type="button" id="restVibrateToggle" onclick="toggleRestSetting('restVibrate')" aria-pressed="false" class="relative w-11 h-6 rounded-full bg-slate-700 transition-all duration-200 flex-shrink-0"></button>
+        <button type="button" id="restVibrateToggle" aria-label="Vibrar ao terminar" onclick="toggleRestSetting('restVibrate')" aria-pressed="false" class="relative w-11 h-6 rounded-full bg-slate-700 transition-all duration-200 flex-shrink-0"></button>
       </div>
     </section>
 
@@ -994,7 +995,7 @@
         <div id="tmbFormulaSelector" class="grid grid-cols-3 gap-2 mb-4"></div>
 
         <div id="bodyFatFieldWrap" class="hidden mb-4">
-          <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">% de Gordura Corporal</label>
+          <label for="profileBodyFat" class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">% de Gordura Corporal</label>
           <input type="number" step="0.1" id="profileBodyFat" placeholder="Ex: 20" class="mt-1 w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2.5 text-white text-sm focus:outline-none focus:ring-1 focus:ring-blue-600"/>
           <p class="text-[10px] text-slate-600 mt-1">Necessário para a fórmula Katch-McArdle. Se não souber o valor exato, uma bioimpedância ou avaliação com dobras cutâneas dão uma estimativa razoável.</p>
         </div>
@@ -1036,11 +1037,16 @@
               <p id="goalTargetWeight" class="text-sm font-black text-emerald-400">--</p>
             </div>
           </div>
-          <div class="w-full h-3 bg-slate-800 rounded-full overflow-hidden relative mt-3">
+          <div id="goalProgressBar" role="progressbar" aria-label="Progresso da meta de peso" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" class="w-full h-3 bg-slate-800 rounded-full overflow-hidden relative mt-3">
             <div id="goalProgressFill" class="h-full bg-gradient-to-r from-blue-600 to-emerald-500 rounded-full transition-all duration-500" style="width: 0%"></div>
           </div>
           <p id="goalRemainingText" class="text-xs text-slate-400 font-semibold text-center mt-3">--</p>
           <p id="goalPercentText" class="text-[10px] text-slate-600 text-center mt-1">--</p>
+          <ol id="goalCheckpoints" aria-label="Checkpoints da meta de peso" class="grid grid-cols-2 gap-3 mt-4"></ol>
+          <p id="goalEncouragement" class="text-sm text-blue-200 bg-blue-950/40 border border-blue-800/60 rounded-xl p-3 mt-3" aria-live="polite"></p>
+          <p id="goalBaselineText" class="text-[10px] text-slate-400 mt-3 leading-relaxed"></p>
+          <button type="button" onclick="startNewWeightGoal()" class="mt-3 w-full bg-slate-800 border border-slate-700 text-blue-200 rounded-xl py-3 text-sm font-bold">Iniciar nova meta com o peso atual</button>
+          <p class="text-[10px] text-slate-400 mt-2">O peso alvo é definido em Perfil → Dados. Alterar o alvo inicia uma nova meta ao salvar. Seu histórico não é apagado.</p>
         </div>
       </section>
 
@@ -1157,6 +1163,7 @@
   <script src="js/core/backup-crypto.js"></script>
   <script src="js/core/backup-utils.js"></script>
   <script src="js/core/backup-validation.js"></script>
+  <script src="js/core/backup-restore.js"></script>
   <script src="js/core/display-utils.js"></script>
   <script src="js/core/calorie-utils.js"></script>
   <script src="js/core/level-utils.js"></script>
@@ -1277,6 +1284,11 @@
       catch (e) { return false; }
     })();
 
+    let restoringBackup = (() => {
+      try { return !!localStorage.getItem(TREINO_BACKUP_RESTORE.marker); }
+      catch (_) { return false; }
+    })();
+
     // ---------- DETECÇÃO DE PLATAFORMA ----------
     // Usada só para escolher o caminho que funciona em cada sistema (compartilhar x baixar
     // arquivo, vibração, notificações). Nenhum dado sai do aparelho.
@@ -1314,6 +1326,7 @@
     let storageQuotaWarned = false;
     let volumeTotalCache = null;   // volume acumulado; zerado a cada gravacao do log
     function saveJSON(key, obj) {
+      if (restoringBackup) return false;
       if (!storageAvailable) return false;
       try {
         localStorage.setItem(key, JSON.stringify(obj));
@@ -1413,6 +1426,7 @@
     }
 
     function saveSessionLog() {
+      if (restoringBackup) return false;
       volumeTotalCache = null;
       if (!sessionDbReady) return saveJSON(SESSIONS_KEY, sessionLog);
       writeSessionDb().catch(error => {
@@ -1424,6 +1438,7 @@
     }
 
     function saveExerciseHistory() {
+      if (restoringBackup) return false;
       if (!sessionDbReady) return saveJSON(HISTORY_KEY, exerciseHistory);
       writeExerciseHistoryDb().catch(error => {
         console.error('Falha ao gravar histórico de exercícios no IndexedDB; usando armazenamento local.', error);
@@ -1594,6 +1609,8 @@
     };
 
     let pendingImport = null;
+    let importInProgress = false;
+    let historyInitialization = Promise.resolve();
 
     window.handleImportFile = function(input) {
       const file = input.files && input.files[0];
@@ -1624,7 +1641,7 @@
     };
 
     function openImportConfirm(fileName) {
-      if (!pendingImport || pendingImport.app !== 'treino-personalizado' || pendingImport.backupVersion !== 1 || !TREINO_BACKUP_VALIDATION.isValidData(pendingImport.data, BACKUP_KEYS, JSON_BACKUP_KEYS)) {
+      if (!pendingImport || pendingImport.app !== 'treino-personalizado' || pendingImport.backupVersion !== 1 || !TREINO_BACKUP_VALIDATION.isValidEnvelope(pendingImport) || !TREINO_BACKUP_VALIDATION.isValidData(pendingImport.data, BACKUP_KEYS, JSON_BACKUP_KEYS)) {
         pendingImport = null;
         showToast('❌ Backup inválido ou corrompido. Use um arquivo exportado por este app.');
         return;
@@ -1642,29 +1659,43 @@
     }
 
     window.cancelImport = function() {
+      if (importInProgress) return;
       pendingImport = null;
       document.getElementById('importConfirmOverlay').classList.add('hidden');
     };
 
     window.confirmImport = async function() {
-      if (!pendingImport) return;
+      if (!pendingImport || importInProgress) return;
+      if (!TREINO_BACKUP_VALIDATION.isValidEnvelope(pendingImport) || !TREINO_BACKUP_VALIDATION.isValidData(pendingImport.data, BACKUP_KEYS, JSON_BACKUP_KEYS)) {
+        window.cancelImport();
+        showToast('❌ Backup inválido ou corrompido. Seus dados não foram alterados.');
+        return;
+      }
+      importInProgress = true;
+      restoringBackup = true;
+      document.body.inert = true;
+      clearTimeout(draftSaveTimer);
+      showToast('Restaurando backup…');
       try {
-        // Substitui tudo: só as chaves do app são tocadas, e as ausentes no backup são
-        // removidas para o resultado ser exatamente o estado de quando o backup foi feito.
-        BACKUP_KEYS.forEach(k => {
-          if (Object.prototype.hasOwnProperty.call(pendingImport.data, k)) {
-            localStorage.setItem(k, pendingImport.data[k]);
-          } else {
-            localStorage.removeItem(k);
-          }
+        await historyInitialization;
+        await TREINO_BACKUP_RESTORE.restore({
+          data: pendingImport.data, keys: BACKUP_KEYS,
+          sessionKey: SESSIONS_KEY, historyKey: HISTORY_KEY,
+          storage: localStorage, openDatabase: openSessionDb
         });
         pendingImport = null;
       } catch (err) {
         console.error('Falha ao importar:', err);
-        showToast('❌ Erro ao restaurar o backup.');
+        if (err.recoveryRequired) {
+          showToast('⚠️ Não foi possível recuperar os dados agora. Feche e reabra o app para tentar novamente.');
+          return;
+        }
+        importInProgress = false;
+        restoringBackup = false;
+        document.body.inert = false;
+        showToast('❌ Backup não restaurado. Seus dados anteriores foram preservados.');
         return;
       }
-      await clearSessionDb();
       document.getElementById('importConfirmOverlay').classList.add('hidden');
       showToast('✅ Backup restaurado! Reabrindo o app...');
       setTimeout(() => window.location.reload(), 900);
@@ -1730,6 +1761,7 @@
       return TREINO_STORAGE.loadString(key, storageAvailable);
     }
     function saveString(key, value) {
+      if (restoringBackup) return false;
       return TREINO_STORAGE.saveString(key, value, storageAvailable);
     }
 
@@ -3107,15 +3139,24 @@
       // gráfico primeiro (ordem cronológica), lista logo abaixo (mais recente no topo).
       // O gráfico usa o histórico completo, não os 15 da lista: "Tudo" precisa querer dizer
       // tudo mesmo para quem já registrou mais que isso.
-      const todos = [...(userProfile.weightHistory || [])].filter(e => entryDateKey(e)).sort(compareByDate);
+      const todos = TREINO_PROFILES.weightTrend([...(userProfile.weightHistory || [])].filter(e => entryDateKey(e)).sort(compareByDate));
       const chrono = applyChartRange('peso', todos);
+      const target = Number(userProfile.targetWeight);
+      const hasTarget = Number.isFinite(target) && target > 0;
+      const change = chrono.length > 1 ? Number(chrono[chrono.length - 1].weight) - Number(chrono[0].weight) : 0;
       const chart = chrono.length >= 2
         ? `${chartRangeControls('peso', todos.length)}<div class="bg-slate-950/50 border border-slate-800 rounded-xl p-3 mb-3">
+             <p class="text-xs text-slate-300 mb-2">Variação no período: <strong class="text-white">${change > 0 ? '+' : ''}${change.toLocaleString('pt-BR', { maximumFractionDigits: 1 })} kg</strong> · ${chrono.length} registros</p>
+             <p id="weightTrendSummary" class="text-sm text-blue-200 mb-2">Média dos últimos ${chrono[chrono.length - 1].trendCount} registros: <strong>${chrono[chrono.length - 1].trend.toLocaleString('pt-BR', { maximumFractionDigits: 1 })} kg</strong></p>
+             <p class="text-[10px] text-slate-400 mb-2">Linha verde: peso registrado. Azul tracejado: média móvel de até 7 registros, incluindo anteriores ao recorte. Não é uma média semanal nem uma previsão.</p>
+             ${hasTarget ? `<p id="weightTargetLegend" class="text-xs text-amber-300 mb-2">Linha amarela pontilhada: alvo atual de ${target.toLocaleString('pt-BR', { maximumFractionDigits: 1 })} kg. Referência aplicada a todo o período exibido.</p>` : ''}
              ${renderSparkline(chrono.map(e => e.weight), {
                color: '#34d399', fill: 'rgba(52,211,153,0.14)',
+               target: hasTarget ? target : null, height: 100,
+               trend: chrono.map(e => e.trend),
                tips: chrono.map(e => `${formatDateBR(e.date)} · ${e.weight}kg · IMC ${Number(e.imc || 0).toFixed(1)}`)
              })}
-             <div class="flex justify-between mt-1.5 text-[9px] text-slate-600 font-bold">
+             <div class="flex justify-between mt-1.5 text-[10px] text-slate-400 font-bold">
                <span>${formatDateBR(chrono[0].date)}</span>
                <span>${formatDateBR(chrono[chrono.length - 1].date)}</span>
              </div>
@@ -3162,13 +3203,28 @@
       showToast('🗑️ Registro de peso apagado.');
     };
 
+    window.startNewWeightGoal = async function() {
+      const startWeight = Number(userProfile.weight);
+      const targetWeight = Number(userProfile.targetWeight);
+      if (![startWeight, targetWeight].every(n => Number.isFinite(n) && n > 0)) return;
+      const confirmed = await askConfirm({ icon: '🎯', title: 'Iniciar nova meta?',
+        text: `O progresso passará a usar <strong>${startWeight.toLocaleString('pt-BR')} kg</strong> como início e <strong>${targetWeight.toLocaleString('pt-BR')} kg</strong> como alvo. O histórico de peso será mantido.`,
+        confirmLabel: 'Iniciar nova meta' });
+      if (!confirmed) return;
+      const nextProfile = { ...userProfile, weightGoal: { startWeight, targetWeight, startedAt: todayKey() } };
+      if (!saveJSON(PROFILE_KEY, nextProfile)) return;
+      userProfile = nextProfile;
+      renderGoalRoadmap();
+      showToast('Nova meta iniciada. Seu histórico foi preservado.');
+    };
+
     function renderGoalRoadmap() {
       const emptyEl = document.getElementById('goalRoadmapEmpty');
       const contentEl = document.getElementById('goalRoadmapContent');
       const currentWeight = parseFloat(userProfile.weight);
       const targetWeight = parseFloat(userProfile.targetWeight);
 
-      if (!currentWeight || !targetWeight) {
+      if (![currentWeight, targetWeight].every(n => Number.isFinite(n) && n > 0)) {
         emptyEl.classList.remove('hidden');
         contentEl.classList.add('hidden');
         return;
@@ -3177,20 +3233,39 @@
       contentEl.classList.remove('hidden');
 
       // "início" = primeiro peso já registrado no histórico; se não houver, usa o peso atual
-      const sortedHistory = [...(userProfile.weightHistory || [])].filter(e => entryDateKey(e)).sort(compareByDate);
-      const startWeight = sortedHistory.length > 0 ? sortedHistory[0].weight : currentWeight;
-
-      document.getElementById('goalStartWeight').textContent = `${startWeight}kg`;
-      document.getElementById('goalCurrentWeight').textContent = `${currentWeight}kg`;
-      document.getElementById('goalTargetWeight').textContent = `${targetWeight}kg`;
+      const sortedHistory = [...(userProfile.weightHistory || [])].filter(e => entryDateKey(e) && Number.isFinite(Number(e.weight)) && Number(e.weight) > 0).sort(compareByDate);
+      const savedGoal = userProfile.weightGoal;
+      const hasGoal = savedGoal && savedGoal.targetWeight === targetWeight && Number.isFinite(savedGoal.startWeight) && savedGoal.startWeight > 0;
+      const startWeight = hasGoal ? savedGoal.startWeight : sortedHistory.length > 0 ? Number(sortedHistory[0].weight) : currentWeight;
+      document.getElementById('goalBaselineText').textContent = hasGoal
+        ? `Meta iniciada em ${formatDateBR(savedGoal.startedAt)}. Oscilações fazem parte do processo; não há prazo para avançar.`
+        : 'Meta anterior: referência no primeiro peso registrado. Inicie uma nova meta para fixar o ponto de partida sem apagar o histórico.';
+      const goal = TREINO_PROFILES.goalProgress(startWeight, currentWeight, targetWeight);
+      const kg = value => `${value.toLocaleString('pt-BR', { maximumFractionDigits: 1 })} kg`;
+      document.getElementById('goalStartWeight').textContent = kg(startWeight);
+      document.getElementById('goalCurrentWeight').textContent = kg(currentWeight);
+      document.getElementById('goalTargetWeight').textContent = kg(targetWeight);
 
       const totalDistance = targetWeight - startWeight; // positivo = ganhar peso, negativo = perder peso
       const progressText = document.getElementById('goalRemainingText');
       const percentText = document.getElementById('goalPercentText');
       const fill = document.getElementById('goalProgressFill');
+      const bar = document.getElementById('goalProgressBar');
+      bar.setAttribute('aria-valuenow', String(Math.floor(goal.percent)));
+      bar.setAttribute('aria-valuetext', `${Math.floor(goal.percent)}% da meta; peso atual ${kg(currentWeight)}`);
+      const messages = ['O primeiro passo conta. Siga no seu ritmo.', '25% do caminho! Cada hábito consistente faz diferença.', 'Metade do caminho! Reconheça o que você já construiu.', '75% concluídos! Continue com cuidado e constância.', 'Meta alcançada! Celebre sua dedicação e cuide da manutenção.'];
+      const checkpoints = goal.checkpoints.map(point => ({ ...point, date: hasGoal && savedGoal.checkpoints ? savedGoal.checkpoints[point.percent] : null }));
+      document.getElementById('goalCheckpoints').innerHTML = checkpoints.map(point => `<li class="rounded-xl border p-3 ${point.reached || point.date ? 'bg-emerald-950/40 border-emerald-800/60' : 'bg-slate-950/50 border-slate-700'}">
+        <p class="text-sm font-black ${point.reached || point.date ? 'text-emerald-300' : 'text-slate-300'}">${point.percent}% <span aria-hidden="true">${point.reached || point.date ? '✓' : '○'}</span></p>
+        <p class="text-sm text-white font-bold mt-1">${kg(point.weight)}</p>
+        <p class="text-[10px] text-slate-400 mt-1">${point.date ? `Conquistado em ${escapeHtml(formatDateBR(point.date))}${point.reached ? '' : ' · preservado após oscilação'}` : point.reached ? 'Alcançado · data não registrada' : 'A caminho'}</p></li>`).join('');
+      const next = goal.checkpoints.find(point => !point.reached);
+      document.getElementById('goalEncouragement').textContent = goal.maintenance
+        ? 'Seu objetivo está na faixa do peso inicial. Acompanhe os registros com tranquilidade.'
+        : messages[Math.min(4, Math.floor((goal.percent + 1e-8) / 25))] + (next ? ` Próximo marco: ${next.percent}% em ${kg(next.weight)}.` : '');
 
       if (Math.abs(totalDistance) < 0.1) {
-        fill.style.width = '100%';
+        fill.style.width = `${goal.percent}%`;
         progressText.textContent = 'Peso alvo igual ao peso inicial registrado.';
         percentText.textContent = '';
         return;
@@ -3206,14 +3281,32 @@
       const reachedOrPassed = goalIsLoss ? currentWeight <= targetWeight : currentWeight >= targetWeight;
 
       if (reachedOrPassed) {
-        progressText.textContent = '🎉 Você atingiu (ou superou) seu peso alvo!';
+        progressText.textContent = '🎉 Meta alcançada — o progresso fica limitado a 100%.';
       } else {
         progressText.textContent = `Faltam ${remaining.toFixed(1)}kg para ${goalIsLoss ? 'perder' : 'ganhar'} até o objetivo`;
       }
-      percentText.textContent = `${pct.toFixed(0)}% do caminho percorrido desde o primeiro registro`;
+      percentText.textContent = `${Math.floor(pct)}% do caminho percorrido desde ${hasGoal ? 'o início desta meta' : 'o primeiro registro'}`;
+    }
+
+    function validateProfileNumbers(fields) {
+      for (const [field, id] of Object.entries(fields)) {
+        const input = document.getElementById(id);
+        const message = input.validity.badInput ? 'Informe um número válido.' : TREINO_PROFILES.numericError(field, input.value);
+        if (message) return { input, message };
+      }
+      return null;
     }
 
     function saveProfile() {
+      const error = validateProfileNumbers({ height: 'profileHeight', weight: 'profileWeight', targetWeight: 'profileTargetWeight', bodyFatPercent: 'profileBodyFat' });
+      const errorEl = document.getElementById('profileValidationError');
+      errorEl.classList.toggle('hidden', !error);
+      errorEl.textContent = error ? error.message : '';
+      if (error) {
+        error.input.focus();
+        return false;
+      }
+      const previousTarget = Number(userProfile.targetWeight);
       userProfile.name = document.getElementById('profileName').value.trim();
       userProfile.birthdate = document.getElementById('profileBirthdate').value;
       userProfile.height = document.getElementById('profileHeight').value;
@@ -3224,6 +3317,14 @@
       userProfile.bodyFatPercent = document.getElementById('profileBodyFat').value;
 
       const weightNum = parseFloat(userProfile.weight);
+      const newTarget = Number(userProfile.targetWeight);
+      if (newTarget !== previousTarget) {
+        if (Number.isFinite(weightNum) && weightNum > 0 && Number.isFinite(newTarget) && newTarget > 0) {
+          userProfile.weightGoal = { startWeight: weightNum, targetWeight: newTarget, startedAt: todayKey() };
+        } else {
+          delete userProfile.weightGoal;
+        }
+      }
       const heightNum = parseFloat(userProfile.height);
       if (weightNum && heightNum) {
         const imc = computeIMC(weightNum, heightNum);
@@ -3233,6 +3334,11 @@
         const entry = { date: today, weight: weightNum, imc };
         if (existingIdx >= 0) list[existingIdx] = entry; else list.push(entry);
         userProfile.weightHistory = list;
+      }
+      // Datas são registradas ao salvar uma pesagem, nunca por abrir a tela.
+      // Não inferir conquistas antigas: um registro diário pode ter sido corrigido.
+      if (userProfile.weightGoal && userProfile.weightGoal.targetWeight === newTarget) {
+        userProfile.weightGoal = TREINO_PROFILES.recordGoalCheckpoints(userProfile.weightGoal, weightNum, todayKey());
       }
       saveJSON(PROFILE_KEY, userProfile);
       const age = calculateAge(userProfile.birthdate);
@@ -3247,6 +3353,7 @@
       checkBirthday();
       checkAchievements();
       showToast('Perfil salvo com sucesso!');
+      return true;
     }
 
     // Cada exercício reserva tem sua própria trilha de histórico, separada do exercício
@@ -3432,15 +3539,19 @@
       // valor e legenda precisam andar juntos: descartar um valor invalido sem descartar a
       // legenda correspondente deslocaria todas as datas seguintes em uma posicao
       const dados = values
-        .map((v, i) => ({ v: v, tip: legendas ? legendas[i] : null }))
+        .map((v, i) => ({ v: v, tip: legendas ? legendas[i] : null, trend: opts.trend ? opts.trend[i] : null }))
         .filter(d => typeof d.v === 'number' && isFinite(d.v));
       if (dados.length < 2) return '';
 
       const w = opts.width, h = opts.height, pad = 6;
       const vals = dados.map(d => d.v);
-      const min = Math.min.apply(null, vals);
-      const max = Math.max.apply(null, vals);
+      const scaleValues = vals.concat(dados.map(d => d.trend).filter(v => typeof v === 'number' && Number.isFinite(v)));
+      const hasTarget = typeof opts.target === 'number' && Number.isFinite(opts.target);
+      if (hasTarget) scaleValues.push(opts.target);
+      const min = Math.min.apply(null, scaleValues);
+      const max = Math.max.apply(null, scaleValues);
       const span = (max - min) || 1; // série constante: linha reta no meio, sem divisão por zero
+      const targetY = hasTarget ? h - pad - (opts.target - min) / span * (h - pad * 2) : 0;
       const stepX = (w - pad * 2) / (dados.length - 1);
 
       const coords = dados.map((d, i) => {
@@ -3450,6 +3561,8 @@
       });
 
       const line = coords.map((c, i) => `${i === 0 ? 'M' : 'L'}${c[0].toFixed(1)},${c[1].toFixed(1)}`).join(' ');
+      const trendLine = dados.every(d => typeof d.trend === 'number' && Number.isFinite(d.trend))
+        ? dados.map((d, i) => `${i ? 'L' : 'M'}${(pad + i * stepX).toFixed(1)},${(h - pad - (d.trend - min) / span * (h - pad * 2)).toFixed(1)}`).join(' ') : '';
       const area = `${line} L${coords[coords.length - 1][0].toFixed(1)},${h - pad} L${coords[0][0].toFixed(1)},${h - pad} Z`;
       // comprimento aproximado do traço, usado pela animação de "desenhar" a linha
       let len = 0;
@@ -3481,6 +3594,8 @@
         <svg viewBox="0 0 ${w} ${h}" width="100%" height="${h}" preserveAspectRatio="none" role="img" aria-label="Gráfico de evolução" style="display:block">
           <path d="${area}" fill="${opts.fill}" stroke="none"/>
           <path d="${line}" fill="none" stroke="${opts.color}" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="chart-line" style="--chart-len:${len.toFixed(0)}"/>
+          ${trendLine ? `<path data-trend d="${trendLine}" fill="none" stroke="#60a5fa" stroke-width="2" stroke-dasharray="5 4"><title>Média móvel de até 7 registros</title></path>` : ''}
+          ${hasTarget ? `<line data-target x1="${pad}" x2="${w - pad}" y1="${targetY.toFixed(1)}" y2="${targetY.toFixed(1)}" stroke="#fbbf24" stroke-width="2" stroke-dasharray="2 4"><title>Peso alvo: ${opts.target} kg</title></line>` : ''}
         </svg>
         <div style="position:absolute;top:0;left:0;right:0;height:${h}px;pointer-events:none">
           <span data-guia style="display:none;position:absolute;top:0;height:${h}px;width:1px;background:${opts.color};opacity:.4"></span>
@@ -3705,7 +3820,7 @@
         <svg class="w-4 h-4 mr-2 text-blue-400" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
         </svg>
-        ${workout.focus}
+        ${escapeHtml(workout.focus)}
       `;
       const badge = document.getElementById('workoutTimeBadge');
       badge.textContent = profile.trainingTime ? `Horário de Treino: ${profile.trainingTime}` : 'Horário de Treino: não definido';
@@ -6434,6 +6549,12 @@ EX|Nome do exercício|forca|3|10|20|Alternativa opcional|
     // não o volume de mídia que pode estar sendo usado pela música.
     const REST_NOTIFICATION_CHANNEL_ID = 'treino-descanso-v3';
 
+    function restNotificationChannelId() {
+      // Android mantém som/vibração no canal, não nas opções de cada aviso.
+      if (settings.restSound && settings.restVibrate) return REST_NOTIFICATION_CHANNEL_ID;
+      return REST_NOTIFICATION_CHANNEL_ID + (settings.restSound ? '-sound' : settings.restVibrate ? '-vibrate' : '-silent');
+    }
+
     async function ensureNotificationChannel(plugin) {
       await plugin.createChannel({
         id: NOTIFICATION_CHANNEL_ID,
@@ -6488,7 +6609,7 @@ EX|Nome do exercício|forca|3|10|20|Alternativa opcional|
             vibrate: true,
             extra: { targetView: 'treino', type: 'training-reminder' },
             // Weekday do Capacitor começa no domingo (1); SEG é segunda-feira (2).
-            schedule: { on: { weekday: DAY_ORDER.indexOf(day) + 2, hour: time.hour, minute: time.minute }, allowWhileIdle: true },
+            schedule: { on: { weekday: (DAY_ORDER.indexOf(day) + 1) % 7 + 1, hour: time.hour, minute: time.minute }, allowWhileIdle: true },
             isExactNotification: false
           };
         });
@@ -6509,9 +6630,9 @@ EX|Nome do exercício|forca|3|10|20|Alternativa opcional|
         id: REST_NOTIFICATION_ID,
         title: 'Descanso concluído ⏰',
         body: restTimer.exerciseName ? `Volte para ${restTimer.exerciseName}.` : 'Bora para a próxima série!',
-        channelId: REST_NOTIFICATION_CHANNEL_ID,
-        sound: 'default',
-        vibrate: true,
+        channelId: restNotificationChannelId(),
+        sound: settings.restSound ? 'default' : undefined,
+        vibrate: !!settings.restVibrate,
         extra: { targetView: 'treino', type: 'rest-finished' },
         schedule: { at, allowWhileIdle: true },
         isExactNotification: true
@@ -6755,7 +6876,7 @@ EX|Nome do exercício|forca|3|10|20|Alternativa opcional|
 
       // vibração não existe no iOS: mostra o motivo em vez de um botão que não faz nada
       const vibrateRow = document.getElementById('restVibrateRow');
-      if (vibrateRow) vibrateRow.classList.toggle('hidden', !navigator.vibrate);
+      if (vibrateRow) vibrateRow.classList.toggle('hidden', !PLATFORM.isNative && !navigator.vibrate);
       renderNotificationSettings();
     }
 
@@ -6832,6 +6953,14 @@ EX|Nome do exercício|forca|3|10|20|Alternativa opcional|
       const weight = document.getElementById('onbWeight').value;
       const errEl = document.getElementById('onboardingError');
 
+      const error = validateProfileNumbers({ height: 'onbHeight', weight: 'onbWeight' });
+      if (error) {
+        errEl.textContent = error.message;
+        errEl.classList.remove('hidden');
+        error.input.focus();
+        return;
+      }
+
       if (!name || !birthdate || !height || !weight) {
         errEl.textContent = '⚠️ Preencha nome, data de nascimento, altura e peso para continuar.';
         errEl.classList.remove('hidden');
@@ -6853,7 +6982,11 @@ EX|Nome do exercício|forca|3|10|20|Alternativa opcional|
       document.getElementById('profileTargetWeight').value = userProfile.targetWeight || '';
       document.getElementById('profileSex').value = document.getElementById('onbSex').value;
       document.getElementById('profileActivity').value = document.getElementById('onbActivity').value;
-      saveProfile();
+      if (!saveProfile()) {
+        errEl.textContent = document.getElementById('profileValidationError').textContent;
+        errEl.classList.remove('hidden');
+        return;
+      }
 
       document.getElementById('onboardingOverlay').classList.add('hidden');
       showToast(`Bem-vindo(a), ${name}! Perfil configurado.`);
@@ -6864,6 +6997,7 @@ EX|Nome do exercício|forca|3|10|20|Alternativa opcional|
     let lastKnownDate = todayKey();
 
     function checkDateRollover() {
+      if (restoringBackup) return;
       const current = todayKey();
       if (current === lastKnownDate) return;
       lastKnownDate = current;
@@ -6960,7 +7094,18 @@ EX|Nome do exercício|forca|3|10|20|Alternativa opcional|
       overlays.forEach(overlay => observer.observe(overlay, { attributes: true, attributeFilter: ['class'] }));
     }
 
-    window.addEventListener('DOMContentLoaded', () => {
+    window.addEventListener('DOMContentLoaded', async () => {
+      document.body.inert = true;
+      try {
+        if (restoringBackup && await TREINO_BACKUP_RESTORE.recover({ storage: localStorage, openDatabase: openSessionDb })) {
+          window.location.reload();
+          return;
+        }
+      } catch (error) {
+        console.error('Recuperação da restauração pendente falhou.', error);
+        showToast('⚠️ A restauração foi interrompida. Libere espaço e reabra o app para recuperar seus dados.');
+        return;
+      }
       setupModalAccessibility();
       if (!storageAvailable) {
         const warn = document.createElement('div');
@@ -6970,13 +7115,15 @@ EX|Nome do exercício|forca|3|10|20|Alternativa opcional|
       }
       ensureProfilesSeeded();
       migrateOptionalDays();
+      // A leitura persistida deve terminar antes das migrações e do primeiro card.
+      // Mantém a interface bloqueada para não sobrescrever edições feitas durante a leitura.
+      historyInitialization = initializeSessionLogStorage();
+      await historyInitialization;
+      workoutHistoryCache = [];
+      volumeTotalCache = null;
       sanitizeSessionLog();
       buildExerciseDatalist();
       migrateHistoryToSessionLog(); // semeia o log de sessões para quem já usava versões anteriores
-      initializeSessionLogStorage().then(() => {
-        workoutHistoryCache = [];
-        if (!perfilView.classList.contains('hidden')) renderWorkoutHistory();
-      });
       renderWorkoutSelectOptions();
       const startKey = getTodaysWorkoutKey();
       workoutSelect.value = startKey;
@@ -6988,6 +7135,7 @@ EX|Nome do exercício|forca|3|10|20|Alternativa opcional|
       renderNotificationSettings();
       syncTrainingReminders(false).catch(() => {});
       switchView('treino');
+      document.body.inert = false;
       document.getElementById('appVersion').textContent = `v${APP_VERSION}`;
       checkBirthday();
       if (!isProfileComplete()) {

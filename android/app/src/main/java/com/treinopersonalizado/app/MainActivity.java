@@ -16,21 +16,29 @@ public class MainActivity extends BridgeActivity {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) return;
 
         NotificationManager manager = getSystemService(NotificationManager.class);
-        if (manager.getNotificationChannel(REST_CHANNEL_ID) != null) return;
+        createRestChannel(manager, REST_CHANNEL_ID, "Som e vibração", true, true);
+        createRestChannel(manager, REST_CHANNEL_ID + "-sound", "Som", true, false);
+        createRestChannel(manager, REST_CHANNEL_ID + "-vibrate", "Vibração", false, true);
+        createRestChannel(manager, REST_CHANNEL_ID + "-silent", "Silencioso", false, false);
+    }
+
+    private void createRestChannel(NotificationManager manager, String id, String mode, boolean sound, boolean vibrate) {
+        // Não sobrescrever ajustes que o usuário fez nas configurações do Android.
+        if (manager.getNotificationChannel(id) != null) return;
 
         AudioAttributes attributes = new AudioAttributes.Builder()
             .setUsage(AudioAttributes.USAGE_ALARM)
             .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
             .build();
         NotificationChannel channel = new NotificationChannel(
-            REST_CHANNEL_ID,
-            "Fim do descanso",
+            id,
+            "Fim do descanso · " + mode,
             NotificationManager.IMPORTANCE_HIGH
         );
         channel.setDescription("Alarme ao terminar o descanso entre séries");
-        channel.setSound(RingtoneManager.getDefaultUri(RingtoneManager.TYPE_ALARM), attributes);
-        channel.enableVibration(true);
-        channel.setVibrationPattern(new long[] { 0, 500, 250, 500, 250, 800 });
+        channel.setSound(sound ? RingtoneManager.getDefaultUri(RingtoneManager.TYPE_ALARM) : null, attributes);
+        if (vibrate) channel.setVibrationPattern(new long[] { 0, 500, 250, 500, 250, 800 });
+        channel.enableVibration(vibrate);
         manager.createNotificationChannel(channel);
     }
 }

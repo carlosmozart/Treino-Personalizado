@@ -14,6 +14,51 @@ async function loadBrowserModule(file, name) {
 const profileRules = await loadBrowserModule('js/core/profile-utils.js', 'TREINO_PROFILES');
 const streakRules = await loadBrowserModule('js/core/streak-utils.js', 'TREINO_STREAK');
 
+it('preserva datas de conquista após oscilação sem modificar a meta original', () => {
+  const original = { startWeight: 100, targetWeight: 80, startedAt: '2026-01-01' };
+  const first = profileRules.recordGoalCheckpoints(original, 90, '2026-09-10');
+  expect(first.checkpoints).toEqual({ 25: '2026-09-10', 50: '2026-09-10' });
+  const back = profileRules.recordGoalCheckpoints(first, 98, '2026-09-11');
+  expect(back.checkpoints).toEqual(first.checkpoints);
+  expect(profileRules.recordGoalCheckpoints(back, 80, '2026-09-20').checkpoints).toEqual({ 25: '2026-09-10', 50: '2026-09-10', 75: '2026-09-20', 100: '2026-09-20' });
+  expect(original.checkpoints).toBeUndefined();
+});
+
+it('média móvel usa no máximo sete pesagens válidas sem alterar os dados', () => {
+  const entries = [80, 82, 84, 86, 88, 90, 92, 94].map(weight => ({ weight }));
+  const trend = profileRules.weightTrend(entries);
+  expect(trend[0].trend).toBe(80);
+  expect(trend[1].trend).toBe(81);
+  expect(trend[6].trend).toBe(86);
+  expect(trend[7].trend).toBe(88);
+  expect(trend[7].trendCount).toBe(7);
+  expect(entries[0]).toEqual({ weight: 80 });
+  expect(profileRules.weightTrend([{ weight: -1 }, { weight: 'abc' }, { weight: '70' }])[0].trend).toBe(70);
+});
+
+it('calcula os checkpoints de peso e limita o progresso', () => {
+  const goal = profileRules.goalProgress(100, 90, 80);
+  expect(goal.percent).toBe(50);
+  expect(goal.checkpoints.map(p => p.weight)).toEqual([95, 90, 85, 80]);
+  expect(goal.checkpoints.map(p => p.reached)).toEqual([true, true, false, false]);
+  expect(profileRules.goalProgress(100, 105, 80).percent).toBe(0);
+  expect(profileRules.goalProgress(100, 75, 80).percent).toBe(100);
+  expect(profileRules.goalProgress(60, 65, 80).percent).toBe(25);
+  expect(profileRules.goalProgress(80, 85, 80).percent).toBe(0);
+  expect(profileRules.goalProgress(80, 80, 80).checkpoints).toEqual([]);
+});
+
+it.each(['height', 'weight', 'targetWeight', 'bodyFatPercent'])('valida números do perfil: %s', field => {
+  for (const value of ['-1', '0', 'NaN', 'Infinity', 'abc', ' ']) {
+    expect(profileRules.numericError(field, value)).not.toBe('');
+  }
+  for (const value of ['', '25', '25.5']) expect(profileRules.numericError(field, value)).toBe('');
+  if (field === 'bodyFatPercent') {
+    expect(profileRules.numericError(field, '100')).not.toBe('');
+    expect(profileRules.numericError(field, '101')).not.toBe('');
+  }
+});
+
 const logic = loadInlineFunctions([
   'formatLocalDateKey',
   'getMondayOf',

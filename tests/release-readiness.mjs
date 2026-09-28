@@ -48,8 +48,14 @@ assert.match(html, /id: REST_NOTIFICATION_ID,[\s\S]*isExactNotification: true/, 
 assert.match(html, /REST_NOTIFICATION_CHANNEL_ID = 'treino-descanso-v3'/, 'O descanso precisa de canal próprio de alarme.');
 assert.match(mainActivity, /AudioAttributes\.USAGE_ALARM/, 'Canal de descanso precisa usar o volume de alarmes do Android.');
 assert.match(mainActivity, /RingtoneManager\.TYPE_ALARM/, 'Canal de descanso precisa usar toque de alarme.');
+for (const [suffix, sound, vibrate] of [['-sound', true, false], ['-vibrate', false, true], ['-silent', false, false]]) {
+  assert.ok(mainActivity.includes(`REST_CHANNEL_ID + "${suffix}"`) &&
+    new RegExp(`"${suffix}"[^\\n]+${sound}, ${vibrate}\\)`).test(mainActivity), 'Canais de descanso devem cobrir cada combinação de som/vibração.');
+}
+assert.match(mainActivity, /channel\.enableVibration\(vibrate\)/, 'O canal deve respeitar a preferência de vibração.');
+assert.match(mainActivity, /channel\.setSound\(sound \?[^\n]+: null, attributes\)/, 'Canais sem som devem ser explicitamente silenciosos.');
 assert.match(html, /checkExactNotificationSetting/, 'O app precisa verificar a autorização de alarmes exatos.');
-assert.match(html, /weekday: DAY_ORDER\.indexOf\(day\) \+ 2/, 'Cada lembrete precisa manter o dia correto do treino.');
+assert.match(html, /weekday: \(DAY_ORDER\.indexOf\(day\) \+ 1\) % 7 \+ 1/, 'Lembretes devem usar dias entre 1 (domingo) e 7 (sábado).');
 
 assert.match(html, /const MAX_BACKUP_BYTES = 15 \* 1024 \* 1024/, 'Importação precisa limitar o tamanho do backup.');
 assert.match(html, /file\.size > MAX_BACKUP_BYTES/, 'Limite do backup deve ser conferido antes da leitura.');
