@@ -12,6 +12,7 @@ A6	✅ Revisar vulnerabilidades transitivas: removido @capacitor/assets legado e
 B. Persistência e Dados
 #	Sugestão	Prioridade
 B1	✅ Migrar sessionLog e exerciseHistory para IndexedDB antes do teto de ~5 MB (localStorage)	Alta
+B6	✅ Aguardar o histórico persistido antes de preencher o primeiro treino; preservar rascunho e fallback local	Alta
 B2	✅ Absorvido pela migração para IndexedDB; não é necessário expurgo no localStorage	Alta
 B3	✅ Não necessário: o histórico principal já usa IndexedDB	Média
 B4	CACHE_NAME derivado de hash do commit (git rev-parse --short HEAD) em vez de manual (treino-cache-v38)	Média
@@ -26,6 +27,9 @@ D. Segurança e Privacidade do Backup
 D1	✅ Aviso na exportação: "este arquivo contém seus dados de saúde; guarde com cuidado"	Média
 D2	✅ Criptografia opcional no backup (PBKDF2 + AES-GCM via WebCrypto, tudo local)	Média
 D3	✅ Ajustar navigator.share({ files }) no iOS — usa text/plain com prévia e preserva extensão .json	Baixa
+D4	✅ Restauração com recuperação após falha/interrupção e históricos diretamente no IndexedDB; validar no próximo APK	Alta
+D5	✅ Campo Foco do treino escapado na renderização; teste contra injeção de HTML após edição e reabertura	Alta
+D6	✅ Validar estruturas internas e metadados dos backups antes da restauração; recusar dados corrompidos sem alterar o progresso, preservando formatos legados	Alta
 E. Estimativa de Calorias
 #	Sugestão	Prioridade
 E1	✅ Refinar MET_FORCA: usar dados já disponíveis (séries, reps, carga, duração) para estimar densidade — 3x12 leve ≠ 5x3 pesado	Média
@@ -34,6 +38,7 @@ E3	✅ Garantir que o "≈" esteja visível na UI (não só no changelog)	Baixa
 F. Acessibilidade e i18n
 #	Sugestão	Prioridade
 F1	✅ aria-modal e focus trap em overlays	Média
+F4	✅ Rótulos associados aos campos do cadastro/perfil; nomes acessíveis nos controles de descanso e alerta de erro no cadastro; teste de estados e teclado. TalkBack real permanece em F2	Alta
 F2	🟡 Testar os fluxos principais com leitor de tela (TalkBack; VoiceOver se houver versão iOS)	Média
 F3	i18n (pt-BR / en) via Intl — fácil agora, impossível depois	Baixa
 G. Arquitetura e Manutenção
@@ -59,6 +64,8 @@ K3	✅ Adicionar orientação sobre "Forçar parada" e economia de bateria do An
 K4	🟡 Testar notificações em aparelhos Samsung, Xiaomi, Motorola e Android puro, com tela bloqueada e música tocando	Alta
 K5	✅ Criar lembrete periódico para exportação do backup local	Média
 K6	✅ Absorvido por B1: histórico já migrado para IndexedDB	Alta
+K7	✅ Corrigir domingo no agendamento semanal (1, não 8); testar todos os dias, filtros e reagendamento; confirmar entrega no próximo APK	Alta
+K8	🟡 Android 8+: aviso de descanso seleciona canal conforme som/vibração; quatro combinações testadas na ponte simulada; validar entrega no próximo APK. Android 7/7.1: plugin usa som/vibração padrão sem canais; falta tratamento nativo legado	Alta
 L. UX e Acessibilidade
 #	Sugestão	Prioridade
 L1	✅ Orientar no primeiro uso do timer que o aviso em segundo plano precisa ser ativado em Perfil > Dados	Alta
@@ -68,6 +75,12 @@ L4	🟡 Absorvido por F2: testar os fluxos principais com TalkBack; VoiceOver se
 L5	✅ Reforçar visualmente o término do descanso combinando notificação, vibração e animação	Baixa
 L6	✅ Adicionar lembrete periódico para exportar o backup local	Média
 L7	✅ Absorvido por I3	Baixa
+L13	✅ Gráfico histórico inclui linha pontilhada do alvo atual, legenda e escala que mantém a meta visível	Média
+L12	✅ Checkpoints guardam a primeira data ao salvar peso, preservam conquistas após oscilações e reiniciam em nova meta; datas antigas não são inventadas	Média
+L11	✅ Histórico de peso com média móvel de até 7 registros, linha tracejada e resumo; não altera peso atual nem checkpoints	Média
+L10	✅ Meta de peso com início e data próprios; reinício confirmado preserva histórico, alteração do alvo inicia novo ciclo e backups antigos continuam compatíveis	Média
+L9	✅ Meta com checkpoints de 25%, 50%, 75% e 100%, incentivo contextual e progresso acessível; histórico mostra variação do período	Média
+L8	✅ Validar números antes de salvar cadastro/perfil: altura e pesos positivos, gordura entre 0 e 100%; erro visível e preservação do perfil/histórico em caso de entrada inválida	Alta
 J. Decisão Tecnológica: Composer vs Kotlin
 Resposta curta: continue com Capacitor. Kotlin puro não compensa para este projeto.
 
