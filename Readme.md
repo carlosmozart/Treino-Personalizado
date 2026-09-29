@@ -1,5 +1,83 @@
 # Changelog — Treino Personalizado
 
+## [2.20.1] - 2026-09-21
+
+- O aviso de fim do descanso agora usa o canal de alarmes do Android e vibração reforçada, para ser percebido melhor durante música.
+
+## [2.20.0] - 2026-09-20
+
+- Histórico e backup mais robustos, com IndexedDB e opção de arquivo protegido por senha.
+- Melhorias no importador de planos de IA, acessibilidade, notificações e estimativas de treino.
+- Regras e dados do app começaram a ser separados em módulos locais, mantendo o funcionamento offline no APK.
+
+## [2.19.5] - 2026-09-19
+
+### Alterado
+- Primeira etapa da migração do histórico de sessões para IndexedDB, com fallback para armazenamento local e backup compatível.
+
+## [2.19.4] - 2026-09-19
+
+### Adicionado
+- Aviso de descanso usa alarme exato no Android quando o usuário autoriza essa configuração do sistema.
+- Canal de notificações com alerta sonoro, vibração e maior destaque visual ao fim do descanso.
+
+### Alterado
+- Modais, nomes de exercícios truncados e aviso de término receberam melhorias de acessibilidade.
+- O APK gerado pelo GitHub Actions agora expira automaticamente em 24 horas.
+
+## [2.19.3] - 2026-09-07
+
+### Adicionado
+- Lembretes semanais de treino no Android, configurados pelo horário do plano e executados pelo sistema mesmo com o app fechado.
+- Notificação ao fim do descanso quando o aplicativo vai para segundo plano.
+
+### Alterado
+- Lembretes usam alarmes inexatos, adequados a avisos de treino e sem exigir a permissão especial de alarmes exatos.
+- Novo ícone monocromático de notificação e canal próprio para os avisos do Meu Treino.
+
+## [2.19.2] - 2026-09-07
+
+### Corrigido
+- Cabeçalho estável durante a rolagem: os estados expandido e compacto não oscilam perto do topo.
+- Importação de backup limitada a 15 MB e protegida por verificação explícita da versão do arquivo.
+- Testes Android agora usam o identificador real do aplicativo.
+
+### Alterado
+- Android mantém o app em retrato e redimensiona a tela quando o teclado é aberto.
+- Foco de teclado, anúncios de status e botões de ícone receberam melhorias de acessibilidade.
+- O pipeline de APK valida contratos web e teste unitário Android antes de assinar a distribuição.
+
+## [2.19.1] - 2026-09-07
+
+### Corrigido
+- Ícone oficial aplicado aos recursos usados pelo launcher Android.
+- A primeira execução agora oferece a restauração de backup da versão web antes do cadastro.
+- `versionCode` Android elevado para `21901`, permitindo atualizar o APK 2.19.0.
+
+## [2.19.0] - 2026-09-07
+
+### Adicionado
+- Estrutura de empacotamento Android com Capacitor: configuração, preparação dos arquivos web e
+  comandos npm para sincronizar, abrir e gerar o APK.
+- Guia de publicação Android com pré-requisitos e comandos reproduzíveis.
+
+### Alterado
+- O service worker continua ativo no site/PWA, mas é desativado no contêiner nativo, que já
+  recebe os arquivos locais versionados no momento do empacotamento.
+
+## [2.18.1] - 2026-09-07
+
+### Corrigido
+- A importação de backup agora valida todas as chaves e os dados JSON antes de substituir o
+  armazenamento local, impedindo uma restauração parcial com arquivo inválido ou corrompido.
+- O service worker ignora requisições que não podem ser guardadas no Cache Storage e aguarda as
+  gravações de cache; também passa a descartar respostas de erro.
+
+### Alterado
+- Cache offline renovado para `treino-cache-v2.18.1`, garantindo a limpeza do cache anterior na
+  atualização do PWA instalado.
+
+
 ## [2.18.0] - 2026-09-01
 
 Importador do plano gerado por IA. Escrito depois — e só depois — de duas respostas reais de
