@@ -56,8 +56,12 @@ Inventário da revisão de 29/09/2026:
 
 A extração da persistência não altera nomes do banco, object store ou chaves existentes. Os testes cobrem restauração interrompida, histórico local quando IndexedDB não está disponível, preservação do rascunho e proteção contra uma conexão antiga sobrescrever os dados atuais.
 
-## Validação pendente em 29/09/2026
+## Validação em 29/09/2026
 
-A etapa intermediária passou em 113 testes unitários e 36 testes de navegador. Depois das extrações adicionais, os 113 testes unitários passaram novamente, mas os primeiros testes de navegador falharam porque o cadastro inicial não apareceu. A suíte foi interrompida; a causa ainda não foi confirmada. O usuário solicitou suspender novas execuções e registrar as pendências antes do commit/push.
+A referência `NOME_DESCONHECIDO` havia sido movida para `history-queries.js`, mas continuava sendo lida diretamente na composição de `workoutDay`, interrompendo o script antes de registrar a inicialização. A constante agora é exportada pelo módulo e injetada explicitamente. O teste de abertura passou no Chromium: cadastro visível, interface liberada e nenhum erro de execução.
 
-O teste de inicialização com captura de erros e os quatro casos de `module-regression.test.mjs` foram adicionados posteriormente e ainda não executados. Retomar por A7/A8 do TODO e concluir a validação antes de gerar ou distribuir APK. Os resultados intermediários não validam o estado final deste commit.
+`npm run verify` passou: sintaxe dos scripts locais, contratos de release e 117 testes unitários em 27 arquivos, incluindo os quatro casos de regressão adicionados após a extração.
+
+A suíte de navegador aprovou 36 casos e encontrou uma dependência do teste de backup na variável privada `toastQueue`. O teste foi atualizado para observar o aviso público na tela, preservar as verificações de integridade do localStorage/IndexedDB e controlar os temporizadores com o relógio do Playwright. Sua reexecução isolada passou. Os 37 casos estão aprovados entre a rodada completa e essa reexecução; a suíte completa não foi repetida após o último ajuste exclusivo desse teste.
+
+A validação física do APK permanece em A9: a consulta ao ADB não encontrou aparelho ou emulador conectado. Entrega de notificações com tela bloqueada/música, atualização sobre APK anterior e TalkBack ainda precisam de validação em aparelho.

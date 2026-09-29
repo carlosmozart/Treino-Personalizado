@@ -1226,7 +1226,7 @@
   <script src="js/ui/exercise-progress.js"></script>
   <script src="js/ui/charts.js"></script>
   <script>
-    const APP_VERSION = '2.20.1'; // manter sincronizado com CACHE_NAME em sw.js e com o CHANGELOG.md
+    const APP_VERSION = '2.20.2'; // manter sincronizado com CACHE_NAME em sw.js e com o CHANGELOG.md
 
     const RELEASE_NOTES = TREINO_STATIC.releaseNotes;
 
@@ -2242,7 +2242,7 @@
       document, setDayContext: date => { workoutDayContext = date; },
       setHistory: history => { workoutHistoryCache = history; }, buildWorkoutHistory,
       showToast, formatDateWithWeekday, DOW_TO_KEY, DAY_FULL_NAMES, escapeHtml, escapeJs,
-      describeEntry, sessionVolume, NOME_DESCONHECIDO, estimateWorkoutCalories,
+      describeEntry, sessionVolume, NOME_DESCONHECIDO: historyQueries.NOME_DESCONHECIDO, estimateWorkoutCalories,
       formatDuration, copyTextToClipboard, undoWorkoutDay: date => undoWorkoutDay(date)
     });
     window.openWorkoutDay = workoutDay.openWorkoutDay;

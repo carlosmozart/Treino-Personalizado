@@ -878,8 +878,11 @@ for (const protectedBackup of [false, true]) {
 }
 
 test('recusa backups corrompidos sem modificar os dados salvos', async ({ page }) => {
+  await page.clock.install();
   await page.goto(baseUrl);
   await completeOnboarding(page);
+  // Conclui os avisos do cadastro antes de observar os avisos de rejeição.
+  await page.clock.runFor(15_000);
   const errors = [];
   page.on('pageerror', error => errors.push(error.message));
   const snapshot = () => page.evaluate(async () => {
@@ -895,6 +898,8 @@ test('recusa backups corrompidos sem modificar os dados salvos', async ({ page }
     return { local: { ...localStorage }, history };
   });
   const before = await snapshot();
+  const toast = page.locator('#toast');
+  await expect(toast).toHaveClass(/opacity-0/);
   for (const corrupt of [
     { data: { treino_user_profile: '{"weightHistory":{}}' } },
     { data: { treino_session_log: '{"supino":[{"series":[null]}]}' } },
@@ -903,16 +908,15 @@ test('recusa backups corrompidos sem modificar os dados salvos', async ({ page }
     { exportedAt: {}, data: { treino_user_profile: '{}' } }
   ]) {
     const backup = { app: 'treino-personalizado', backupVersion: 1, ...corrupt };
-    const rejectionCount = () => page.evaluate(() =>
-      toastQueue.filter(item => item.message.includes('Backup inválido ou corrompido')).length +
-      Number(document.querySelector('#toast').textContent.includes('Backup inválido ou corrompido')));
-    const previousRejections = await rejectionCount();
     await page.locator('#importBackupInput').setInputFiles({
       name: 'corrompido.json', mimeType: 'application/json', buffer: Buffer.from(JSON.stringify(backup))
     });
-    await expect.poll(rejectionCount).toBeGreaterThan(previousRejections);
+    await expect(toast).toContainText('Backup inválido ou corrompido');
+    await expect(toast).toHaveClass(/opacity-100/);
     await expect(page.locator('#importConfirmOverlay')).toBeHidden();
     expect(await snapshot()).toEqual(before);
+    await page.clock.runFor(3_000);
+    await expect(toast).toHaveClass(/opacity-0/);
   }
   expect(errors).toEqual([]);
 });

@@ -91,6 +91,6 @@ window.TREINO_HISTORY_QUERIES = {
     }
 
 
-    return { normalizeExerciseName, collectSessionsForExercise, getLastSessionForExercise, resolveWorkoutName, resolveExerciseName };
+    return { NOME_DESCONHECIDO, normalizeExerciseName, collectSessionsForExercise, getLastSessionForExercise, resolveWorkoutName, resolveExerciseName };
   }
 };

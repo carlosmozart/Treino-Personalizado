@@ -6,6 +6,14 @@ Todas as mudanças relevantes do app ficam registradas aqui. Ao lançar uma nova
    atualizar o app instalado
 3. Adicione uma entrada aqui, nesse formato
 
+## [2.20.2] - 2026-09-29
+
+- Corrige a abertura do aplicativo após a separação dos módulos de histórico.
+- Separa inicialização, persistência, notificações e fluxos de treino em módulos disponíveis offline.
+- Melhora metas e histórico de peso, validação de backup e recuperação de restaurações interrompidas.
+- Corrige o agendamento semanal e a seleção de som/vibração das notificações no Android 8 ou superior.
+- Amplia a cobertura automatizada de cadastro, treino, histórico, acessibilidade e backup.
+
 ## [2.20.1] - 2026-09-21
 
 - O aviso de fim do descanso agora usa o canal de alarmes do Android e vibração reforçada, para ser percebido melhor durante música.
