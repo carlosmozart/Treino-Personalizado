@@ -6,10 +6,12 @@ window.TREINO_NAVIGATION = {
     renderWeeklyVolume, renderWorkoutHistory, renderWeightHistory, renderGoalRoadmap }) {
     const VIEW_ORDER = ['treino', 'planos', 'perfil', 'conquistas'];
     let currentView = 'treino';
+    let navigationGeneration = 0;
 
     const scrollPositions = { treino: 0, planos: 0, perfil: 0, conquistas: 0 };
 
     function switchView(view) {
+      const generation = ++navigationGeneration;
       // salva a posição de rolagem da aba que está sendo deixada, para restaurar depois
       if (currentView && currentView !== view) {
         scrollPositions[currentView] = window.scrollY;
@@ -43,9 +45,19 @@ window.TREINO_NAVIGATION = {
 
       // restaura a rolagem salva da aba que está sendo aberta, depois do conteúdo renderizar
       requestAnimationFrame(() => {
-        requestAnimationFrame(() => {
-          window.scrollTo(0, scrollPositions[view] || 0);
+        requestAnimationFrame(async () => {
+          if (generation !== navigationGeneration) return;
+          const targetY = scrollPositions[view] || 0;
+          window.scrollTo(0, targetY);
           if (typeof updateHeaderOnScroll === 'function') updateHeaderOnScroll();
+          // A altura do cabeçalho muda após a rolagem. O scroll anchoring pode
+          // deslocar a posição restaurada durante essa transição.
+          const header = document.getElementById('appHeader');
+          await Promise.allSettled((header?.getAnimations({ subtree: true }) || [])
+            .map(animation => animation.finished));
+          requestAnimationFrame(() => {
+            if (generation === navigationGeneration) window.scrollTo(0, targetY);
+          });
         });
       });
     }

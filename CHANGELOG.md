@@ -9,6 +9,7 @@ Todas as mudanças relevantes do app ficam registradas aqui. Ao lançar uma nova
 ## [2.20.2] - 2026-09-29
 
 - Corrige a abertura do aplicativo após a separação dos módulos de histórico.
+- Preserva a rolagem entre abas após a animação de tamanho do cabeçalho.
 - Separa inicialização, persistência, notificações e fluxos de treino em módulos disponíveis offline.
 - Melhora metas e histórico de peso, validação de backup e recuperação de restaurações interrompidas.
 - Corrige o agendamento semanal e a seleção de som/vibração das notificações no Android 8 ou superior.

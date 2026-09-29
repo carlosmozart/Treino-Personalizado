@@ -413,6 +413,13 @@ test('navegação preserva rolagem e permite trocar de tela por gesto', async ({
   await page.locator('#navPerfil').click();
   await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
   await page.evaluate(() => window.scrollTo(0, 300));
+  // O cabeçalho encolhe ao rolar e altera a posição por scroll anchoring.
+  // Aguarda o layout final antes de estabelecer a posição que será preservada.
+  await expect(page.locator('#appHeader')).toHaveClass(/header-compact/);
+  await page.locator('#appHeader').evaluate(async header => {
+    await Promise.all(header.getAnimations({ subtree: true }).map(animation => animation.finished));
+  });
+  await page.evaluate(() => window.scrollTo(0, 300));
   await expect.poll(() => page.evaluate(() => window.scrollY)).toBe(300);
   await page.locator('#navTreino').click();
   await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
@@ -942,7 +949,12 @@ test('recupera restauração interrompida antes de inicializar a interface', asy
     db.close();
   });
   await page.reload();
-  await expect(page.locator('#appVersion')).not.toHaveText('');
+  // O HTML já contém uma versão provisória; texto não vazio não indica que
+  // a recuperação e a segunda carga da página terminaram.
+  await page.waitForFunction(() =>
+    typeof APP_VERSION !== 'undefined' && typeof restoringBackup !== 'undefined' &&
+    document.getElementById('appVersion')?.textContent === `v${APP_VERSION}` &&
+    !document.body.inert && !restoringBackup);
   await page.locator('#navPerfil').click();
   await expect(page.locator('#profileName')).toHaveValue('Pessoa Teste');
   expect(await page.evaluate(() => localStorage.getItem(TREINO_BACKUP_RESTORE.marker))).toBeNull();

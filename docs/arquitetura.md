@@ -65,3 +65,7 @@ A referência `NOME_DESCONHECIDO` havia sido movida para `history-queries.js`, m
 A suíte de navegador aprovou 36 casos e encontrou uma dependência do teste de backup na variável privada `toastQueue`. O teste foi atualizado para observar o aviso público na tela, preservar as verificações de integridade do localStorage/IndexedDB e controlar os temporizadores com o relógio do Playwright. Sua reexecução isolada passou. Os 37 casos estão aprovados entre a rodada completa e essa reexecução; a suíte completa não foi repetida após o último ajuste exclusivo desse teste.
 
 A validação física do APK permanece em A9: a consulta ao ADB não encontrou aparelho ou emulador conectado. Entrega de notificações com tela bloqueada/música, atualização sobre APK anterior e TalkBack ainda precisam de validação em aparelho.
+
+## Correção do build Android 2.20.2
+
+A primeira execução do workflow parou no teste de navegação: a animação do cabeçalho deslocava a rolagem restaurada. A navegação agora aguarda as transições e reaplica a posição, ignorando callbacks de navegações anteriores. O teste passou em cinco repetições locais. Também foi corrigida a espera do teste de recuperação de backup para aguardar o término real da inicialização após o recarregamento; passou em cinco repetições. As verificações e os 117 testes unitários passaram; a suíte completa será novamente executada pelo workflow do APK. A versão permanece 2.20.2 (22002), pois a tentativa anterior não gerou artefato.
