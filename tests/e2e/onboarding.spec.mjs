@@ -281,6 +281,12 @@ test('histórico exibe média móvel sem modificar o peso atual', async ({ page 
   });
   await expect(page.locator('#weightTrendSummary')).toHaveText('Média dos últimos 7 registros: 88 kg');
   await expect(page.locator('#weightHistoryList path[data-trend]')).toHaveCount(1);
+  await page.locator('#weightHistoryList').getByRole('button', { name: '5', exact: true }).click();
+  const graph = page.locator('#weightHistoryList svg[role="img"]');
+  const size = await graph.boundingBox();
+  await graph.click({ position: { x: size.width - 8, y: 30 } });
+  await expect(page.locator('#nameTooltip')).toContainText('94kg');
+  await page.locator('#weightHistoryList').getByRole('button', { name: 'Tudo', exact: true }).click();
   expect(result.before).toBe(result.after);
 });
 
@@ -309,6 +315,57 @@ test('linha do alvo fica visível para metas acima e abaixo do histórico', asyn
   await expect(page.locator('#weightTargetLegend')).toHaveCount(0);
 });
 
+test('cartões de saúde atualizam fórmula, água e peso', async ({ page }) => {
+  await page.goto(baseUrl);
+  await completeOnboarding(page);
+  await page.locator('#navPerfil').click();
+  await page.locator('#perfilSubSaude').click();
+  await expect(page.locator('#imcValue')).toHaveText('22.9');
+  const before = await page.locator('#tmbValue').textContent();
+  await page.getByRole('button', { name: 'Harris-Benedict', exact: true }).click();
+  await expect(page.locator('#tmbValue')).not.toHaveText(before);
+  await page.getByRole('button', { name: 'Katch-McArdle', exact: true }).click();
+  await expect(page.locator('#tmbValue')).toHaveText('--');
+  await page.locator('#profileBodyFat').fill('20');
+  await page.locator('#perfilSubDados').click();
+  await page.locator('#profileWeight').fill('80');
+  await page.locator('#btnSaveProfile').click();
+  await page.locator('#perfilSubSaude').click();
+  await expect(page.locator('#imcValue')).toHaveText('26.1');
+  await expect(page.locator('#tmbValue')).toHaveText('1752');
+  await page.getByRole('button', { name: '+100 ml 💧', exact: true }).click();
+  await expect(page.locator('#waterValue')).toHaveText('100ml');
+  await expect(page.locator('#waterRemaining')).toContainText('3050ml');
+  await page.reload();
+  await page.locator('#navPerfil').click();
+  await page.locator('#perfilSubSaude').click();
+  await expect(page.locator('#tmbValue')).toHaveText('1752');
+  await expect(page.locator('#waterValue')).toHaveText('100ml');
+});
+
+test('navegação preserva rolagem e permite trocar de tela por gesto', async ({ page }) => {
+  await page.setViewportSize({ width: 390, height: 650 });
+  await page.goto(baseUrl);
+  await completeOnboarding(page);
+  await page.locator('#navPerfil').click();
+  await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
+  await page.evaluate(() => window.scrollTo(0, 300));
+  await expect.poll(() => page.evaluate(() => window.scrollY)).toBe(300);
+  await page.locator('#navTreino').click();
+  await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
+  await page.locator('#navPerfil').click();
+  await expect.poll(() => page.evaluate(() => window.scrollY)).toBe(300);
+  await page.locator('#perfilView').evaluate(target => {
+    const touch = (clientX, clientY) => new Touch({ identifier: 1, target, clientX, clientY });
+    target.dispatchEvent(new TouchEvent('touchstart', { bubbles: true, touches: [touch(300, 200)] }));
+    target.dispatchEvent(new TouchEvent('touchend', { bubbles: true, changedTouches: [touch(100, 205)] }));
+  });
+  await expect(page.locator('#conquistasView')).toBeVisible();
+  await expect(page.locator('#perfilView')).toBeHidden();
+  await page.locator('#navPlanos').click();
+  await expect(page.locator('#planosView')).toBeVisible();
+});
+
 test('onboarding leva a uma tela de treino utilizável', async ({ page }) => {
   await page.goto(baseUrl);
   await expect(page.locator('#onboardingOverlay')).toBeVisible();
@@ -332,6 +389,48 @@ test('concluir todos os exercícios registra check-in e histórico', async ({ pa
   await page.locator('#perfilSubProgresso').click();
   await expect(page.locator('#workoutHistoryCount')).toHaveText('1');
   await expect(page.locator('#workoutHistoryList')).not.toContainText('Nenhum treino registrado ainda');
+});
+
+test('finalização, detalhe e correção do histórico persistem sem duplicação', async ({ page }) => {
+  await page.goto(baseUrl);
+  await completeOnboarding(page);
+  await page.locator('#btnGenerate').click();
+  await expect(page.locator('#confirmFinishOverlay')).toBeVisible();
+  await page.getByRole('button', { name: 'Finalizar Assim', exact: true }).click();
+  await expect(page.locator('#confirmFinishOverlay')).toBeHidden();
+  await expect(page.locator('#reportOutput')).toHaveValue(/RESUMO DO TREINO/);
+  await page.locator('#btnGenerate').click();
+  await expect(page.locator('#confirmFinishOverlay')).toBeHidden();
+  await page.locator('#exercisesContainer button[onclick^="openExerciseProgress"]').first().click();
+  await expect(page.locator('#exerciseProgressOverlay')).toBeVisible();
+  await expect(page.locator('#progressBody')).toContainText('Última sessão');
+  await page.locator('#exerciseProgressOverlay button[onclick="closeExerciseProgress()"]').click();
+  await page.locator('#navPerfil').click();
+  await page.locator('#perfilSubProgresso').click();
+  await expect(page.locator('#workoutHistoryCount')).toHaveText('1');
+  await page.locator('#workoutHistoryList button').first().click();
+  await expect(page.locator('#workoutDayOverlay')).toBeVisible();
+  await page.locator('#workoutDayBody button[aria-label^="Corrigir"]').first().click();
+  await expect(page.locator('#editEntryOverlay')).toBeVisible();
+  await page.getByRole('spinbutton', { name: 'Carga da série 1', exact: true }).fill('37');
+  await page.locator('#editEntryOverlay').getByRole('button', { name: 'Salvar', exact: true }).click();
+  await expect(page.locator('#editEntryOverlay')).toBeHidden();
+  await page.locator('#workoutDayBody button[aria-label^="Corrigir"]').first().click();
+  await expect(page.getByRole('spinbutton', { name: 'Carga da série 1', exact: true })).toHaveValue('37');
+  await page.reload();
+  await page.locator('#navPerfil').click();
+  await page.locator('#perfilSubProgresso').click();
+  await page.locator('#workoutHistoryList button').first().click();
+  await page.locator('#workoutDayBody button[aria-label^="Corrigir"]').first().click();
+  await expect(page.getByRole('spinbutton', { name: 'Carga da série 1', exact: true })).toHaveValue('37');
+  await page.locator('#editEntryOverlay button[onclick="closeEditEntry()"]').first().click();
+  await page.locator('#workoutDayUndo').click();
+  await page.locator('#confirmOverlayCancel').click();
+  await expect(page.locator('#workoutHistoryCount')).toHaveText('1');
+  await page.locator('#workoutDayUndo').click();
+  await page.locator('#confirmOverlayOk').click();
+  await expect(page.locator('#workoutHistoryCount')).toHaveText('0');
+  await expect(page.locator('#workoutDayOverlay')).toBeHidden();
 });
 
 test('importa um plano válido retornado pela IA após a conferência', async ({ page }) => {

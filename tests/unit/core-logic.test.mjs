@@ -13,6 +13,9 @@ async function loadBrowserModule(file, name) {
 
 const profileRules = await loadBrowserModule('js/core/profile-utils.js', 'TREINO_PROFILES');
 const streakRules = await loadBrowserModule('js/core/streak-utils.js', 'TREINO_STREAK');
+const aiPlan = (await loadBrowserModule('js/core/ai-plan.js', 'TREINO_AI_PLAN')).create({
+  DAY_ORDER: ['SEG', 'TER', 'QUA', 'QUI', 'SEX', 'SAB', 'DOM']
+});
 
 it('preserva datas de conquista após oscilação sem modificar a meta original', () => {
   const original = { startWeight: 100, targetWeight: 80, startedAt: '2026-01-01' };
@@ -66,11 +69,9 @@ const logic = loadInlineFunctions([
   'describeEntry',
   'sessionVolume',
   'metDaForca',
-  'normalizeExerciseName',
-  'extrairBlocosDoPlano',
-  'parseBlocoDoPlano',
-  'parsePlanoDaIA'
+  'normalizeExerciseName'
 ], {
+  sessionHistory: (await loadBrowserModule('js/core/session-history.js', 'TREINO_SESSION_HISTORY')).create({}),
   DAY_ORDER: ['SEG', 'TER', 'QUA', 'QUI', 'SEX', 'SAB', 'DOM'],
   IMPORT_TIPOS: ['forca', 'tempo', 'cardio'],
   MET_FORCA: 5.0
@@ -118,7 +119,7 @@ describe('regras centrais do treino', () => {
   });
 
   it('escolhe o maior bloco válido quando a resposta da IA contém exemplos', () => {
-    const plano = logic.parsePlanoDaIA(`
+    const plano = aiPlan.parsePlanoDaIA(`
       [PLANO]
       DIA|SEG|Exemplo||
       EX|Rosca|forca|2|10|0|
@@ -137,7 +138,7 @@ describe('regras centrais do treino', () => {
   });
 
   it('aceita marcadores previsíveis com dois-pontos e hífen', () => {
-    const plano = logic.parsePlanoDaIA(`
+    const plano = aiPlan.parsePlanoDaIA(`
       [PLANO]
       DIA: SEG|Peito|Hipertrofia|
       EX - Supino Inclinado|forca|3|10|30|

@@ -15,7 +15,7 @@ B1	✅ Migrar sessionLog e exerciseHistory para IndexedDB antes do teto de ~5 MB
 B6	✅ Aguardar o histórico persistido antes de preencher o primeiro treino; preservar rascunho e fallback local	Alta
 B2	✅ Absorvido pela migração para IndexedDB; não é necessário expurgo no localStorage	Alta
 B3	✅ Não necessário: o histórico principal já usa IndexedDB	Média
-B4	CACHE_NAME derivado de hash do commit (git rev-parse --short HEAD) em vez de manual (treino-cache-v38)	Média
+B4	⏸️ Adiado até ser necessário: CACHE_NAME derivado de hash do commit em vez de versão manual	Média
 B5	✅ Histórico completo de versões no CHANGELOG.md com link no app	Baixa
 C. Parser da IA
 #	Sugestão	Prioridade
@@ -43,8 +43,8 @@ F2	🟡 Testar os fluxos principais com leitor de tela (TalkBack; VoiceOver se h
 F3	i18n (pt-BR / en) via Intl — fácil agora, impossível depois	Baixa
 G. Arquitetura e Manutenção
 #	Sugestão	Prioridade
-G1	🟡 Modularizar o monolito: utilitários, histórico e validação/resumo de backup extraídos e cacheados offline; faltam fluxos de interface de backup e renderização ligada ao estado global	Média
-G2	🟡 Separar dados de lógica: configurações, RELEASE_NOTES e EXERCISE_LIBRARY extraídos; ACHIEVEMENTS permanece por conter funções ligadas ao estado	Média
+G1	🟡 Modularizar o monolito: utilitários, backup, progresso, saúde, perfil, gráficos, navegação, conquistas, recompensas, check-ins, registro/finalização, rascunhos, inicialização, séries, cartões, ações dos exercícios, editor e gestão de planos, prompt e importação de IA, troca avulsa, núcleo de sessões, calendário, lista/detalhes, edição, desfazer treino, evolução individual e volume semanal extraídos e cacheados offline; faltam revisão/extração dos demais blocos inline (notificações/timer e inicialização geral). Gerar APK somente após modularização e validação final	Média
+G2	✅ Extrair catálogos: configurações, RELEASE_NOTES, EXERCISE_LIBRARY e ACHIEVEMENTS em data/; conquistas consultam estado atual por dependências injetadas, inclusive após restauração	Média
 H. Build e Distribuição (APK)
 #	Sugestão	Prioridade
 H1	Manter Capacitor para o caso atual (ver análise abaixo)	—

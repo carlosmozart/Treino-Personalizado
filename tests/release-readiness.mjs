@@ -58,9 +58,12 @@ assert.match(html, /checkExactNotificationSetting/, 'O app precisa verificar a a
 assert.match(html, /weekday: \(DAY_ORDER\.indexOf\(day\) \+ 1\) % 7 \+ 1/, 'Lembretes devem usar dias entre 1 (domingo) e 7 (sábado).');
 
 assert.match(html, /const MAX_BACKUP_BYTES = 15 \* 1024 \* 1024/, 'Importação precisa limitar o tamanho do backup.');
-assert.match(html, /file\.size > MAX_BACKUP_BYTES/, 'Limite do backup deve ser conferido antes da leitura.');
-assert.match(html, /pendingImport\.backupVersion !== 1/, 'Versão do backup deve ser conferida na restauração.');
-assert.match(html, /type: isIOS\(\) \? 'text\/plain' : 'application\/json'/, 'Compartilhamento no iOS precisa usar texto simples com prévia.');
+const backupUI = await read('js/ui/backup.js');
+assert.match(html, /js\/ui\/backup\.js/, 'Interface de backup deve carregar o módulo.');
+assert.match(worker, /js\/ui\/backup\.js/, 'Interface de backup deve estar disponível offline.');
+assert.match(backupUI, /file\.size > MAX_BACKUP_BYTES/, 'Limite do backup deve ser conferido antes da leitura.');
+assert.match(backupUI, /pendingImport\.backupVersion !== 1/, 'Versão do backup deve ser conferida na restauração.');
+assert.match(backupUI, /type: isIOS\(\) \? 'text\/plain' : 'application\/json'/, 'Compartilhamento no iOS precisa usar texto simples com prévia.');
 assert.match(html, /js\/core\/backup-validation\.js/, 'A validação de backup precisa ficar em módulo próprio.');
 assert.match(worker, /js\/core\/backup-validation\.js/, 'A validação de backup precisa funcionar offline.');
 assert.match(backupValidation, /isValidData/, 'Módulo de backup precisa validar dados importados.');
@@ -68,7 +71,10 @@ assert.match(backupValidation, /isValidData/, 'Módulo de backup precisa validar
 assert.match(html, /:focus-visible\s*\{[\s\S]*outline:/, 'Foco visível é obrigatório.');
 assert.match(html, /id="toast" role="status" aria-live="polite"/, 'Toast deve anunciar mensagens assistivas.');
 assert.match(html, /id="bottomNav" aria-label="Navegação principal"/, 'Navegação precisa ter nome acessível.');
-assert.match(html, /aria-label="Procurar exercício para substituir/, 'Botão de troca precisa ter nome acessível.');
+const exerciseCards = await read('js/ui/exercise-cards.js');
+assert.ok(html.includes('src="js/ui/exercise-cards.js"'), 'Cartões devem carregar o módulo.');
+assert.ok(worker.includes('./js/ui/exercise-cards.js'), 'Cartões devem funcionar offline.');
+assert.match(exerciseCards, /aria-label="Procurar exercício para substituir/, 'Botão de troca precisa ter nome acessível.');
 
 const webManifest = JSON.parse(manifest);
 assert.equal(webManifest.display, 'standalone', 'Manifest precisa manter modo de app.');
