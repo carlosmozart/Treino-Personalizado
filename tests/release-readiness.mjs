@@ -4,6 +4,7 @@ import { resolve } from 'node:path';
 
 const root = process.cwd();
 const read = (file) => readFile(resolve(root, file), 'utf8');
+const notificationsUI = await read('js/ui/notifications.js');
 const [html, worker, manifest, pkg, lockfile, gradle, androidManifest, capacitorGradle, capacitorSettings, capacitorConfig, unitTest, deviceTest, mainActivity, backupValidation] = await Promise.all([
   read('index.html'),
   read('sw.js'),
@@ -22,6 +23,10 @@ const [html, worker, manifest, pkg, lockfile, gradle, androidManifest, capacitor
 ]);
 
 const appVersion = html.match(/const APP_VERSION = '([^']+)'/)?.[1];
+for (const module of ['js/ui/notifications.js', 'js/ui/rest-timer.js']) {
+  assert.ok(html.includes(`src="${module}"`), `${module} deve ser carregado pelo app.`);
+  assert.ok(worker.includes(`'./${module}'`), `${module} deve estar disponível offline.`);
+}
 const cacheVersion = worker.match(/CACHE_NAME = 'treino-cache-v([^']+)'/)?.[1];
 const packageVersion = JSON.parse(pkg).version;
 const lockVersion = JSON.parse(lockfile).version;
@@ -43,9 +48,9 @@ assert.match(capacitorGradle, /capacitor-local-notifications/, 'Plugin de notifi
 assert.match(capacitorSettings, /capacitor-local-notifications/, 'Plugin de notificações deve ser registrado no Gradle.');
 assert.match(capacitorConfig, /"LocalNotifications"/, 'Ícone de notificações deve estar configurado.');
 assert.match(pkg, /@capacitor\/local-notifications/, 'Pacote de notificações deve permanecer instalado.');
-assert.match(html, /isExactNotification: false/, 'Lembretes semanais devem evitar alarmes exatos sem necessidade.');
-assert.match(html, /id: REST_NOTIFICATION_ID,[\s\S]*isExactNotification: true/, 'O aviso de descanso deve usar alarme exato.');
-assert.match(html, /REST_NOTIFICATION_CHANNEL_ID = 'treino-descanso-v3'/, 'O descanso precisa de canal próprio de alarme.');
+assert.match(notificationsUI, /isExactNotification: false/, 'Lembretes semanais devem evitar alarmes exatos sem necessidade.');
+assert.match(notificationsUI, /id: REST_NOTIFICATION_ID,[\s\S]*isExactNotification: true/, 'O aviso de descanso deve usar alarme exato.');
+assert.match(notificationsUI, /REST_NOTIFICATION_CHANNEL_ID = 'treino-descanso-v3'/, 'O descanso precisa de canal próprio de alarme.');
 assert.match(mainActivity, /AudioAttributes\.USAGE_ALARM/, 'Canal de descanso precisa usar o volume de alarmes do Android.');
 assert.match(mainActivity, /RingtoneManager\.TYPE_ALARM/, 'Canal de descanso precisa usar toque de alarme.');
 for (const [suffix, sound, vibrate] of [['-sound', true, false], ['-vibrate', false, true], ['-silent', false, false]]) {
@@ -54,8 +59,8 @@ for (const [suffix, sound, vibrate] of [['-sound', true, false], ['-vibrate', fa
 }
 assert.match(mainActivity, /channel\.enableVibration\(vibrate\)/, 'O canal deve respeitar a preferência de vibração.');
 assert.match(mainActivity, /channel\.setSound\(sound \?[^\n]+: null, attributes\)/, 'Canais sem som devem ser explicitamente silenciosos.');
-assert.match(html, /checkExactNotificationSetting/, 'O app precisa verificar a autorização de alarmes exatos.');
-assert.match(html, /weekday: \(DAY_ORDER\.indexOf\(day\) \+ 1\) % 7 \+ 1/, 'Lembretes devem usar dias entre 1 (domingo) e 7 (sábado).');
+assert.match(notificationsUI, /checkExactNotificationSetting/, 'O app precisa verificar a autorização de alarmes exatos.');
+assert.match(notificationsUI, /weekday: \(DAY_ORDER\.indexOf\(day\) \+ 1\) % 7 \+ 1/, 'Lembretes devem usar dias entre 1 (domingo) e 7 (sábado).');
 
 assert.match(html, /const MAX_BACKUP_BYTES = 15 \* 1024 \* 1024/, 'Importação precisa limitar o tamanho do backup.');
 const backupUI = await read('js/ui/backup.js');

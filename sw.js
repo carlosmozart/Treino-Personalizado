@@ -44,6 +44,8 @@ const ASSETS = [
   './js/core/ai-plan.js',
   './js/ui/ai-plan.js',
   './js/ui/swap-picker.js',
+  './js/ui/notifications.js',
+  './js/ui/rest-timer.js',
   './js/ui/workout-calendar.js',
   './js/ui/workout-history-list.js',
   './js/ui/workout-day.js',
