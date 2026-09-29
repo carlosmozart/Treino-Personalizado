@@ -46,6 +46,69 @@ async function completeOnboarding(page) {
   await expect(page.locator('#onboardingOverlay')).toBeHidden();
 }
 
+test('inicialização carrega os módulos sem erros de execução', async ({ page }) => {
+  const errors = [];
+  page.on('pageerror', error => errors.push(error.message));
+  await page.goto(baseUrl);
+  await page.waitForTimeout(300);
+  expect(errors).toEqual([]);
+  await expect(page.locator('#onboardingOverlay')).toBeVisible();
+  await expect(page.locator('body')).not.toHaveAttribute('inert', '');
+});
+
+test('novidades mantém o foco no diálogo e restaura o controle de origem', async ({ page }) => {
+  await page.goto(baseUrl);
+  await completeOnboarding(page);
+  const trigger = page.getByRole('button', { name: /Ver Novidades/ });
+  await trigger.click();
+  const dialog = page.locator('#novidadesOverlay');
+  await expect(dialog).toHaveAttribute('aria-modal', 'true');
+  const first = dialog.locator('button').first();
+  const last = dialog.getByRole('button', { name: 'Entendi!' });
+  await expect(first).toBeFocused();
+  await page.keyboard.press('Shift+Tab');
+  await expect(last).toBeFocused();
+  await page.keyboard.press('Tab');
+  await expect(first).toBeFocused();
+  await dialog.locator('[onclick="toggleVersionHistory()"]').click();
+  await expect(page.locator('#versionHistoryList')).toBeVisible();
+  await last.click();
+  await expect(dialog).toBeHidden();
+  await expect(trigger).toBeFocused();
+  await page.reload();
+  await expect(page.locator('#onboardingOverlay')).toBeHidden();
+  await expect(dialog).toBeHidden();
+});
+
+test('confirmação cancela por Escape e nova abertura confirma sem listeners antigos', async ({ page }) => {
+  await page.goto(baseUrl);
+  await completeOnboarding(page);
+  await page.evaluate(() => { window.confirmResults = []; askConfirm({ title: 'Primeira' }).then(v => confirmResults.push(v)); });
+  await expect(page.locator('#confirmOverlay')).toBeVisible();
+  await page.keyboard.press('Escape');
+  await expect(page.locator('#confirmOverlay')).toBeHidden();
+  await page.evaluate(() => { askConfirm({ title: 'Segunda', danger: true }).then(v => confirmResults.push(v)); });
+  await page.locator('#confirmOverlayOk').click();
+  await expect.poll(() => page.evaluate(() => confirmResults)).toEqual([false, true]);
+});
+
+test('bolha mostra nome truncado e fecha ao tocar fora', async ({ page }) => {
+  await page.goto(baseUrl);
+  await completeOnboarding(page);
+  await page.evaluate(() => {
+    const target = document.createElement('button');
+    target.textContent = 'Nome completo muito longo para caber no botão';
+    target.style.cssText = 'position:fixed;top:100px;left:10px;width:30px;white-space:nowrap;overflow:hidden';
+    document.body.appendChild(target);
+    target.onclick = event => showNameTooltip(event, target.textContent);
+    target.click();
+  });
+  await expect(page.locator('#nameTooltip')).toHaveText('Nome completo muito longo para caber no botão');
+  await expect(page.locator('#nameTooltip')).toBeVisible();
+  await page.locator('#appVersion').click();
+  await expect(page.locator('#nameTooltip')).toBeHidden();
+});
+
 test('agenda os sete dias e substitui os lembretes antigos', async ({ page }) => {
   await page.goto(baseUrl);
   await completeOnboarding(page);

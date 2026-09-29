@@ -1200,6 +1200,23 @@
   <script src="js/ui/swap-picker.js"></script>
   <script src="js/ui/notifications.js"></script>
   <script src="js/ui/rest-timer.js"></script>
+  <script src="js/ui/release-notes.js"></script>
+  <script src="js/ui/onboarding.js"></script>
+  <script src="js/ui/modal-accessibility.js"></script>
+  <script src="js/ui/app-lifecycle.js"></script>
+  <script src="js/core/history-storage.js"></script>
+  <script src="js/core/local-persistence.js"></script>
+  <script src="js/core/workout-duration.js"></script>
+  <script src="js/ui/tooltips.js"></script>
+  <script src="js/ui/confirmation.js"></script>
+  <script src="js/ui/app-feedback.js"></script>
+  <script src="js/ui/clipboard.js"></script>
+  <script src="js/core/initial-migrations.js"></script>
+  <script src="js/core/history-queries.js"></script>
+  <script src="js/ui/workout-summary.js"></script>
+  <script src="js/core/workout-calories.js"></script>
+  <script src="js/ui/workout-controls.js"></script>
+  <script src="data/seed-workouts.js"></script>
   <script src="js/ui/workout-calendar.js"></script>
   <script src="js/ui/workout-history-list.js"></script>
   <script src="js/ui/workout-day.js"></script>
@@ -1213,78 +1230,7 @@
 
     const RELEASE_NOTES = TREINO_STATIC.releaseNotes;
 
-    const SEED_WORKOUT_DATABASE = {
-      SEG: {
-        name: "Segunda: Push A (Peito ênfase inferior, Ombro, Tríceps)",
-        focus: "Tensão Mecânica e Cadeia de Empurrar",
-        exercises: [
-          { id: 'seg_1', name: 'Supino Declinado (Máquina)', targetSets: 4, targetReps: 9, targetWeight: 40, alt: 'Sem máquina declinada? Use Mergulho/Dips inclinando o tronco à frente, ou Flexão de braço com pés elevados. Ambos priorizam peitoral inferior.' },
-          { id: 'seg_2', name: 'Crossover Polia Alta (de cima p/ baixo)', targetSets: 3, targetReps: 12, targetWeight: 15, alt: 'Foco em peitoral inferior: puxe as polias de cima para baixo, cruzando na frente do quadril.' },
-          { id: 'seg_3', name: 'Desenvolvimento Máquina', targetSets: 3, targetReps: 10, targetWeight: 30 },
-          { id: 'seg_4', name: 'Tríceps Pulley (Corda)', targetSets: 3, targetReps: 10, targetWeight: 30 }
-        ]
-      },
-      TER: {
-        name: "Terça: Pull A (Costas, Bíceps)",
-        focus: "Espessura Dorsal e Cadeia de Puxar",
-        exercises: [
-          { id: 'ter_1', name: 'Puxada Frontal (Polia)', targetSets: 4, targetReps: 10, targetWeight: 55 },
-          { id: 'ter_2', name: 'Remada Baixa (Polia)', targetSets: 3, targetReps: 10, targetWeight: 50 },
-          { id: 'ter_3', name: 'Rosca Direta (Polia Baixa)', targetSets: 3, targetReps: 10, targetWeight: 25 },
-          { id: 'ter_4', name: 'Rosca Martelo (Halteres)', targetSets: 3, targetReps: 10, targetWeight: 14 }
-        ]
-      },
-      QUA: {
-        name: "Quarta: Legs A (Adaptado ao Joelho)",
-        focus: "Cadeia Posterior e Amplitude Protegida",
-        exercises: [
-          { id: 'qua_1', name: 'Leg Press 45º (Amplitude Parcial)', targetSets: 3, targetReps: 12, targetWeight: 120, alt: 'Não desça além de ~90° no joelho. Carga moderada, foco em controle, sem travar.' },
-          { id: 'qua_2', name: 'Mesa/Cadeira Flexora', targetSets: 4, targetReps: 12, targetWeight: 35 },
-          { id: 'qua_3', name: 'Elevação Pélvica (Hip Thrust)', targetSets: 3, targetReps: 12, targetWeight: 30, alt: 'Máquina disputada? Faça Ponte de Glúteo no chão com barra ou halter apoiado no quadril, ou Elevação Pélvica unilateral apoiando as costas no banco.' },
-          { id: 'qua_4', name: 'Panturrilha (Leg Press ou em pé)', targetSets: 4, targetReps: 15, targetWeight: 80 }
-        ]
-      },
-      QUI: {
-        name: "Quinta: Push B (Peito, Ombro Lateral, Tríceps)",
-        focus: "Proteção Articular e Estabilidade",
-        exercises: [
-          { id: 'qui_1', name: 'Supino Articulado (Pegada Neutra)', targetSets: 4, targetReps: 9, targetWeight: 40 },
-          { id: 'qui_2', name: 'Crossover Polia Alta (de cima p/ baixo)', targetSets: 3, targetReps: 12, targetWeight: 15, alt: 'Mesma execução de segunda: reforça peitoral inferior com um segundo estímulo na semana.' },
-          { id: 'qui_3', name: 'Elevação Lateral (Halteres)', targetSets: 4, targetReps: 12, targetWeight: 10 },
-          { id: 'qui_4', name: 'Tríceps Francês (Polia/Halter)', targetSets: 3, targetReps: 10, targetWeight: 20 }
-        ]
-      },
-      SEX: {
-        name: "Sexta: Pull B (Costas Espessura, Bíceps, Core)",
-        focus: "Volume Direto e Encerramento da Semana",
-        exercises: [
-          { id: 'sex_1', name: 'Remada Cavalinho ou Máquina', targetSets: 4, targetReps: 10, targetWeight: 50 },
-          { id: 'sex_2', name: 'Pulldown (Corda)', targetSets: 3, targetReps: 12, targetWeight: 30 },
-          { id: 'sex_3', name: 'Rosca Scott Máquina', targetSets: 3, targetReps: 10, targetWeight: 25 },
-          { id: 'sex_4', name: 'Abdominal (Prancha ou Máquina)', targetSets: 3, targetReps: 15, targetWeight: 20 }
-        ]
-      },
-      SAB: {
-        name: "Sábado: Legs B Leve + Lombar",
-        focus: "Manutenção Protegida (dia da caminhada de 7km)",
-        exercises: [
-          { id: 'sab_1', name: 'Cadeira Extensora (Amplitude Parcial, Carga Leve)', targetSets: 3, targetReps: 12, targetWeight: 25, alt: 'Evite a extensão completa do joelho no topo do movimento. Se sentir dor, reduza a carga ou pule este exercício.' },
-          { id: 'sab_2', name: 'Stiff/RDL (Halteres Leves)', targetSets: 3, targetReps: 12, targetWeight: 12 },
-          { id: 'sab_3', name: 'Panturrilha Sentado (Máquina)', targetSets: 3, targetReps: 15, targetWeight: 70 },
-          { id: 'sab_4', name: 'Extensão Lombar Leve (Banco Romano)', targetSets: 3, targetReps: 15, targetWeight: 0 }
-        ]
-      },
-      DOM: {
-        name: "Domingo: Extra (Opcional)",
-        focus: "Reforço de Peitoral Inferior e Pontos Fracos",
-        exercises: [
-          { id: 'dom_1', name: 'Crossover Polia Alta (de cima p/ baixo)', targetSets: 3, targetReps: 12, targetWeight: 15, alt: 'Terceiro estímulo semanal para peitoral inferior, se o corpo estiver respondendo bem.' },
-          { id: 'dom_2', name: 'Elevação Lateral (Halteres)', targetSets: 3, targetReps: 12, targetWeight: 8 },
-          { id: 'dom_3', name: 'Abdominal (Prancha ou Máquina)', targetSets: 3, targetReps: 15, targetWeight: 10 },
-          { id: 'dom_4', name: 'Panturrilha (Leg Press ou em pé)', targetSets: 3, targetReps: 15, targetWeight: 70 }
-        ]
-      }
-    };
+    const SEED_WORKOUT_DATABASE = TREINO_SEED_WORKOUTS;
 
     let activeWorkoutKey = 'SEG';
     let formData = {};
@@ -1358,28 +1304,12 @@
       return TREINO_STORAGE.loadJSON(key, storageAvailable);
     }
 
-    // Avisa uma única vez por sessão quando o armazenamento enche — antes o erro era engolido
-    // em silêncio e o app continuava parecendo salvar sem salvar nada.
-    let storageQuotaWarned = false;
-    let volumeTotalCache = null;   // volume acumulado; zerado a cada gravacao do log
-    function saveJSON(key, obj) {
-      if (restoringBackup) return false;
-      if (!storageAvailable) return false;
-      try {
-        localStorage.setItem(key, JSON.stringify(obj));
-        // qualquer gravacao do log invalida o volume acumulado: deixar isso a cargo de quem
-        // chama significaria um cache velho no dia em que alguem esquecesse
-        if (key === 'treino_session_log') volumeTotalCache = null; // literal: SESSIONS_KEY e declarada adiante
-        return true;
-      } catch (e) {
-        if (!storageQuotaWarned) {
-          storageQuotaWarned = true;
-          try { showToast('⚠️ Armazenamento cheio! Exporte um backup em Perfil > Dados e libere espaço.'); } catch (_) {}
-        }
-        console.error('Falha ao salvar', key, e);
-        return false;
-      }
-    }
+    let volumeTotalCache = null;
+    const localPersistence = TREINO_LOCAL_PERSISTENCE.create({
+      getStorage: () => localStorage, storageAvailable, isRestoringBackup: () => restoringBackup,
+      invalidateVolume: () => { volumeTotalCache = null; }, showToast
+    });
+    function saveJSON(key, obj) { return localPersistence.saveJSON(key, obj); }
 
     let exerciseHistory = loadJSON(HISTORY_KEY);
     let checkins = loadJSON(CHECKIN_KEY);
@@ -1404,118 +1334,17 @@
 
     let workoutMeta = loadJSON(WORKOUT_META_KEY);
     let sessionLog = loadJSON(SESSIONS_KEY);     // { historyKey: [ { date, ...dados }, ... ] } — ordem cronológica
-    const SESSION_DB_NAME = 'treino-session-log';
-    const SESSION_DB_STORE = 'state';
-    const SESSION_DB_KEY = 'current';
-    const EXERCISE_HISTORY_DB_KEY = 'exerciseHistory';
-    let sessionDb = null;
-    let sessionDbReady = false;
-    let sessionDbGeneration = 0;
-
-    function openSessionDb() {
-      if (!('indexedDB' in window)) return Promise.reject(new Error('IndexedDB indisponível'));
-      return new Promise((resolve, reject) => {
-        const request = indexedDB.open(SESSION_DB_NAME, 1);
-        request.onupgradeneeded = () => request.result.createObjectStore(SESSION_DB_STORE);
-        request.onsuccess = () => resolve(request.result);
-        request.onerror = () => reject(request.error);
-      });
-    }
-
-    function readSessionDb(db, key = SESSION_DB_KEY) {
-      return new Promise((resolve, reject) => {
-        const request = db.transaction(SESSION_DB_STORE, 'readonly').objectStore(SESSION_DB_STORE).get(key);
-        request.onsuccess = () => resolve(request.result || null);
-        request.onerror = () => reject(request.error);
-      });
-    }
-
-    function writeSessionDb() {
-      if (!sessionDbReady || !sessionDb) return Promise.resolve(false);
-      return new Promise((resolve, reject) => {
-        const transaction = sessionDb.transaction(SESSION_DB_STORE, 'readwrite');
-        transaction.objectStore(SESSION_DB_STORE).put(sessionLog, SESSION_DB_KEY);
-        transaction.oncomplete = () => resolve(true);
-        transaction.onerror = () => reject(transaction.error);
-      });
-    }
-
-    function writeExerciseHistoryDb() {
-      if (!sessionDbReady || !sessionDb) return Promise.resolve(false);
-      return new Promise((resolve, reject) => {
-        const transaction = sessionDb.transaction(SESSION_DB_STORE, 'readwrite');
-        transaction.objectStore(SESSION_DB_STORE).put(exerciseHistory, EXERCISE_HISTORY_DB_KEY);
-        transaction.oncomplete = () => resolve(true);
-        transaction.onerror = () => reject(transaction.error);
-      });
-    }
-
-    function clearSessionDb() {
-      if (!('indexedDB' in window)) return Promise.resolve();
-      sessionDbGeneration++;
-      if (sessionDb) sessionDb.close();
-      sessionDb = null;
-      sessionDbReady = false;
-      return new Promise(resolve => {
-        const request = indexedDB.deleteDatabase(SESSION_DB_NAME);
-        request.onsuccess = request.onerror = request.onblocked = () => resolve();
-      });
-    }
-
-    function saveSessionLog() {
-      if (restoringBackup) return false;
-      volumeTotalCache = null;
-      if (!sessionDbReady) return saveJSON(SESSIONS_KEY, sessionLog);
-      writeSessionDb().catch(error => {
-        console.error('Falha ao gravar histórico no IndexedDB; usando armazenamento local.', error);
-        sessionDbReady = false;
-        saveJSON(SESSIONS_KEY, sessionLog);
-      });
-      return true;
-    }
-
-    function saveExerciseHistory() {
-      if (restoringBackup) return false;
-      if (!sessionDbReady) return saveJSON(HISTORY_KEY, exerciseHistory);
-      writeExerciseHistoryDb().catch(error => {
-        console.error('Falha ao gravar histórico de exercícios no IndexedDB; usando armazenamento local.', error);
-        sessionDbReady = false;
-        saveJSON(HISTORY_KEY, exerciseHistory);
-      });
-      return true;
-    }
-
-    async function initializeSessionLogStorage() {
-      const generation = sessionDbGeneration;
-      try {
-        const db = await openSessionDb();
-        // Uma restauração de backup pode ocorrer enquanto a abertura do banco ainda
-        // está pendente. Nesse caso, descarta esta conexão antiga para que ela não
-        // restaure por engano o histórico anterior ao backup.
-        if (generation !== sessionDbGeneration) {
-          db.close();
-          return;
-        }
-        sessionDb = db;
-        const stored = await readSessionDb(db);
-        const storedExerciseHistory = await readSessionDb(db, EXERCISE_HISTORY_DB_KEY);
-        if (generation !== sessionDbGeneration) {
-          db.close();
-          if (sessionDb === db) sessionDb = null;
-          return;
-        }
-        sessionDbReady = true;
-        if (stored && typeof stored === 'object') sessionLog = stored;
-        else await writeSessionDb();
-        if (storedExerciseHistory && typeof storedExerciseHistory === 'object') exerciseHistory = storedExerciseHistory;
-        else await writeExerciseHistoryDb();
-        // A cópia local continua sendo a rota de migração e backup desta versão.
-        // Escritas novas passam a ir para o IndexedDB, que suporta históricos maiores.
-      } catch (error) {
-        console.warn('IndexedDB indisponível; histórico seguirá no armazenamento local.', error);
-        sessionDbReady = false;
-      }
-    }
+    const historyStorage = TREINO_HISTORY_STORAGE.create({
+      window, getSessionLog: () => sessionLog, setSessionLog: value => { sessionLog = value; },
+      getExerciseHistory: () => exerciseHistory, setExerciseHistory: value => { exerciseHistory = value; },
+      isRestoringBackup: () => restoringBackup, invalidateVolume: () => { volumeTotalCache = null; },
+      saveJSON, SESSIONS_KEY, HISTORY_KEY
+    });
+    function openSessionDb() { return historyStorage.openSessionDb(); }
+    function clearSessionDb() { return historyStorage.clearSessionDb(); }
+    function saveSessionLog() { return historyStorage.saveSessionLog(); }
+    function saveExerciseHistory() { return historyStorage.saveExerciseHistory(); }
+    function initializeSessionLogStorage() { return historyStorage.initializeSessionLogStorage(); }
     let settings = Object.assign({
       restSeconds: 90,
       restAutoStart: true,
@@ -1600,44 +1429,8 @@
     // ---------- CÓPIA PARA A ÁREA DE TRANSFERÊNCIA (compatível com iOS) ----------
     // document.execCommand('copy') é obsoleto e falha no iOS quando o campo é readonly.
     // Tenta primeiro a API moderna e cai para o método antigo com o ajuste que o iOS exige.
-    async function copyTextToClipboard(text) {
-      try {
-        if (navigator.clipboard && window.isSecureContext) {
-          await navigator.clipboard.writeText(text);
-          return true;
-        }
-      } catch (e) { /* segue para o método antigo */ }
-
-      try {
-        const ta = document.createElement('textarea');
-        ta.value = text;
-        ta.setAttribute('readonly', '');
-        ta.style.position = 'fixed';
-        ta.style.top = '0';
-        ta.style.left = '0';
-        ta.style.opacity = '0';
-        document.body.appendChild(ta);
-
-        if (PLATFORM.isIOS) {
-          // no iOS a seleção só funciona por Range; ta.select() sozinho não seleciona nada
-          const range = document.createRange();
-          range.selectNodeContents(ta);
-          const sel = window.getSelection();
-          sel.removeAllRanges();
-          sel.addRange(range);
-          ta.setSelectionRange(0, text.length);
-        } else {
-          ta.select();
-        }
-
-        const ok = document.execCommand('copy');
-        document.body.removeChild(ta);
-        return ok;
-      } catch (e) {
-        console.error('Falha ao copiar:', e);
-        return false;
-      }
-    }
+    const clipboardUI = TREINO_CLIPBOARD.create({ document, window, navigator, PLATFORM });
+    function copyTextToClipboard(...args) { return clipboardUI.copyTextToClipboard(...args); }
 
     // ---------- PERFIS DE TREINO (multi-perfil) ----------
     const PROFILES_KEY = 'treino_profiles';
@@ -1681,62 +1474,17 @@
     // sequencia. Roda uma unica vez e so olha dias cujo proprio nome se declara opcional.
     // Remove do log entradas sem data utilizavel. Elas nunca apareciam no historico e eram a
     // causa de a finalizacao do treino falhar silenciosamente. Roda uma vez.
-    function sanitizeSessionLog() {
-      if (loadString('treino_log_sanitized')) return;
-      let removidas = 0;
-      Object.keys(sessionLog).forEach(k => {
-        const lista = sessionLog[k] || [];
-        const limpa = lista.filter(e => entryDateKey(e));
-        if (limpa.length !== lista.length) removidas += lista.length - limpa.length;
-        if (limpa.length === 0) delete sessionLog[k];
-        else { limpa.sort(compareByDate); sessionLog[k] = limpa; }
-      });
-      if (removidas > 0) saveSessionLog();
-      saveString('treino_log_sanitized', '1');
-    }
+    const initialMigrations = TREINO_INITIAL_MIGRATIONS.create({
+      getSessionLog: () => sessionLog, getProfiles: () => profiles, getGamification: () => gamification,
+      getActiveProfileId: () => activeProfileId, setActiveProfileId: value => { activeProfileId = value; },
+      loadString, saveString, saveJSON, saveSessionLog, entryDateKey, compareByDate,
+      DAY_ORDER, PROFILES_KEY, ACTIVE_PROFILE_KEY, GAMIFICATION_KEY, SEED_WORKOUT_DATABASE, todayKey
+    });
+    function sanitizeSessionLog(...args) { return initialMigrations.sanitizeSessionLog(...args); }
 
-    function migrateOptionalDays() {
-      if (loadString('treino_optional_migrated')) return;
-      let mudou = false;
-      Object.keys(profiles).forEach(pid => {
-        const sched = profiles[pid] && profiles[pid].schedule;
-        if (!sched) return;
-        DAY_ORDER.forEach(k => {
-          const dia = sched[k];
-          if (!dia || dia.optional) return;
-          const nome = (dia.name || '') + ' ' + (dia.focus || '');
-          if (/opcional/i.test(nome)) { dia.optional = true; mudou = true; }
-        });
-      });
-      if (mudou) saveJSON(PROFILES_KEY, profiles);
-      saveString('treino_optional_migrated', '1');
-    }
+    function migrateOptionalDays(...args) { return initialMigrations.migrateOptionalDays(...args); }
 
-    function ensureProfilesSeeded() {
-      if (Object.keys(profiles).length === 0) {
-        const id = 'default';
-        profiles[id] = {
-          id,
-          name: 'PPL Hipertrofia e Emagrecimento',
-          description: 'Plano original: Push/Pull/Legs 2x por semana, adaptado a escoliose e joelho, com ênfase em peitoral inferior.',
-          daysPerWeek: 6,
-          trainingTime: '12:00',
-          schedule: SEED_WORKOUT_DATABASE,
-          createdAt: todayKey(),
-          updatedAt: todayKey()
-        };
-        saveJSON(PROFILES_KEY, profiles);
-      }
-      if (!activeProfileId || !profiles[activeProfileId]) {
-        activeProfileId = Object.keys(profiles)[0];
-        saveString(ACTIVE_PROFILE_KEY, activeProfileId);
-      }
-      gamification.equippedProfiles = gamification.equippedProfiles || {};
-      if (!gamification.equippedProfiles[activeProfileId]) {
-        gamification.equippedProfiles[activeProfileId] = true;
-        saveJSON(GAMIFICATION_KEY, gamification);
-      }
-    }
+    function ensureProfilesSeeded(...args) { return initialMigrations.ensureProfilesSeeded(...args); }
 
     function getActiveProfile() {
       return TREINO_PROFILES.active(profiles, activeProfileId);
@@ -1821,15 +1569,13 @@
       return DOW_TO_KEY[new Date().getDay()];
     }
 
-    function renderWorkoutSelectOptions() {
-      const profile = getActiveProfile();
-      document.getElementById('activeProfileLabel').textContent = profile.name;
-      workoutSelect.innerHTML = DAY_ORDER.map(key => {
-        const day = profile.schedule[key];
-        const restTag = day.exercises.length === 0 ? ' (Descanso)' : (day.optional ? ' (Opcional)' : '');
-        return `<option value="${key}">${DAY_FULL_NAMES[key]}: ${day.name.includes(':') ? day.name.split(':').slice(1).join(':').trim() : day.name}${restTag}</option>`;
-      }).join('');
-    }
+    const workoutSummary = TREINO_WORKOUT_SUMMARY.create({
+      document, workoutSelect, workoutNameEl, workoutFocusEl,
+      getExerciseHistory: () => exerciseHistory, getActiveWorkoutKey: () => activeWorkoutKey,
+      getActiveProfile, DAY_ORDER, DAY_FULL_NAMES, getLastSessionForExercise,
+      bestSeriesOf, getSeries, describeEntry, escapeHtml, EXERCISE_LIBRARY, formatDateBR
+    });
+    function renderWorkoutSelectOptions(...args) { return workoutSummary.renderWorkoutSelectOptions(...args); }
 
     // ---------- CHECK-IN SEMANAL (Segunda a Domingo) ----------
     const DAY_LABELS = ['SEG', 'TER', 'QUA', 'QUI', 'SEX', 'SAB', 'DOM'];
@@ -1890,111 +1636,12 @@
     });
     function switchView(view) { navigation.switchView(view); }
 
-    // ---------- DICAS DE DESCOBERTA (mostradas só até o usuário ver/usar o recurso) ----------
-    function maybeShowSwipeHint() {
-      if (hintsSeen.swipe) return;
-      document.getElementById('swipeHintBanner').classList.remove('hidden');
-      setTimeout(() => dismissSwipeHint(), 6000);
-    }
-
-    window.dismissSwipeHint = function() {
-      const banner = document.getElementById('swipeHintBanner');
-      if (banner.classList.contains('hidden')) return;
-      banner.classList.add('hidden');
-      if (!hintsSeen.swipe) {
-        hintsSeen.swipe = true;
-        saveJSON(HINTS_KEY, hintsSeen);
-      }
-    };
-
-    // ---------- CABEÇALHO ENCOLHE AO ROLAR (ganha espaço de tela) ----------
-    let headerCompact = false;
-    let headerScrollFrame = null;
-    function updateHeaderOnScroll() {
-      const scrollY = window.scrollY;
-      // Usa duas faixas de ativação para que a alteração de altura do cabeçalho
-      // não faça a página alternar entre os estados perto do mesmo ponto.
-      const shouldCompact = headerCompact ? scrollY > 20 : scrollY > 72;
-      if (shouldCompact === headerCompact) return;
-      headerCompact = shouldCompact;
-      const header = document.getElementById('appHeader');
-      const iconBox = document.getElementById('headerIconBox');
-      const icon = document.getElementById('headerIconSvg');
-      const title = document.getElementById('headerTitle');
-      const subtitle = document.getElementById('headerSubtitle');
-      const levelBarWrap = document.getElementById('levelBarWrap');
-
-      if (headerCompact) {
-        header.classList.remove('py-5');
-        header.classList.add('py-2', 'header-compact');
-        iconBox.classList.remove('p-2.5');
-        iconBox.classList.add('p-1.5');
-        icon.classList.remove('w-7', 'h-7');
-        icon.classList.add('w-5', 'h-5');
-        title.classList.remove('text-xl');
-        title.classList.add('text-sm');
-        subtitle.classList.add('opacity-0', 'max-h-0');
-        levelBarWrap.classList.remove('mt-3');
-        levelBarWrap.classList.add('mt-1.5');
-      } else {
-        header.classList.add('py-5');
-        header.classList.remove('py-2', 'header-compact');
-        iconBox.classList.add('p-2.5');
-        iconBox.classList.remove('p-1.5');
-        icon.classList.add('w-7', 'h-7');
-        icon.classList.remove('w-5', 'h-5');
-        title.classList.add('text-xl');
-        title.classList.remove('text-sm');
-        subtitle.classList.remove('opacity-0', 'max-h-0');
-        levelBarWrap.classList.add('mt-3');
-        levelBarWrap.classList.remove('mt-1.5');
-      }
-    }
-    function scheduleHeaderUpdate() {
-      if (headerScrollFrame !== null) return;
-      headerScrollFrame = window.requestAnimationFrame(() => {
-        headerScrollFrame = null;
-        updateHeaderOnScroll();
-      });
-    }
-    window.addEventListener('scroll', scheduleHeaderUpdate, { passive: true });
-    updateHeaderOnScroll();
-
-    // ---------- TOAST GENÉRICO (com fila) ----------
-    // Vários eventos podem disparar toasts quase ao mesmo tempo (ex: concluir o último
-    // exercício do dia dispara check-in + bônus de sequência + conquista). Antes, cada
-    // novo toast cortava o anterior antes de dar tempo de ler. Agora eles entram numa fila
-    // e são exibidos um de cada vez.
-    let toastQueue = [];
-    let toastActive = false;
-    let toastTimeout = null;
-
-    function showToast(message, icon = 'check') {
-      toastQueue.push({ message, icon });
-      processToastQueue();
-    }
-
-    function processToastQueue() {
-      if (toastActive || toastQueue.length === 0) return;
-      toastActive = true;
-      const { message, icon } = toastQueue.shift();
-      const iconPath = icon === 'trophy'
-        ? 'M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z'
-        : 'M5 13l4 4L19 7';
-      toast.querySelector('svg path').setAttribute('d', iconPath);
-      toast.querySelector('span').textContent = message;
-      toast.classList.remove('opacity-0', 'pointer-events-none');
-      toast.classList.add('opacity-100', 'toast-in');
-      clearTimeout(toastTimeout);
-      toastTimeout = setTimeout(() => {
-        toast.classList.remove('opacity-100', 'toast-in');
-        toast.classList.add('opacity-0', 'pointer-events-none');
-        setTimeout(() => {
-          toastActive = false;
-          processToastQueue();
-        }, 250); // pequena pausa entre um toast e o próximo, pra não parecer um corte brusco
-      }, 2600);
-    }
+    const appFeedback = TREINO_APP_FEEDBACK.create({
+      document, window, toast, getHintsSeen: () => hintsSeen, saveJSON, HINTS_KEY, setTimeout, clearTimeout
+    });
+    function showToast(...args) { return appFeedback.showToast(...args); }
+    function maybeShowSwipeHint() { return appFeedback.maybeShowSwipeHint(); }
+    function updateHeaderOnScroll() { return appFeedback.updateHeaderOnScroll(); }
 
     // ---------- SISTEMA DE XP E NÍVEIS (1 a 100) ----------
     const MAX_LEVEL = 100;
@@ -2075,23 +1722,15 @@
     // Exercicios marcados como opcionais nao seguram a conclusao do treino. Sem isso, um
     // cardio no fim do dia — que so da tempo de fazer as vezes — travava o check-in
     // automatico, o XP cheio e o registro no historico nos dias em que fosse pulado.
-    function requiredExercisesOf(workout) {
-      return (workout.exercises || []).filter(ex => !ex.optional);
-    }
+    const workoutControls = TREINO_WORKOUT_CONTROLS.create({
+      document, window, btnGenerate, btnCopy, reportOutput, workoutSelect, reportContainer,
+      getActiveProfile, getActiveWorkoutKey: () => activeWorkoutKey, getFormData: () => formData,
+      finalizeWorkout, getHalfCheckinXP, getFullCheckinXP, copyTextToClipboard, showToast,
+      initializeWorkoutData, renderHeader, renderExercises, saveProfile
+    });
+    function requiredExercisesOf(...args) { return workoutControls.requiredExercisesOf(...args); }
 
-    function areAllExercisesDoneForActiveWorkout() {
-      const workout = getActiveProfile().schedule[activeWorkoutKey];
-      if (!workout.exercises.length) return false;
-
-      const obrigatorios = requiredExercisesOf(workout);
-      // um dia SO com exercicios opcionais nao pode se dar por concluido sozinho: com a
-      // lista vazia, every() devolveria true de cara e o check-in aconteceria sem que nada
-      // tivesse sido feito. Nesse caso basta um exercicio marcado.
-      if (obrigatorios.length === 0) {
-        return workout.exercises.some(ex => formData[ex.id] && formData[ex.id].done);
-      }
-      return obrigatorios.every(ex => formData[ex.id] && formData[ex.id].done);
-    }
+    function areAllExercisesDoneForActiveWorkout(...args) { return workoutControls.areAllExercisesDoneForActiveWorkout(...args); }
 
     // ---------- IDADE E ANIVERSÁRIO ----------
     function calculateAge(birthdateStr) {
@@ -2225,52 +1864,9 @@
     // hoje. A sugestao considera o que esta registrado AGORA no card — assim ela acompanha
     // qualquer alteracao que voce faca nas repeticoes durante o treino, em vez de repetir
     // uma segunda mensagem logo abaixo.
-    function getPersistentLoadBadge(exId, name, state) {
-      const proprio = !!exerciseHistory[exId];
-      const h = getLastSessionForExercise(exId, name);
-      if (!h || h.type === 'cardio') return '';
+    function getPersistentLoadBadge(...args) { return workoutSummary.getPersistentLoadBadge(...args); }
 
-      // base da sugestao: as repeticoes de hoje quando ha um estado em edicao; senao, as da
-      // ultima sessao registrada
-      const melhorHoje = state ? bestSeriesOf({ type: 'forca', series: getSeries(state, null) }) : null;
-      const melhorAntes = bestSeriesOf(h);
-      const r = melhorHoje ? melhorHoje.reps : (melhorAntes ? melhorAntes.reps : parseInt(h.reps, 10));
-      const temReps = !isNaN(r) && r > 0;
-
-      const origem = proprio ? '' : ' <span class="opacity-70">(de outro plano)</span>';
-      const marca = escapeHtml(describeEntry(h));
-
-      let cor, sugestao;
-      if (!temReps) {
-        cor = 'text-slate-300 bg-slate-950/60 border-slate-700';
-        sugestao = '';
-      } else if (r > 10) {
-        cor = 'text-amber-300 bg-amber-950/40 border-amber-700/60';
-        sugestao = '🔥 Força sobrando — hora de subir a carga!';
-      } else if (r >= 8) {
-        cor = 'text-blue-300 bg-blue-950/40 border-blue-800/60';
-        sugestao = '⚖️ Base sólida — tente somar mais uma repetição.';
-      } else {
-        cor = 'text-slate-300 bg-slate-950/60 border-slate-700';
-        sugestao = '⚠️ Busque chegar a 8 antes de subir a carga.';
-      }
-
-      return `<div class="fade-badge mb-3 ${cor} border px-3 py-2 rounded-xl text-xs font-black">
-        <span class="block">📈 Última vez (${escapeHtml(formatDateBR(h.date))}): ${marca}${origem}</span>
-        ${sugestao ? `<span class="block mt-1 opacity-90 font-bold">${sugestao}</span>` : ''}
-      </div>`;
-    }
-
-    function getCardioHistoryBadge(exId, name) {
-      const proprio = !!exerciseHistory[exId];
-      const h = getLastSessionForExercise(exId, name);
-      if (!h || (!h.duration && !h.distance)) return '';
-      const distancePart = h.distance ? `, ${escapeHtml(h.distance)}km` : '';
-      const origem = proprio ? '' : ' <span class="opacity-70">(de outro plano)</span>';
-      return `<div class="fade-badge mb-3 text-cyan-300 bg-cyan-950/40 border border-cyan-700/60 px-3 py-2 rounded-xl text-xs font-black flex items-center space-x-2">
-        <span>🏃 Última vez (${escapeHtml(formatDateBR(h.date))}): ${escapeHtml(h.duration)}min${distancePart}${origem}</span>
-      </div>`;
-    }
+    function getCardioHistoryBadge(...args) { return workoutSummary.getCardioHistoryBadge(...args); }
 
     // ---------- RASCUNHO DO TREINO EM ANDAMENTO ----------
     // Antes, carga/reps/observações só iam pro disco ao finalizar o treino. Se o sistema
@@ -2292,19 +1888,7 @@
     function clearDraft(...args) { return workoutDraft.clearDraft(...args); }
     function initializeWorkoutData(...args) { return workoutDraft.initializeWorkoutData(...args); }
 
-    function renderHeader() {
-      const profile = getActiveProfile();
-      const workout = profile.schedule[activeWorkoutKey];
-      workoutNameEl.textContent = workout.name;
-      workoutFocusEl.innerHTML = `
-        <svg class="w-4 h-4 mr-2 text-blue-400" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-        </svg>
-        ${escapeHtml(workout.focus)}
-      `;
-      const badge = document.getElementById('workoutTimeBadge');
-      badge.textContent = profile.trainingTime ? `Horário de Treino: ${profile.trainingTime}` : 'Horário de Treino: não definido';
-    }
+    function renderHeader(...args) { return workoutSummary.renderHeader(...args); }
 
 
     // Dica do exercicio e campo de observacao ficam fechados por padrao: a dica e lida uma
@@ -2376,132 +1960,32 @@
     function recordWorkoutSessions(...args) { return workoutRecording.recordWorkoutSessions(...args); }
     function finalizeWorkout(...args) { return workoutRecording.finalizeWorkout(...args); }
 
-    window.cancelFinishWorkout = function() {
-      document.getElementById('confirmFinishOverlay').classList.add('hidden');
-    };
-
-    window.confirmFinishWorkout = function() {
-      document.getElementById('confirmFinishOverlay').classList.add('hidden');
-      finalizeWorkout();
-    };
-
-    btnGenerate.addEventListener('click', () => {
-      if (areAllExercisesDoneForActiveWorkout()) {
-        finalizeWorkout();
-        return;
-      }
-      // treino incompleto: pede confirmação antes de finalizar, já que isso reduz o XP pela metade
-      const workout = getActiveProfile().schedule[activeWorkoutKey];
-      // conta so os obrigatorios: dizer "3 de 4" incluindo um opcional pulado sugeriria um
-      // treino incompleto que na verdade esta completo
-      const obrigatorios = requiredExercisesOf(workout);
-      const total = obrigatorios.length;
-      const doneCount = obrigatorios.filter(ex => formData[ex.id] && formData[ex.id].done).length;
-      document.getElementById('confirmFinishText').textContent =
-        `Você concluiu ${doneCount} de ${total} exercícios. Finalizar agora vai valer apenas metade do XP do check-in (${getHalfCheckinXP()} XP em vez de ${getFullCheckinXP()} XP). Quer voltar e completar os exercícios restantes, ou finalizar assim mesmo?`;
-      document.getElementById('confirmFinishOverlay').classList.remove('hidden');
-    });
-
-    btnCopy.addEventListener('click', async () => {
-      const ok = await copyTextToClipboard(reportOutput.value);
-      showToast(ok ? 'Resumo copiado! Pronto para envio.' : '❌ Não foi possível copiar o resumo.');
-    });
-
-    workoutSelect.addEventListener('change', (e) => {
-      initializeWorkoutData(e.target.value);
-      renderHeader();
-      renderExercises();
-      reportContainer.classList.add('hidden');
-    });
-
-    document.getElementById('btnSaveProfile').addEventListener('click', saveProfile);
-
     // ---------- HISTÓRICO QUE ACOMPANHA O EXERCÍCIO ENTRE PERFIS ----------
     // O log é indexado por ID de exercício, e cada perfil gera IDs próprios. Sem isso, criar
     // um segundo perfil com o mesmo "Supino Reto" fazia a progressão recomeçar do zero: sem
     // carga sugerida, sem gráfico, sem recorde. A gravação continua indo para a chave própria
     // de cada exercício — o que muda é a LEITURA, que passa a reunir tudo com o mesmo nome.
-    function normalizeExerciseName(name) {
-      return String(name || '')
-        .trim()
-        .toLowerCase()
-        .normalize('NFD').replace(/[\u0300-\u036f]/g, '') // ignora acentos na comparacao
-        .replace(/\s+/g, ' ');
-    }
+    const historyQueries = TREINO_HISTORY_QUERIES.create({
+      getSessionLog: () => sessionLog, getExerciseHistory: () => exerciseHistory,
+      getProfiles: () => profiles, getActiveProfile, compareByDate, DAY_ORDER, DAY_FULL_NAMES
+    });
+    function normalizeExerciseName(...args) { return historyQueries.normalizeExerciseName(...args); }
 
     // Devolve todas as sessões daquele exercício, venham da chave própria ou de qualquer
     // outro perfil que use o mesmo nome. Ordenado por data, um registro por dia.
-    function collectSessionsForExercise(historyKey, name) {
-      const proprias = sessionLog[historyKey] || [];
-      const alvo = normalizeExerciseName(name);
-      if (!alvo) return { sessions: proprias.slice(), fromOtherProfiles: false };
-
-      let outras = [];
-      Object.keys(sessionLog).forEach(key => {
-        if (key === historyKey) return;
-        (sessionLog[key] || []).forEach(entry => {
-          if (normalizeExerciseName(entry.name) === alvo) outras.push(entry);
-        });
-      });
-
-      if (outras.length === 0) return { sessions: proprias.slice(), fromOtherProfiles: false };
-
-      // um registro por dia: se o mesmo exercício foi feito em dois perfis no mesmo dia,
-      // mantém o de maior carga, que é o que interessa para progressão e recorde
-      const porData = {};
-      proprias.concat(outras).forEach(e => {
-        const atual = porData[e.date];
-        if (!atual) { porData[e.date] = e; return; }
-        const a = parseFloat(e.weight) || parseFloat(e.duration) || 0;
-        const b = parseFloat(atual.weight) || parseFloat(atual.duration) || 0;
-        if (a > b) porData[e.date] = e;
-      });
-
-      const sessions = Object.values(porData).sort(compareByDate);
-      return { sessions, fromOtherProfiles: sessions.length > proprias.length };
-    }
+    function collectSessionsForExercise(...args) { return historyQueries.collectSessionsForExercise(...args); }
 
     // Última sessão registrada para aquele exercício, olhando também os outros perfis.
-    function getLastSessionForExercise(historyKey, name) {
-      if (exerciseHistory[historyKey]) return exerciseHistory[historyKey];
-      const { sessions } = collectSessionsForExercise(historyKey, name);
-      return sessions.length ? sessions[sessions.length - 1] : null;
-    }
+    function getLastSessionForExercise(...args) { return historyQueries.getLastSessionForExercise(...args); }
 
     window.duplicateProfile = (...args) => planManagement.duplicateProfile(...args);
 
-    // ---------- DURACAO DO TREINO ----------
-    // O inicio e marcado na primeira acao real do dia (ajustar um valor, concluir uma serie),
-    // nao na abertura do app: abrir para conferir o treino de amanha nao deve iniciar
-    // cronometragem. O fim e o momento de finalizar.
-    function markWorkoutStart() {
-      const hoje = todayKey();
-      if (workoutMeta[hoje] && workoutMeta[hoje].inicio) return;
-      workoutMeta[hoje] = Object.assign({}, workoutMeta[hoje], { inicio: new Date().toISOString() });
-      saveJSON(WORKOUT_META_KEY, workoutMeta);
-    }
-
-    function markWorkoutEnd() {
-      const hoje = todayKey();
-      const meta = workoutMeta[hoje];
-      if (!meta || !meta.inicio) return null;
-      const fim = new Date();
-      const minutos = Math.max(1, Math.round((fim - new Date(meta.inicio)) / 60000));
-      // um treino nao dura mais que um dia; valores absurdos indicam app aberto esquecido
-      workoutMeta[hoje] = Object.assign({}, meta, {
-        fim: fim.toISOString(),
-        minutos: minutos > 480 ? null : minutos
-      });
-      saveJSON(WORKOUT_META_KEY, workoutMeta);
-      return workoutMeta[hoje].minutos;
-    }
-
-    function formatDuration(minutos) {
-      if (!minutos || minutos <= 0) return '';
-      const h = Math.floor(minutos / 60);
-      const m = minutos % 60;
-      return h > 0 ? `${h}h${String(m).padStart(2, '0')}` : `${m}min`;
-    }
+    const workoutDuration = TREINO_WORKOUT_DURATION.create({
+      getWorkoutMeta: () => workoutMeta, todayKey, saveJSON, WORKOUT_META_KEY
+    });
+    function markWorkoutStart() { return workoutDuration.markWorkoutStart(); }
+    function markWorkoutEnd() { return workoutDuration.markWorkoutEnd(); }
+    function formatDuration(minutes) { return workoutDuration.formatDuration(minutes); }
 
     const aiPlanParser = TREINO_AI_PLAN.create({
       DAY_ORDER, DAY_FULL_NAMES, buildEmptySchedule, MAX_EXERCISES_PER_DAY, makeId, isCardioExerciseName
@@ -2523,66 +2007,9 @@
     window.closeAIImport = (...args) => aiPlanUI.closeAIImport(...args);
     window.applyAIPlan = (...args) => aiPlanUI.applyAIPlan(...args);
 
-    // ---------- BOLHA COM O NOME COMPLETO ----------
-    // Nomes longos sao truncados no card. Tocar no titulo abre uma bolha com o texto
-    // inteiro, posicionada logo abaixo do proprio titulo e presa dentro da tela.
-    let tooltipTimer = null;
-
-    window.showNameTooltip = function(ev, texto) {
-      const tip = document.getElementById('nameTooltip');
-      const alvo = ev && ev.currentTarget;
-      if (!tip || !alvo) return;
-
-      // se o nome cabe inteiro na tela, nao ha o que revelar
-      if (alvo.scrollWidth <= alvo.clientWidth + 1) return;
-
-      if (ev.stopPropagation) ev.stopPropagation();  // nao recolhe o card junto
-
-      tip.textContent = texto;
-      tip.classList.remove('hidden');
-
-      positionBubble(tip, alvo.getBoundingClientRect());
-    };
-
-    // Prende a bolha dentro da tela: logo abaixo do alvo quando cabe, acima quando nao cabe.
-    // Se o alvo estiver fora da area visivel, as duas posicoes cairiam fora junto — dai a
-    // trava final, para a bolha nunca aparecer em lugar nenhum.
-    function positionBubble(tip, r) {
-      const margem = 16;
-      let left = r.left;
-      if (left + tip.offsetWidth > window.innerWidth - margem) left = window.innerWidth - tip.offsetWidth - margem;
-      if (left < margem) left = margem;
-      let top = r.bottom + 6;
-      if (top + tip.offsetHeight > window.innerHeight - margem) top = r.top - tip.offsetHeight - 6;
-      const maxTop = window.innerHeight - tip.offsetHeight - margem;
-      if (top > maxTop) top = maxTop;
-      if (top < margem) top = margem;
-
-      tip.style.left = `${Math.round(left)}px`;
-      tip.style.top = `${Math.round(top)}px`;
-
-      clearTimeout(tooltipTimer);
-      tooltipTimer = setTimeout(hideNameTooltip, 3500);
-    }
-
-    // Toque em qualquer ponto do grafico revela o registro mais proximo. E o toque em
-    // qualquer lugar, nao na bolinha: com muitos registros elas ficam a poucos pixels uma da
-    // outra e acertar uma delas no celular seria sorte.
+    const tooltips = TREINO_TOOLTIPS.create({ document, window, setTimeout, clearTimeout });
+    function positionBubble(tip, rect) { return tooltips.positionBubble(tip, rect); }
     window.showChartPoint = (event, id) => charts.showChartPoint(event, id);
-
-    function hideNameTooltip() {
-      clearTimeout(tooltipTimer);
-      const tip = document.getElementById('nameTooltip');
-      if (tip) tip.classList.add('hidden');
-      // o ponto destacado sai junto: deixa-lo aceso apontaria para uma informacao que ja
-      // nao esta mais na tela
-      document.querySelectorAll('[data-sel],[data-guia]').forEach(el => { el.style.display = 'none'; });
-    }
-
-    // qualquer toque fora fecha a bolha
-    document.addEventListener('touchstart', hideNameTooltip, { passive: true });
-    document.addEventListener('click', hideNameTooltip);
-    window.addEventListener('scroll', hideNameTooltip, { passive: true });
 
     // ---------- CORRIGIR OU APAGAR UM REGISTRO DO HISTORICO ----------
     // Ate aqui nada do que fosse gravado podia ser desfeito: uma carga digitada errada virava
@@ -2642,16 +2069,7 @@
     window.applySwapPick = (...args) => swapPicker.applySwapPick(...args);
 
     // ---------- BIBLIOTECA DE EXERCICIOS (datalist) ----------
-    function buildExerciseDatalist() {
-      const dl = document.getElementById('exerciseLibraryList');
-      if (!dl || dl.childElementCount) return; // montada uma vez so
-      const html = Object.keys(EXERCISE_LIBRARY).map(grupo =>
-        EXERCISE_LIBRARY[grupo].map(nome =>
-          `<option value="${escapeHtml(nome)}">${escapeHtml(grupo)}</option>`
-        ).join('')
-      ).join('');
-      dl.innerHTML = html;
-    }
+    function buildExerciseDatalist(...args) { return workoutSummary.buildExerciseDatalist(...args); }
 
     // ---------- REORDENAR EXERCICIOS DO DIA ----------
     window.moveExerciseRow = planEditor.moveExerciseRow;
@@ -2750,53 +2168,14 @@
 
     // O nome do treino vem do perfil ativo. Se o plano mudou desde então (ou o dia foi
     // registrado por outro perfil), cai para o nome do dia da semana, que sempre existe.
-    function resolveWorkoutName(workoutKey, dateStr) {
-      const profile = getActiveProfile();
-      if (workoutKey && profile && profile.schedule[workoutKey]) {
-        return profile.schedule[workoutKey].name;
-      }
-      if (workoutKey && DAY_FULL_NAMES[workoutKey]) return DAY_FULL_NAMES[workoutKey];
-      if (dateStr) {
-        // meio-dia evita que o fuso empurre a data para o dia anterior
-        const d = new Date(dateStr + 'T12:00:00');
-        const nomes = ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado'];
-        return nomes[d.getDay()] || 'Treino';
-      }
-      return 'Treino';
-    }
+    function resolveWorkoutName(...args) { return historyQueries.resolveWorkoutName(...args); }
 
     // A chave do log e o ID do exercicio (com sufixo __vN para as reservas). Quando a entrada
     // gravada nao tem nome — exercicio adicionado ao plano sem preencher o nome, ou registro
     // de uma versao antiga — da para recuperar consultando os planos pelo ID, em vez de
     // exibir uma linha so com numeros.
-    const NOME_DESCONHECIDO = 'Exercício sem nome';
 
-    function resolveExerciseName(historyKey, entry) {
-      if (entry && entry.name && String(entry.name).trim()) return entry.name;
-      if (!historyKey) return NOME_DESCONHECIDO;
-
-      const partes = String(historyKey).split('__v');
-      const exId = partes[0];
-      const variante = partes[1] ? parseInt(partes[1], 10) : 0;
-
-      // procura em todos os planos, nao so no ativo: o registro pode ser de outro perfil
-      for (const pid of Object.keys(profiles)) {
-        const sched = profiles[pid] && profiles[pid].schedule;
-        if (!sched) continue;
-        for (const k of DAY_ORDER) {
-          const lista = (sched[k] && sched[k].exercises) || [];
-          const ex = lista.find(e => e.id === exId);
-          if (!ex) continue;
-          if (variante > 0) {
-            const reservas = (ex.backups || []).filter(b => b && b.name && b.name.trim());
-            const b = reservas[variante - 1];
-            if (b && b.name) return b.name;
-          }
-          if (ex.name && ex.name.trim()) return ex.name;
-        }
-      }
-      return NOME_DESCONHECIDO;
-    }
+    function resolveExerciseName(...args) { return historyQueries.resolveExerciseName(...args); }
 
     // ---------- CALORIAS ESTIMADAS POR TREINO ----------
     // Formula padrao: kcal = MET x peso(kg) x horas. MET e uma media populacional — para uma
@@ -2815,16 +2194,11 @@
     // foi feito: cada serie custa o tempo de execucao mais o descanso configurado.
     const SEGUNDOS_POR_SERIE = 45;
 
-    function estimarMinutosDeForca(exercicios) {
-      const descanso = settings.restSeconds || 90;
-      let seg = 0;
-      exercicios.forEach(e => {
-        if (e.type === 'cardio') return;
-        const series = getEntrySeries(e).length || parseInt(e.sets, 10) || 0;
-        seg += series * (SEGUNDOS_POR_SERIE + descanso);
-      });
-      return seg / 60;
-    }
+    const workoutCalories = TREINO_WORKOUT_CALORIES.create({
+      getSettings: () => settings, getUserProfile: () => userProfile,
+      getEntrySeries, metDoCardio, metDaForca, SEGUNDOS_POR_SERIE
+    });
+    function estimarMinutosDeForca(...args) { return workoutCalories.estimarMinutosDeForca(...args); }
 
     // Ajuste conservador: além do tempo, considera carga média relativa ao peso corporal
     // e a densidade de séries. Mantém a estimativa dentro de uma faixa plausível.
@@ -2834,39 +2208,7 @@
 
     // Devolve { kcal, medido } ou null quando falta o peso — sem peso nao ha estimativa
     // possivel, e chutar um valor padrao daria um numero que parece pessoal sem ser.
-    function estimateWorkoutCalories(dia) {
-      const peso = parseFloat(userProfile.weight);
-      if (!peso || !dia || !dia.exercicios || !dia.exercicios.length) return null;
-
-      const cardios = dia.exercicios.filter(e => e.type === 'cardio');
-      const minutosCardio = cardios.reduce((t, e) => t + (parseFloat(e.duration) || 0), 0);
-
-      let kcal = 0;
-      cardios.forEach(e => {
-        const min = parseFloat(e.duration) || 0;
-        kcal += metDoCardio(e) * peso * (min / 60);
-      });
-
-      // duracao medida inclui o cardio: o que sobra e o tempo de musculacao
-      const estimado = estimarMinutosDeForca(dia.exercicios);
-      let minutosForca = dia.minutos ? Math.max(0, dia.minutos - minutosCardio) : estimado;
-      let medido = !!dia.minutos;
-
-      // O cronometro so comeca a contar quando voce mexe em algum valor. Quem treina e so
-      // marca tudo no fim registra 2 minutos para uma hora de treino, e a estimativa sairia
-      // ridicula. O tempo calculado pelas series e pelo descanso e um piso fisico — nao da
-      // para fazer doze series com noventa segundos de intervalo em dois minutos —, entao
-      // uma medicao muito abaixo dele e sinal de que o cronometro perdeu o treino.
-      if (medido && estimado > 0 && minutosForca < estimado * 0.5) {
-        minutosForca = estimado;
-        medido = false;
-      }
-      const metForca = metDaForca(dia.exercicios, peso, minutosForca);
-      kcal += metForca * peso * (minutosForca / 60);
-
-      if (kcal <= 0) return null;
-      return { kcal: Math.round(kcal), medido, metForca };
-    }
+    function estimateWorkoutCalories(...args) { return workoutCalories.estimateWorkoutCalories(...args); }
 
     // ---------- CALENDARIO DE TREINOS ----------
     // A lista crescia uma linha por treino e empurrava o resto da aba para baixo sem limite.
@@ -2906,56 +2248,8 @@
     window.openWorkoutDay = workoutDay.openWorkoutDay;
     window.closeWorkoutDay = workoutDay.closeWorkoutDay;
 
-    // ---------- CONFIRMAÇÃO GENÉRICA ----------
-    // Devolve uma Promise<boolean>, então quem chama usa `if (await askConfirm(...))`,
-    // igual ao confirm() nativo — mas sem sair da identidade visual do app.
-    function askConfirm(options) {
-      const opts = Object.assign({
-        title: 'Confirmar',
-        text: '',
-        icon: '⚠️',
-        confirmLabel: 'Confirmar',
-        cancelLabel: 'Cancelar',
-        danger: false
-      }, options || {});
-
-      return new Promise(resolve => {
-        const overlay = document.getElementById('confirmOverlay');
-        const box = document.getElementById('confirmOverlayBox');
-        const okBtn = document.getElementById('confirmOverlayOk');
-        const cancelBtn = document.getElementById('confirmOverlayCancel');
-
-        document.getElementById('confirmOverlayIcon').textContent = opts.icon;
-        document.getElementById('confirmOverlayTitle').textContent = opts.title;
-        document.getElementById('confirmOverlayText').innerHTML = opts.text;
-        okBtn.textContent = opts.confirmLabel;
-        cancelBtn.textContent = opts.cancelLabel;
-
-        box.className = `bg-slate-900 rounded-2xl border shadow-2xl max-w-sm w-full p-6 ${opts.danger ? 'border-rose-800/50' : 'border-slate-800'}`;
-        okBtn.className = `flex-1 text-white font-extrabold text-sm py-3 rounded-xl transition-all active:scale-[0.99] ${opts.danger ? 'bg-rose-600 active:bg-rose-500' : 'bg-blue-600 active:bg-blue-500'}`;
-
-        const finish = (result) => {
-          overlay.classList.add('hidden');
-          okBtn.removeEventListener('click', onOk);
-          cancelBtn.removeEventListener('click', onCancel);
-          overlay.removeEventListener('click', onBackdrop);
-          document.removeEventListener('keydown', onKey);
-          resolve(result);
-        };
-        const onOk = () => finish(true);
-        const onCancel = () => finish(false);
-        // tocar fora da caixa cancela, como é praxe em modal de celular
-        const onBackdrop = (e) => { if (e.target === overlay) finish(false); };
-        const onKey = (e) => { if (e.key === 'Escape') finish(false); };
-
-        okBtn.addEventListener('click', onOk);
-        cancelBtn.addEventListener('click', onCancel);
-        overlay.addEventListener('click', onBackdrop);
-        document.addEventListener('keydown', onKey);
-
-        overlay.classList.remove('hidden');
-      });
-    }
+    const confirmation = TREINO_CONFIRMATION.create({ document });
+    function askConfirm(options) { return confirmation.askConfirm(options); }
 
     // ---------- EVOLUÇÃO DE UM EXERCÍCIO ----------
     let progressContext = null;   // o que o modal de evolucao esta exibindo
@@ -3006,304 +2300,32 @@
     function remainingRestSeconds(...args) { return restTimerUI.remainingRestSeconds(...args); }
     function tickRestTimer(...args) { return restTimerUI.tickRestTimer(...args); }
 
-    // ---------- TELA DE NOVIDADES ----------
-    const LAST_SEEN_VERSION_KEY = 'treino_last_seen_version';
-
-    // O historico completo vive no CHANGELOG.md; no app so as ultimas versoes importam.
-    // Sem esse corte, a lista cresce indefinidamente dentro do arquivo que o app baixa.
-    const RELEASE_NOTES_NA_TELA = 5;
-
-    function renderNovidades() {
-      const current = RELEASE_NOTES[0];
-      document.getElementById('novidadesCurrentVersion').innerHTML = `
-        <p class="text-[10px] text-blue-400 font-black uppercase tracking-wider mb-2">Versão ${current.version} · ${formatDateBR(current.date)}</p>
-        <ul class="space-y-2.5">
-          ${current.highlights.map(h => `<li class="flex items-start gap-2"><span class="text-emerald-400 mt-0.5 flex-shrink-0">✓</span><span class="text-sm text-slate-200 text-justify">${h}</span></li>`).join('')}
-        </ul>
-      `;
-
-      document.getElementById('versionHistoryList').innerHTML = RELEASE_NOTES.slice(1, RELEASE_NOTES_NA_TELA).map(r => `
-        <div class="border-t border-slate-800 pt-3 mt-3 first:border-t-0 first:mt-0 first:pt-0">
-          <p class="text-[10px] text-slate-500 font-black uppercase tracking-wider mb-1.5">Versão ${r.version} · ${formatDateBR(r.date)}</p>
-          <ul class="space-y-1.5">
-            ${r.highlights.map(h => `<li class="flex items-start gap-2"><span class="text-slate-700 mt-0.5 flex-shrink-0">•</span><span class="text-xs text-slate-400 text-justify">${h}</span></li>`).join('')}
-          </ul>
-        </div>
-      `).join('');
-    }
-
-    window.openNovidades = function() {
-      renderNovidades();
-      document.getElementById('novidadesOverlay').classList.remove('hidden');
-    };
-
-    window.closeNovidades = function() {
-      document.getElementById('novidadesOverlay').classList.add('hidden');
-      saveString(LAST_SEEN_VERSION_KEY, APP_VERSION);
-    };
-
-    window.toggleVersionHistory = function() {
-      const list = document.getElementById('versionHistoryList');
-      const chevron = document.getElementById('versionHistoryChevron');
-      list.classList.toggle('hidden');
-      chevron.classList.toggle('rotate-180');
-    };
-
-    // ---------- ONBOARDING OBRIGATÓRIO (primeiro acesso) ----------
-    function isProfileComplete() {
-      return !!(userProfile.name && userProfile.name.trim() && userProfile.birthdate && userProfile.height && userProfile.weight);
-    }
-
-    function showOnboarding() {
-      document.getElementById('onbName').value = userProfile.name || '';
-      document.getElementById('onbBirthdate').value = userProfile.birthdate || '';
-      document.getElementById('onbHeight').value = userProfile.height || '';
-      document.getElementById('onbWeight').value = userProfile.weight || '';
-      document.getElementById('onbSex').value = userProfile.sex || '';
-      document.getElementById('onbActivity').value = userProfile.activityLevel || 'moderado';
-      document.getElementById('onboardingOverlay').classList.remove('hidden');
-    }
-
-    window.submitOnboarding = function() {
-      const name = document.getElementById('onbName').value.trim();
-      const birthdate = document.getElementById('onbBirthdate').value;
-      const height = document.getElementById('onbHeight').value;
-      const weight = document.getElementById('onbWeight').value;
-      const errEl = document.getElementById('onboardingError');
-
-      const error = validateProfileNumbers({ height: 'onbHeight', weight: 'onbWeight' });
-      if (error) {
-        errEl.textContent = error.message;
-        errEl.classList.remove('hidden');
-        error.input.focus();
-        return;
-      }
-
-      if (!name || !birthdate || !height || !weight) {
-        errEl.textContent = '⚠️ Preencha nome, data de nascimento, altura e peso para continuar.';
-        errEl.classList.remove('hidden');
-        return;
-      }
-      const age = calculateAge(birthdate);
-      if (age === null || age < 0 || age > 120) {
-        errEl.textContent = '⚠️ Verifique a data de nascimento informada.';
-        errEl.classList.remove('hidden');
-        return;
-      }
-      errEl.classList.add('hidden');
-
-      // reaproveita o formulário real do perfil + saveProfile() para não duplicar lógica
-      document.getElementById('profileName').value = name;
-      document.getElementById('profileBirthdate').value = birthdate;
-      document.getElementById('profileHeight').value = height;
-      document.getElementById('profileWeight').value = weight;
-      document.getElementById('profileTargetWeight').value = userProfile.targetWeight || '';
-      document.getElementById('profileSex').value = document.getElementById('onbSex').value;
-      document.getElementById('profileActivity').value = document.getElementById('onbActivity').value;
-      if (!saveProfile()) {
-        errEl.textContent = document.getElementById('profileValidationError').textContent;
-        errEl.classList.remove('hidden');
-        return;
-      }
-
-      document.getElementById('onboardingOverlay').classList.add('hidden');
-      showToast(`Bem-vindo(a), ${name}! Perfil configurado.`);
-      maybeShowSwipeHint();
-    };
-
-    // ---------- ROTINA DE VIRADA DE DIA (reset automático à meia-noite) ----------
-    let lastKnownDate = todayKey();
-
-    function checkDateRollover() {
-      if (restoringBackup) return;
-      const current = todayKey();
-      if (current === lastKnownDate) return;
-      lastKnownDate = current;
-
-      // novo dia: água consumida, check-in do dia e exercícios concluídos partem do zero
-      // automaticamente, já que todos são armazenados por data — aqui só garantimos que a
-      // tela em uso reflita isso na hora, sem precisar recarregar o app manualmente
-      if (!perfilView.classList.contains('hidden')) {
-        renderWaterCard();
-        renderIMCCard();
-        renderMetabolismCard();
-      }
-      clearDraft(); // o rascunho pertencia a ontem
-      const newWorkoutKey = getTodaysWorkoutKey();
-      workoutSelect.value = newWorkoutKey;
-      initializeWorkoutData(newWorkoutKey);
-      renderHeader();
-      renderExercises();
-      renderCheckinGrid();
-      checkBirthday();
-      showToast('🕛 Um novo dia começou! Água e check-in foram reiniciados.');
-    }
-
-    setInterval(checkDateRollover, 60000); // verifica a virada do dia a cada minuto
-    document.addEventListener('visibilitychange', () => { if (!document.hidden) checkDateRollover(); });
-
-    // Mantém o teclado dentro do diálogo aberto e devolve o foco ao controle de origem.
-    // Isso vale para todos os overlays, inclusive os criados antes desta melhoria.
-    function setupModalAccessibility() {
-      const overlays = Array.from(document.querySelectorAll('[id$="Overlay"]'));
-      const previousFocus = new Map();
-      const activeStack = [];
-      const focusable = '[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
-      const activeOverlay = () => activeStack.at(-1);
-
-      overlays.forEach(overlay => {
-        overlay.setAttribute('role', 'dialog');
-        overlay.setAttribute('aria-modal', 'true');
-        overlay.tabIndex = -1;
-        if (!overlay.hasAttribute('aria-label') && !overlay.hasAttribute('aria-labelledby')) {
-          const heading = overlay.querySelector('h1, h2, h3');
-          if (heading) {
-            if (!heading.id) heading.id = `${overlay.id}Title`;
-            overlay.setAttribute('aria-labelledby', heading.id);
-          } else {
-            overlay.setAttribute('aria-label', 'Janela de diálogo');
-          }
-        }
-      });
-
-      document.addEventListener('keydown', event => {
-        if (event.key !== 'Tab') return;
-        const active = activeOverlay();
-        if (!active) return;
-        const controls = Array.from(active.querySelectorAll(focusable))
-          .filter(control => !control.closest('.hidden'));
-        if (!controls.length) {
-          event.preventDefault();
-          active.focus();
-          return;
-        }
-        const first = controls[0];
-        const last = controls[controls.length - 1];
-        if (event.shiftKey && document.activeElement === first) {
-          event.preventDefault();
-          last.focus();
-        } else if (!event.shiftKey && document.activeElement === last) {
-          event.preventDefault();
-          first.focus();
-        }
-      });
-
-      const observer = new MutationObserver(records => {
-        records.forEach(record => {
-          const overlay = record.target;
-          if (overlay.classList.contains('hidden')) {
-            const index = activeStack.indexOf(overlay);
-            if (index !== -1) activeStack.splice(index, 1);
-            const trigger = previousFocus.get(overlay);
-            previousFocus.delete(overlay);
-            if (trigger && document.contains(trigger)) trigger.focus();
-            return;
-          }
-          const index = activeStack.indexOf(overlay);
-          if (index !== -1) activeStack.splice(index, 1);
-          activeStack.push(overlay);
-          previousFocus.set(overlay, document.activeElement);
-          requestAnimationFrame(() => {
-            const firstControl = overlay.querySelector(focusable);
-            (firstControl || overlay).focus();
-          });
-        });
-      });
-      overlays.forEach(overlay => observer.observe(overlay, { attributes: true, attributeFilter: ['class'] }));
-    }
-
-    window.addEventListener('DOMContentLoaded', async () => {
-      document.body.inert = true;
-      try {
-        if (restoringBackup && await TREINO_BACKUP_RESTORE.recover({ storage: localStorage, openDatabase: openSessionDb })) {
-          window.location.reload();
-          return;
-        }
-      } catch (error) {
-        console.error('Recuperação da restauração pendente falhou.', error);
-        showToast('⚠️ A restauração foi interrompida. Libere espaço e reabra o app para recuperar seus dados.');
-        return;
-      }
-      setupModalAccessibility();
-      if (!storageAvailable) {
-        const warn = document.createElement('div');
-        warn.className = 'max-w-3xl mx-auto px-4 mt-4';
-        warn.innerHTML = `<div class="bg-rose-950/40 border border-rose-800/60 text-rose-300 text-xs font-bold px-4 py-3 rounded-xl">⚠️ Armazenamento local indisponível neste navegador/modo. Seu progresso não será salvo entre sessões.</div>`;
-        document.querySelector('header').insertAdjacentElement('afterend', warn);
-      }
-      ensureProfilesSeeded();
-      migrateOptionalDays();
-      // A leitura persistida deve terminar antes das migrações e do primeiro card.
-      // Mantém a interface bloqueada para não sobrescrever edições feitas durante a leitura.
-      historyInitialization = initializeSessionLogStorage();
-      await historyInitialization;
-      workoutHistoryCache = [];
-      volumeTotalCache = null;
-      sanitizeSessionLog();
-      buildExerciseDatalist();
-      migrateHistoryToSessionLog(); // semeia o log de sessões para quem já usava versões anteriores
-      renderWorkoutSelectOptions();
-      const startKey = getTodaysWorkoutKey();
-      workoutSelect.value = startKey;
-      initializeWorkoutData(startKey);
-      renderHeader();
-      renderExercises();
-      renderCheckinGrid();
-      renderLevelBar();
-      renderNotificationSettings();
-      syncTrainingReminders(false).catch(() => {});
-      switchView('treino');
-      document.body.inert = false;
-      document.getElementById('appVersion').textContent = `v${APP_VERSION}`;
-      checkBirthday();
-      if (!isProfileComplete()) {
-        showOnboarding();
-      } else {
-        const lastSeenVersion = loadString(LAST_SEEN_VERSION_KEY);
-        if (lastSeenVersion && lastSeenVersion !== APP_VERSION) {
-          openNovidades();
-        } else if (!lastSeenVersion) {
-          saveString(LAST_SEEN_VERSION_KEY, APP_VERSION);
-        }
-        maybeShowSwipeHint();
-        maybeSuggestBackup();
-      }
+    // Composição da inicialização: módulos recebem acesso ao estado atual por callbacks.
+    const releaseNotesUI = TREINO_RELEASE_NOTES.create({
+      document, window, RELEASE_NOTES, formatDateBR, saveString, APP_VERSION
     });
-
-    // O APK do Capacitor já carrega arquivos locais versionados. Service workers são úteis no
-    // site/PWA, mas podem criar uma segunda camada de cache desnecessária dentro do WebView.
-    if (!PLATFORM.isNative && 'serviceWorker' in navigator) {
-      window.addEventListener('load', () => {
-        navigator.serviceWorker.register('sw.js').then((registration) => {
-          // Verifica se ha versao nova toda vez que o app abre. Offline isso SEMPRE falha, e
-          // sem o catch a promise rejeitada aparecia no console como erro nao tratado — o
-          // app funcionava, mas parecia quebrado para quem olhasse o console.
-          registration.update().catch(() => { /* sem rede: segue com a versao em cache */ });
-
-          // se já existe um service worker esperando (versão nova pronta), ativa na hora
-          if (registration.waiting) {
-            registration.waiting.postMessage({ type: 'SKIP_WAITING' });
-          }
-
-          registration.addEventListener('updatefound', () => {
-            const newWorker = registration.installing;
-            if (!newWorker) return;
-            newWorker.addEventListener('statechange', () => {
-              if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                newWorker.postMessage({ type: 'SKIP_WAITING' });
-              }
-            });
-          });
-        }).catch(() => { /* offline/local: ignora silenciosamente */ });
-
-        // quando o novo service worker assume o controle, recarrega para servir a versão nova
-        let refreshed = false;
-        navigator.serviceWorker.addEventListener('controllerchange', () => {
-          if (refreshed) return;
-          refreshed = true;
-          window.location.reload();
-        });
-      });
-    }
+    const onboardingUI = TREINO_ONBOARDING.create({
+      document, window, getProfile: () => userProfile, validateProfileNumbers,
+      calculateAge, saveProfile, showToast, maybeShowSwipeHint
+    });
+    const modalAccessibility = TREINO_MODAL_ACCESSIBILITY.create({
+      document, MutationObserver, requestAnimationFrame
+    });
+    const appLifecycle = TREINO_APP_LIFECYCLE.create({
+      document, window, navigator, PLATFORM, todayKey, isRestoringBackup: () => restoringBackup,
+      perfilView, renderWaterCard, renderIMCCard, renderMetabolismCard, clearDraft,
+      getTodaysWorkoutKey, workoutSelect, initializeWorkoutData, renderHeader, renderExercises,
+      renderCheckinGrid, checkBirthday, showToast, setInterval, TREINO_BACKUP_RESTORE,
+      localStorage, openSessionDb, setupModalAccessibility: modalAccessibility.setupModalAccessibility,
+      storageAvailable, ensureProfilesSeeded, migrateOptionalDays,
+      initializeHistory: () => (historyInitialization = initializeSessionLogStorage()),
+      resetHistoryCaches: () => { workoutHistoryCache = []; volumeTotalCache = null; },
+      sanitizeSessionLog, buildExerciseDatalist, migrateHistoryToSessionLog,
+      renderWorkoutSelectOptions, renderLevelBar, renderNotificationSettings,
+      syncTrainingReminders, switchView, APP_VERSION,
+      isProfileComplete: onboardingUI.isProfileComplete, showOnboarding: onboardingUI.showOnboarding,
+      loadString, LAST_SEEN_VERSION_KEY: releaseNotesUI.LAST_SEEN_VERSION_KEY,
+      openNovidades: window.openNovidades, saveString, maybeShowSwipeHint, maybeSuggestBackup
+    });
   </script></body>
 </html>

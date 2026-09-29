@@ -23,7 +23,12 @@ const [html, worker, manifest, pkg, lockfile, gradle, androidManifest, capacitor
 ]);
 
 const appVersion = html.match(/const APP_VERSION = '([^']+)'/)?.[1];
-for (const module of ['js/ui/notifications.js', 'js/ui/rest-timer.js']) {
+for (const module of ['js/ui/notifications.js', 'js/ui/rest-timer.js',
+  'js/ui/release-notes.js', 'js/ui/onboarding.js', 'js/ui/modal-accessibility.js', 'js/ui/app-lifecycle.js',
+  'js/core/history-storage.js', 'js/core/local-persistence.js', 'js/core/workout-duration.js',
+  'js/ui/tooltips.js', 'js/ui/confirmation.js', 'js/ui/app-feedback.js', 'js/ui/clipboard.js',
+  'js/core/initial-migrations.js', 'js/core/history-queries.js', 'js/ui/workout-summary.js',
+  'js/core/workout-calories.js', 'js/ui/workout-controls.js', 'data/seed-workouts.js']) {
   assert.ok(html.includes(`src="${module}"`), `${module} deve ser carregado pelo app.`);
   assert.ok(worker.includes(`'./${module}'`), `${module} deve estar disponível offline.`);
 }

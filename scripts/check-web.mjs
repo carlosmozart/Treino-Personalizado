@@ -17,7 +17,9 @@ if (!appVersion || appVersion !== cacheVersion) {
 const tempFile = resolve(root, '.tmp-inline-check.js');
 await (await import('node:fs/promises')).writeFile(tempFile, scriptMatch[1]);
 try {
-  for (const file of [tempFile, resolve(root, 'sw.js')]) {
+  const localScripts = [...html.matchAll(/<script\s+src="([^":]+\.js)"/g)]
+    .map(match => resolve(root, match[1]));
+  for (const file of [tempFile, resolve(root, 'sw.js'), ...new Set(localScripts)]) {
     const result = spawnSync(process.execPath, ['--check', file], { stdio: 'inherit' });
     if (result.status !== 0) throw new Error(`Falha de sintaxe em ${file}.`);
   }

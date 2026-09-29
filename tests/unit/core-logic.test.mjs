@@ -71,6 +71,7 @@ const logic = loadInlineFunctions([
   'metDaForca',
   'normalizeExerciseName'
 ], {
+  historyQueries: (await loadBrowserModule('js/core/history-queries.js', 'TREINO_HISTORY_QUERIES')).create({}),
   sessionHistory: (await loadBrowserModule('js/core/session-history.js', 'TREINO_SESSION_HISTORY')).create({}),
   DAY_ORDER: ['SEG', 'TER', 'QUA', 'QUI', 'SEX', 'SAB', 'DOM'],
   IMPORT_TIPOS: ['forca', 'tempo', 'cardio'],
