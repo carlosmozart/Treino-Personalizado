@@ -206,6 +206,18 @@
     .active\:bg-emerald-600:active { background-color: #059669; }
     .active\:bg-emerald-500:active { background-color: #10b981; }
     .space-y-0\.5 > :not([hidden]) ~ :not([hidden]) { margin-top: 0.125rem; }
+    /* Classes usadas pelo HTML/módulos que não existiam no Tailwind compilado */
+    .max-h-28 { max-height: 7rem; }
+    .overflow-auto { overflow: auto; }
+    .whitespace-pre-wrap { white-space: pre-wrap; }
+    .break-words { overflow-wrap: break-word; }
+    .bg-slate-950\/70 { background-color: rgba(2, 6, 23, 0.7); }
+    .text-rose-200 { color: #fecdd3; }
+    .text-blue-200 { color: #bfdbfe; }
+    .underline-offset-2 { text-underline-offset: 2px; }
+    .focus-visible\:ring-2:focus-visible { box-shadow: 0 0 0 2px #3b82f6; }
+    .focus-visible\:ring-blue-500:focus-visible { --tw-ring-color: #3b82f6; }
+    .space-x-1\.5 > :not([hidden]) ~ :not([hidden]) { margin-left: 0.375rem; }
   </style>
 </head>
 <body class="bg-slate-950 text-slate-100 font-sans pb-12 min-h-screen">
@@ -238,9 +250,9 @@
       <div class="flex-1 min-w-0">
         <p id="restTimerLabel" role="status" aria-live="polite" class="text-[11px] font-black text-blue-300 uppercase tracking-wider truncate">Descanso</p>
         <div class="flex items-center gap-1.5 mt-1.5">
-          <button type="button" onclick="adjustRestTimer(-15)" class="bg-slate-800 active:bg-slate-700 text-slate-300 text-[10px] font-black px-2.5 py-1.5 rounded-lg transition-all active:scale-95">-15s</button>
-          <button type="button" onclick="adjustRestTimer(30)" class="bg-slate-800 active:bg-slate-700 text-slate-300 text-[10px] font-black px-2.5 py-1.5 rounded-lg transition-all active:scale-95">+30s</button>
-          <button type="button" onclick="stopRestTimer()" class="ml-auto bg-rose-950/60 border border-rose-800/60 active:bg-rose-900/60 text-rose-300 text-[10px] font-black px-3 py-1.5 rounded-lg transition-all active:scale-95">Pular</button>
+          <button type="button" onclick="adjustRestTimer(-15)" class="bg-slate-800 active:bg-slate-700 text-slate-300 text-[11px] font-black px-2.5 py-1.5 rounded-lg transition-all active:scale-95">-15s</button>
+          <button type="button" onclick="adjustRestTimer(30)" class="bg-slate-800 active:bg-slate-700 text-slate-300 text-[11px] font-black px-2.5 py-1.5 rounded-lg transition-all active:scale-95">+30s</button>
+          <button type="button" onclick="stopRestTimer()" class="ml-auto bg-rose-950/60 border border-rose-800/60 active:bg-rose-900/60 text-rose-300 text-[11px] font-black px-3 py-1.5 rounded-lg transition-all active:scale-95">Pular</button>
         </div>
       </div>
     </div>
@@ -275,14 +287,14 @@
     <div class="bg-slate-900 rounded-2xl border border-slate-800 shadow-2xl max-w-md w-full p-5 my-8">
       <div class="flex items-start justify-between gap-3 mb-1">
         <div class="min-w-0">
-          <p class="text-[10px] font-black text-blue-400 uppercase tracking-wider">Corrigir registro</p>
+          <p class="text-[11px] font-black text-blue-400 uppercase tracking-wider">Corrigir registro</p>
           <h2 id="editEntryName" class="text-sm font-black text-white leading-tight truncate">--</h2>
         </div>
         <button type="button" onclick="closeEditEntry()" aria-label="Fechar correção de registro" class="flex-shrink-0 w-9 h-9 rounded-full bg-slate-800 active:bg-slate-700 text-slate-400 flex items-center justify-center transition-all active:scale-90">
           <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
         </button>
       </div>
-      <p id="editEntryDate" class="text-[10px] text-slate-500 mb-4">--</p>
+      <p id="editEntryDate" class="text-[11px] text-slate-500 mb-4">--</p>
 
       <div id="editEntryBody" class="space-y-2"></div>
 
@@ -298,14 +310,14 @@
     <div class="bg-slate-900 rounded-2xl border border-slate-800 shadow-2xl max-w-md w-full p-5 my-8">
       <div class="flex items-start justify-between gap-3 mb-3">
         <div class="min-w-0">
-          <p class="text-[10px] font-black text-amber-400 uppercase tracking-wider">Trocar exercício</p>
+          <p class="text-[11px] font-black text-amber-400 uppercase tracking-wider">Trocar exercício</p>
           <h2 id="swapPickerCurrent" class="text-sm font-black text-white leading-tight truncate">--</h2>
         </div>
         <button type="button" onclick="closeSwapPicker()" aria-label="Fechar seletor de exercícios" class="flex-shrink-0 w-9 h-9 rounded-full bg-slate-800 active:bg-slate-700 text-slate-400 flex items-center justify-center transition-all active:scale-90">
           <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
         </button>
       </div>
-      <p class="text-[10px] text-slate-500 mb-3">A troca vale só para o treino de hoje. Seu plano não é alterado.</p>
+      <p class="text-[11px] text-slate-500 mb-3">A troca vale só para o treino de hoje. Seu plano não é alterado.</p>
       <input type="text" id="swapPickerSearch" placeholder="Digite para buscar (ex: supino, agacho...)" oninput="renderSwapPickerList(this.value)" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2.5 text-white text-sm focus:outline-none focus:ring-1 focus:ring-amber-600 placeholder-slate-600 mb-3"/>
       <div id="swapPickerList" class="space-y-1.5 max-h-72 overflow-y-auto"></div>
     </div>
@@ -315,14 +327,14 @@
     <div class="bg-slate-900 rounded-2xl border border-slate-800 shadow-2xl max-w-md w-full p-5 my-8">
       <div class="flex items-start justify-between gap-3 mb-4">
         <div class="min-w-0">
-          <p id="workoutDayDate" class="text-[10px] font-black text-blue-400 uppercase tracking-wider">--</p>
+          <p id="workoutDayDate" class="text-[11px] font-black text-blue-400 uppercase tracking-wider">--</p>
           <h2 id="workoutDayName" class="text-base font-black text-white leading-tight">--</h2>
         </div>
         <button type="button" onclick="closeWorkoutDay()" class="flex-shrink-0 w-9 h-9 rounded-full bg-slate-800 active:bg-slate-700 text-slate-400 flex items-center justify-center transition-all active:scale-90">
           <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
         </button>
       </div>
-      <p id="workoutDayMismatch" class="hidden text-[10px] text-blue-300 bg-blue-950/30 border border-blue-800/40 rounded-lg px-3 py-2 mb-3"></p>
+      <p id="workoutDayMismatch" class="hidden text-[11px] text-blue-300 bg-blue-950/30 border border-blue-800/40 rounded-lg px-3 py-2 mb-3"></p>
       <div id="workoutDayBody"></div>
       <button type="button" id="workoutDayCopy" class="mt-4 w-full bg-slate-800 active:bg-slate-700 text-slate-300 font-bold text-xs py-2.5 rounded-xl transition-all active:scale-[0.99]">📋 Copiar resumo deste treino</button>
       <button type="button" id="workoutDayUndo" class="mt-2 w-full bg-slate-950/60 border border-rose-900/50 active:bg-rose-950/40 text-rose-400 font-bold text-xs py-2.5 rounded-xl transition-all active:scale-[0.99]">↩️ Desfazer este treino</button>
@@ -333,7 +345,7 @@
     <div class="bg-slate-900 rounded-2xl border border-slate-800 shadow-2xl max-w-md w-full p-5 my-8">
       <div class="flex items-start justify-between gap-3 mb-4">
         <div class="min-w-0">
-          <p class="text-[10px] font-black text-blue-400 uppercase tracking-wider">Evolução</p>
+          <p class="text-[11px] font-black text-blue-400 uppercase tracking-wider">Evolução</p>
           <h2 id="progressExerciseName" class="text-base font-black text-white leading-tight truncate">--</h2>
         </div>
         <button type="button" onclick="closeExerciseProgress()" class="flex-shrink-0 w-9 h-9 rounded-full bg-slate-800 active:bg-slate-700 text-slate-400 flex items-center justify-center transition-all active:scale-90">
@@ -352,7 +364,7 @@
 
       <div class="flex items-start justify-between gap-3">
         <div class="min-w-0">
-          <p class="text-[10px] font-black text-blue-400 uppercase tracking-wider">Montar treino</p>
+          <p class="text-[11px] font-black text-blue-400 uppercase tracking-wider">Montar treino</p>
           <h2 class="text-base font-black text-white leading-tight">Prompt para IA</h2>
         </div>
         <button type="button" onclick="closeAIPlan()" aria-label="Fechar" class="flex-shrink-0 w-9 h-9 rounded-full bg-slate-800 active:bg-slate-700 text-slate-400 flex items-center justify-center transition-all active:scale-90">
@@ -363,7 +375,7 @@
       <p class="text-[11px] text-slate-500 leading-relaxed text-justify">O app junta seus dados e monta um texto pronto. Copie e cole na IA que você preferir — ChatGPT, Claude, Gemini — para receber um plano feito para o seu caso. O app não envia nada: quem cola é você.</p>
 
       <div>
-        <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Objetivo</label>
+        <label class="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Objetivo</label>
         <select id="aiGoal" onchange="renderAIPrompt()" class="mt-1 w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2.5 text-white text-sm focus:outline-none focus:ring-1 focus:ring-blue-600 appearance-none">
           <option value="hipertrofia">Ganhar massa muscular</option>
           <option value="emagrecimento">Emagrecer preservando músculo</option>
@@ -375,11 +387,11 @@
 
       <div class="grid grid-cols-2 gap-3">
         <div>
-          <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Dias por semana</label>
+          <label class="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Dias por semana</label>
           <input type="number" id="aiDays" min="1" max="7" oninput="renderAIPrompt()" class="mt-1 w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2.5 text-white text-sm focus:outline-none focus:ring-1 focus:ring-blue-600"/>
         </div>
         <div>
-          <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Tempo por treino</label>
+          <label class="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Tempo por treino</label>
           <select id="aiMinutes" onchange="renderAIPrompt()" class="mt-1 w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2.5 text-white text-sm focus:outline-none focus:ring-1 focus:ring-blue-600 appearance-none">
             <option value="30">30 min</option>
             <option value="45">45 min</option>
@@ -390,24 +402,24 @@
       </div>
 
       <div>
-        <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Algo que a IA precisa saber?</label>
+        <label class="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Algo que a IA precisa saber?</label>
         <textarea id="aiNotes" rows="3" oninput="renderAIPrompt()" placeholder="Lesões, equipamentos que sua academia tem, exercícios que você não gosta, preferências..." class="mt-1 w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2.5 text-white text-sm focus:outline-none focus:ring-1 focus:ring-blue-600 resize-none"></textarea>
-        <p class="text-[10px] text-slate-600 mt-1">É aqui que o plano deixa de ser genérico. Quanto mais específico, melhor a resposta.</p>
-        <p id="aiNotesWarning" class="hidden text-[10px] text-amber-300 bg-amber-950/30 border border-amber-800/40 rounded-xl px-3 py-2 mt-2 leading-relaxed text-justify">Sem nada aqui, a IA não sabe de nenhuma lesão sua e pode sugerir exercícios que você deveria evitar. O prompt pede que ela avise sobre os mais exigentes, mas nada substitui você citar o que já sabe do seu corpo.</p>
+        <p class="text-[11px] text-slate-600 mt-1">É aqui que o plano deixa de ser genérico. Quanto mais específico, melhor a resposta.</p>
+        <p id="aiNotesWarning" class="hidden text-[11px] text-amber-300 bg-amber-950/30 border border-amber-800/40 rounded-xl px-3 py-2 mt-2 leading-relaxed text-justify">Sem nada aqui, a IA não sabe de nenhuma lesão sua e pode sugerir exercícios que você deveria evitar. O prompt pede que ela avise sobre os mais exigentes, mas nada substitui você citar o que já sabe do seu corpo.</p>
       </div>
 
       <div class="bg-slate-950/50 border border-slate-800 rounded-xl px-3">
         <div class="flex items-center justify-between gap-3 py-2.5">
           <div class="min-w-0">
             <p class="text-xs font-bold text-slate-300">Incluir meus dados de saúde</p>
-            <p class="text-[10px] text-slate-600">Idade, sexo, altura, peso, IMC, gordura corporal</p>
+            <p class="text-[11px] text-slate-600">Idade, sexo, altura, peso, IMC, gordura corporal</p>
           </div>
           <button type="button" id="aiHealthToggle" onclick="toggleAIOption('incluirSaude')" aria-pressed="true" class="relative w-11 h-6 rounded-full bg-slate-700 transition-all duration-200 flex-shrink-0"></button>
         </div>
         <div class="flex items-center justify-between gap-3 py-2.5 border-t border-slate-800/60">
           <div class="min-w-0">
             <p class="text-xs font-bold text-slate-300">Incluir meu treino atual</p>
-            <p class="text-[10px] text-slate-600">Exercícios e as cargas que você usa hoje</p>
+            <p class="text-[11px] text-slate-600">Exercícios e as cargas que você usa hoje</p>
           </div>
           <button type="button" id="aiCurrentToggle" onclick="toggleAIOption('incluirTreino')" aria-pressed="true" class="relative w-11 h-6 rounded-full bg-slate-700 transition-all duration-200 flex-shrink-0"></button>
         </div>
@@ -415,30 +427,30 @@
 
       <div>
         <div class="flex items-center justify-between mb-1">
-          <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Texto gerado</label>
-          <span id="aiPromptSize" class="text-[9px] text-slate-600 font-bold"></span>
+          <label class="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Texto gerado</label>
+          <span id="aiPromptSize" class="text-[11px] text-slate-600 font-bold"></span>
         </div>
-        <textarea id="aiPromptOutput" readonly rows="9" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-slate-400 font-mono text-[10px] leading-relaxed resize-none focus:outline-none"></textarea>
+        <textarea id="aiPromptOutput" readonly rows="9" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-slate-400 font-mono text-[11px] leading-relaxed resize-none focus:outline-none"></textarea>
       </div>
 
       <button type="button" id="aiPromptCopy" onclick="copyAIPrompt()" class="w-full bg-blue-600 active:bg-blue-500 text-white font-extrabold text-sm py-3 rounded-xl transition-all active:scale-[0.99]">📋 Copiar prompt</button>
 
       <div class="border-t border-slate-800 pt-4">
-        <p class="text-[10px] font-black text-emerald-400 uppercase tracking-wider">Passo 2</p>
+        <p class="text-[11px] font-black text-emerald-400 uppercase tracking-wider">Passo 2</p>
         <h3 class="text-sm font-black text-white leading-tight mb-1">Já tem a resposta? Cole aqui.</h3>
         <p class="text-[11px] text-slate-500 leading-relaxed text-justify mb-2">Cole a resposta inteira da IA — pode ser a conversa toda, o app acha o plano sozinho. Você confere tudo antes de qualquer coisa ser criada.</p>
-        <textarea id="aiImportInput" rows="4" placeholder="Cole aqui a resposta da IA..." class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2.5 text-white text-sm focus:outline-none focus:ring-1 focus:ring-blue-600 resize-none font-mono text-[10px]"></textarea>
+        <textarea id="aiImportInput" rows="4" placeholder="Cole aqui a resposta da IA..." class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2.5 text-white text-sm focus:outline-none focus:ring-1 focus:ring-blue-600 resize-none font-mono text-[11px]"></textarea>
         <button type="button" onclick="readAIPlan()" class="mt-2 w-full bg-emerald-700 active:bg-emerald-600 text-white font-extrabold text-sm py-3 rounded-xl transition-all active:scale-[0.99]">🔍 Ler plano</button>
         <div id="aiImportError" class="hidden mt-3 bg-rose-950/30 border border-rose-800/50 rounded-xl p-3 space-y-2" role="alert">
           <p class="text-xs font-black text-rose-300">Não encontrei um plano que o app consiga importar.</p>
-          <p class="text-[10px] text-slate-400 leading-relaxed">Peça à IA para repetir o plano entre <strong class="text-slate-200">[PLANO]</strong> e <strong class="text-slate-200">[FIM]</strong>, com linhas <strong class="text-slate-200">DIA|...</strong> e <strong class="text-slate-200">EX|...</strong>.</p>
-          <pre id="aiImportErrorSnippet" class="max-h-28 overflow-auto whitespace-pre-wrap break-words bg-slate-950/70 border border-slate-800 rounded-lg p-2 text-[10px] leading-relaxed text-slate-400"></pre>
-          <button type="button" onclick="copyAIImportFormat()" class="text-[10px] font-black text-rose-200 underline underline-offset-2">Copiar formato para enviar à IA</button>
+          <p class="text-[11px] text-slate-400 leading-relaxed">Peça à IA para repetir o plano entre <strong class="text-slate-200">[PLANO]</strong> e <strong class="text-slate-200">[FIM]</strong>, com linhas <strong class="text-slate-200">DIA|...</strong> e <strong class="text-slate-200">EX|...</strong>.</p>
+          <pre id="aiImportErrorSnippet" class="max-h-28 overflow-auto whitespace-pre-wrap break-words bg-slate-950/70 border border-slate-800 rounded-lg p-2 text-[11px] leading-relaxed text-slate-400"></pre>
+          <button type="button" onclick="copyAIImportFormat()" class="text-[11px] font-black text-rose-200 underline underline-offset-2">Copiar formato para enviar à IA</button>
         </div>
       </div>
 
-      <p class="text-[10px] text-amber-300 bg-amber-950/30 border border-amber-800/40 rounded-xl px-3 py-2 leading-relaxed text-justify">A IA não substitui um profissional. Revise o plano antes de seguir, principalmente se você tem alguma lesão ou condição de saúde.</p>
-      <p class="text-[10px] text-slate-600 leading-relaxed text-justify">Ao encontrar o bloco do plano, o app mostra uma prévia para você revisar antes de criar um novo plano em <strong class="text-slate-500">Planos</strong>.</p>
+      <p class="text-[11px] text-amber-300 bg-amber-950/30 border border-amber-800/40 rounded-xl px-3 py-2 leading-relaxed text-justify">A IA não substitui um profissional. Revise o plano antes de seguir, principalmente se você tem alguma lesão ou condição de saúde.</p>
+      <p class="text-[11px] text-slate-600 leading-relaxed text-justify">Ao encontrar o bloco do plano, o app mostra uma prévia para você revisar antes de criar um novo plano em <strong class="text-slate-500">Planos</strong>.</p>
     </div>
   </div>
 
@@ -450,7 +462,7 @@
 
       <div class="flex items-start justify-between gap-3">
         <div class="min-w-0">
-          <p class="text-[10px] font-black text-emerald-400 uppercase tracking-wider">Conferência</p>
+          <p class="text-[11px] font-black text-emerald-400 uppercase tracking-wider">Conferência</p>
           <h2 class="text-base font-black text-white leading-tight">Plano encontrado</h2>
         </div>
         <button type="button" onclick="closeAIImport()" aria-label="Fechar" class="flex-shrink-0 w-9 h-9 rounded-full bg-slate-800 active:bg-slate-700 text-slate-400 flex items-center justify-center transition-all active:scale-90">
@@ -463,11 +475,11 @@
       <div id="aiImportDays" class="space-y-2 max-h-80 overflow-y-auto"></div>
 
       <div>
-        <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Nome do novo plano</label>
+        <label class="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Nome do novo plano</label>
         <input type="text" id="aiImportName" class="mt-1 w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2.5 text-white text-sm focus:outline-none focus:ring-1 focus:ring-blue-600"/>
       </div>
 
-      <p class="text-[10px] text-slate-600 leading-relaxed text-justify">Isto cria um plano <strong class="text-slate-500">novo</strong>. Nenhum plano seu é alterado ou apagado, e você continua treinando o de sempre até trocar na lista.</p>
+      <p class="text-[11px] text-slate-600 leading-relaxed text-justify">Isto cria um plano <strong class="text-slate-500">novo</strong>. Nenhum plano seu é alterado ou apagado, e você continua treinando o de sempre até trocar na lista.</p>
 
       <div class="flex gap-2">
         <button type="button" onclick="closeAIImport()" class="flex-1 bg-slate-800 active:bg-slate-700 text-slate-300 font-extrabold text-sm py-3 rounded-xl transition-all active:scale-[0.99]">Cancelar</button>
@@ -500,26 +512,26 @@
       </div>
       <div class="space-y-3">
         <div>
-          <label for="onbName" class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Nome</label>
+          <label for="onbName" class="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Nome</label>
           <input type="text" id="onbName" placeholder="Seu nome" class="mt-1 w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2.5 text-white text-sm focus:outline-none focus:ring-1 focus:ring-blue-600"/>
         </div>
         <div>
-          <label for="onbBirthdate" class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Data de Nascimento</label>
+          <label for="onbBirthdate" class="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Data de Nascimento</label>
           <input type="date" id="onbBirthdate" class="mt-1 w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2.5 text-white text-sm focus:outline-none focus:ring-1 focus:ring-blue-600"/>
         </div>
         <div class="grid grid-cols-2 gap-3">
           <div>
-            <label for="onbHeight" class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Altura (cm)</label>
+            <label for="onbHeight" class="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Altura (cm)</label>
             <input type="number" id="onbHeight" placeholder="Ex: 170" class="mt-1 w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2.5 text-white text-sm focus:outline-none focus:ring-1 focus:ring-blue-600"/>
           </div>
           <div>
-            <label for="onbWeight" class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Peso (kg)</label>
+            <label for="onbWeight" class="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Peso (kg)</label>
             <input type="number" step="0.1" id="onbWeight" placeholder="Ex: 75" class="mt-1 w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2.5 text-white text-sm focus:outline-none focus:ring-1 focus:ring-blue-600"/>
           </div>
         </div>
         <div class="grid grid-cols-2 gap-3">
           <div>
-            <label for="onbSex" class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Sexo</label>
+            <label for="onbSex" class="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Sexo</label>
             <select id="onbSex" class="mt-1 w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2.5 text-white text-sm focus:outline-none focus:ring-1 focus:ring-blue-600 appearance-none">
               <option value="">Não informar</option>
               <option value="masculino">Masculino</option>
@@ -527,7 +539,7 @@
             </select>
           </div>
           <div>
-            <label for="onbActivity" class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Atividade</label>
+            <label for="onbActivity" class="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Atividade</label>
             <select id="onbActivity" class="mt-1 w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2.5 text-white text-sm focus:outline-none focus:ring-1 focus:ring-blue-600 appearance-none">
               <option value="sedentario">Sedentário</option>
               <option value="moderado" selected>Moderado</option>
@@ -539,8 +551,8 @@
       <p id="onboardingError" role="alert" class="hidden text-[11px] text-rose-400 font-bold mt-3 text-center"></p>
       <button type="button" onclick="submitOnboarding()" class="mt-5 w-full bg-blue-600 hover:bg-blue-500 text-white font-extrabold text-sm py-3 rounded-xl transition-all active:scale-[0.99]">Começar</button>
       <button type="button" onclick="triggerImportBackup()" class="mt-3 w-full bg-slate-900 border border-slate-700 active:border-amber-600 text-amber-300 font-extrabold text-sm py-3 rounded-xl transition-all active:scale-[0.99]">♻️ Já usa o app? Restaurar backup</button>
-      <p class="mt-2 text-[10px] text-slate-500 text-center leading-relaxed">Exporte o backup na versão web e escolha o arquivo aqui para trazer seus dados.</p>
-      <p class="text-[9px] text-slate-600 mt-3 text-justify">Nome, data de nascimento, altura e peso são obrigatórios. Tudo fica salvo apenas no seu aparelho.</p>
+      <p class="mt-2 text-[11px] text-slate-500 text-center leading-relaxed">Exporte o backup na versão web e escolha o arquivo aqui para trazer seus dados.</p>
+      <p class="text-[11px] text-slate-600 mt-3 text-justify">Nome, data de nascimento, altura e peso são obrigatórios. Tudo fica salvo apenas no seu aparelho.</p>
     </div>
   </div>
 
@@ -554,7 +566,7 @@
         </div>
         <div>
           <h1 id="headerTitle" class="text-xl font-black uppercase tracking-wider text-white transition-all duration-300">Treino Personalizado</h1>
-          <p id="headerSubtitle" class="text-[10px] text-blue-400 font-bold uppercase tracking-widest transition-all duration-300 overflow-hidden">Hipertrofia e Emagrecimento</p>
+          <p id="headerSubtitle" class="text-[11px] text-blue-400 font-bold uppercase tracking-widest transition-all duration-300 overflow-hidden">Hipertrofia e Emagrecimento</p>
         </div>
       </div>
     </div>
@@ -568,26 +580,26 @@
         <div class="flex-1 h-2.5 bg-slate-900 rounded-full overflow-hidden border border-slate-800">
           <div id="xpBarFill" class="h-full bg-gradient-to-r from-amber-500 to-amber-300 rounded-full transition-all duration-500" style="width: 0%"></div>
         </div>
-        <span id="xpLabel" class="text-[10px] font-bold text-slate-500 flex-shrink-0">0 XP</span>
+        <span id="xpLabel" class="text-[11px] font-bold text-slate-500 flex-shrink-0">0 XP</span>
       </div>
     </div>
   </header>
 
   <nav id="bottomNav" aria-label="Navegação principal" class="fixed bottom-4 left-1/2 -translate-x-1/2 z-50 w-[calc(100%-2rem)] max-w-xs">
     <div class="flex items-center justify-between bg-slate-900/80 backdrop-blur-xl border border-white/10 rounded-2xl px-2 py-2 shadow-[0_8px_32px_rgba(0,0,0,0.55),inset_0_1px_0_rgba(255,255,255,0.06)]">
-      <button id="navTreino" type="button" onclick="switchView('treino')" class="flex-1 flex flex-col items-center gap-0.5 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-wider transition-all duration-150">
+      <button id="navTreino" type="button" onclick="switchView('treino')" class="flex-1 flex flex-col items-center gap-0.5 py-1.5 rounded-xl text-[11px] font-black uppercase tracking-wider transition-all duration-150">
         <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 9h16.5m-16.5 6.75h16.5" /></svg>
         Treino
       </button>
-      <button id="navPlanos" type="button" onclick="switchView('planos')" class="flex-1 flex flex-col items-center gap-0.5 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-wider transition-all duration-150">
+      <button id="navPlanos" type="button" onclick="switchView('planos')" class="flex-1 flex flex-col items-center gap-0.5 py-1.5 rounded-xl text-[11px] font-black uppercase tracking-wider transition-all duration-150">
         <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
         Planos
       </button>
-      <button id="navPerfil" type="button" onclick="switchView('perfil')" class="flex-1 flex flex-col items-center gap-0.5 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-wider transition-all duration-150">
+      <button id="navPerfil" type="button" onclick="switchView('perfil')" class="flex-1 flex flex-col items-center gap-0.5 py-1.5 rounded-xl text-[11px] font-black uppercase tracking-wider transition-all duration-150">
         <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
         Perfil
       </button>
-      <button id="navConquistas" type="button" onclick="switchView('conquistas')" class="flex-1 flex flex-col items-center gap-0.5 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-wider transition-all duration-150">
+      <button id="navConquistas" type="button" onclick="switchView('conquistas')" class="flex-1 flex flex-col items-center gap-0.5 py-1.5 rounded-xl text-[11px] font-black uppercase tracking-wider transition-all duration-150">
         <span class="text-base leading-none">🏆</span>
         Metas
       </button>
@@ -605,12 +617,12 @@
     </div>
 
     <div class="flex items-center justify-between bg-slate-900/60 border border-slate-800 rounded-xl px-4 py-2">
-      <span class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Plano Ativo</span>
+      <span class="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Plano Ativo</span>
       <span id="activeProfileLabel" class="text-xs font-black text-blue-300">--</span>
     </div>
 
     <div class="relative min-w-[240px]">
-      <span class="absolute -top-2 left-3 bg-slate-900 px-2 text-[9px] font-black text-blue-400 uppercase tracking-widest z-10">Selecionar Dia</span>
+      <span class="absolute -top-2 left-3 bg-slate-900 px-2 text-[11px] font-black text-blue-400 uppercase tracking-widest z-10">Selecionar Dia</span>
       <select id="workoutSelect" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-4 py-2.5 text-sm font-bold text-white focus:outline-none focus:ring-2 focus:ring-blue-500 appearance-none cursor-pointer"></select>
       <div class="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-slate-400">
         <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
@@ -621,7 +633,7 @@
 
     <section class="bg-gradient-to-br from-slate-900 to-slate-950 rounded-2xl p-6 border border-slate-800 shadow-xl relative overflow-hidden">
       <div class="relative z-10">
-        <span id="workoutTimeBadge" class="bg-blue-500/10 text-blue-400 text-[10px] font-black uppercase px-3 py-1 rounded-full border border-blue-500/20 tracking-wider">
+        <span id="workoutTimeBadge" class="bg-blue-500/10 text-blue-400 text-[11px] font-black uppercase px-3 py-1 rounded-full border border-blue-500/20 tracking-wider">
           Horário de Treino: --
         </span>
         <h2 id="workoutName" class="text-2xl font-black text-white mt-3">Segunda: Push A</h2>
@@ -629,7 +641,7 @@
           Foco do treino
         </p>
 
-        <div class="mt-5 pt-4 border-t border-slate-800/80 grid grid-cols-3 gap-2 text-center text-[10px] sm:text-xs">
+        <div class="mt-5 pt-4 border-t border-slate-800/80 grid grid-cols-3 gap-2 text-center text-[11px] sm:text-xs">
           <div class="bg-slate-950/60 p-2.5 rounded-xl border border-slate-800/80">
             <span class="block font-bold text-slate-500 uppercase tracking-widest mb-0.5">Alerta Vermelho</span>
             <span class="text-rose-400 font-extrabold text-sm">< 8 Reps</span>
@@ -650,20 +662,20 @@
       <div class="flex items-center justify-between mb-3 gap-2 flex-wrap">
         <h3 class="text-xs font-black uppercase tracking-widest text-slate-400">Check-in Semanal</h3>
         <div class="flex items-center gap-2">
-          <span id="monthlyLabel" class="text-[10px] font-black text-blue-300 uppercase tracking-wider bg-blue-950/40 border border-blue-800/60 px-2.5 py-1 rounded-full">0 dias no mês</span>
-          <span id="streakLabel" class="text-[10px] font-black text-emerald-400 uppercase tracking-wider bg-emerald-950/40 border border-emerald-800/60 px-2.5 py-1 rounded-full">0 treinos seguidos</span>
+          <span id="monthlyLabel" class="text-[11px] font-black text-blue-300 uppercase tracking-wider bg-blue-950/40 border border-blue-800/60 px-2.5 py-1 rounded-full">0 dias no mês</span>
+          <span id="streakLabel" class="text-[11px] font-black text-emerald-400 uppercase tracking-wider bg-emerald-950/40 border border-emerald-800/60 px-2.5 py-1 rounded-full">0 treinos seguidos</span>
         </div>
       </div>
       <div id="checkinGrid" class="grid grid-cols-4 gap-2"></div>
       <div class="mt-4 pt-4 border-t border-slate-800">
         <div class="flex items-center justify-between mb-1.5">
-          <span class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Progresso da Semana</span>
-          <span id="weeklyProgressLabel" class="text-[10px] font-black text-slate-400">0/6 dias</span>
+          <span class="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Progresso da Semana</span>
+          <span id="weeklyProgressLabel" class="text-[11px] font-black text-slate-400">0/6 dias</span>
         </div>
         <div class="w-full h-2 bg-slate-800 rounded-full overflow-hidden">
           <div id="weeklyProgressFill" class="h-full bg-gradient-to-r from-orange-500 to-amber-400 rounded-full transition-all duration-500" style="width: 0%"></div>
         </div>
-        <p id="freeMealStatus" class="text-[10px] text-slate-600 mt-2 text-center">Bata 80% do treino da semana para liberar uma refeição livre no fim de semana 🍕</p>
+        <p id="freeMealStatus" class="text-[11px] text-slate-600 mt-2 text-center">Bata 80% do treino da semana para liberar uma refeição livre no fim de semana 🍕</p>
       </div>
     </section>
 
@@ -720,51 +732,51 @@
       </div>
 
       <div>
-        <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Nome do Perfil</label>
+        <label class="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Nome do Perfil</label>
         <input type="text" id="editorName" placeholder="Ex: PPL Hipertrofia" class="mt-1 w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2.5 text-white text-sm focus:outline-none focus:ring-1 focus:ring-blue-600"/>
       </div>
       <div>
-        <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Descrição</label>
+        <label class="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Descrição</label>
         <textarea id="editorDescription" rows="2" placeholder="Ex: Ciclo focado em hipertrofia, adaptado ao joelho" class="mt-1 w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2.5 text-white text-sm focus:outline-none focus:ring-1 focus:ring-blue-600 resize-none"></textarea>
       </div>
       <div>
-        <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Dias de Treino por Semana</label>
+        <label class="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Dias de Treino por Semana</label>
         <input type="number" id="editorDaysPerWeek" min="1" max="7" placeholder="Ex: 6" oninput="renderDaysPerWeekWarning()" class="mt-1 w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2.5 text-white text-sm focus:outline-none focus:ring-1 focus:ring-blue-600"/>
-        <p class="text-[10px] text-slate-600 mt-1">Usado para calcular o XP de cada check-in. Marque o ciclo completo (Segunda a Domingo) abaixo — dias sem exercícios contam como descanso.</p>
+        <p class="text-[11px] text-slate-600 mt-1">Usado para calcular o XP de cada check-in. Marque o ciclo completo (Segunda a Domingo) abaixo — dias sem exercícios contam como descanso.</p>
         <div id="dpwMismatchWarning" class="hidden mt-2 bg-amber-950/40 border border-amber-800/60 rounded-xl px-3 py-2">
-          <p id="dpwMismatchText" class="text-[10px] text-amber-300 font-bold leading-relaxed"></p>
-          <button type="button" id="dpwMismatchFix" onclick="applyDaysPerWeekFromSchedule()" class="mt-2 w-full bg-amber-600 active:bg-amber-500 text-white font-black text-[10px] uppercase tracking-wider py-2 rounded-lg transition-all active:scale-[0.99]">Ajustar</button>
+          <p id="dpwMismatchText" class="text-[11px] text-amber-300 font-bold leading-relaxed"></p>
+          <button type="button" id="dpwMismatchFix" onclick="applyDaysPerWeekFromSchedule()" class="mt-2 w-full bg-amber-600 active:bg-amber-500 text-white font-black text-[11px] uppercase tracking-wider py-2 rounded-lg transition-all active:scale-[0.99]">Ajustar</button>
         </div>
       </div>
       <div>
-        <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Horário de Treino</label>
+        <label class="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Horário de Treino</label>
         <input type="time" id="editorTrainingTime" class="mt-1 w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2.5 text-white text-sm focus:outline-none focus:ring-1 focus:ring-blue-600"/>
-        <p class="text-[10px] text-slate-600 mt-1">Horário em que você costuma treinar — aparece como referência na tela de treino.</p>
+        <p class="text-[11px] text-slate-600 mt-1">Horário em que você costuma treinar — aparece como referência na tela de treino.</p>
       </div>
 
       <div>
-        <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-2 block">Ciclo Semanal</label>
+        <label class="text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-2 block">Ciclo Semanal</label>
         <div id="editorDayTabs" class="grid grid-cols-7 gap-1"></div>
       </div>
 
       <div class="bg-slate-950/50 rounded-xl p-4 border border-slate-800 space-y-3">
         <div>
-          <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Nome do Dia</label>
+          <label class="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Nome do Dia</label>
           <input type="text" id="editorDayName" placeholder="Ex: Segunda: Push A" class="mt-1 w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-white text-sm focus:outline-none focus:ring-1 focus:ring-blue-600"/>
         </div>
         <div>
-          <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Foco do Dia</label>
+          <label class="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Foco do Dia</label>
           <input type="text" id="editorDayFocus" placeholder="Ex: Peito, Ombro e Tríceps" class="mt-1 w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-white text-sm focus:outline-none focus:ring-1 focus:ring-blue-600"/>
         </div>
 
         <div class="flex items-center justify-between pt-1">
-          <span class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Exercícios</span>
-          <span id="editorExerciseCount" class="text-[10px] font-black text-blue-300">0/10</span>
+          <span class="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Exercícios</span>
+          <span id="editorExerciseCount" class="text-[11px] font-black text-blue-300">0/10</span>
         </div>
         <div class="bg-slate-950/40 border border-slate-800 rounded-xl px-3 py-2.5 mb-3 flex items-center justify-between gap-3">
           <div class="min-w-0">
             <p class="text-xs font-bold text-slate-300">Dia opcional</p>
-            <p id="editorDayOptionalText" class="text-[10px] text-slate-600 mt-0.5"></p>
+            <p id="editorDayOptionalText" class="text-[11px] text-slate-600 mt-0.5"></p>
           </div>
           <button type="button" id="editorDayOptionalToggle" onclick="toggleEditorDayOptional()" aria-pressed="false" class="relative w-11 h-6 rounded-full bg-slate-700 transition-all duration-200 flex-shrink-0"></button>
         </div>
@@ -793,29 +805,29 @@
         <h3 class="text-xs font-black uppercase tracking-widest text-slate-400 mb-4">Meus Dados</h3>
         <div class="grid grid-cols-2 gap-3">
           <div class="col-span-2">
-            <label for="profileName" class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Nome</label>
+            <label for="profileName" class="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Nome</label>
             <input type="text" id="profileName" placeholder="Seu nome" class="mt-1 w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2.5 text-white text-sm focus:outline-none focus:ring-1 focus:ring-blue-600"/>
           </div>
           <div>
-            <label for="profileBirthdate" class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Data de Nascimento</label>
+            <label for="profileBirthdate" class="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Data de Nascimento</label>
             <input type="date" id="profileBirthdate" class="mt-1 w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2.5 text-white text-sm focus:outline-none focus:ring-1 focus:ring-blue-600"/>
-            <p id="profileAgeDisplay" class="text-[10px] text-slate-600 mt-1"></p>
+            <p id="profileAgeDisplay" class="text-[11px] text-slate-600 mt-1"></p>
           </div>
           <div>
-            <label for="profileHeight" class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Altura (cm)</label>
+            <label for="profileHeight" class="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Altura (cm)</label>
             <input type="number" id="profileHeight" placeholder="Ex: 170" class="mt-1 w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2.5 text-white text-sm focus:outline-none focus:ring-1 focus:ring-blue-600"/>
           </div>
           <div>
-            <label for="profileWeight" class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Peso Atual (kg)</label>
+            <label for="profileWeight" class="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Peso Atual (kg)</label>
             <input type="number" step="0.1" id="profileWeight" placeholder="Ex: 75" class="mt-1 w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2.5 text-white text-sm focus:outline-none focus:ring-1 focus:ring-blue-600"/>
-            <p id="weightFreshnessWarning" class="hidden mt-2 text-[10px] text-amber-300 bg-amber-950/30 border border-amber-800/40 rounded-lg px-2 py-1.5"></p>
+            <p id="weightFreshnessWarning" class="hidden mt-2 text-[11px] text-amber-300 bg-amber-950/30 border border-amber-800/40 rounded-lg px-2 py-1.5"></p>
           </div>
           <div>
-            <label for="profileTargetWeight" class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Peso Alvo (kg)</label>
+            <label for="profileTargetWeight" class="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Peso Alvo (kg)</label>
             <input type="number" step="0.1" id="profileTargetWeight" placeholder="Ex: 80" class="mt-1 w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2.5 text-white text-sm focus:outline-none focus:ring-1 focus:ring-blue-600"/>
           </div>
           <div>
-            <label for="profileSex" class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Sexo</label>
+            <label for="profileSex" class="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Sexo</label>
             <select id="profileSex" class="mt-1 w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2.5 text-white text-sm focus:outline-none focus:ring-1 focus:ring-blue-600 appearance-none">
               <option value="">Prefiro não informar</option>
               <option value="masculino">Masculino</option>
@@ -823,7 +835,7 @@
             </select>
           </div>
           <div>
-            <label for="profileActivity" class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Nível de Atividade</label>
+            <label for="profileActivity" class="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Nível de Atividade</label>
             <select id="profileActivity" class="mt-1 w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2.5 text-white text-sm focus:outline-none focus:ring-1 focus:ring-blue-600 appearance-none">
               <option value="sedentario">Sedentário</option>
               <option value="moderado" selected>Moderado</option>
@@ -833,18 +845,18 @@
         </div>
         <p id="profileValidationError" role="alert" class="hidden text-sm text-rose-400 mt-3"></p>
         <button id="btnSaveProfile" type="button" class="mt-4 w-full bg-blue-600 hover:bg-blue-500 text-white font-extrabold text-sm py-3 rounded-xl transition-all active:scale-[0.99]">Salvar e Atualizar</button>
-        <p class="text-[10px] text-slate-600 mt-2 text-justify">Salvar registra seu peso de hoje no histórico. As estimativas de IMC e água são orientativas — consulte um profissional de saúde para metas personalizadas.</p>
-        <p class="text-[10px] text-slate-600 mt-1 text-justify">ℹ️ O cálculo e a classificação do IMC (OMS) são os mesmos independente do sexo — pedimos essa informação apenas para deixar seu perfil mais completo e para eventuais métricas futuras (como % de gordura corporal), não para alterar o resultado do IMC.</p>
+        <p class="text-[11px] text-slate-600 mt-2 text-justify">Salvar registra seu peso de hoje no histórico. As estimativas de IMC e água são orientativas — consulte um profissional de saúde para metas personalizadas.</p>
+        <p class="text-[11px] text-slate-600 mt-1 text-justify">ℹ️ O cálculo e a classificação do IMC (OMS) são os mesmos independente do sexo — pedimos essa informação apenas para deixar seu perfil mais completo e para eventuais métricas futuras (como % de gordura corporal), não para alterar o resultado do IMC.</p>
       </section>
 
     <section class="bg-slate-900 rounded-2xl p-5 border border-slate-800 shadow-sm">
       <h3 class="text-xs font-black uppercase tracking-widest text-slate-400 mb-1">Descanso Entre Séries</h3>
-      <p class="text-[10px] text-slate-600 mb-4">O cronômetro aparece flutuando durante o treino. Toque no ⏱️ de qualquer exercício para iniciar.</p>
+      <p class="text-[11px] text-slate-600 mb-4">O cronômetro aparece flutuando durante o treino. Toque no ⏱️ de qualquer exercício para iniciar.</p>
 
       <div class="flex items-center justify-between gap-3 py-2">
         <div class="min-w-0">
           <p class="text-xs font-bold text-slate-300">Tempo padrão</p>
-          <p class="text-[10px] text-slate-600">Em segundos (ex: 90)</p>
+          <p class="text-[11px] text-slate-600">Em segundos (ex: 90)</p>
         </div>
         <input type="number" id="restSecondsInput" aria-label="Tempo padrão de descanso em segundos" min="5" max="600" step="5" value="90" oninput="updateRestSetting('restSeconds', this.value)" class="w-20 bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-white text-sm text-center font-bold focus:outline-none focus:ring-1 focus:ring-blue-600"/>
       </div>
@@ -852,7 +864,7 @@
       <div class="flex items-center justify-between gap-3 py-2 border-t border-slate-800/60">
         <div class="min-w-0">
           <p class="text-xs font-bold text-slate-300">Iniciar automaticamente</p>
-          <p class="text-[10px] text-slate-600">Ao marcar um exercício como concluído</p>
+          <p class="text-[11px] text-slate-600">Ao marcar um exercício como concluído</p>
         </div>
         <button type="button" id="restAutoStartToggle" aria-label="Iniciar descanso automaticamente" onclick="toggleRestSetting('restAutoStart')" aria-pressed="false" class="relative w-11 h-6 rounded-full bg-slate-700 transition-all duration-200 flex-shrink-0"></button>
       </div>
@@ -860,7 +872,7 @@
       <div class="flex items-center justify-between gap-3 py-2 border-t border-slate-800/60">
         <div class="min-w-0">
           <p class="text-xs font-bold text-slate-300">Apitar ao terminar</p>
-          <p class="text-[10px] text-slate-600">Toque para testar o som</p>
+          <p class="text-[11px] text-slate-600">Toque para testar o som</p>
         </div>
         <button type="button" id="restSoundToggle" aria-label="Apitar ao terminar" onclick="toggleRestSetting('restSound')" aria-pressed="false" class="relative w-11 h-6 rounded-full bg-slate-700 transition-all duration-200 flex-shrink-0"></button>
       </div>
@@ -868,7 +880,7 @@
       <div id="restVibrateRow" class="flex items-center justify-between gap-3 py-2 border-t border-slate-800/60">
         <div class="min-w-0">
           <p class="text-xs font-bold text-slate-300">Vibrar ao terminar</p>
-          <p class="text-[10px] text-slate-600">Indisponível em iPhone/iPad</p>
+          <p class="text-[11px] text-slate-600">Indisponível em iPhone/iPad</p>
         </div>
         <button type="button" id="restVibrateToggle" aria-label="Vibrar ao terminar" onclick="toggleRestSetting('restVibrate')" aria-pressed="false" class="relative w-11 h-6 rounded-full bg-slate-700 transition-all duration-200 flex-shrink-0"></button>
       </div>
@@ -879,12 +891,12 @@
         <span class="text-base">🔔</span>
         <h3 class="text-xs font-black uppercase tracking-widest text-slate-400">Lembretes no Celular</h3>
       </div>
-      <p id="notificationSupportText" class="text-[10px] text-slate-600 mb-4">Ative no APK para receber avisos mesmo com o app fechado.</p>
+      <p id="notificationSupportText" class="text-[11px] text-slate-600 mb-4">Ative no APK para receber avisos mesmo com o app fechado.</p>
 
       <div class="flex items-center justify-between gap-3 py-2">
         <div class="min-w-0">
           <p class="text-xs font-bold text-slate-300">Lembrete de treino</p>
-          <p class="text-[10px] text-slate-600">Nos dias do plano, no horário configurado</p>
+          <p class="text-[11px] text-slate-600">Nos dias do plano, no horário configurado</p>
         </div>
         <button type="button" id="trainingRemindersToggle" onclick="toggleNotificationSetting('trainingReminders')" aria-pressed="false" aria-label="Ativar lembretes de treino" class="relative w-11 h-6 rounded-full bg-slate-700 transition-all duration-200 flex-shrink-0"></button>
       </div>
@@ -892,11 +904,11 @@
       <div class="flex items-center justify-between gap-3 py-2 border-t border-slate-800/60">
         <div class="min-w-0">
           <p class="text-xs font-bold text-slate-300">Aviso de descanso em segundo plano</p>
-          <p class="text-[10px] text-slate-600">Quando o cronômetro terminar fora do app</p>
+          <p class="text-[11px] text-slate-600">Quando o cronômetro terminar fora do app</p>
         </div>
         <button type="button" id="restBackgroundNotificationToggle" onclick="toggleNotificationSetting('restBackgroundNotification')" aria-pressed="false" aria-label="Ativar avisos de descanso em segundo plano" class="relative w-11 h-6 rounded-full bg-slate-700 transition-all duration-200 flex-shrink-0"></button>
       </div>
-      <p id="notificationBatteryNote" class="hidden mt-3 text-[10px] leading-relaxed text-amber-300 bg-amber-950/30 border border-amber-800/40 rounded-xl px-3 py-2">⚠️ A economia de bateria do Android pode atrasar avisos. Para maior confiabilidade, permita notificações e evite restringir a bateria do Meu Treino nas configurações do celular. Se você usar “Forçar parada”, abra o app de novo para que os avisos voltem a funcionar.</p>
+      <p id="notificationBatteryNote" class="hidden mt-3 text-[11px] leading-relaxed text-amber-300 bg-amber-950/30 border border-amber-800/40 rounded-xl px-3 py-2">⚠️ A economia de bateria do Android pode atrasar avisos. Para maior confiabilidade, permita notificações e evite restringir a bateria do Meu Treino nas configurações do celular. Se você usar “Forçar parada”, abra o app de novo para que os avisos voltem a funcionar.</p>
     </section>
 
     <section class="bg-slate-900 rounded-2xl p-5 border border-blue-900/40 shadow-sm">
@@ -904,8 +916,8 @@
         <span class="text-base">🛟</span>
         <h3 class="text-xs font-black uppercase tracking-widest text-slate-400">Backup dos Seus Dados</h3>
       </div>
-      <p class="text-[10px] text-slate-500 mb-4 text-justify">Todo o seu progresso fica salvo apenas neste aparelho. Se você limpar os dados do navegador, desinstalar o app ou trocar de celular, tudo se perde. Exporte um backup de vez em quando e guarde no Drive, no e-mail ou onde preferir.</p>
-      <p class="text-[10px] text-amber-300 bg-amber-950/30 border border-amber-800/40 rounded-xl px-3 py-2 mb-4 leading-relaxed">🔒 O backup pode incluir dados de saúde, peso e histórico de treinos. Guarde-o em um local privado e compartilhe apenas com pessoas de confiança.</p>
+      <p class="text-[11px] text-slate-500 mb-4 text-justify">Todo o seu progresso fica salvo apenas neste aparelho. Se você limpar os dados do navegador, desinstalar o app ou trocar de celular, tudo se perde. Exporte um backup de vez em quando e guarde no Drive, no e-mail ou onde preferir.</p>
+      <p class="text-[11px] text-amber-300 bg-amber-950/30 border border-amber-800/40 rounded-xl px-3 py-2 mb-4 leading-relaxed">🔒 O backup pode incluir dados de saúde, peso e histórico de treinos. Guarde-o em um local privado e compartilhe apenas com pessoas de confiança.</p>
 
       <div id="backupStatusBox" class="bg-slate-950/60 border border-slate-800 rounded-xl px-3 py-2.5 mb-4">
         <p id="backupStatusText" class="text-[11px] text-slate-400 font-semibold text-center">Nenhum backup exportado ainda.</p>
@@ -917,7 +929,7 @@
           Exportar Backup
         </button>
         <button type="button" onclick="exportBackup(true)" class="w-full bg-slate-800 active:bg-slate-700 border border-slate-700 text-blue-200 font-extrabold text-xs py-2.5 rounded-xl transition-all active:scale-[0.99]">🔐 Exportar backup protegido por senha</button>
-        <p class="text-[10px] text-slate-600 leading-relaxed text-center">A senha não fica salva. Se esquecê-la, não será possível restaurar o arquivo protegido.</p>
+        <p class="text-[11px] text-slate-600 leading-relaxed text-center">A senha não fica salva. Se esquecê-la, não será possível restaurar o arquivo protegido.</p>
 
         <div class="grid grid-cols-2 gap-2">
           <button type="button" onclick="copyBackupToClipboard()" class="bg-slate-800 active:bg-slate-700 text-slate-300 font-bold text-xs py-2.5 rounded-xl transition-all active:scale-[0.99]">📋 Copiar</button>
@@ -931,7 +943,7 @@
     <div id="perfilSubSaudeContent" class="space-y-6 hidden">
       <section class="grid grid-cols-2 gap-4">
         <div class="bg-slate-900 rounded-2xl p-5 border border-slate-800 shadow-sm flex flex-col items-center text-center">
-          <span class="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-2">IMC</span>
+          <span class="text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-2">IMC</span>
           <span id="imcValue" class="text-3xl font-black text-white">--</span>
           <span id="imcClass" class="mt-1 text-xs font-bold px-2.5 py-1 rounded-full">--</span>
           <div class="w-full h-2 bg-slate-800 rounded-full overflow-hidden mt-3 relative">
@@ -940,7 +952,7 @@
           </div>
         </div>
         <div class="bg-slate-900 rounded-2xl p-5 border border-slate-800 shadow-sm flex flex-col items-center text-center">
-          <span class="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-2">Água Hoje</span>
+          <span class="text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-2">Água Hoje</span>
           <span id="waterValue" class="text-3xl font-black text-blue-400">0<span class="text-sm text-slate-500">ml</span></span>
           <span id="waterRemaining" class="mt-1 text-xs font-bold text-slate-400">meta: -- ml</span>
           <div class="w-full h-2 bg-slate-800 rounded-full overflow-hidden mt-3">
@@ -952,7 +964,7 @@
       <section class="bg-slate-900 rounded-2xl p-5 border border-slate-800 shadow-sm">
         <div class="flex items-center justify-between mb-3">
           <h3 class="text-xs font-black uppercase tracking-widest text-slate-400">Consumo de Água</h3>
-          <span id="waterBonusBadge" class="hidden text-[10px] font-black text-emerald-400 uppercase tracking-wider bg-emerald-950/40 border border-emerald-800/60 px-2.5 py-1 rounded-full">✅ Bônus conquistado</span>
+          <span id="waterBonusBadge" class="hidden text-[11px] font-black text-emerald-400 uppercase tracking-wider bg-emerald-950/40 border border-emerald-800/60 px-2.5 py-1 rounded-full">✅ Bônus conquistado</span>
         </div>
         <div class="grid grid-cols-2 gap-3">
           <button type="button" onclick="addWater(100)" class="bg-blue-950/40 hover:bg-blue-900/60 border border-blue-800/60 text-blue-300 font-extrabold py-3 rounded-xl transition-all active:scale-95">+100 ml 💧</button>
@@ -965,56 +977,56 @@
         <p id="imcExplainText" class="text-sm text-slate-300 leading-relaxed text-justify">Preencha altura e peso para ver sua classificação.</p>
         <div class="grid grid-cols-5 gap-1 mt-4 text-center">
           <div class="bg-blue-950/30 border border-blue-900/40 rounded-lg py-2">
-            <p class="text-[9px] font-black text-blue-300">&lt;18.5</p>
-            <p class="text-[8px] text-slate-500 mt-0.5 leading-tight">Abaixo do peso</p>
+            <p class="text-[11px] font-black text-blue-300">&lt;18.5</p>
+            <p class="text-[10px] text-slate-500 mt-0.5 leading-tight">Abaixo do peso</p>
           </div>
           <div class="bg-emerald-950/30 border border-emerald-900/40 rounded-lg py-2">
-            <p class="text-[9px] font-black text-emerald-300">18.5–24.9</p>
-            <p class="text-[8px] text-slate-500 mt-0.5 leading-tight">Peso normal</p>
+            <p class="text-[11px] font-black text-emerald-300">18.5–24.9</p>
+            <p class="text-[10px] text-slate-500 mt-0.5 leading-tight">Peso normal</p>
           </div>
           <div class="bg-amber-950/30 border border-amber-900/40 rounded-lg py-2">
-            <p class="text-[9px] font-black text-amber-300">25–29.9</p>
-            <p class="text-[8px] text-slate-500 mt-0.5 leading-tight">Sobrepeso</p>
+            <p class="text-[11px] font-black text-amber-300">25–29.9</p>
+            <p class="text-[10px] text-slate-500 mt-0.5 leading-tight">Sobrepeso</p>
           </div>
           <div class="bg-rose-950/30 border border-rose-900/40 rounded-lg py-2">
-            <p class="text-[9px] font-black text-rose-300">30–34.9</p>
-            <p class="text-[8px] text-slate-500 mt-0.5 leading-tight">Obesidade I</p>
+            <p class="text-[11px] font-black text-rose-300">30–34.9</p>
+            <p class="text-[10px] text-slate-500 mt-0.5 leading-tight">Obesidade I</p>
           </div>
           <div class="bg-rose-950/30 border border-rose-900/40 rounded-lg py-2">
-            <p class="text-[9px] font-black text-rose-300">≥35</p>
-            <p class="text-[8px] text-slate-500 mt-0.5 leading-tight">Obesidade II/III</p>
+            <p class="text-[11px] font-black text-rose-300">≥35</p>
+            <p class="text-[10px] text-slate-500 mt-0.5 leading-tight">Obesidade II/III</p>
           </div>
         </div>
-        <p class="text-[10px] text-slate-600 mt-4 leading-relaxed text-justify">⚠️ O IMC é apenas uma triagem populacional baseada em peso e altura — ele não diferencia massa muscular de gordura corporal. Quem treina musculação regularmente pode ter um IMC mais alto mesmo com baixo percentual de gordura. Use-o como referência geral, não como diagnóstico, e converse com um profissional de saúde para uma avaliação completa (como bioimpedância ou dobras cutâneas).</p>
+        <p class="text-[11px] text-slate-600 mt-4 leading-relaxed text-justify">⚠️ O IMC é apenas uma triagem populacional baseada em peso e altura — ele não diferencia massa muscular de gordura corporal. Quem treina musculação regularmente pode ter um IMC mais alto mesmo com baixo percentual de gordura. Use-o como referência geral, não como diagnóstico, e converse com um profissional de saúde para uma avaliação completa (como bioimpedância ou dobras cutâneas).</p>
       </section>
 
       <section class="bg-slate-900 rounded-2xl p-5 border border-slate-800 shadow-sm">
         <h3 class="text-xs font-black uppercase tracking-widest text-slate-400 mb-1">Taxa Metabólica Basal</h3>
-        <p class="text-[10px] text-slate-600 mb-3">Escolha a fórmula de cálculo:</p>
+        <p class="text-[11px] text-slate-600 mb-3">Escolha a fórmula de cálculo:</p>
 
         <div id="tmbFormulaSelector" class="grid grid-cols-3 gap-2 mb-4"></div>
 
         <div id="bodyFatFieldWrap" class="hidden mb-4">
-          <label for="profileBodyFat" class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">% de Gordura Corporal</label>
+          <label for="profileBodyFat" class="text-[11px] font-bold text-slate-500 uppercase tracking-wider">% de Gordura Corporal</label>
           <input type="number" step="0.1" id="profileBodyFat" placeholder="Ex: 20" class="mt-1 w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2.5 text-white text-sm focus:outline-none focus:ring-1 focus:ring-blue-600"/>
-          <p class="text-[10px] text-slate-600 mt-1">Necessário para a fórmula Katch-McArdle. Se não souber o valor exato, uma bioimpedância ou avaliação com dobras cutâneas dão uma estimativa razoável.</p>
+          <p class="text-[11px] text-slate-600 mt-1">Necessário para a fórmula Katch-McArdle. Se não souber o valor exato, uma bioimpedância ou avaliação com dobras cutâneas dão uma estimativa razoável.</p>
         </div>
 
         <div class="grid grid-cols-2 gap-3">
           <div class="bg-slate-950/50 rounded-xl p-3 border border-slate-800 flex flex-col items-center text-center">
-            <span class="text-[9px] font-bold text-slate-500 uppercase tracking-wider mb-1">TMB (repouso)</span>
+            <span class="text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1">TMB (repouso)</span>
             <span id="tmbValue" class="text-2xl font-black text-white">--</span>
-            <span class="text-[9px] text-slate-600 mt-0.5">kcal/dia</span>
+            <span class="text-[11px] text-slate-600 mt-0.5">kcal/dia</span>
           </div>
           <div class="bg-slate-950/50 rounded-xl p-3 border border-slate-800 flex flex-col items-center text-center">
-            <span class="text-[9px] font-bold text-slate-500 uppercase tracking-wider mb-1">Gasto Total Estimado</span>
+            <span class="text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1">Gasto Total Estimado</span>
             <span id="tdeeValue" class="text-2xl font-black text-emerald-400">--</span>
-            <span class="text-[9px] text-slate-600 mt-0.5">kcal/dia</span>
+            <span class="text-[11px] text-slate-600 mt-0.5">kcal/dia</span>
           </div>
         </div>
 
         <p id="tmbExplainText" class="text-justify text-[11px] text-slate-400 leading-relaxed mt-4"></p>
-        <p class="text-justify text-[10px] text-slate-600 mt-3 leading-relaxed">O "Gasto Total Estimado" (TDEE) aplica seu nível de atividade cadastrado sobre a TMB. Todas as fórmulas aqui são estimativas populacionais validadas cientificamente, mas ainda assim aproximações — a taxa metabólica real varia de pessoa para pessoa por fatores genéticos, hormonais e de composição corporal que nenhuma fórmula captura por completo. Use como ponto de partida, não como valor exato, e não substitua acompanhamento profissional (nutricionista ou médico) para decisões de déficit ou superávit calórico.</p>
+        <p class="text-justify text-[11px] text-slate-600 mt-3 leading-relaxed">O "Gasto Total Estimado" (TDEE) aplica seu nível de atividade cadastrado sobre a TMB. Todas as fórmulas aqui são estimativas populacionais validadas cientificamente, mas ainda assim aproximações — a taxa metabólica real varia de pessoa para pessoa por fatores genéticos, hormonais e de composição corporal que nenhuma fórmula captura por completo. Use como ponto de partida, não como valor exato, e não substitua acompanhamento profissional (nutricionista ou médico) para decisões de déficit ou superávit calórico.</p>
       </section>
     </div>
 
@@ -1025,15 +1037,15 @@
         <div id="goalRoadmapContent" class="hidden">
           <div class="flex items-center justify-between text-center mb-2">
             <div class="flex-1">
-              <p class="text-[9px] font-bold text-slate-500 uppercase tracking-wider">Início</p>
+              <p class="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Início</p>
               <p id="goalStartWeight" class="text-sm font-black text-slate-300">--</p>
             </div>
             <div class="flex-1">
-              <p class="text-[9px] font-bold text-blue-400 uppercase tracking-wider">Atual</p>
+              <p class="text-[11px] font-bold text-blue-400 uppercase tracking-wider">Atual</p>
               <p id="goalCurrentWeight" class="text-lg font-black text-white">--</p>
             </div>
             <div class="flex-1">
-              <p class="text-[9px] font-bold text-emerald-500 uppercase tracking-wider">Alvo</p>
+              <p class="text-[11px] font-bold text-emerald-500 uppercase tracking-wider">Alvo</p>
               <p id="goalTargetWeight" class="text-sm font-black text-emerald-400">--</p>
             </div>
           </div>
@@ -1041,30 +1053,30 @@
             <div id="goalProgressFill" class="h-full bg-gradient-to-r from-blue-600 to-emerald-500 rounded-full transition-all duration-500" style="width: 0%"></div>
           </div>
           <p id="goalRemainingText" class="text-xs text-slate-400 font-semibold text-center mt-3">--</p>
-          <p id="goalPercentText" class="text-[10px] text-slate-600 text-center mt-1">--</p>
+          <p id="goalPercentText" class="text-[11px] text-slate-600 text-center mt-1">--</p>
           <ol id="goalCheckpoints" aria-label="Checkpoints da meta de peso" class="grid grid-cols-2 gap-3 mt-4"></ol>
           <p id="goalEncouragement" class="text-sm text-blue-200 bg-blue-950/40 border border-blue-800/60 rounded-xl p-3 mt-3" aria-live="polite"></p>
-          <p id="goalBaselineText" class="text-[10px] text-slate-400 mt-3 leading-relaxed"></p>
+          <p id="goalBaselineText" class="text-[11px] text-slate-400 mt-3 leading-relaxed"></p>
           <button type="button" onclick="startNewWeightGoal()" class="mt-3 w-full bg-slate-800 border border-slate-700 text-blue-200 rounded-xl py-3 text-sm font-bold">Iniciar nova meta com o peso atual</button>
-          <p class="text-[10px] text-slate-400 mt-2">O peso alvo é definido em Perfil → Dados. Alterar o alvo inicia uma nova meta ao salvar. Seu histórico não é apagado.</p>
+          <p class="text-[11px] text-slate-400 mt-2">O peso alvo é definido em Perfil → Dados. Alterar o alvo inicia uma nova meta ao salvar. Seu histórico não é apagado.</p>
         </div>
       </section>
 
       <section id="weeklyVolumeSection" class="bg-slate-900 rounded-2xl p-5 border border-slate-800 shadow-sm">
         <div class="flex items-center justify-between mb-1">
           <h3 class="text-xs font-black uppercase tracking-widest text-slate-400">Volume Semanal</h3>
-          <span class="text-[9px] text-slate-600 font-bold">segunda a domingo</span>
+          <span class="text-[11px] text-slate-600 font-bold">segunda a domingo</span>
         </div>
-        <p class="text-[10px] text-slate-600 mb-4">Soma das cargas levantadas na semana. É a medida mais direta de quanto trabalho você acumulou.</p>
+        <p class="text-[11px] text-slate-600 mb-4">Soma das cargas levantadas na semana. É a medida mais direta de quanto trabalho você acumulou.</p>
         <div id="weeklyVolumeBody"></div>
       </section>
 
       <section class="bg-slate-900 rounded-2xl p-5 border border-slate-800 shadow-sm">
         <div class="flex items-center justify-between mb-1">
           <h3 class="text-xs font-black uppercase tracking-widest text-slate-400">Treinos Realizados</h3>
-          <span id="workoutHistoryCount" class="text-[10px] font-black text-blue-400 uppercase tracking-wider bg-blue-950/40 border border-blue-800/60 px-2.5 py-1 rounded-full">0</span>
+          <span id="workoutHistoryCount" class="text-[11px] font-black text-blue-400 uppercase tracking-wider bg-blue-950/40 border border-blue-800/60 px-2.5 py-1 rounded-full">0</span>
         </div>
-        <p class="text-[10px] text-slate-600 mb-4">Toque num dia para ver tudo que você registrou nele.</p>
+        <p class="text-[11px] text-slate-600 mb-4">Toque num dia para ver tudo que você registrou nele.</p>
 
         <div class="bg-slate-950/50 border border-slate-800 rounded-xl p-3 mb-4">
           <div class="flex items-center justify-between mb-3">
@@ -1078,7 +1090,7 @@
           </div>
           <div id="calWeekdays" class="grid grid-cols-7 gap-1 mb-1"></div>
           <div id="calGrid" class="grid grid-cols-7 gap-1"></div>
-          <p id="calSummary" class="text-[10px] text-slate-600 text-center mt-3"></p>
+          <p id="calSummary" class="text-[11px] text-slate-600 text-center mt-3"></p>
         </div>
 
         <div id="workoutHistoryList" class="space-y-2 max-h-80 overflow-y-auto"></div>
@@ -1096,15 +1108,15 @@
     <section class="bg-slate-900 rounded-2xl p-5 border border-slate-800 shadow-sm">
       <div class="flex items-center justify-between mb-1">
         <h3 class="text-xs font-black uppercase tracking-widest text-slate-400">Conquistas</h3>
-        <span id="achievementsCount" class="text-[10px] font-black text-amber-400 uppercase tracking-wider bg-amber-950/40 border border-amber-800/60 px-2.5 py-1 rounded-full">0/0</span>
+        <span id="achievementsCount" class="text-[11px] font-black text-amber-400 uppercase tracking-wider bg-amber-950/40 border border-amber-800/60 px-2.5 py-1 rounded-full">0/0</span>
       </div>
-      <p class="text-[10px] text-slate-600">Desbloqueadas conforme você progride no treino, hidratação e consistência.</p>
+      <p class="text-[11px] text-slate-600">Desbloqueadas conforme você progride no treino, hidratação e consistência.</p>
     </section>
 
     <div class="flex bg-slate-900 border border-slate-800 rounded-xl p-1 gap-1">
-      <button id="achFilterTodas" type="button" onclick="setAchievementsFilter('todas')" class="flex-1 py-2 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all duration-150">Todas</button>
-      <button id="achFilterDesbloqueadas" type="button" onclick="setAchievementsFilter('desbloqueadas')" class="flex-1 py-2 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all duration-150">Desbloqueadas</button>
-      <button id="achFilterBloqueadas" type="button" onclick="setAchievementsFilter('bloqueadas')" class="flex-1 py-2 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all duration-150">Bloqueadas</button>
+      <button id="achFilterTodas" type="button" onclick="setAchievementsFilter('todas')" class="flex-1 py-2 rounded-lg text-[11px] font-black uppercase tracking-wider transition-all duration-150">Todas</button>
+      <button id="achFilterDesbloqueadas" type="button" onclick="setAchievementsFilter('desbloqueadas')" class="flex-1 py-2 rounded-lg text-[11px] font-black uppercase tracking-wider transition-all duration-150">Desbloqueadas</button>
+      <button id="achFilterBloqueadas" type="button" onclick="setAchievementsFilter('bloqueadas')" class="flex-1 py-2 rounded-lg text-[11px] font-black uppercase tracking-wider transition-all duration-150">Bloqueadas</button>
     </div>
 
     <section id="achievementsList" class="space-y-3"></section>
@@ -1112,9 +1124,9 @@
   </main>
 
   <footer class="max-w-3xl mx-auto px-4 pt-6 pb-28 text-center">
-    <span class="text-[10px] text-slate-600 font-bold tracking-wider">Treino Personalizado <span id="appVersion">v1.2.0</span></span>
+    <span class="text-[11px] text-slate-600 font-bold tracking-wider">Treino Personalizado <span id="appVersion">v1.2.0</span></span>
     <br/>
-    <button type="button" onclick="openNovidades()" class="mt-2 text-[10px] font-black text-blue-400 uppercase tracking-wider hover:text-blue-300">🆕 Ver Novidades</button>
+    <button type="button" onclick="openNovidades()" class="mt-2 text-[11px] font-black text-blue-400 uppercase tracking-wider hover:text-blue-300">🆕 Ver Novidades</button>
   </footer>
 
   <div id="confirmFinishOverlay" class="hidden fixed inset-0 bg-slate-950/95 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
@@ -1139,7 +1151,7 @@
           <svg class="w-5 h-5" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
         </button>
       </div>
-      <p class="text-[10px] text-slate-600 mb-4 flex-shrink-0">O que mudou para você desde a última vez.</p>
+      <p class="text-[11px] text-slate-600 mb-4 flex-shrink-0">O que mudou para você desde a última vez.</p>
 
       <div class="overflow-y-auto flex-1 -mx-1 px-1">
         <div id="novidadesCurrentVersion"></div>
@@ -1149,7 +1161,7 @@
           <svg id="versionHistoryChevron" class="w-4 h-4 transition-transform duration-200" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" /></svg>
         </button>
         <div id="versionHistoryList" class="hidden mt-2"></div>
-        <a href="https://github.com/carlosmozart/Treino-Personalizado/blob/main/CHANGELOG.md" target="_blank" rel="noopener noreferrer" class="block mt-3 text-center text-[10px] font-bold text-blue-300 underline underline-offset-2">Ver histórico completo de versões</a>
+        <a href="https://github.com/carlosmozart/Treino-Personalizado/blob/main/CHANGELOG.md" target="_blank" rel="noopener noreferrer" class="block mt-3 text-center text-[11px] font-bold text-blue-300 underline underline-offset-2">Ver histórico completo de versões</a>
       </div>
 
       <button type="button" onclick="closeNovidades()" class="mt-5 w-full bg-blue-600 hover:bg-blue-500 text-white font-extrabold text-sm py-3 rounded-xl transition-all active:scale-[0.99] flex-shrink-0">Entendi!</button>
@@ -1226,7 +1238,7 @@
   <script src="js/ui/exercise-progress.js"></script>
   <script src="js/ui/charts.js"></script>
   <script>
-    const APP_VERSION = '2.20.2'; // manter sincronizado com CACHE_NAME em sw.js e com o CHANGELOG.md
+    const APP_VERSION = '2.20.3'; // manter sincronizado com CACHE_NAME em sw.js e com o CHANGELOG.md
 
     const RELEASE_NOTES = TREINO_STATIC.releaseNotes;
 

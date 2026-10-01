@@ -75,7 +75,7 @@ window.TREINO_WEEKLY_VOLUME = {
                    : `${periodo} · sem treino`;
                })
              })}
-             <div class="flex justify-between mt-1.5 text-[9px] text-slate-600 font-bold">
+             <div class="flex justify-between mt-1.5 text-[11px] text-slate-600 font-bold">
                <span>${formatDateBR(visiveis[0].inicio).slice(0,5)}</span>
                <span>${visiveis.length} semanas</span>
                <span>${formatDateBR(visiveis[visiveis.length - 1].inicio).slice(0,5)}</span>
@@ -84,7 +84,7 @@ window.TREINO_WEEKLY_VOLUME = {
            </div>`
         // sem o aviso, escolher uma faixa curta deixaria um controle solto sobre um vazio
         // sem explicacao
-        : `<p class="text-[10px] text-slate-600 text-center bg-slate-950/50 border border-slate-800 rounded-xl px-3 py-3 mb-3 leading-relaxed">Você treinou em menos de duas das últimas ${visiveis.length} semanas.<br/>${
+        : `<p class="text-[11px] text-slate-600 text-center bg-slate-950/50 border border-slate-800 rounded-xl px-3 py-3 mb-3 leading-relaxed">Você treinou em menos de duas das últimas ${visiveis.length} semanas.<br/>${
              // "escolha um periodo maior" so faz sentido se houver periodo maior para escolher
              getChartRange('volume') === 'tudo'
                ? 'Complete treinos em pelo menos duas semanas para ver o gráfico.'
@@ -98,19 +98,19 @@ window.TREINO_WEEKLY_VOLUME = {
         ${grafico}
         <div class="grid grid-cols-2 gap-2">
           <div class="bg-slate-950/50 border border-slate-800 rounded-xl px-3 py-2.5">
-            <p class="text-[9px] text-slate-500 font-bold uppercase tracking-wider">Esta semana</p>
-            <p class="text-lg font-black text-white leading-tight">${fmt(atual.volume)}<span class="text-[10px] text-slate-500 ml-0.5">kg</span></p>
-            <p class="text-[9px] text-slate-600">${atual.treinos} treino${atual.treinos === 1 ? '' : 's'}</p>
+            <p class="text-[11px] text-slate-500 font-bold uppercase tracking-wider">Esta semana</p>
+            <p class="text-lg font-black text-white leading-tight">${fmt(atual.volume)}<span class="text-[11px] text-slate-500 ml-0.5">kg</span></p>
+            <p class="text-[11px] text-slate-600">${atual.treinos} treino${atual.treinos === 1 ? '' : 's'}</p>
           </div>
           <div class="bg-slate-950/50 border border-slate-800 rounded-xl px-3 py-2.5">
-            <p class="text-[9px] text-slate-500 font-bold uppercase tracking-wider">Semana passada</p>
-            <p class="text-lg font-black text-slate-300 leading-tight">${fmt(anterior ? anterior.volume : 0)}<span class="text-[10px] text-slate-500 ml-0.5">kg</span></p>
-            <p class="text-[9px] text-slate-600">${anterior ? anterior.treinos : 0} treino${(anterior && anterior.treinos === 1) ? '' : 's'}</p>
+            <p class="text-[11px] text-slate-500 font-bold uppercase tracking-wider">Semana passada</p>
+            <p class="text-lg font-black text-slate-300 leading-tight">${fmt(anterior ? anterior.volume : 0)}<span class="text-[11px] text-slate-500 ml-0.5">kg</span></p>
+            <p class="text-[11px] text-slate-600">${anterior ? anterior.treinos : 0} treino${(anterior && anterior.treinos === 1) ? '' : 's'}</p>
           </div>
         </div>
-        ${variacao ? `<div class="flex items-center justify-center gap-2 mt-3">${variacao}<span class="text-[10px] text-slate-600">em relação à semana passada</span></div>` : ''}
+        ${variacao ? `<div class="flex items-center justify-center gap-2 mt-3">${variacao}<span class="text-[11px] text-slate-600">em relação à semana passada</span></div>` : ''}
         ${(atual.treinos === 0)
-          ? `<p class="text-[10px] text-slate-600 text-center mt-3">Semana ainda sem treino registrado.</p>`
+          ? `<p class="text-[11px] text-slate-600 text-center mt-3">Semana ainda sem treino registrado.</p>`
           : ''}
       `;
     }

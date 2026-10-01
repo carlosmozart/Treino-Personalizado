@@ -76,7 +76,7 @@
       if (imc === null || isNaN(imc)) {
         imcValueEl.textContent = '--';
         imcClassEl.textContent = 'Preencha altura e peso';
-        imcClassEl.className = 'mt-1 text-[10px] font-bold px-2.5 py-1 rounded-full text-slate-500 bg-slate-800/50';
+        imcClassEl.className = 'mt-1 text-[11px] font-bold px-2.5 py-1 rounded-full text-slate-500 bg-slate-800/50';
         imcMarker.style.left = '0%';
         imcExplainEl.textContent = 'Preencha altura e peso para ver sua classificação.';
         return;
@@ -90,7 +90,7 @@
       };
       imcValueEl.textContent = imc.toFixed(1);
       imcClassEl.textContent = info.label;
-      imcClassEl.className = `mt-1 text-[10px] font-bold px-2.5 py-1 rounded-full ${colorMap[info.color]}`;
+      imcClassEl.className = `mt-1 text-[11px] font-bold px-2.5 py-1 rounded-full ${colorMap[info.color]}`;
       imcMarker.style.left = `${Math.min(97, Math.max(2, info.pct))}%`;
 
       const ideal = computeIdealWeightRange(heightNum);

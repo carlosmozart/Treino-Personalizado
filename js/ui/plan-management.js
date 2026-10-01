@@ -75,9 +75,9 @@ window.TREINO_PLAN_MANAGEMENT = {
           <div class="bg-slate-900 rounded-2xl p-4 border ${isActive ? 'border-blue-600' : 'border-slate-800'} shadow-sm">
             <div class="flex items-start justify-between gap-2">
               <div class="min-w-0">
-                <h4 class="font-extrabold text-white text-sm truncate">${p.name}${isActive ? ' <span class=\"text-[9px] text-blue-400 font-black uppercase align-middle border border-blue-700 rounded-full px-2 py-0.5 ml-1\">Ativo</span>' : ''}</h4>
+                <h4 class="font-extrabold text-white text-sm truncate">${p.name}${isActive ? ' <span class=\"text-[11px] text-blue-400 font-black uppercase align-middle border border-blue-700 rounded-full px-2 py-0.5 ml-1\">Ativo</span>' : ''}</h4>
                 <p class="text-xs text-slate-400 mt-1 line-clamp-2">${p.description || 'Sem descrição.'}</p>
-                <p class="text-[10px] text-slate-500 mt-2">${p.daysPerWeek} dia${p.daysPerWeek === 1 ? '' : 's'}/semana${p.trainingTime ? ` · ⏰ ${p.trainingTime}` : ''} · ${totalExercises} exercício${totalExercises === 1 ? '' : 's'} cadastrado${totalExercises === 1 ? '' : 's'}</p>
+                <p class="text-[11px] text-slate-500 mt-2">${p.daysPerWeek} dia${p.daysPerWeek === 1 ? '' : 's'}/semana${p.trainingTime ? ` · ⏰ ${p.trainingTime}` : ''} · ${totalExercises} exercício${totalExercises === 1 ? '' : 's'} cadastrado${totalExercises === 1 ? '' : 's'}</p>
               </div>
             </div>
             <div class="flex gap-2 mt-3">

@@ -71,14 +71,14 @@
             <div class="min-w-0 flex-1">
               <div class="flex items-center justify-between gap-2">
                 <h4 class="font-extrabold text-sm ${isUnlocked ? 'text-amber-300' : 'text-slate-300'} truncate">${a.name}</h4>
-                ${isUnlocked ? `<span class="text-[9px] font-black text-amber-500 flex-shrink-0">✓ ${unlockedDate}</span>` : ''}
+                ${isUnlocked ? `<span class="text-[11px] font-black text-amber-500 flex-shrink-0">✓ ${unlockedDate}</span>` : ''}
               </div>
               <p class="text-xs text-slate-500 mt-0.5">${a.desc}</p>
               ${!isUnlocked ? `
                 <div class="w-full h-1.5 bg-slate-800 rounded-full overflow-hidden mt-2">
                   <div class="h-full bg-gradient-to-r from-blue-600 to-blue-400 rounded-full" style="width: ${pct}%"></div>
                 </div>
-                <p class="text-[9px] text-slate-600 mt-1">${current}/${a.target}</p>
+                <p class="text-[11px] text-slate-600 mt-1">${current}/${a.target}</p>
               ` : ''}
             </div>
           </div>`;

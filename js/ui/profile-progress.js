@@ -22,7 +22,7 @@ window.TREINO_PROFILE_PROGRESS = {
         ? `${chartRangeControls('peso', todos.length)}<div class="bg-slate-950/50 border border-slate-800 rounded-xl p-3 mb-3">
              <p class="text-xs text-slate-300 mb-2">Variação no período: <strong class="text-white">${change > 0 ? '+' : ''}${change.toLocaleString('pt-BR', { maximumFractionDigits: 1 })} kg</strong> · ${chrono.length} registros</p>
              <p id="weightTrendSummary" class="text-sm text-blue-200 mb-2">Média dos últimos ${chrono[chrono.length - 1].trendCount} registros: <strong>${chrono[chrono.length - 1].trend.toLocaleString('pt-BR', { maximumFractionDigits: 1 })} kg</strong></p>
-             <p class="text-[10px] text-slate-400 mb-2">Linha verde: peso registrado. Azul tracejado: média móvel de até 7 registros, incluindo anteriores ao recorte. Não é uma média semanal nem uma previsão.</p>
+             <p class="text-[11px] text-slate-400 mb-2">Linha verde: peso registrado. Azul tracejado: média móvel de até 7 registros, incluindo anteriores ao recorte. Não é uma média semanal nem uma previsão.</p>
              ${hasTarget ? `<p id="weightTargetLegend" class="text-xs text-amber-300 mb-2">Linha amarela pontilhada: alvo atual de ${target.toLocaleString('pt-BR', { maximumFractionDigits: 1 })} kg. Referência aplicada a todo o período exibido.</p>` : ''}
              ${renderSparkline(chrono.map(e => e.weight), {
                color: '#34d399', fill: 'rgba(52,211,153,0.14)',
@@ -30,7 +30,7 @@ window.TREINO_PROFILE_PROGRESS = {
                trend: chrono.map(e => e.trend),
                tips: chrono.map(e => `${formatDateBR(e.date)} · ${e.weight}kg · IMC ${Number(e.imc || 0).toFixed(1)}`)
              })}
-             <div class="flex justify-between mt-1.5 text-[10px] text-slate-400 font-bold">
+             <div class="flex justify-between mt-1.5 text-[11px] text-slate-400 font-bold">
                <span>${formatDateBR(chrono[0].date)}</span>
                <span>${formatDateBR(chrono[chrono.length - 1].date)}</span>
              </div>
@@ -44,7 +44,7 @@ window.TREINO_PROFILE_PROGRESS = {
           <span class="text-slate-400 font-semibold">${d}/${m}/${y}</span>
           <span class="text-white font-bold">${e.weight}kg</span>
           <span class="text-blue-300 font-bold">IMC ${e.imc.toFixed(1)}</span>
-          <button type="button" onclick="deleteWeightEntry('${escapeJs(e.date)}')" aria-label="Apagar registro de ${d}/${m}/${y}" class="w-6 h-6 rounded bg-slate-900 border border-slate-700 active:border-rose-600 text-slate-500 active:text-rose-400 flex items-center justify-center flex-shrink-0 text-[10px] font-black">×</button>
+          <button type="button" onclick="deleteWeightEntry('${escapeJs(e.date)}')" aria-label="Apagar registro de ${d}/${m}/${y}" class="w-6 h-6 rounded bg-slate-900 border border-slate-700 active:border-rose-600 text-slate-500 active:text-rose-400 flex items-center justify-center flex-shrink-0 text-[11px] font-black">×</button>
         </div>`;
       }).join('');
     }
@@ -100,7 +100,7 @@ window.TREINO_PROFILE_PROGRESS = {
       document.getElementById('goalCheckpoints').innerHTML = checkpoints.map(point => `<li class="rounded-xl border p-3 ${point.reached || point.date ? 'bg-emerald-950/40 border-emerald-800/60' : 'bg-slate-950/50 border-slate-700'}">
         <p class="text-sm font-black ${point.reached || point.date ? 'text-emerald-300' : 'text-slate-300'}">${point.percent}% <span aria-hidden="true">${point.reached || point.date ? '✓' : '○'}</span></p>
         <p class="text-sm text-white font-bold mt-1">${kg(point.weight)}</p>
-        <p class="text-[10px] text-slate-400 mt-1">${point.date ? `Conquistado em ${escapeHtml(formatDateBR(point.date))}${point.reached ? '' : ' · preservado após oscilação'}` : point.reached ? 'Alcançado · data não registrada' : 'A caminho'}</p></li>`).join('');
+        <p class="text-[11px] text-slate-400 mt-1">${point.date ? `Conquistado em ${escapeHtml(formatDateBR(point.date))}${point.reached ? '' : ' · preservado após oscilação'}` : point.reached ? 'Alcançado · data não registrada' : 'A caminho'}</p></li>`).join('');
       const next = goal.checkpoints.find(point => !point.reached);
       document.getElementById('goalEncouragement').textContent = goal.maintenance
         ? 'Seu objetivo está na faixa do peso inicial. Acompanhe os registros com tranquilidade.'

@@ -61,7 +61,7 @@ window.TREINO_PLAN_EDITOR = {
             : hasExercises
               ? 'bg-emerald-950/40 text-emerald-400 border border-emerald-800/50'
               : 'bg-slate-950 text-slate-500 border border-slate-800';
-        return `<button type="button" onclick="selectEditorDay('${key}')" title="${isOptional ? 'Dia opcional' : ''}" class="py-2 rounded-lg text-[10px] font-black uppercase transition-all ${cor}">${key}${isOptional ? '<span class="block text-[7px] leading-none">opc</span>' : ''}</button>`;
+        return `<button type="button" onclick="selectEditorDay('${key}')" title="${isOptional ? 'Dia opcional' : ''}" class="py-2 rounded-lg text-[11px] font-black uppercase transition-all ${cor}">${key}${isOptional ? '<span class="block text-[9px] leading-none">opc</span>' : ''}</button>`;
       }).join('');
     }
 

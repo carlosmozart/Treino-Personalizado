@@ -38,20 +38,20 @@ window.TREINO_WORKOUT_DAY = {
 
       const linha = (e) => {
         const detalhe = describeEntry(e);
-        const vol = e.type === 'cardio' ? '' : `<p class="text-[9px] text-slate-600">${Math.round(sessionVolume(e)).toLocaleString('pt-BR')}kg de volume</p>`;
-        const obs = e.obs ? `<p class="text-[10px] text-amber-300/80 mt-1 italic">"${escapeHtml(e.obs)}"</p>` : '';
+        const vol = e.type === 'cardio' ? '' : `<p class="text-[11px] text-slate-600">${Math.round(sessionVolume(e)).toLocaleString('pt-BR')}kg de volume</p>`;
+        const obs = e.obs ? `<p class="text-[11px] text-amber-300/80 mt-1 italic">"${escapeHtml(e.obs)}"</p>` : '';
         return `<div class="bg-slate-950/50 rounded-xl px-3 py-2.5 border border-slate-800/60">
           <div class="flex items-start justify-between gap-2">
             <button type="button" onclick="showNameTooltip(event, '${escapeJs(e.name || NOME_DESCONHECIDO)}')" title="${escapeHtml(e.name || NOME_DESCONHECIDO)}" aria-label="Mostrar nome completo: ${escapeHtml(e.name || NOME_DESCONHECIDO)}" class="text-left text-xs font-bold ${e.name && e.name !== NOME_DESCONHECIDO ? 'text-white' : 'text-slate-500 italic'} min-w-0 flex-1 truncate rounded focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500">${escapeHtml(e.name || NOME_DESCONHECIDO)}</button>
             <span class="text-xs font-black text-blue-300 flex-shrink-0">${escapeHtml(detalhe)}</span>
-            <button type="button" onclick="openEditEntry('${escapeJs(e.historyKey || '')}','${escapeJs(e.date)}')" aria-label="Corrigir ${escapeHtml(e.name || 'registro')}" class="w-7 h-7 rounded-lg bg-slate-900 border border-slate-700 active:border-blue-600 text-slate-400 active:text-blue-300 flex items-center justify-center flex-shrink-0 text-[10px]">✏️</button>
+            <button type="button" onclick="openEditEntry('${escapeJs(e.historyKey || '')}','${escapeJs(e.date)}')" aria-label="Corrigir ${escapeHtml(e.name || 'registro')}" class="w-7 h-7 rounded-lg bg-slate-900 border border-slate-700 active:border-blue-600 text-slate-400 active:text-blue-300 flex items-center justify-center flex-shrink-0 text-[11px]">✏️</button>
           </div>
           ${vol}${obs}
         </div>`;
       };
 
       const bloco = (titulo, itens) => itens.length === 0 ? '' :
-        `<p class="text-[10px] font-black text-slate-500 uppercase tracking-wider mt-4 mb-2">${titulo}</p>
+        `<p class="text-[11px] font-black text-slate-500 uppercase tracking-wider mt-4 mb-2">${titulo}</p>
          <div class="space-y-1.5">${itens.map(linha).join('')}</div>`;
 
       const calorias = estimateWorkoutCalories(dia);
@@ -59,24 +59,24 @@ window.TREINO_WORKOUT_DAY = {
         <div class="grid grid-cols-2 gap-2">
           <div class="bg-slate-950/50 border border-slate-800 rounded-xl px-3 py-2.5 text-center">
             <p class="text-lg font-black text-white">${dia.exercicios.length}</p>
-            <p class="text-[9px] text-slate-600 font-bold uppercase tracking-wider">Exercícios</p>
+            <p class="text-[11px] text-slate-600 font-bold uppercase tracking-wider">Exercícios</p>
           </div>
           <div class="bg-slate-950/50 border border-slate-800 rounded-xl px-3 py-2.5 text-center">
-            <p class="text-lg font-black text-white">${dia.volume > 0 ? Math.round(dia.volume).toLocaleString('pt-BR') : '--'}<span class="text-[10px] text-slate-500">${dia.volume > 0 ? 'kg' : ''}</span></p>
-            <p class="text-[9px] text-slate-600 font-bold uppercase tracking-wider">Volume total</p>
+            <p class="text-lg font-black text-white">${dia.volume > 0 ? Math.round(dia.volume).toLocaleString('pt-BR') : '--'}<span class="text-[11px] text-slate-500">${dia.volume > 0 ? 'kg' : ''}</span></p>
+            <p class="text-[11px] text-slate-600 font-bold uppercase tracking-wider">Volume total</p>
           </div>
         </div>
         ${(dia.minutos || calorias) ? `<div class="grid grid-cols-${(dia.minutos && calorias) ? '2' : '1'} gap-2 mt-2">
           ${dia.minutos ? `<div class="bg-slate-950/50 border border-slate-800 rounded-xl px-3 py-2.5 text-center">
             <p class="text-lg font-black text-white">${formatDuration(dia.minutos)}</p>
-            <p class="text-[9px] text-slate-600 font-bold uppercase tracking-wider">Duração</p>
+            <p class="text-[11px] text-slate-600 font-bold uppercase tracking-wider">Duração</p>
           </div>` : ''}
           ${calorias ? `<div class="bg-slate-950/50 border border-slate-800 rounded-xl px-3 py-2.5 text-center">
-            <p class="text-lg font-black text-amber-300"><span aria-label="aproximadamente">≈</span>${calorias.kcal.toLocaleString('pt-BR')}<span class="text-[10px] text-slate-500 ml-0.5">kcal</span></p>
-            <p class="text-[9px] text-slate-600 font-bold uppercase tracking-wider">Estimativa aproximada</p>
+            <p class="text-lg font-black text-amber-300"><span aria-label="aproximadamente">≈</span>${calorias.kcal.toLocaleString('pt-BR')}<span class="text-[11px] text-slate-500 ml-0.5">kcal</span></p>
+            <p class="text-[11px] text-slate-600 font-bold uppercase tracking-wider">Estimativa aproximada</p>
           </div>` : ''}
         </div>` : ''}
-        ${calorias ? `<p class="text-[9px] text-slate-600 leading-relaxed mt-2 text-justify">Estimativa a partir do seu peso${calorias.medido ? ' e da duração medida' : ', com a duração calculada pelas séries e pelo descanso'}. Serve para comparar seus treinos entre si, não para fechar conta de dieta — a margem de erro para uma pessoa específica é grande.</p>` : ''}
+        ${calorias ? `<p class="text-[11px] text-slate-600 leading-relaxed mt-2 text-justify">Estimativa a partir do seu peso${calorias.medido ? ' e da duração medida' : ', com a duração calculada pelas séries e pelo descanso'}. Serve para comparar seus treinos entre si, não para fechar conta de dieta — a margem de erro para uma pessoa específica é grande.</p>` : ''}
         ${bloco('Força', forca)}
         ${bloco('Cardio', cardio)}
       `;

@@ -24,7 +24,7 @@ window.TREINO_EXERCISE_PROGRESS = {
             <span class="text-xs font-black ${delta > 0 ? 'text-emerald-400' : delta < 0 ? 'text-rose-400' : 'text-slate-500'}">
               ${delta > 0 ? '▲' : delta < 0 ? '▼' : '='} ${Math.abs(delta).toFixed(1)}${unit}
             </span>
-            <span class="text-[10px] text-slate-600">desde a primeira sessão</span>
+            <span class="text-[11px] text-slate-600">desde a primeira sessão</span>
           </div>`;
 
         const noGrafico = applyChartRange('exercicio', list);
@@ -35,7 +35,7 @@ window.TREINO_EXERCISE_PROGRESS = {
                  fill: isCardio ? 'rgba(34,211,238,0.14)' : 'rgba(96,165,250,0.14)',
                  tips: noGrafico.map(e => `${formatDateBR(e.date)} · ${describeEntry(e)}`)
                })}
-               <div class="flex justify-between mt-1.5 text-[9px] text-slate-600 font-bold">
+               <div class="flex justify-between mt-1.5 text-[11px] text-slate-600 font-bold">
                  <span>${formatDateBR(noGrafico[0].date)}</span>
                  <span>${formatDateBR(noGrafico[noGrafico.length - 1].date)}</span>
                </div>
@@ -47,7 +47,7 @@ window.TREINO_EXERCISE_PROGRESS = {
           <div class="bg-amber-950/30 border border-amber-800/50 rounded-xl px-3 py-2.5 mt-4 flex items-center gap-2">
             <span class="text-lg">🏅</span>
             <div class="min-w-0">
-              <p class="text-[9px] font-black text-amber-400 uppercase tracking-wider">Recorde pessoal</p>
+              <p class="text-[11px] font-black text-amber-400 uppercase tracking-wider">Recorde pessoal</p>
               <p class="text-xs font-bold text-amber-200">${pr.recordSeries ? `${pr.recordSeries.reps} reps com ${pr.recordSeries.weight}kg` : describeEntry(pr)} · ${formatDateBR(pr.date)}</p>
             </div>
           </div>` : '';
@@ -55,12 +55,12 @@ window.TREINO_EXERCISE_PROGRESS = {
         const rows = list.slice().reverse().slice(0, 20).map(e => {
           const detail = describeEntry(e);
           // (o nome aqui ja vem do cabecalho do modal, entao a linha mostra so os numeros)
-          const vol = e.type === 'cardio' ? '' : `<span class="text-[9px] text-slate-600">${Math.round(sessionVolume(e)).toLocaleString('pt-BR')}kg vol.</span>`;
+          const vol = e.type === 'cardio' ? '' : `<span class="text-[11px] text-slate-600">${Math.round(sessionVolume(e)).toLocaleString('pt-BR')}kg vol.</span>`;
           // so registros da propria chave podem ser corrigidos aqui: os que vem de outro
           // plano pertencem a outra trilha e devem ser editados no contexto deles
           const proprio = (getSessionLog()[historyKey] || []).some(x => entryDateKey(x) === entryDateKey(e));
           const btnEditar = proprio
-            ? `<button type="button" onclick="openEditEntry('${escapeJs(historyKey)}','${escapeJs(entryDateKey(e))}')" aria-label="Corrigir registro de ${escapeHtml(formatDateBR(e.date))}" class="w-7 h-7 rounded-lg bg-slate-900 border border-slate-700 active:border-blue-600 text-slate-400 active:text-blue-300 flex items-center justify-center flex-shrink-0 text-[10px]">✏️</button>`
+            ? `<button type="button" onclick="openEditEntry('${escapeJs(historyKey)}','${escapeJs(entryDateKey(e))}')" aria-label="Corrigir registro de ${escapeHtml(formatDateBR(e.date))}" class="w-7 h-7 rounded-lg bg-slate-900 border border-slate-700 active:border-blue-600 text-slate-400 active:text-blue-300 flex items-center justify-center flex-shrink-0 text-[11px]">✏️</button>`
             : '';
           return `<div class="flex items-center justify-between bg-slate-950/50 rounded-lg px-3 py-2 border border-slate-800/60 gap-2">
             <span class="text-[11px] text-slate-400 font-semibold flex-shrink-0">${formatDateBR(e.date)}</span>
@@ -75,7 +75,7 @@ window.TREINO_EXERCISE_PROGRESS = {
         body.innerHTML = `
           <div class="text-center">
             <p class="text-3xl font-black text-white">${last}<span class="text-base text-slate-500 ml-1">${unit}</span></p>
-            <p class="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Última sessão</p>
+            <p class="text-[11px] text-slate-500 font-bold uppercase tracking-wider">Última sessão</p>
             ${deltaHtml}
           </div>
           ${chartHtml}
@@ -83,15 +83,15 @@ window.TREINO_EXERCISE_PROGRESS = {
           <div class="grid grid-cols-2 gap-2 mt-4">
             <div class="bg-slate-950/50 border border-slate-800 rounded-xl px-3 py-2.5 text-center">
               <p class="text-lg font-black text-white">${list.length}</p>
-              <p class="text-[9px] text-slate-600 font-bold uppercase tracking-wider">Sessões</p>
+              <p class="text-[11px] text-slate-600 font-bold uppercase tracking-wider">Sessões</p>
             </div>
             <div class="bg-slate-950/50 border border-slate-800 rounded-xl px-3 py-2.5 text-center">
-              <p class="text-lg font-black text-white">${Math.max.apply(null, values).toFixed(1)}<span class="text-[10px] text-slate-500">${unit}</span></p>
-              <p class="text-[9px] text-slate-600 font-bold uppercase tracking-wider">Melhor marca</p>
+              <p class="text-lg font-black text-white">${Math.max.apply(null, values).toFixed(1)}<span class="text-[11px] text-slate-500">${unit}</span></p>
+              <p class="text-[11px] text-slate-600 font-bold uppercase tracking-wider">Melhor marca</p>
             </div>
           </div>
-          ${coletado.fromOtherProfiles ? `<p class="text-[10px] text-slate-500 text-center mt-3 bg-slate-950/50 border border-slate-800 rounded-lg px-3 py-2">ℹ️ Reunindo sessões deste exercício em todos os seus planos de treino.</p>` : ''}
-          <p class="text-[10px] font-black text-slate-500 uppercase tracking-wider mt-5 mb-2">Histórico</p>
+          ${coletado.fromOtherProfiles ? `<p class="text-[11px] text-slate-500 text-center mt-3 bg-slate-950/50 border border-slate-800 rounded-lg px-3 py-2">ℹ️ Reunindo sessões deste exercício em todos os seus planos de treino.</p>` : ''}
+          <p class="text-[11px] font-black text-slate-500 uppercase tracking-wider mt-5 mb-2">Histórico</p>
           <div class="space-y-1.5 max-h-56 overflow-y-auto">${rows}</div>
         `;
       }

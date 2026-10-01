@@ -6,6 +6,13 @@ Todas as mudanças relevantes do app ficam registradas aqui. Ao lançar uma nova
    atualizar o app instalado
 3. Adicione uma entrada aqui, nesse formato
 
+## [2.20.3] - 2026-09-30
+
+- Aumenta as fontes mínimas da interface: rótulos de 9–10 px passam a 11 px, e os de 7–8 px passam a 9–10 px em selos e grades compactas.
+- Define 11 classes usadas pela interface que não existiam no CSS compilado (rolagem do erro de importação da IA, cores `text-blue-200`/`text-rose-200`, foco visível no nome do exercício, entre outras).
+- Corrige o corte de cargas com três dígitos nas linhas de série em telas de 375 px.
+- Adiciona verificação automática que falha se alguma classe usada não tiver definição no CSS.
+
 ## [2.20.2] - 2026-09-29
 
 - Corrige a abertura do aplicativo após a separação dos módulos de histórico.

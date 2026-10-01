@@ -35,11 +35,11 @@ window.TREINO_HISTORY_EDITOR = {
         body.innerHTML = `
           <div class="grid grid-cols-2 gap-2">
             <div>
-              <label class="text-[9px] font-bold text-slate-500 uppercase">Tempo (min)</label>
+              <label class="text-[11px] font-bold text-slate-500 uppercase">Tempo (min)</label>
               <input type="number" inputmode="numeric" id="editEntryDuration" value="${escapeHtml(editEntryRef.duration || 0)}" class="w-full bg-slate-950 border border-slate-800 rounded-lg px-2 py-2 text-white text-sm text-center focus:outline-none focus:ring-1 focus:ring-blue-600"/>
             </div>
             <div>
-              <label class="text-[9px] font-bold text-slate-500 uppercase">Distância (km)</label>
+              <label class="text-[11px] font-bold text-slate-500 uppercase">Distância (km)</label>
               <input type="number" inputmode="decimal" step="0.1" id="editEntryDistance" value="${escapeHtml(editEntryRef.distance || 0)}" class="w-full bg-slate-950 border border-slate-800 rounded-lg px-2 py-2 text-white text-sm text-center focus:outline-none focus:ring-1 focus:ring-blue-600"/>
             </div>
           </div>`;
@@ -48,11 +48,11 @@ window.TREINO_HISTORY_EDITOR = {
 
       const linhas = editEntryRef.series.map((sr, i) => `
         <div class="flex items-center gap-2">
-          <span class="w-5 text-[10px] font-black text-slate-500 text-center flex-shrink-0">${i + 1}</span>
+          <span class="w-5 text-[11px] font-black text-slate-500 text-center flex-shrink-0">${i + 1}</span>
           <input type="number" inputmode="numeric" value="${sr.reps}" oninput="updateEditSeries(${i},'reps',this.value)" aria-label="Repetições da série ${i + 1}" class="flex-1 min-w-0 bg-slate-950 border border-slate-800 rounded-lg px-2 py-2 text-white text-sm text-center focus:outline-none focus:ring-1 focus:ring-blue-600"/>
-          <span class="text-[9px] text-slate-600 font-bold flex-shrink-0">reps</span>
+          <span class="text-[10px] text-slate-600 font-bold flex-shrink-0">reps</span>
           <input type="number" inputmode="decimal" step="0.5" value="${sr.weight}" oninput="updateEditSeries(${i},'weight',this.value)" aria-label="Carga da série ${i + 1}" class="flex-1 min-w-0 bg-slate-950 border border-slate-800 rounded-lg px-2 py-2 text-white text-sm text-center focus:outline-none focus:ring-1 focus:ring-blue-600"/>
-          <span class="text-[9px] text-slate-600 font-bold flex-shrink-0">kg</span>
+          <span class="text-[10px] text-slate-600 font-bold flex-shrink-0">kg</span>
           <button type="button" onclick="removeEditSeries(${i})" aria-label="Remover série ${i + 1}" class="w-8 h-9 rounded-lg bg-slate-950/60 border border-slate-700 text-rose-400 active:border-rose-600 flex-shrink-0 text-xs font-black">×</button>
         </div>`).join('');
 
@@ -62,7 +62,7 @@ window.TREINO_HISTORY_EDITOR = {
         ${linhas || '<p class="text-xs text-slate-600 text-center py-3">Sem séries. Apague o registro ou adicione uma.</p>'}
         <button type="button" onclick="addEditSeries()" class="w-full bg-slate-950/60 border border-slate-700 active:border-blue-600 text-slate-300 text-[11px] font-black py-2 rounded-xl transition-all active:scale-[0.99] mt-1">+ Adicionar série</button>
         <div class="flex items-center justify-between bg-slate-950/50 border border-slate-800 rounded-xl px-3 py-2 mt-3">
-          <span class="text-[10px] text-slate-500 font-bold uppercase tracking-wider">Volume</span>
+          <span class="text-[11px] text-slate-500 font-bold uppercase tracking-wider">Volume</span>
           <span class="text-xs font-black text-blue-300">${Math.round(volume).toLocaleString('pt-BR')}kg</span>
         </div>`;
     }

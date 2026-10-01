@@ -5,6 +5,13 @@ window.TREINO_STATIC = {
   metCardioPadrao: 6.0,
   releaseNotes: [
       {
+        version: '2.20.3', date: '2026-09-30',
+        highlights: [
+          '🔎 <strong>Textos mais legíveis.</strong> Rótulos e detalhes pequenos ficaram maiores para facilitar a leitura durante o treino.',
+          '🎨 <strong>Ajustes visuais.</strong> Cargas de três dígitos aparecem inteiras nas séries, e cores e destaques de foco voltaram a funcionar onde estavam faltando.'
+        ]
+      },
+      {
         version: '2.20.2', date: '2026-09-29',
         highlights: [
           '🛟 <strong>Mais segurança para seus dados.</strong> Melhorias na restauração de backups e no carregamento do histórico.',

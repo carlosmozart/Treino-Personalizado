@@ -13,8 +13,8 @@ window.TREINO_PROFILE_HEALTH = {
           <button type="button" onclick="selectTmbFormula('${key}')" class="relative flex flex-col items-center justify-center py-2.5 px-1 rounded-xl border text-center transition-all duration-150 active:scale-95 ${
             isActive ? 'bg-blue-600 border-blue-500 text-white' : 'bg-slate-950/60 border-slate-800 text-slate-400 hover:border-slate-700'
           }">
-            ${f.badge ? `<span class="absolute -top-2 left-1/2 -translate-x-1/2 text-[7px] font-black uppercase tracking-wider bg-emerald-500 text-slate-950 px-1.5 py-0.5 rounded-full whitespace-nowrap">${f.badge}</span>` : ''}
-            <span class="text-[10px] font-black leading-tight">${f.label}</span>
+            ${f.badge ? `<span class="absolute -top-2 left-1/2 -translate-x-1/2 text-[9px] font-black uppercase tracking-wider bg-emerald-500 text-slate-950 px-1.5 py-0.5 rounded-full whitespace-nowrap">${f.badge}</span>` : ''}
+            <span class="text-[11px] font-black leading-tight">${f.label}</span>
           </button>`;
       }).join('');
 
@@ -56,7 +56,7 @@ window.TREINO_PROFILE_HEALTH = {
       if (imc === null || isNaN(imc)) {
         imcValueEl.textContent = '--';
         imcClassEl.textContent = 'Preencha altura e peso';
-        imcClassEl.className = 'mt-1 text-[10px] font-bold px-2.5 py-1 rounded-full text-slate-500 bg-slate-800/50';
+        imcClassEl.className = 'mt-1 text-[11px] font-bold px-2.5 py-1 rounded-full text-slate-500 bg-slate-800/50';
         imcMarker.style.left = '0%';
         imcExplainEl.textContent = 'Preencha altura e peso para ver sua classificação.';
         return;
@@ -70,7 +70,7 @@ window.TREINO_PROFILE_HEALTH = {
       };
       imcValueEl.textContent = imc.toFixed(1);
       imcClassEl.textContent = info.label;
-      imcClassEl.className = `mt-1 text-[10px] font-bold px-2.5 py-1 rounded-full ${colorMap[info.color]}`;
+      imcClassEl.className = `mt-1 text-[11px] font-bold px-2.5 py-1 rounded-full ${colorMap[info.color]}`;
       imcMarker.style.left = `${Math.min(97, Math.max(2, info.pct))}%`;
 
       const ideal = computeIdealWeightRange(heightNum);

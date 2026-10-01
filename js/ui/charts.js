@@ -108,12 +108,12 @@ window.TREINO_CHARTS = {
       const atual = getChartRange(key);
       const botao = (valor, rotulo) => {
         const ativo = String(atual) === String(valor);
-        return `<button type="button" onclick="setChartRange('${key}','${valor}')" class="px-2.5 py-1 rounded-lg border text-[10px] font-black transition-all active:scale-95 ${
+        return `<button type="button" onclick="setChartRange('${key}','${valor}')" class="px-2.5 py-1 rounded-lg border text-[11px] font-black transition-all active:scale-95 ${
           ativo ? 'bg-blue-600 border-blue-500 text-white' : 'bg-slate-950/60 border-slate-800 text-slate-500'
         }">${rotulo}</button>`;
       };
       return `<div class="flex items-center justify-end gap-1 mb-2">
-        <span class="text-[9px] font-bold text-slate-600 uppercase tracking-wider mr-1">Mostrar</span>
+        <span class="text-[11px] font-bold text-slate-600 uppercase tracking-wider mr-1">Mostrar</span>
         ${opcoes.map(n => botao(n, `${n}`)).join('')}
         ${botao('tudo', 'Tudo')}
       </div>`;
@@ -130,7 +130,7 @@ window.TREINO_CHARTS = {
     // Linha de apoio dos graficos consultaveis: sem ela os pontos nao anunciam que respondem
     // ao toque. Fica abaixo das datas, para nao separar o grafico da sua propria legenda.
     function chartHint() {
-      return `<p class="text-[9px] text-slate-700 font-bold text-center mt-1">toque no gráfico para ver cada registro</p>`;
+      return `<p class="text-[11px] text-slate-700 font-bold text-center mt-1">toque no gráfico para ver cada registro</p>`;
     }
 
     function showChartPoint(ev, id) {

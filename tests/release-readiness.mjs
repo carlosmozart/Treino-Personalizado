@@ -90,4 +90,27 @@ const webManifest = JSON.parse(manifest);
 assert.equal(webManifest.display, 'standalone', 'Manifest precisa manter modo de app.');
 assert.equal(webManifest.orientation, 'portrait', 'Manifest precisa manter orientação retrato.');
 
+// O Tailwind é pré-compilado: toda classe usada precisa existir no <style>, senão fica inerte.
+{
+  const { readdir } = await import('node:fs/promises');
+  const css = (html.match(/<style[^>]*>[\s\S]*?<\/style>/g) || []).join('');
+  const uiFiles = ['index.html',
+    ...(await readdir(resolve(root, 'js'))).filter((f) => f.endsWith('.js')).map((f) => `js/${f}`),
+    ...(await readdir(resolve(root, 'js/ui'))).map((f) => `js/ui/${f}`)];
+  const prefix = /^-?(bg|text|border|p[xytblr]?|m[xytblr]?|w|h|min|max|gap|space|z|flex|grid|rounded|shadow|ring|focus|focus-visible|active|hover|left|right|top|bottom|inset|translate|opacity|font|leading|tracking|items|justify|overflow|whitespace|break|underline|stroke|scale|shrink)\b/;
+  const missing = new Set();
+  for (const file of uiFiles) {
+    const source = await read(file);
+    for (const match of source.matchAll(/class(?:Name)?\s*[=:]\s*["`']([^"`']+)["`']/g)) {
+      for (const cls of match[1].split(/\s+/)) {
+        if (!cls || /[${}<>]/.test(cls) || !/[-:]/.test(cls) || !prefix.test(cls)) continue;
+        const sel = '.' + cls.replace(/[:\[\]\/.%#!(),]/g, (ch) => '\\' + ch);
+        if (![...'{,: >'].some((end) => css.includes(sel + end))) missing.add(`${cls} (${file})`);
+      }
+    }
+  }
+  assert.deepEqual([...missing], [], 'Classes usadas sem definição no CSS compilado.');
+  assert.ok(!/text-\[[5-8]px\]/.test(html + (await Promise.all(uiFiles.map(read))).join('')), 'Fontes abaixo de 9px prejudicam a leitura no celular.');
+}
+
 console.log(`Prontidão de release validada: v${appVersion}.`);

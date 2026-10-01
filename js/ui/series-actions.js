@@ -139,22 +139,22 @@ window.TREINO_SERIES_ACTIONS = {
       const feitas = series.filter(sr => sr.done).length;
 
       const linhas = series.map((sr, i) => `
-        <div class="flex items-center gap-2 ${sr.done ? 'opacity-50' : ''}">
-          <span class="w-5 text-[10px] font-black ${sr.done ? 'text-emerald-400' : 'text-slate-500'} text-center flex-shrink-0">${i + 1}</span>
+        <div class="flex items-center gap-1.5 ${sr.done ? 'opacity-50' : ''}">
+          <span class="w-5 text-[11px] font-black ${sr.done ? 'text-emerald-400' : 'text-slate-500'} text-center flex-shrink-0">${i + 1}</span>
 
           <div class="flex items-center bg-slate-950/60 border border-slate-800 rounded-lg flex-1 min-w-0">
-            <button type="button" onclick="adjustSeries('${ex.id}',${i},'reps',-1)" aria-label="Menos uma repetição na série ${i + 1}" class="w-8 h-9 text-slate-400 active:text-white font-black text-xs flex-shrink-0">−</button>
+            <button type="button" onclick="adjustSeries('${ex.id}',${i},'reps',-1)" aria-label="Menos uma repetição na série ${i + 1}" class="w-7 h-9 text-slate-400 active:text-white font-black text-xs flex-shrink-0">−</button>
             <input type="number" inputmode="numeric" value="${sr.reps}" onchange="updateSeriesField('${ex.id}',${i},'reps',this.value)" aria-label="Repetições da série ${i + 1}" class="w-full min-w-0 bg-transparent text-center font-extrabold text-white text-sm focus:outline-none"/>
-            <button type="button" onclick="adjustSeries('${ex.id}',${i},'reps',1)" aria-label="Mais uma repetição na série ${i + 1}" class="w-8 h-9 text-slate-400 active:text-white font-black text-xs flex-shrink-0">+</button>
+            <button type="button" onclick="adjustSeries('${ex.id}',${i},'reps',1)" aria-label="Mais uma repetição na série ${i + 1}" class="w-7 h-9 text-slate-400 active:text-white font-black text-xs flex-shrink-0">+</button>
           </div>
-          <span class="text-[9px] text-slate-600 font-bold flex-shrink-0">reps</span>
+          <span class="text-[10px] text-slate-600 font-bold flex-shrink-0">reps</span>
 
           <div class="flex items-center bg-slate-950/60 border border-slate-800 rounded-lg flex-1 min-w-0">
-            <button type="button" onclick="adjustSeries('${ex.id}',${i},'weight',-2.5)" aria-label="Menos carga na série ${i + 1}" class="w-8 h-9 text-slate-400 active:text-white font-black text-xs flex-shrink-0">−</button>
+            <button type="button" onclick="adjustSeries('${ex.id}',${i},'weight',-2.5)" aria-label="Menos carga na série ${i + 1}" class="w-7 h-9 text-slate-400 active:text-white font-black text-xs flex-shrink-0">−</button>
             <input type="number" inputmode="decimal" step="0.5" value="${sr.weight}" onchange="updateSeriesField('${ex.id}',${i},'weight',this.value); confirmSuspiciousWeight('${ex.id}',${i},this.value)" aria-label="Carga da série ${i + 1}" class="w-full min-w-0 bg-transparent text-center font-extrabold text-white text-sm focus:outline-none"/>
-            <button type="button" onclick="adjustSeries('${ex.id}',${i},'weight',2.5)" aria-label="Mais carga na série ${i + 1}" class="w-8 h-9 text-slate-400 active:text-white font-black text-xs flex-shrink-0">+</button>
+            <button type="button" onclick="adjustSeries('${ex.id}',${i},'weight',2.5)" aria-label="Mais carga na série ${i + 1}" class="w-7 h-9 text-slate-400 active:text-white font-black text-xs flex-shrink-0">+</button>
           </div>
-          <span class="text-[9px] text-slate-600 font-bold flex-shrink-0">kg</span>
+          <span class="text-[10px] text-slate-600 font-bold flex-shrink-0">kg</span>
 
           <button type="button" onclick="toggleSerie('${ex.id}', ${i})"
             aria-pressed="${sr.done ? 'true' : 'false'}"
@@ -168,15 +168,15 @@ window.TREINO_SERIES_ACTIONS = {
       return `
         <div class="mb-4">
           <div class="flex items-center justify-between mb-2">
-            <span class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Séries</span>
+            <span class="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Séries</span>
             <div class="flex items-center gap-2">
-              <span class="text-[10px] font-black ${feitas === series.length ? 'text-emerald-400' : 'text-slate-500'}">${feitas}/${series.length}</span>
+              <span class="text-[11px] font-black ${feitas === series.length ? 'text-emerald-400' : 'text-slate-500'}">${feitas}/${series.length}</span>
               <button type="button" onclick="adjustValue('${ex.id}','sets',-1)" aria-label="Remover uma série" class="w-7 h-7 rounded-lg bg-slate-950/60 border border-slate-700 text-slate-400 active:text-white font-black text-xs">−</button>
               <button type="button" onclick="adjustValue('${ex.id}','sets',1)" aria-label="Adicionar uma série" class="w-7 h-7 rounded-lg bg-slate-950/60 border border-slate-700 text-slate-400 active:text-white font-black text-xs">+</button>
             </div>
           </div>
           <div class="space-y-1.5">${linhas}</div>
-          <p class="text-[9px] text-slate-600 mt-2">Toque no ○ ao terminar cada série — o descanso começa sozinho.</p>
+          <p class="text-[11px] text-slate-600 mt-2">Toque no ○ ao terminar cada série — o descanso começa sozinho.</p>
         </div>`;
     }
 

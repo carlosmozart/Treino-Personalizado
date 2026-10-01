@@ -39,7 +39,7 @@
               : 'bg-slate-950/50 border-slate-800 text-slate-600 opacity-60'
         }`;
         btn.innerHTML = `
-          <span class="text-[9px] font-black uppercase tracking-wider">${DAY_LABELS[i]}</span>
+          <span class="text-[11px] font-black uppercase tracking-wider">${DAY_LABELS[i]}</span>
           <span class="text-sm font-extrabold mt-1">${d.getDate()}</span>
           <span class="mt-1 text-base leading-none">${checked ? '✅' : isToday ? '⏳' : isPast ? '·' : '🔒'}</span>
         `;
@@ -70,10 +70,10 @@
       const statusEl = document.getElementById('freeMealStatus');
       if (unlocked) {
         statusEl.textContent = '🍕 Refeição Livre liberada nesta semana! Aproveite no fim de semana.';
-        statusEl.className = 'text-[10px] text-amber-400 font-bold mt-2 text-center';
+        statusEl.className = 'text-[11px] text-amber-400 font-bold mt-2 text-center';
       } else {
         statusEl.textContent = `Faltam ${Math.max(0, threshold - checkedThisWeek)} dia${Math.max(0, threshold - checkedThisWeek) === 1 ? '' : 's'} para liberar a Refeição Livre (80% da semana) 🍕`;
-        statusEl.className = 'text-[10px] text-slate-600 mt-2 text-center';
+        statusEl.className = 'text-[11px] text-slate-600 mt-2 text-center';
       }
     }
 

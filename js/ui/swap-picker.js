@@ -54,7 +54,7 @@ window.TREINO_SWAP_PICKER = {
       lista.innerHTML = filtrados.slice(0, 60).map(item => `
         <button type="button" onclick="applySwapPick('${escapeJs(item.nome)}')" class="w-full text-left bg-slate-950/50 active:bg-slate-800/60 rounded-xl px-3 py-2.5 border ${item.reserva ? 'border-amber-800/50' : 'border-slate-800/60'} transition-all active:scale-[0.99]">
           <p class="text-xs font-bold text-white truncate">${escapeHtml(item.nome)}</p>
-          <p class="text-[9px] ${item.reserva ? 'text-amber-400' : 'text-slate-600'} font-bold uppercase tracking-wider">${escapeHtml(item.grupo)}</p>
+          <p class="text-[11px] ${item.reserva ? 'text-amber-400' : 'text-slate-600'} font-bold uppercase tracking-wider">${escapeHtml(item.grupo)}</p>
         </button>`).join('');
     }
 

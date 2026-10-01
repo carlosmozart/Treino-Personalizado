@@ -31,9 +31,9 @@ window.TREINO_ACHIEVEMENTS_UI = {
 
       const activeCls = 'bg-blue-600 text-white';
       const inactiveCls = 'text-slate-500';
-      document.getElementById('achFilterTodas').className = `flex-1 py-2 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all duration-150 ${achievementsFilter === 'todas' ? activeCls : inactiveCls}`;
-      document.getElementById('achFilterDesbloqueadas').className = `flex-1 py-2 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all duration-150 ${achievementsFilter === 'desbloqueadas' ? activeCls : inactiveCls}`;
-      document.getElementById('achFilterBloqueadas').className = `flex-1 py-2 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all duration-150 ${achievementsFilter === 'bloqueadas' ? activeCls : inactiveCls}`;
+      document.getElementById('achFilterTodas').className = `flex-1 py-2 rounded-lg text-[11px] font-black uppercase tracking-wider transition-all duration-150 ${achievementsFilter === 'todas' ? activeCls : inactiveCls}`;
+      document.getElementById('achFilterDesbloqueadas').className = `flex-1 py-2 rounded-lg text-[11px] font-black uppercase tracking-wider transition-all duration-150 ${achievementsFilter === 'desbloqueadas' ? activeCls : inactiveCls}`;
+      document.getElementById('achFilterBloqueadas').className = `flex-1 py-2 rounded-lg text-[11px] font-black uppercase tracking-wider transition-all duration-150 ${achievementsFilter === 'bloqueadas' ? activeCls : inactiveCls}`;
 
       const filtered = ACHIEVEMENTS.filter(a => {
         const isUnlocked = !!getGamification().unlockedAchievements[a.id];
@@ -56,14 +56,14 @@ window.TREINO_ACHIEVEMENTS_UI = {
             <div class="min-w-0 flex-1">
               <div class="flex items-center justify-between gap-2">
                 <h4 class="font-extrabold text-sm ${isUnlocked ? 'text-amber-300' : 'text-slate-300'} truncate">${a.name}</h4>
-                ${isUnlocked ? `<span class="text-[9px] font-black text-amber-500 flex-shrink-0">✓ ${formatDateBR(unlockedDate)}</span>` : ''}
+                ${isUnlocked ? `<span class="text-[11px] font-black text-amber-500 flex-shrink-0">✓ ${formatDateBR(unlockedDate)}</span>` : ''}
               </div>
               <p class="text-xs text-slate-500 mt-0.5">${a.desc}</p>
               ${!isUnlocked ? `
                 <div class="w-full h-1.5 bg-slate-800 rounded-full overflow-hidden mt-2">
                   <div class="h-full bg-gradient-to-r from-blue-600 to-blue-400 rounded-full" style="width: ${pct}%"></div>
                 </div>
-                <p class="text-[9px] text-slate-600 mt-1">${current}/${a.target}</p>
+                <p class="text-[11px] text-slate-600 mt-1">${current}/${a.target}</p>
               ` : ''}
             </div>
           </div>`;

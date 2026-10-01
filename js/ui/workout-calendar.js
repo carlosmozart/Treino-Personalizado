@@ -47,7 +47,7 @@ window.TREINO_WORKOUT_CALENDAR = {
       if (wd && !wd.dataset.pronto) {
         // as tres letras, iguais as da tira de check-in: com uma so, Segunda, Sexta e Sabado
         // virariam todas "S" e Quarta e Quinta virariam "Q"
-        wd.innerHTML = DAY_LABELS.map(d => `<span class="text-[8px] font-black text-slate-600 uppercase text-center">${d}</span>`).join('');
+        wd.innerHTML = DAY_LABELS.map(d => `<span class="text-[10px] font-black text-slate-600 uppercase text-center">${d}</span>`).join('');
         wd.dataset.pronto = '1';
       }
 
@@ -85,7 +85,7 @@ window.TREINO_WORKOUT_CALENDAR = {
             soCardio ? 'bg-cyan-950/40 border-cyan-700/60 text-cyan-300' : 'bg-emerald-950/40 border-emerald-700/60 text-emerald-300'
           } ${isHoje ? 'border-blue-500' : ''}">
             <span class="text-[11px] font-black leading-none">${dia}</span>
-            <span class="text-[7px] font-bold leading-none mt-0.5">${soCardio ? 'cardio' : Math.round(registro.volume / 100) / 10 + 'k'}</span>
+            <span class="text-[9px] font-bold leading-none mt-0.5">${soCardio ? 'cardio' : Math.round(registro.volume / 100) / 10 + 'k'}</span>
           </button>`;
         } else {
           html += `<span class="aspect-square rounded-lg border ${isHoje ? 'border-blue-500' : 'border-slate-800/60'} flex items-center justify-center text-[11px] font-bold ${

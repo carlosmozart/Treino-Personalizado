@@ -10,9 +10,9 @@
           <div class="bg-slate-900 rounded-2xl p-4 border ${isActive ? 'border-blue-600' : 'border-slate-800'} shadow-sm">
             <div class="flex items-start justify-between gap-2">
               <div class="min-w-0">
-                <h4 class="font-extrabold text-white text-sm truncate">${p.name}${isActive ? ' <span class=\"text-[9px] text-blue-400 font-black uppercase align-middle border border-blue-700 rounded-full px-2 py-0.5 ml-1\">Ativo</span>' : ''}</h4>
+                <h4 class="font-extrabold text-white text-sm truncate">${p.name}${isActive ? ' <span class=\"text-[11px] text-blue-400 font-black uppercase align-middle border border-blue-700 rounded-full px-2 py-0.5 ml-1\">Ativo</span>' : ''}</h4>
                 <p class="text-xs text-slate-400 mt-1 line-clamp-2">${p.description || 'Sem descrição.'}</p>
-                <p class="text-[10px] text-slate-500 mt-2">${p.daysPerWeek} dia${p.daysPerWeek === 1 ? '' : 's'}/semana · ${totalExercises} exercício${totalExercises === 1 ? '' : 's'} cadastrado${totalExercises === 1 ? '' : 's'}</p>
+                <p class="text-[11px] text-slate-500 mt-2">${p.daysPerWeek} dia${p.daysPerWeek === 1 ? '' : 's'}/semana · ${totalExercises} exercício${totalExercises === 1 ? '' : 's'} cadastrado${totalExercises === 1 ? '' : 's'}</p>
               </div>
             </div>
             <div class="flex gap-2 mt-3">
@@ -72,7 +72,7 @@
       wrap.innerHTML = DAY_ORDER.map(key => {
         const hasExercises = editorState.schedule[key].exercises.length > 0;
         const isCurrent = key === editorState.currentDay;
-        return `<button type="button" onclick="selectEditorDay('${key}')" class="py-2 rounded-lg text-[10px] font-black uppercase transition-all ${
+        return `<button type="button" onclick="selectEditorDay('${key}')" class="py-2 rounded-lg text-[11px] font-black uppercase transition-all ${
           isCurrent ? 'bg-blue-600 text-white' : hasExercises ? 'bg-emerald-950/40 text-emerald-400 border border-emerald-800/50' : 'bg-slate-950 text-slate-500 border border-slate-800'
         }">${key}</button>`;
       }).join('');
@@ -114,26 +114,26 @@
         const fieldsHtml = isCardio ? `
           <div class="grid grid-cols-2 gap-2">
             <div>
-              <label class="text-[8px] font-bold text-slate-500 uppercase">Tempo (min)</label>
+              <label class="text-[10px] font-bold text-slate-500 uppercase">Tempo (min)</label>
               <input type="number" value="${ex.targetDuration || 0}" oninput="updateExerciseField(${idx},'targetDuration',this.value)" class="w-full bg-slate-950 border border-slate-800 rounded-lg px-2 py-1.5 text-white text-xs focus:outline-none focus:ring-1 focus:ring-blue-600"/>
             </div>
             <div>
-              <label class="text-[8px] font-bold text-slate-500 uppercase">Distância (km) — opcional</label>
+              <label class="text-[10px] font-bold text-slate-500 uppercase">Distância (km) — opcional</label>
               <input type="number" step="0.1" value="${ex.targetDistance || 0}" oninput="updateExerciseField(${idx},'targetDistance',this.value)" class="w-full bg-slate-950 border border-slate-800 rounded-lg px-2 py-1.5 text-white text-xs focus:outline-none focus:ring-1 focus:ring-blue-600"/>
             </div>
           </div>
         ` : `
           <div class="grid grid-cols-3 gap-2">
             <div>
-              <label class="text-[8px] font-bold text-slate-500 uppercase">Séries</label>
+              <label class="text-[10px] font-bold text-slate-500 uppercase">Séries</label>
               <input type="number" value="${ex.targetSets}" oninput="updateExerciseField(${idx},'targetSets',this.value)" class="w-full bg-slate-950 border border-slate-800 rounded-lg px-2 py-1.5 text-white text-xs focus:outline-none focus:ring-1 focus:ring-blue-600"/>
             </div>
             <div>
-              <label class="text-[8px] font-bold text-slate-500 uppercase">Reps</label>
+              <label class="text-[10px] font-bold text-slate-500 uppercase">Reps</label>
               <input type="number" value="${ex.targetReps}" oninput="updateExerciseField(${idx},'targetReps',this.value)" class="w-full bg-slate-950 border border-slate-800 rounded-lg px-2 py-1.5 text-white text-xs focus:outline-none focus:ring-1 focus:ring-blue-600"/>
             </div>
             <div>
-              <label class="text-[8px] font-bold text-slate-500 uppercase">Carga (kg)</label>
+              <label class="text-[10px] font-bold text-slate-500 uppercase">Carga (kg)</label>
               <input type="number" step="0.5" value="${ex.targetWeight}" oninput="updateExerciseField(${idx},'targetWeight',this.value)" class="w-full bg-slate-950 border border-slate-800 rounded-lg px-2 py-1.5 text-white text-xs focus:outline-none focus:ring-1 focus:ring-blue-600"/>
             </div>
           </div>
@@ -151,8 +151,8 @@
             </button>
           </div>
           <div class="flex items-center gap-2">
-            <span class="text-[8px] font-bold text-slate-500 uppercase">Tipo:</span>
-            <button type="button" onclick="toggleExerciseType(${idx})" class="text-[10px] font-black px-2.5 py-1 rounded-full border transition-all ${
+            <span class="text-[10px] font-bold text-slate-500 uppercase">Tipo:</span>
+            <button type="button" onclick="toggleExerciseType(${idx})" class="text-[11px] font-black px-2.5 py-1 rounded-full border transition-all ${
               isCardio ? 'bg-cyan-950/40 border-cyan-700 text-cyan-300' : 'bg-blue-950/40 border-blue-700 text-blue-300'
             }">${isCardio ? '🏃 Cardio' : '💪 Força'} — trocar</button>
           </div>

@@ -28,7 +28,7 @@ window.TREINO_EXERCISE_CARDS = {
         const fieldsHtml = isCardio ? `
           <div class="grid grid-cols-2 gap-4 mb-4">
             <div class="bg-slate-950/50 rounded-xl p-2.5 border border-slate-800 flex flex-col items-center">
-              <span class="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Tempo (min)</span>
+              <span class="text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1">Tempo (min)</span>
               <div class="flex items-center space-x-3">
                 <button type="button" onclick="adjustValue('${ex.id}', 'duration', -5)" class="bg-slate-850 hover:bg-slate-800 text-slate-300 p-2 rounded-lg border border-slate-700/50 transition-transform active:scale-90">-5</button>
                 <span id="display-duration-${ex.id}" class="text-lg font-extrabold text-white min-w-[32px] text-center">${state.duration}</span>
@@ -36,7 +36,7 @@ window.TREINO_EXERCISE_CARDS = {
               </div>
             </div>
             <div class="bg-slate-950/50 rounded-xl p-2.5 border border-slate-800 flex flex-col items-center">
-              <span class="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Distância (km)</span>
+              <span class="text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1">Distância (km)</span>
               <div class="flex items-center space-x-3">
                 <button type="button" onclick="adjustValue('${ex.id}', 'distance', -0.5)" class="bg-slate-850 hover:bg-slate-800 text-slate-300 p-2 rounded-lg border border-slate-700/50 transition-transform active:scale-90">-0.5</button>
                 <span id="display-distance-${ex.id}" class="text-lg font-extrabold text-cyan-300 min-w-[32px] text-center">${state.distance}</span>
@@ -47,17 +47,17 @@ window.TREINO_EXERCISE_CARDS = {
         ` : `
           <div class="bg-slate-950/50 rounded-xl p-3 border border-slate-800 mb-4">
             <div class="flex items-center justify-between mb-2">
-              <span class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Carga para todas as séries</span>
-              <span class="text-[9px] text-slate-600">ajuste fino em cada linha abaixo</span>
+              <span class="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Carga para todas as séries</span>
+              <span class="text-[11px] text-slate-600">ajuste fino em cada linha abaixo</span>
             </div>
             <div class="flex items-center gap-1 flex-wrap justify-center">
-              <button type="button" onclick="applyWeightToAll('${ex.id}', -10)" class="bg-rose-950/50 hover:bg-rose-900/70 text-rose-300 px-1.5 py-1.5 text-[10px] font-black rounded border border-rose-800/50 transition-transform active:scale-90">-10</button>
-              <button type="button" onclick="applyWeightToAll('${ex.id}', -5)" class="bg-rose-950/40 hover:bg-rose-900/60 text-rose-400 px-1.5 py-1 text-[10px] font-black rounded border border-rose-800/40 transition-transform active:scale-90">-5</button>
-              <button type="button" onclick="applyWeightToAll('${ex.id}', -2.5)" class="bg-slate-850 hover:bg-slate-800 text-slate-300 px-1.5 py-1.5 text-[10px] font-bold rounded-lg border border-slate-700/50 transition-transform active:scale-90">-2.5</button>
+              <button type="button" onclick="applyWeightToAll('${ex.id}', -10)" class="bg-rose-950/50 hover:bg-rose-900/70 text-rose-300 px-1.5 py-1.5 text-[11px] font-black rounded border border-rose-800/50 transition-transform active:scale-90">-10</button>
+              <button type="button" onclick="applyWeightToAll('${ex.id}', -5)" class="bg-rose-950/40 hover:bg-rose-900/60 text-rose-400 px-1.5 py-1 text-[11px] font-black rounded border border-rose-800/40 transition-transform active:scale-90">-5</button>
+              <button type="button" onclick="applyWeightToAll('${ex.id}', -2.5)" class="bg-slate-850 hover:bg-slate-800 text-slate-300 px-1.5 py-1.5 text-[11px] font-bold rounded-lg border border-slate-700/50 transition-transform active:scale-90">-2.5</button>
               <input type="number" step="0.5" id="input-weight-${ex.id}" value="${state.weight}" onchange="setWeightForAll('${ex.id}', this.value)" aria-label="Carga para todas as séries" class="bg-transparent text-center font-extrabold text-white text-base w-16 focus:outline-none"/>
-              <button type="button" onclick="applyWeightToAll('${ex.id}', 2.5)" class="bg-slate-850 hover:bg-slate-800 text-slate-300 px-1.5 py-1.5 text-[10px] font-bold rounded-lg border border-slate-700/50 transition-transform active:scale-90">+2.5</button>
-              <button type="button" onclick="applyWeightToAll('${ex.id}', 5)" class="bg-blue-900/40 hover:bg-blue-800/60 text-blue-400 px-1.5 py-1 text-[10px] font-black rounded border border-blue-800/30 transition-transform active:scale-90">+5</button>
-              <button type="button" onclick="applyWeightToAll('${ex.id}', 10)" class="bg-blue-900/50 hover:bg-blue-800/70 text-blue-300 px-1.5 py-1.5 text-[10px] font-black rounded border border-blue-800/50 transition-transform active:scale-90">+10</button>
+              <button type="button" onclick="applyWeightToAll('${ex.id}', 2.5)" class="bg-slate-850 hover:bg-slate-800 text-slate-300 px-1.5 py-1.5 text-[11px] font-bold rounded-lg border border-slate-700/50 transition-transform active:scale-90">+2.5</button>
+              <button type="button" onclick="applyWeightToAll('${ex.id}', 5)" class="bg-blue-900/40 hover:bg-blue-800/60 text-blue-400 px-1.5 py-1 text-[11px] font-black rounded border border-blue-800/30 transition-transform active:scale-90">+5</button>
+              <button type="button" onclick="applyWeightToAll('${ex.id}', 10)" class="bg-blue-900/50 hover:bg-blue-800/70 text-blue-300 px-1.5 py-1.5 text-[11px] font-black rounded border border-blue-800/50 transition-transform active:scale-90">+10</button>
             </div>
           </div>
                 `;
@@ -72,13 +72,13 @@ window.TREINO_EXERCISE_CARDS = {
                    <span>💡</span><span class="text-justify flex-1">${escapeHtml(ex.alt)}</span>
                    <button type="button" onclick="toggleExerciseHint('${ex.id}')" aria-label="Ocultar dica" class="text-amber-500 font-black flex-shrink-0">×</button>
                  </div>`
-              : `<button type="button" onclick="toggleExerciseHint('${ex.id}')" class="mt-3 text-[10px] font-black text-amber-400/80 active:text-amber-300 flex items-center gap-1">💡 Ver dica deste exercício</button>`
+              : `<button type="button" onclick="toggleExerciseHint('${ex.id}')" class="mt-3 text-[11px] font-black text-amber-400/80 active:text-amber-300 flex items-center gap-1">💡 Ver dica deste exercício</button>`
           ) : ''}
           ${(getNotesOpen().has(ex.id) || (state.obs && state.obs.trim()))
             ? `<div class="mt-3">
                  <input type="text" value="${escapeHtml(state.obs)}" placeholder="Como foi? (ex: falhei na última)" oninput="updateObs('${ex.id}', this.value)" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2.5 text-white text-xs focus:outline-none focus:ring-1 focus:ring-slate-700 placeholder-slate-600"/>
                </div>`
-            : `<button type="button" onclick="openExerciseNote('${ex.id}')" class="mt-3 text-[10px] font-black text-slate-500 active:text-slate-300 flex items-center gap-1">✏️ Adicionar observação</button>`
+            : `<button type="button" onclick="openExerciseNote('${ex.id}')" class="mt-3 text-[11px] font-black text-slate-500 active:text-slate-300 flex items-center gap-1">✏️ Adicionar observação</button>`
           }
           <div class="mt-3 flex items-center gap-2">
             <button type="button" onclick="startRestTimer(${restSegundos}, '${escapeJs(state.name)}')" class="flex-1 bg-slate-950/60 border border-slate-700 active:border-blue-600 text-slate-300 active:text-blue-300 text-[11px] font-black py-2.5 rounded-xl transition-all active:scale-[0.98] flex items-center justify-center gap-1.5">
@@ -105,7 +105,7 @@ window.TREINO_EXERCISE_CARDS = {
                 </div>
                 <div class="min-w-0">
                   <h3 class="min-w-0"><button type="button" onclick="showNameTooltip(event, '${escapeJs(state.name)}')" title="${escapeHtml(state.name)}" aria-label="Mostrar nome completo: ${escapeHtml(state.name)}" class="block w-full text-left font-extrabold text-base md:text-lg text-white leading-tight truncate focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 rounded ${state.done ? 'line-through decoration-emerald-500 decoration-2 text-slate-400' : ''}">${escapeHtml(state.name)}</button></h3>
-                  ${ex.optional ? `<span class="inline-block text-[8px] font-black uppercase tracking-wider text-amber-400 bg-amber-950/40 border border-amber-800/50 px-1.5 py-0.5 rounded mt-1">☆ Opcional</span>` : ''}
+                  ${ex.optional ? `<span class="inline-block text-[10px] font-black uppercase tracking-wider text-amber-400 bg-amber-950/40 border border-amber-800/50 px-1.5 py-0.5 rounded mt-1">☆ Opcional</span>` : ''}
                   ${isCollapsed ? '' : subtitleHtml}
                 </div>
               </div>

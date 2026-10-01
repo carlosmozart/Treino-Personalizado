@@ -300,18 +300,18 @@ EX|Nome do exercício|forca|3|10|20|Alternativa opcional|
       document.getElementById('aiImportSummary').innerHTML = `
         <div class="bg-slate-950/50 border border-slate-800 rounded-xl px-3 py-2.5 text-center">
           <p class="text-lg font-black text-white">${montado.dias}</p>
-          <p class="text-[9px] text-slate-600 font-bold uppercase tracking-wider">Dias de treino</p>
+          <p class="text-[11px] text-slate-600 font-bold uppercase tracking-wider">Dias de treino</p>
         </div>
         <div class="bg-slate-950/50 border border-slate-800 rounded-xl px-3 py-2.5 text-center">
           <p class="text-lg font-black text-white">${montado.totalEx}</p>
-          <p class="text-[9px] text-slate-600 font-bold uppercase tracking-wider">Exercícios</p>
+          <p class="text-[11px] text-slate-600 font-bold uppercase tracking-wider">Exercícios</p>
         </div>`;
 
       const todasNotas = plano.avisos.concat(montado.notas);
       document.getElementById('aiImportNotes').innerHTML = todasNotas.length
         ? `<div class="bg-amber-950/30 border border-amber-800/40 rounded-xl px-3 py-2.5 space-y-1.5">
-             <p class="text-[9px] font-black text-amber-400 uppercase tracking-wider">O que o app adaptou</p>
-             ${todasNotas.map(n => `<p class="text-[10px] text-amber-300 leading-relaxed text-justify">• ${escapeHtml(n)}</p>`).join('')}
+             <p class="text-[11px] font-black text-amber-400 uppercase tracking-wider">O que o app adaptou</p>
+             ${todasNotas.map(n => `<p class="text-[11px] text-amber-300 leading-relaxed text-justify">• ${escapeHtml(n)}</p>`).join('')}
            </div>`
         : '';
 
@@ -323,11 +323,11 @@ EX|Nome do exercício|forca|3|10|20|Alternativa opcional|
           return `<div class="bg-slate-950/50 border border-slate-800 rounded-xl px-3 py-2.5">
             <div class="flex items-center justify-between gap-2">
               <p class="text-xs font-bold text-white truncate">${escapeHtml(dia.name)}</p>
-              <span class="text-[9px] font-black text-blue-300 flex-shrink-0">${dia.exercises.length} ex · ${series} séries</span>
+              <span class="text-[11px] font-black text-blue-300 flex-shrink-0">${dia.exercises.length} ex · ${series} séries</span>
             </div>
-            ${dia.focus ? `<p class="text-[10px] text-slate-500 truncate">${escapeHtml(dia.focus)}</p>` : ''}
+            ${dia.focus ? `<p class="text-[11px] text-slate-500 truncate">${escapeHtml(dia.focus)}</p>` : ''}
             <div class="mt-1.5 space-y-0.5">
-              ${dia.exercises.map(e => `<p class="text-[10px] text-slate-400 truncate">· ${escapeHtml(e.name)} <span class="text-slate-600">${
+              ${dia.exercises.map(e => `<p class="text-[11px] text-slate-400 truncate">· ${escapeHtml(e.name)} <span class="text-slate-600">${
                 e.type === 'cardio' ? `${e.targetDuration}min` : `${e.targetSets}x${e.targetReps}`
               }${e.optional ? ' · opcional' : ''}${e.backups[0].name ? ' · tem reserva' : ''}</span></p>`).join('')}
             </div>

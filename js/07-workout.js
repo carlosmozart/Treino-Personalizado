@@ -76,7 +76,7 @@
         const fieldsHtml = isCardio ? `
           <div class="grid grid-cols-2 gap-4 mb-4">
             <div class="bg-slate-950/50 rounded-xl p-2.5 border border-slate-800 flex flex-col items-center">
-              <span class="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Tempo (min)</span>
+              <span class="text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1">Tempo (min)</span>
               <div class="flex items-center space-x-3">
                 <button type="button" onclick="adjustValue('${ex.id}', 'duration', -5)" class="bg-slate-850 hover:bg-slate-800 text-slate-300 p-2 rounded-lg border border-slate-700/50 transition-transform active:scale-90">-5</button>
                 <span id="display-duration-${ex.id}" class="text-lg font-extrabold text-white min-w-[32px] text-center">${state.duration}</span>
@@ -84,7 +84,7 @@
               </div>
             </div>
             <div class="bg-slate-950/50 rounded-xl p-2.5 border border-slate-800 flex flex-col items-center">
-              <span class="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Distância (km)</span>
+              <span class="text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1">Distância (km)</span>
               <div class="flex items-center space-x-3">
                 <button type="button" onclick="adjustValue('${ex.id}', 'distance', -0.5)" class="bg-slate-850 hover:bg-slate-800 text-slate-300 p-2 rounded-lg border border-slate-700/50 transition-transform active:scale-90">-0.5</button>
                 <span id="display-distance-${ex.id}" class="text-lg font-extrabold text-cyan-300 min-w-[32px] text-center">${state.distance}</span>
@@ -95,7 +95,7 @@
         ` : `
           <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
             <div class="bg-slate-950/50 rounded-xl p-2.5 border border-slate-800 flex flex-col items-center">
-              <span class="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Séries</span>
+              <span class="text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1">Séries</span>
               <div class="flex items-center space-x-4">
                 <button type="button" onclick="adjustValue('${ex.id}', 'sets', -1)" class="bg-slate-850 hover:bg-slate-800 text-slate-300 p-2 rounded-lg border border-slate-700/50 transition-transform active:scale-90">-</button>
                 <span id="display-sets-${ex.id}" class="text-lg font-extrabold text-white min-w-[24px] text-center">${state.sets}</span>
@@ -103,7 +103,7 @@
               </div>
             </div>
             <div class="bg-slate-950/50 rounded-xl p-2.5 border border-slate-800 flex flex-col items-center">
-              <span class="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Repetições</span>
+              <span class="text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1">Repetições</span>
               <div class="flex items-center space-x-4">
                 <button type="button" onclick="adjustValue('${ex.id}', 'reps', -1)" class="bg-slate-850 hover:bg-slate-800 text-slate-300 p-2 rounded-lg border border-slate-700/50 transition-transform active:scale-90">-</button>
                 <span id="display-reps-${ex.id}" class="text-xl font-black text-blue-400 min-w-[28px] text-center">${state.reps}</span>
@@ -111,13 +111,13 @@
               </div>
             </div>
             <div class="bg-slate-950/50 rounded-xl p-2.5 border border-slate-800 flex flex-col items-center">
-              <span class="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Carga (kg)</span>
+              <span class="text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1">Carga (kg)</span>
               <div class="flex items-center space-x-1.5">
-                <button type="button" onclick="adjustValue('${ex.id}', 'weight', -5)" class="bg-rose-950/40 hover:bg-rose-900/60 text-rose-400 px-1.5 py-1 text-[10px] font-black rounded border border-rose-800/40 transition-transform active:scale-90">-5</button>
-                <button type="button" onclick="adjustValue('${ex.id}', 'weight', -0.5)" class="bg-slate-850 hover:bg-slate-800 text-slate-300 px-1.5 py-1.5 text-[10px] font-bold rounded-lg border border-slate-700/50 transition-transform active:scale-90">-0.5</button>
+                <button type="button" onclick="adjustValue('${ex.id}', 'weight', -5)" class="bg-rose-950/40 hover:bg-rose-900/60 text-rose-400 px-1.5 py-1 text-[11px] font-black rounded border border-rose-800/40 transition-transform active:scale-90">-5</button>
+                <button type="button" onclick="adjustValue('${ex.id}', 'weight', -0.5)" class="bg-slate-850 hover:bg-slate-800 text-slate-300 px-1.5 py-1.5 text-[11px] font-bold rounded-lg border border-slate-700/50 transition-transform active:scale-90">-0.5</button>
                 <input type="number" step="0.5" id="input-weight-${ex.id}" value="${state.weight}" onchange="updateWeightDirectly('${ex.id}', this.value)" class="bg-transparent text-center font-extrabold text-white text-base w-14 focus:outline-none"/>
-                <button type="button" onclick="adjustValue('${ex.id}', 'weight', 0.5)" class="bg-slate-850 hover:bg-slate-800 text-slate-300 px-1.5 py-1.5 text-[10px] font-bold rounded-lg border border-slate-700/50 transition-transform active:scale-90">+0.5</button>
-                <button type="button" onclick="adjustValue('${ex.id}', 'weight', 5)" class="bg-blue-900/40 hover:bg-blue-800/60 text-blue-400 px-1.5 py-1 text-[10px] font-black rounded border border-blue-800/30 transition-transform active:scale-90">+5</button>
+                <button type="button" onclick="adjustValue('${ex.id}', 'weight', 0.5)" class="bg-slate-850 hover:bg-slate-800 text-slate-300 px-1.5 py-1.5 text-[11px] font-bold rounded-lg border border-slate-700/50 transition-transform active:scale-90">+0.5</button>
+                <button type="button" onclick="adjustValue('${ex.id}', 'weight', 5)" class="bg-blue-900/40 hover:bg-blue-800/60 text-blue-400 px-1.5 py-1 text-[11px] font-black rounded border border-blue-800/30 transition-transform active:scale-90">+5</button>
               </div>
             </div>
           </div>

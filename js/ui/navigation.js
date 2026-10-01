@@ -33,7 +33,7 @@ window.TREINO_NAVIGATION = {
 
       const activeCls = 'bg-blue-600 text-white';
       const inactiveCls = 'text-slate-500';
-      const baseCls = 'flex-1 flex flex-col items-center gap-0.5 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-wider transition-all duration-150 active:scale-95';
+      const baseCls = 'flex-1 flex flex-col items-center gap-0.5 py-1.5 rounded-xl text-[11px] font-black uppercase tracking-wider transition-all duration-150 active:scale-95';
       navTreino.className = `${baseCls} ${view === 'treino' ? activeCls : inactiveCls}`;
       navPlanos.className = `${baseCls} ${view === 'planos' ? activeCls : inactiveCls}`;
       navPerfil.className = `${baseCls} ${view === 'perfil' ? activeCls : inactiveCls}`;

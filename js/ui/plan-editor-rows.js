@@ -22,26 +22,26 @@ window.TREINO_PLAN_EDITOR_ROWS = {
         const fieldsHtml = isCardio ? `
           <div class="grid grid-cols-2 gap-2">
             <div>
-              <label class="text-[8px] font-bold text-slate-500 uppercase">Tempo (min)</label>
+              <label class="text-[10px] font-bold text-slate-500 uppercase">Tempo (min)</label>
               <input type="number" value="${ex.targetDuration || 0}" oninput="updateExerciseField(${idx},'targetDuration',this.value)" class="w-full bg-slate-950 border border-slate-800 rounded-lg px-2 py-1.5 text-white text-xs focus:outline-none focus:ring-1 focus:ring-blue-600"/>
             </div>
             <div>
-              <label class="text-[8px] font-bold text-slate-500 uppercase">Distância (km) — opcional</label>
+              <label class="text-[10px] font-bold text-slate-500 uppercase">Distância (km) — opcional</label>
               <input type="number" step="0.1" value="${ex.targetDistance || 0}" oninput="updateExerciseField(${idx},'targetDistance',this.value)" class="w-full bg-slate-950 border border-slate-800 rounded-lg px-2 py-1.5 text-white text-xs focus:outline-none focus:ring-1 focus:ring-blue-600"/>
             </div>
           </div>
         ` : `
           <div class="grid grid-cols-3 gap-2">
             <div>
-              <label class="text-[8px] font-bold text-slate-500 uppercase">Séries</label>
+              <label class="text-[10px] font-bold text-slate-500 uppercase">Séries</label>
               <input type="number" value="${ex.targetSets}" oninput="updateExerciseField(${idx},'targetSets',this.value)" class="w-full bg-slate-950 border border-slate-800 rounded-lg px-2 py-1.5 text-white text-xs focus:outline-none focus:ring-1 focus:ring-blue-600"/>
             </div>
             <div>
-              <label class="text-[8px] font-bold text-slate-500 uppercase">Reps</label>
+              <label class="text-[10px] font-bold text-slate-500 uppercase">Reps</label>
               <input type="number" value="${ex.targetReps}" oninput="updateExerciseField(${idx},'targetReps',this.value)" class="w-full bg-slate-950 border border-slate-800 rounded-lg px-2 py-1.5 text-white text-xs focus:outline-none focus:ring-1 focus:ring-blue-600"/>
             </div>
             <div>
-              <label class="text-[8px] font-bold text-slate-500 uppercase">Carga (kg)</label>
+              <label class="text-[10px] font-bold text-slate-500 uppercase">Carga (kg)</label>
               <input type="number" step="0.5" value="${ex.targetWeight}" oninput="updateExerciseField(${idx},'targetWeight',this.value)" class="w-full bg-slate-950 border border-slate-800 rounded-lg px-2 py-1.5 text-white text-xs focus:outline-none focus:ring-1 focus:ring-blue-600"/>
             </div>
           </div>
@@ -50,7 +50,7 @@ window.TREINO_PLAN_EDITOR_ROWS = {
           const b = backups[bIdx] || { name: '', type: 'forca' };
           return `
             <div class="flex items-center gap-2">
-              <span class="text-[10px] flex-shrink-0">📚</span>
+              <span class="text-[11px] flex-shrink-0">📚</span>
               <input type="text" list="exerciseLibraryList" value="${escapeHtml(b.name || '')}" oninput="updateBackupField(${idx},${bIdx},this.value)" placeholder="Reserva ${bIdx + 1} — digite para buscar" class="flex-1 min-w-0 bg-slate-950 border border-slate-800 rounded-lg px-2 py-1.5 text-white text-[11px] focus:outline-none focus:ring-1 focus:ring-amber-600"/>
             </div>`;
         }).join('');
@@ -72,23 +72,23 @@ window.TREINO_PLAN_EDITOR_ROWS = {
             </button>
           </div>
           <div class="flex items-center gap-2 flex-wrap">
-            <span class="text-[8px] font-bold text-slate-500 uppercase">Tipo:</span>
-            <button type="button" onclick="toggleExerciseType(${idx})" class="text-[10px] font-black px-2.5 py-1 rounded-full border transition-all ${
+            <span class="text-[10px] font-bold text-slate-500 uppercase">Tipo:</span>
+            <button type="button" onclick="toggleExerciseType(${idx})" class="text-[11px] font-black px-2.5 py-1 rounded-full border transition-all ${
               isCardio ? 'bg-cyan-950/40 border-cyan-700 text-cyan-300' : 'bg-blue-950/40 border-blue-700 text-blue-300'
             }">${isCardio ? '🏃 Cardio' : '💪 Força'} — trocar</button>
-            <button type="button" onclick="toggleExerciseOptional(${idx})" title="Exercícios opcionais não seguram a conclusão do treino" class="text-[10px] font-black px-2.5 py-1 rounded-full border transition-all ${
+            <button type="button" onclick="toggleExerciseOptional(${idx})" title="Exercícios opcionais não seguram a conclusão do treino" class="text-[11px] font-black px-2.5 py-1 rounded-full border transition-all ${
               ex.optional ? 'bg-amber-950/40 border-amber-700 text-amber-300' : 'bg-slate-950/60 border-slate-700 text-slate-500'
             }">${ex.optional ? '☆ Opcional' : 'Obrigatório'}</button>
           </div>
-          ${ex.optional ? `<p class="text-[9px] text-amber-500/80 leading-relaxed">Não fazer este exercício não impede o treino de ser dado como completo. Se você fizer, ele é registrado normalmente.</p>` : ''}
+          ${ex.optional ? `<p class="text-[11px] text-amber-500/80 leading-relaxed">Não fazer este exercício não impede o treino de ser dado como completo. Se você fizer, ele é registrado normalmente.</p>` : ''}
           ${fieldsHtml}
           <div class="flex items-center gap-2">
-            <label class="text-[8px] font-bold text-slate-500 uppercase flex-shrink-0">Descanso (s)</label>
+            <label class="text-[10px] font-bold text-slate-500 uppercase flex-shrink-0">Descanso (s)</label>
             <input type="number" min="5" max="600" step="5" value="${ex.restSeconds || ''}" oninput="updateExerciseRest(${idx}, this.value)" placeholder="padrão: ${getSettings().restSeconds}" class="w-24 bg-slate-950 border border-slate-800 rounded-lg px-2 py-1.5 text-white text-xs focus:outline-none focus:ring-1 focus:ring-blue-600"/>
-            <span class="text-[8px] text-slate-600">vazio = usa o padrão</span>
+            <span class="text-[10px] text-slate-600">vazio = usa o padrão</span>
           </div>
           <div class="pt-2 mt-1 border-t border-slate-800 space-y-1.5">
-            <span class="text-[8px] font-bold text-amber-500 uppercase tracking-wider flex items-center gap-1">🔄 Exercícios Reserva (até 2, opcional)</span>
+            <span class="text-[10px] font-bold text-amber-500 uppercase tracking-wider flex items-center gap-1">🔄 Exercícios Reserva (até 2, opcional)</span>
             ${backupsHtml}
           </div>
         </div>`;
