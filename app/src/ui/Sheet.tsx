@@ -1,5 +1,6 @@
 import { useEffect, useRef, type ReactNode } from 'react';
 import { Icon } from './Icon';
+import { backNav } from '../store/ui-store';
 
 interface Props {
   title: string;
@@ -11,6 +12,10 @@ interface Props {
 /** Painel que sobe de baixo, usando <dialog> nativo (foco preso e Esc de graça). */
 export function Sheet({ title, open, onClose, children }: Props) {
   const ref = useRef<HTMLDialogElement>(null);
+  const closeRef = useRef(onClose);
+  closeRef.current = onClose;
+  // voltar do Android fecha o painel (O9)
+  useEffect(() => (open ? backNav.pushLayer(() => closeRef.current()) : undefined), [open]);
   useEffect(() => {
     const dialog = ref.current;
     if (!dialog) return;

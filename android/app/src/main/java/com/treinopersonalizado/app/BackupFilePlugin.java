@@ -1,8 +1,14 @@
 package com.treinopersonalizado.app;
 
 import android.app.Activity;
+import android.content.ContentResolver;
+import android.content.ContentValues;
 import android.content.Intent;
+import android.database.Cursor;
 import android.net.Uri;
+import android.os.Build;
+import android.os.Environment;
+import android.provider.MediaStore;
 import androidx.activity.result.ActivityResult;
 import com.getcapacitor.JSObject;
 import com.getcapacitor.Plugin;
@@ -12,6 +18,8 @@ import com.getcapacitor.annotation.ActivityCallback;
 import com.getcapacitor.annotation.CapacitorPlugin;
 import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Salva o backup pelo seletor de arquivos do Android (Storage Access Framework).
@@ -64,5 +72,79 @@ public class BackupFilePlugin extends Plugin {
                 call.reject("Não foi possível gravar o arquivo: " + e.getMessage(), "WRITE_FAILED");
             }
         }).start();
+    }
+
+    private static final String AUTO_DIR = Environment.DIRECTORY_DOWNLOADS + "/TreinoPersonalizado/";
+
+    /**
+     * Backup automático (O11): grava em Downloads/TreinoPersonalizado sem perguntar, substituindo o
+     * arquivo de mesmo nome, e mantém só os `keep` mais recentes criados por este app. Fica fora da
+     * pasta do app, então sobrevive a desinstalar. Android 10+ (MediaStore, sem permissão).
+     */
+    @PluginMethod
+    public void autoSave(PluginCall call) {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
+            call.reject("Backup automático exige Android 10 ou mais novo.", "UNSUPPORTED");
+            return;
+        }
+        String fileName = call.getString("fileName", "");
+        String content = call.getString("content");
+        int keep = Math.max(1, Math.min(30, call.getInt("keep", 7)));
+        if (content == null || content.isEmpty() || content.length() > MAX_CHARS) {
+            call.reject("Backup vazio ou grande demais.", "BAD_CONTENT");
+            return;
+        }
+        if (!fileName.matches("[A-Za-z0-9._-]{1,120}\\.json")) {
+            call.reject("Nome de arquivo inválido.", "BAD_NAME");
+            return;
+        }
+        new Thread(() -> {
+            try {
+                ContentResolver resolver = getContext().getContentResolver();
+                Uri collection = MediaStore.Downloads.getContentUri(MediaStore.VOLUME_EXTERNAL_PRIMARY);
+                Uri uri = findOwn(resolver, collection, fileName);
+                if (uri == null) {
+                    ContentValues values = new ContentValues();
+                    values.put(MediaStore.MediaColumns.DISPLAY_NAME, fileName);
+                    values.put(MediaStore.MediaColumns.MIME_TYPE, "application/json");
+                    values.put(MediaStore.MediaColumns.RELATIVE_PATH, AUTO_DIR);
+                    uri = resolver.insert(collection, values);
+                }
+                if (uri == null) throw new Exception("Destino indisponível.");
+                try (OutputStream out = resolver.openOutputStream(uri, "wt")) {
+                    if (out == null) throw new Exception("Destino indisponível.");
+                    out.write(content.getBytes(StandardCharsets.UTF_8));
+                }
+                prune(resolver, collection, keep);
+                JSObject ret = new JSObject();
+                ret.put("uri", uri.toString());
+                call.resolve(ret);
+            } catch (Exception e) {
+                call.reject("Não foi possível gravar o backup automático: " + e.getMessage(), "WRITE_FAILED");
+            }
+        }).start();
+    }
+
+    private Uri findOwn(ContentResolver resolver, Uri collection, String fileName) {
+        String where = MediaStore.MediaColumns.RELATIVE_PATH + "=? AND " + MediaStore.MediaColumns.DISPLAY_NAME + "=?";
+        try (Cursor c = resolver.query(collection, new String[] { MediaStore.MediaColumns._ID }, where, new String[] { AUTO_DIR, fileName }, null)) {
+            if (c != null && c.moveToFirst()) return Uri.withAppendedPath(collection, String.valueOf(c.getLong(0)));
+        }
+        return null;
+    }
+
+    /** Apaga os backups automáticos mais antigos deste app além de `keep` (nomes datados ordenam). */
+    private void prune(ContentResolver resolver, Uri collection, int keep) {
+        String where = MediaStore.MediaColumns.RELATIVE_PATH + "=? AND " + MediaStore.MediaColumns.DISPLAY_NAME + " LIKE 'treino-auto-%'";
+        List<Uri> old = new ArrayList<>();
+        try (Cursor c = resolver.query(collection, new String[] { MediaStore.MediaColumns._ID }, where, new String[] { AUTO_DIR },
+                MediaStore.MediaColumns.DISPLAY_NAME + " DESC")) {
+            if (c == null) return;
+            int i = 0;
+            while (c.moveToNext()) {
+                if (i++ >= keep) old.add(Uri.withAppendedPath(collection, String.valueOf(c.getLong(0))));
+            }
+        }
+        for (Uri uri : old) resolver.delete(uri, null, null);
     }
 }

@@ -1,6 +1,8 @@
 import { useRef, useState } from 'react';
 import { updateSettings } from '../../domain/actions';
 import { buildBackup, readBackup } from '../../domain/backup';
+import { canAutoBackup, saveBackupFile } from '../../platform/backup-file';
+import { errorReport, useErrorLog } from '../../platform/error-log';
 import { toDateKey } from '../../domain/dates';
 import type { AppData, Settings } from '../../domain/model';
 import { restoreBackup } from '../../domain/profile-view';
@@ -36,6 +38,7 @@ export function SettingsSection() {
       </Card>
       <Card title="Sobre">
         <p className="text-sm text-muted">Versão {__APP_VERSION__}. Ilustrações dos exercícios: Everkinetic (CC BY-SA 4.0).</p>
+        <ErrorLogButton />
       </Card>
     </>
   );
@@ -57,16 +60,19 @@ function BackupCard() {
   const [password, setPassword] = useState('');
   const [message, setMessage] = useState('');
 
-  const exportNow = () => {
+  const settings = useAppStore(s => s.data?.settings);
+  const exportNow = async () => {
+    await useAppStore.getState().flush();
     const data = useAppStore.getState().data;
     if (!data) return;
-    const blob = new Blob([JSON.stringify(buildBackup(data, __APP_VERSION__))], { type: 'application/json' });
-    const a = document.createElement('a');
-    a.href = URL.createObjectURL(blob);
-    a.download = `treino-backup-${toDateKey(new Date())}.json`;
-    a.click();
-    setTimeout(() => URL.revokeObjectURL(a.href), 1000);
-    setMessage('Backup gerado.');
+    try {
+      // a mensagem de sucesso só aparece depois que o arquivo foi de fato gravado
+      const result = await saveBackupFile(`treino-backup-${toDateKey(new Date())}.json`, JSON.stringify(buildBackup(data, __APP_VERSION__)));
+      setMessage(result === 'saved' ? 'Backup salvo.' : '');
+    } catch (e) {
+      useErrorLog.getState().report(e, 'Backup');
+      setMessage('Não foi possível salvar o backup.');
+    }
   };
 
   const tryRead = async (text: string, pass?: string) => {
@@ -85,7 +91,7 @@ function BackupCard() {
     <Card title="Dados e backup">
       <p className="text-sm text-muted">Guarde um arquivo com tudo (treinos, planos, peso) fora do aparelho. Aceita backups do app atual.</p>
       <div className="grid grid-cols-2 gap-2">
-        <button type="button" onClick={exportNow} className="h-12 rounded-xl bg-primary font-bold text-white">Fazer backup</button>
+        <button type="button" onClick={() => void exportNow()} className="h-12 rounded-xl bg-primary font-bold text-white">Fazer backup</button>
         <button type="button" onClick={() => fileRef.current?.click()} className="h-12 rounded-xl bg-surface-2 font-bold">Restaurar</button>
       </div>
       <input ref={fileRef} type="file" accept="application/json,.json" hidden aria-label="Arquivo de backup"
@@ -97,6 +103,25 @@ function BackupCard() {
         </form>
       )}
       {message && <p role="status" className="text-sm text-muted">{message}</p>}
+      {canAutoBackup() && settings && (
+        <>
+          <Toggle label="Backup automático" checked={settings.autoBackup ?? true} onChange={v => run((d, t) => updateSettings(d, { autoBackup: v }, t))} />
+          <p className="text-xs text-faint">Depois de cada treino ou pesagem, uma cópia do dia vai para Downloads/TreinoPersonalizado (as 7 mais recentes). Fica no aparelho mesmo se o app for desinstalado.</p>
+        </>
+      )}
     </Card>
+  );
+}
+
+function ErrorLogButton() {
+  const entries = useErrorLog(s => s.entries);
+  const [copied, setCopied] = useState(false);
+  if (!entries.length) return null;
+  return (
+    <button type="button" className="h-11 font-semibold text-primary" onClick={() => {
+      navigator.clipboard.writeText(errorReport(entries, __APP_VERSION__, navigator.userAgent)).then(() => setCopied(true), () => setCopied(false));
+    }}>
+      {copied ? 'Registro copiado' : `Copiar registro de erros (${entries.length})`}
+    </button>
   );
 }

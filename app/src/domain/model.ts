@@ -137,6 +137,8 @@ export interface Settings {
   keepScreenOn?: boolean;
   /** Ilustrações dos exercícios no treino (Q2). Ausente = ligado. */
   showIllustrations?: boolean;
+  /** Backup automático no APK (O11). Ausente = ligado. */
+  autoBackup?: boolean;
 }
 
 export const DEFAULT_SETTINGS: Settings = {

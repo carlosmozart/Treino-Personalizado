@@ -1,5 +1,6 @@
 import { TabBar, TAB_LABELS } from './ui/TabBar';
 import { Toaster } from './ui/Toaster';
+import { ErrorNotice } from './ui/ErrorNotice';
 import { useUiStore } from './store/ui-store';
 import { useAppStore } from './store';
 import { WorkoutScreen } from './features/workout/WorkoutScreen';
@@ -39,6 +40,7 @@ export function App() {
       </main>
       <RestBar />
       <Toaster />
+      <ErrorNotice />
       <TabBar />
     </div>
   );
