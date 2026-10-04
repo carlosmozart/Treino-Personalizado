@@ -1243,7 +1243,7 @@
   <script src="js/ui/exercise-progress.js"></script>
   <script src="js/ui/charts.js"></script>
   <script>
-    const APP_VERSION = '2.21.1'; // manter sincronizado com CACHE_NAME em sw.js e com o CHANGELOG.md
+    const APP_VERSION = '2.21.2'; // manter sincronizado com CACHE_NAME em sw.js e com o CHANGELOG.md
 
     const RELEASE_NOTES = TREINO_STATIC.releaseNotes;
 
@@ -1427,6 +1427,8 @@
       window, document, navigator, buildBackupObject, backupFileName, encryptBackup, decryptBackup,
       isIOS, markBackupDone, showToast, copyTextToClipboard, MAX_BACKUP_BYTES, BACKUP_KEYS, JSON_BACKUP_KEYS,
       TREINO_BACKUP_VALIDATION, getLevelInfo, formatDateBR, escapeHtml,
+      nativeBackupFile: () => (PLATFORM.isNative && window.Capacitor && window.Capacitor.Plugins
+        ? window.Capacitor.Plugins.BackupFile || null : null),
       setRestoring: value => { restoringBackup = value; },
       cancelDraftSave: () => workoutDraft.cancelPendingSave(),
       restoreBackup: async data => {

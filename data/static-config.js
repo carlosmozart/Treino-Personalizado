@@ -5,6 +5,12 @@ window.TREINO_STATIC = {
   metCardioPadrao: 6.0,
   releaseNotes: [
       {
+        version: '2.21.2', date: '2026-10-04',
+        highlights: [
+          '💾 <strong>Backup que salva de verdade no APK.</strong> "Exportar Backup" abre o seletor de arquivos do Android para você escolher onde guardar (Downloads, Drive...). Se você fez backup pelo APK antes, ele não foi gerado: faça um novo.'
+        ]
+      },
+      {
         version: '2.21.1', date: '2026-10-04',
         highlights: [
           '✅ <strong>Histórico fiel ao que você fez.</strong> Ao finalizar, só as séries marcadas entram no histórico; exercícios não feitos ficam de fora e não geram sugestão de subir carga.'

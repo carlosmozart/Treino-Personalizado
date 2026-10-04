@@ -6,6 +6,11 @@ Todas as mudanças relevantes do app ficam registradas aqui. Ao lançar uma nova
    atualizar o app instalado
 3. Adicione uma entrada aqui, nesse formato
 
+## [2.21.2] - 2026-10-04
+
+- Corrige o backup no APK: o WebView do Android não tem a folha de compartilhamento e ignora links de download, então o app dizia "Backup exportado!" sem gerar arquivo nenhum (e ainda marcava o backup como feito, calando o lembrete). Agora o APK salva pelo seletor de arquivos do Android — você escolhe a pasta (Downloads, Drive...) sem precisar de permissão —, e o aviso de sucesso só aparece depois que o arquivo foi gravado. No navegador nada muda.
+- TODO: registra o novo nome do app novo (Vigor Gym) e a validação da migração com um backup real.
+
 ## [2.21.1] - 2026-10-04
 
 - Corrige a finalização do treino: antes ela gravava todas as séries exibidas como feitas, inclusive as nunca marcadas, e marcava todos os exercícios como concluídos — inflando volume, calorias e recordes e sugerindo subir carga em exercícios não realizados. Agora entram no histórico só as séries marcadas (concluir pelo botão redondo marca todas), exercício sem série feita fica de fora e cardio entra só se for marcado como feito. Registros antigos não são alterados.

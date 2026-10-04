@@ -2,7 +2,8 @@
 window.TREINO_BACKUP_UI = {
   create({ window, document, navigator, buildBackupObject, backupFileName, encryptBackup, decryptBackup,
     isIOS, markBackupDone, showToast, copyTextToClipboard, MAX_BACKUP_BYTES, BACKUP_KEYS, JSON_BACKUP_KEYS,
-    TREINO_BACKUP_VALIDATION, getLevelInfo, formatDateBR, escapeHtml, setRestoring, cancelDraftSave, restoreBackup }) {
+    TREINO_BACKUP_VALIDATION, getLevelInfo, formatDateBR, escapeHtml, setRestoring, cancelDraftSave, restoreBackup,
+    nativeBackupFile = () => null }) {
     async function exportBackup(protectedBackup = false) {
       let backup = buildBackupObject();
       let fileName = backupFileName();
@@ -17,6 +18,23 @@ window.TREINO_BACKUP_UI = {
         fileName = backupFileName().replace('treino-backup-', 'treino-backup-protegido-');
       }
       const json = JSON.stringify(backup, null, 2);
+      const doneMessage = protectedBackup ? '🔐 Backup protegido salvo! Guarde a senha.' : '✅ Backup salvo! Guarde num lugar seguro.';
+
+      // No APK, o WebView não tem a folha de compartilhamento e ignora links de download — o app
+      // dizia "exportado" sem gerar arquivo. Lá o arquivo é salvo pelo seletor do Android.
+      const BackupFile = nativeBackupFile();
+      if (BackupFile) {
+        try {
+          await BackupFile.save({ fileName, content: json });
+          markBackupDone();
+          showToast(doneMessage);
+        } catch (err) {
+          if (err && err.code === 'CANCELLED') return;
+          console.error('Falha ao salvar backup:', err);
+          showToast('❌ Não foi possível salvar. Tente o botão de copiar.');
+        }
+        return;
+      }
 
       // No iOS, um link com o atributo "download" não salva o arquivo — o Safari abre o
       // conteúdo como texto. O caminho que funciona lá é a folha de compartilhamento do
