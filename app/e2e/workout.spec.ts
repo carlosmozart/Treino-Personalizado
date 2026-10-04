@@ -40,7 +40,8 @@ test('treino completo: plano de exemplo, marcar séries, descanso, sobreviver ao
   await page.screenshot({ path: 'test-results/treino-resumo.png' });
   await page.getByRole('button', { name: 'Fechar' }).click();
   await page.getByRole('button', { name: 'Início', exact: true }).click();
-  await expect(page.getByRole('status')).toHaveText('1 treino no histórico.');
+  await expect(page.getByRole('region', { name: 'Progresso' }).getByRole('definition').nth(2)).toHaveText('1');
+  await expect(page.getByLabel('Esta semana').getByRole('listitem', { name: /, treinou, hoje$/ })).toHaveCount(1);
   expect(errors).toEqual([]);
 });
 
@@ -61,4 +62,23 @@ test('ilustração do exercício aparece, abre as duas posições com crédito e
   await card.getByRole('button', { name: /^Opções de / }).click();
   await page.getByRole('button', { name: 'Esconder ilustrações' }).click();
   await expect(thumb).toHaveCount(0);
+});
+
+test('início: começar pelo cartão de hoje, registrar peso e água', async ({ page }) => {
+  await page.goto('/');
+  await page.getByRole('button', { name: 'Ver planos' }).click();
+  await page.getByRole('button', { name: 'Usar plano de exemplo' }).click();
+  await page.getByRole('button', { name: 'Início', exact: true }).click();
+  await page.getByRole('button', { name: '+ Registrar' }).click();
+  await page.getByRole('textbox', { name: 'Peso de hoje em kg' }).fill('82,4');
+  await page.getByRole('button', { name: 'Salvar' }).click();
+  await expect(page.getByRole('region', { name: 'Peso' })).toContainText('82,4 kg');
+  await page.screenshot({ path: 'test-results/inicio.png', fullPage: true });
+  const start = page.getByRole('button', { name: 'Começar treino' });
+  if (await start.isVisible()) {
+    await start.click();
+    await expect(page.getByRole('button', { name: 'Concluir' })).toBeVisible();
+    await page.getByRole('button', { name: 'Início', exact: true }).click();
+    await expect(page.getByRole('button', { name: 'Continuar treino' })).toBeVisible();
+  }
 });

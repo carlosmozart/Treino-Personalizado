@@ -4,6 +4,7 @@ import { useUiStore } from './store/ui-store';
 import { useAppStore } from './store';
 import { WorkoutScreen } from './features/workout/WorkoutScreen';
 import { RestBar } from './features/workout/RestBar';
+import { HomeScreen } from './features/home/HomeScreen';
 
 export function App() {
   const tab = useUiStore(s => s.tab);
@@ -14,7 +15,7 @@ export function App() {
   return (
     <div className="safe-top min-h-dvh pb-44">
       <main className="mx-auto max-w-xl px-4">
-        {status === 'ready' && tab === 'treino' ? <WorkoutScreen /> : (
+        {status === 'ready' && tab === 'treino' ? <WorkoutScreen /> : status === 'ready' && tab === 'inicio' ? <HomeScreen /> : (
           <>
             <h1 className="pt-6 text-3xl font-black tracking-tight">{TAB_LABELS[tab]}</h1>
             <section className="mt-6 rounded-2xl border border-line bg-surface p-4">
