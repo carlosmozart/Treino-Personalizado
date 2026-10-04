@@ -56,3 +56,38 @@ test('metas: conquista do primeiro check-in e meta de peso com marcos', async ({
   await expect(page.getByText('88 kg', { exact: true })).toBeVisible();
   await page.screenshot({ path: 'test-results/metas.png', fullPage: true });
 });
+
+test('histórico: corrigir um exercício, evolução e apagar pesagem', async ({ page }) => {
+  const errors: string[] = [];
+  page.on('console', msg => { if (msg.type() === 'error') errors.push(msg.text()); });
+  await page.goto('/');
+  await page.getByRole('button', { name: 'Treino', exact: true }).click();
+  await page.getByRole('button', { name: 'Usar plano de exemplo' }).click();
+  await page.getByRole('button', { name: /^Começar / }).first().click();
+  const first = page.getByRole('article').first();
+  const name = await first.getAttribute('aria-label');
+  await first.getByRole('button', { name: 'Série 1 feita' }).click();
+  await page.getByRole('button', { name: 'Pular' }).click();
+  await page.getByRole('button', { name: 'Concluir' }).click();
+  await page.getByRole('button', { name: 'Finalizar assim' }).click();
+
+  await page.getByRole('button', { name: 'Progresso', exact: true }).click();
+  await expect(page.getByRole('heading', { name: 'Evolução por exercício' })).toBeVisible();
+  await page.getByRole('tab', { name: 'Histórico' }).click();
+  await page.getByRole('listitem').filter({ hasText: '1 exercício' }).first().getByRole('button').first().click();
+  await page.getByRole('button', { name: `Corrigir ${name}` }).click();
+  await page.getByRole('textbox', { name: 'Carga da série 1' }).fill('77,5');
+  await page.getByRole('button', { name: 'Salvar correção' }).click();
+  await expect(page.getByRole('button', { name: `Corrigir ${name}` })).toContainText('77,5kg');
+
+  await page.getByRole('button', { name: 'Início', exact: true }).click();
+  await page.getByRole('button', { name: /Registrar/ }).click();
+  await page.getByRole('textbox', { name: 'Peso de hoje em kg' }).fill('91');
+  await page.getByRole('button', { name: 'Salvar' }).click();
+  await page.getByRole('button', { name: 'Progresso', exact: true }).click();
+  await page.getByRole('tab', { name: 'Metas' }).click();
+  page.once('dialog', d => d.accept());
+  await page.getByRole('button', { name: /^Apagar pesagem de / }).first().click();
+  await expect(page.getByRole('heading', { name: 'Pesagens' })).toHaveCount(0);
+  expect(errors).toEqual([]);
+});

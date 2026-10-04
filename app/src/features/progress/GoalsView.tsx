@@ -1,5 +1,7 @@
 import { useState } from 'react';
 import { achievementList, startWeightGoal } from '../../domain/achievements';
+import { removeWeighIn } from '../../domain/actions';
+import { LineChart } from '../../ui/LineChart';
 import { goalProgress } from '../../domain/body-goal';
 import { useAppStore } from '../../store';
 import { Icon } from '../../ui/Icon';
@@ -17,6 +19,7 @@ export function GoalsView() {
   return (
     <div className="mt-4 space-y-4">
       <WeightGoalCard />
+      <WeighInsCard />
       <section className="rounded-2xl border border-line bg-surface p-4">
         <div className="flex items-baseline justify-between">
           <h2 className="font-bold">Conquistas</h2>
@@ -91,6 +94,43 @@ function WeightGoalCard() {
         <button type="button" onClick={() => { run((d, now) => startWeightGoal(d, target, now)); setOpen(false); }}
           className="mt-4 h-12 w-full rounded-xl bg-primary text-base font-bold text-white">Começar meta</button>
       </Sheet>
+    </section>
+  );
+}
+
+/** Histórico de peso com opção de apagar uma pesagem errada. */
+function WeighInsCard() {
+  const profile = useAppStore(s => s.data?.profile);
+  const run = useAppStore(s => s.run);
+  const [all, setAll] = useState(false);
+  if (!profile || !profile.weighIns.length) return null;
+  const list = [...profile.weighIns].reverse();
+  const shown = all ? list : list.slice(0, 5);
+  const target = profile.weightGoal?.targetWeight ?? profile.targetWeightKg ?? undefined;
+  return (
+    <section className="rounded-2xl border border-line bg-surface p-4">
+      <h2 className="font-bold">Pesagens</h2>
+      <div className="mt-2">
+        <LineChart unit="kg" {...(target ? { reference: target } : {})}
+          points={profile.weighIns.map(w => ({ label: shortDate(w.date), value: w.weight }))}
+          summary={`Peso em ${profile.weighIns.length} pesagens, de ${formatNumber(profile.weighIns[0]!.weight)} a ${formatNumber(list[0]!.weight)} kg`} />
+      </div>
+      <ul className="mt-2 divide-y divide-line text-sm">
+        {shown.map(w => (
+          <li key={w.date} className="flex items-center justify-between gap-3">
+            <span className="text-muted">{shortDate(w.date)}</span>
+            <span className="flex items-center gap-1 font-semibold">{formatNumber(w.weight)} kg
+              <button type="button" aria-label={`Apagar pesagem de ${shortDate(w.date)}`} className="flex size-11 items-center justify-center text-muted"
+                onClick={() => { if (confirm(`Apagar a pesagem de ${shortDate(w.date)} (${formatNumber(w.weight)} kg)?`)) run((d, now) => removeWeighIn(d, w.date, now)); }}>
+                <Icon name="lixo" className="size-5" />
+              </button>
+            </span>
+          </li>
+        ))}
+      </ul>
+      {list.length > 5 && (
+        <button type="button" onClick={() => setAll(!all)} className="mt-1 h-11 font-semibold text-primary">{all ? 'Mostrar menos' : `Ver todas (${list.length})`}</button>
+      )}
     </section>
   );
 }

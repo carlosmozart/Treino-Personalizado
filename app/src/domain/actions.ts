@@ -4,7 +4,7 @@
 import { toDateKey, type DateKey } from './dates';
 import type { DayKey } from './ai-plan';
 import { recordGoalCheckpoints } from './body-goal';
-import type { AppData, Plan, Settings, UserProfile, Workout } from './model';
+import type { AppData, Plan, Settings, UserProfile, Workout, WorkoutEntry } from './model';
 import { checkBirthday, checkWaterGoal, grantCheckin, revokeCheckin, type RewardEvent } from './rewards';
 import { sessionProgress, sessionToWorkout, type ActiveSession } from './session';
 import { bestSet, isPersonalRecord } from './workouts';
@@ -120,6 +120,30 @@ export function deleteWorkout(data: AppData, id: string, now: Date): ActionResul
   const draft = structuredClone(data);
   draft.workouts = draft.workouts.filter(w => w.id !== id);
   tombstone(draft, key.workout(id), now);
+  return { data: draft, events: [] };
+}
+
+/** Corrige um exercício registrado (registro antigo editado deixa de ser "reconstruído"). */
+export function updateWorkoutEntry(data: AppData, workoutId: string, index: number, entry: WorkoutEntry, now: Date): ActionResult {
+  const w = data.workouts.find(x => x.id === workoutId);
+  if (!w || !w.entries[index]) return unchanged(data);
+  const draft = structuredClone(data);
+  const target = draft.workouts.find(x => x.id === workoutId)!;
+  const fixed: WorkoutEntry = { ...structuredClone(entry), sets: entry.sets.filter(s => s.reps > 0 || s.weight > 0) };
+  delete fixed.aggregated;
+  target.entries[index] = fixed;
+  touch(draft, key.workout(workoutId), now);
+  return { data: draft, events: [] };
+}
+
+/** Apaga um exercício do treino; se era o único, apaga o treino. */
+export function removeWorkoutEntry(data: AppData, workoutId: string, index: number, now: Date): ActionResult {
+  const w = data.workouts.find(x => x.id === workoutId);
+  if (!w || !w.entries[index]) return unchanged(data);
+  if (w.entries.length === 1) return deleteWorkout(data, workoutId, now);
+  const draft = structuredClone(data);
+  draft.workouts.find(x => x.id === workoutId)!.entries.splice(index, 1);
+  touch(draft, key.workout(workoutId), now);
   return { data: draft, events: [] };
 }
 

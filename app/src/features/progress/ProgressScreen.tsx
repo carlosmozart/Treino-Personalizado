@@ -8,6 +8,8 @@ import { useAppStore } from '../../store';
 import { useNow } from '../../hooks/use-now';
 import { Icon } from '../../ui/Icon';
 import { GoalsView } from './GoalsView';
+import { EntryEditor } from './EntryEditor';
+import { ExerciseProgressCard } from './ExerciseProgressCard';
 import { formatNumber, plural, shortDate } from '../../ui/format';
 
 const MONTH_NAMES = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
@@ -59,6 +61,7 @@ function Stats() {
         <Heatmap />
       </section>
       <WeeklyVolume />
+      <ExerciseProgressCard />
       <section className="rounded-2xl border border-line bg-surface p-4">
         <h2 className="font-bold">Séries por grupo (30 dias)</h2>
         {balance.length === 0 ? <p className="mt-2 text-sm text-muted">Sem séries registradas no período.</p> : (
@@ -135,6 +138,7 @@ function History() {
 }
 
 function WorkoutItem({ w, open, onToggle, onDelete }: { w: Workout; open: boolean; onToggle: () => void; onDelete: () => void }) {
+  const [editing, setEditing] = useState<number | null>(null);
   const volume = workoutVolume(w);
   const meta = [plural(w.entries.length, 'exercício', 'exercícios'), w.durationMin ? `${w.durationMin} min` : '', volume ? `${formatNumber(volume)} kg` : ''].filter(Boolean).join(' · ');
   return (
@@ -153,16 +157,20 @@ function WorkoutItem({ w, open, onToggle, onDelete }: { w: Workout; open: boolea
       {open && (
         <div className="border-t border-line px-4 pb-3 pt-2">
           <ul className="space-y-1">
-            {w.entries.map(e => (
-              <li key={e.key} className="flex justify-between gap-3 text-sm">
-                <span className="min-w-0 truncate">{e.name}</span>
-                <span className="shrink-0 text-muted">{describeEntry(e)}</span>
+            {w.entries.map((e, i) => (
+              <li key={`${e.key}-${i}`}>
+                <button type="button" onClick={() => setEditing(i)} aria-label={`Corrigir ${e.name}`}
+                  className="flex min-h-11 w-full items-center justify-between gap-3 text-left text-sm">
+                  <span className="min-w-0 truncate">{e.name}</span>
+                  <span className="flex shrink-0 items-center gap-2 text-muted">{describeEntry(e)}<Icon name="editar" className="size-4" /></span>
+                </button>
               </li>
             ))}
           </ul>
           <button type="button" onClick={onDelete} className="mt-3 flex h-11 items-center gap-2 rounded-xl px-2 font-semibold text-danger">
             <Icon name="lixo" className="size-5" /> Apagar treino
           </button>
+          {editing !== null && w.entries[editing] && <EntryEditor workout={w} index={editing} onClose={() => setEditing(null)} />}
         </div>
       )}
     </li>

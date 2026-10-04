@@ -77,14 +77,14 @@ Legenda: ✅ feito no app novo · 🟡 parcial · ❌ falta · ➖ não será po
 | --- | --- | --- |
 | Histórico de treinos por data com detalhes | ✅ | |
 | Desfazer treino inteiro | ✅ | "Apagar treino" |
-| Corrigir um registro do histórico (editar séries) | ❌ | |
-| Apagar um exercício isolado do histórico | ❌ | |
-| Evolução por exercício (gráfico de carga e lista) | ❌ | |
+| Corrigir um registro do histórico (editar séries) | ✅ | toque no exercício dentro do treino no Histórico |
+| Apagar um exercício isolado do histórico | ✅ | |
+| Evolução por exercício (gráfico de carga e lista) | ✅ | Progresso → Estatísticas |
 | Volume semanal (esta semana × passada) | ✅ | 8 semanas em barras |
 | Calendário de treinos | ✅ | mapa de calor de 6 meses + histórico por mês |
 | Contador de dias treinados no mês | ✅ | |
 | Gráficos com pontos consultáveis e seletor de faixa | 🟡 | gráfico de peso simples, sem toque nem faixa (M42) |
-| Histórico de peso: lista e apagar pesagem | ❌ | a ação existe, falta a tela |
+| Histórico de peso: lista e apagar pesagem | ✅ | Progresso → Metas, com gráfico e linha da meta |
 
 ## Perfil, saúde e metas
 
@@ -132,6 +132,6 @@ Faltam (❌) para a troca, por prioridade:
 1. ~~Atualização do APK pelo app~~ e ~~notificações~~: feitos em 04/10/2026 (falta validar a atualização com uma release real).
 2. ~~Plano: duplicar, criar em branco, reservas e opcional no editor~~: feito em 04/10/2026.
 3. ~~Montar treino com IA~~: feito em 04/10/2026.
-4. **Histórico**: editar registro, apagar exercício isolado, evolução por exercício, lista de pesagens (volume semanal feito).
+4. ~~Histórico~~: feito em 04/10/2026.
 5. **Treino**: botões de ajuste de carga (O20), troca pela biblioteca, valor suspeito.
 6. **Cadastro inicial** para quem instala do zero, **novidades da versão**, backup com senha, lembrete de backup no navegador, aviso de falta de espaço.

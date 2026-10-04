@@ -113,3 +113,35 @@ export function workoutCalories(workout: Workout, bodyWeightKg: number, restSeco
   if (total <= 0) return null;
   return { kcal: Math.round(total), measured, strengthMinutes: Math.round(minutes) };
 }
+
+export interface ExerciseSummary { key: string; name: string; sessions: number; lastDate: string }
+
+/** Exercícios já registrados, do mais recente para o mais antigo. */
+export function exercisesInHistory(workouts: readonly Workout[]): ExerciseSummary[] {
+  const map = new Map<string, ExerciseSummary>();
+  for (const w of workouts) {
+    for (const e of w.entries) {
+      const cur = map.get(e.key);
+      if (!cur) map.set(e.key, { key: e.key, name: e.name, sessions: 1, lastDate: w.date });
+      else {
+        cur.sessions++;
+        if (w.date >= cur.lastDate) { cur.lastDate = w.date; cur.name = e.name; }
+      }
+    }
+  }
+  return [...map.values()].sort((a, b) => (a.lastDate < b.lastDate ? 1 : a.lastDate > b.lastDate ? -1 : a.name.localeCompare(b.name)));
+}
+
+export interface ProgressPoint { date: string; workoutId: string; value: number; label: string; volume: number }
+
+/**
+ * Evolução de um exercício: melhor carga por sessão (força) ou minutos (cardio). Valor 0 fica
+ * de fora do gráfico (sessão sem carga, ex.: peso do corpo).
+ */
+export function exerciseProgress(workouts: readonly Workout[], key: string): ProgressPoint[] {
+  return sessionsOf(workouts, key).map(({ workout, entry }) => {
+    const best = bestSet(entry);
+    const value = entry.mode === 'cardio' ? entry.cardio?.minutes ?? 0 : best?.weight ?? 0;
+    return { date: workout.date, workoutId: workout.id, value, label: describeEntry(entry), volume: Math.round(entryVolume(entry)) };
+  });
+}
