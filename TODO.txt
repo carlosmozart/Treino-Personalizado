@@ -154,6 +154,11 @@ M38	Peso por semana: agrupar pesagens por semana com média, nº de pesagens e v
 M39	Colorir variações de peso pela direção da meta: verde quando aproxima do alvo, vermelho quando afasta (quem quer ganhar vê +0,5 kg em verde)	Média
 M40	Pesagem opcional ao começar o treino (desligável nas configurações), para o histórico de peso se manter sem depender de abrir o Perfil
 Saúde: comparado em 04/10/2026 — o openGym só acompanha peso corporal (sem IMC, TMB/TDEE, água ou gordura corporal); nossas funções de saúde são mais completas e seguem como estão, com M38–M40 trazendo o que o acompanhamento de peso dele faz melhor
+M41	Corrigir a evolução por exercício: o gráfico usa o campo legado weight (carga da 1ª série); em pirâmide 40→45→50 kg mostra 40. Usar a melhor série da sessão (no app atual é ajuste simples; na reescrita já nasce certo)	Média
+M42	Componente de gráfico na reescrita: eixos com valores e datas, linha da meta, legenda do ponto que se reposiciona para não ser cortada nem cobrir o valor, arrastar o dedo para percorrer os pontos, acessível (resumo em texto para leitor de tela)	Alta
+M43	Métrica escolhível na evolução do exercício: melhor série, 1RM estimado (M3), mais repetições numa série, volume da sessão; tempo segurado (M9) e velocidade no cardio quando aplicável	Média
+M44	Equilíbrio entre exercícios: comparar levantamentos entre si (ex.: supino × remada, agachamento × terra) e apontar o elo mais fraco	Baixa
+Gráficos: comparados em 04/10/2026 — o openGym é melhor no componente (eixos, legenda, interação) e nas métricas; já previstos M3, M16, M22, M28–M29, M38 e N9, completados por M41–M44
 
 N. Interface inspirada no openGym (comparação das telas em 04/10/2026)
 Aplicar respeitando docs/guia-interface.md (atualizar o guia quando um padrão novo for adotado).
