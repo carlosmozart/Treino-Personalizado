@@ -4,7 +4,7 @@ import { normalizeExerciseName } from '../text';
 import { toDateKey, type DateKey } from '../dates';
 import { DAY_KEYS, type DayKey } from '../ai-plan';
 import type { ActivityLevel, Sex, TmbFormulaId } from '../health';
-import type { GoalMark, WeightGoal } from '../body-goal';
+import { recordGoalCheckpoints, type GoalMark, type WeightGoal } from '../body-goal';
 import {
   DEFAULT_SETTINGS, SCHEMA_VERSION, computeTotalXP, emptyGamification, emptyProfile,
   type AppData, type ExerciseMode, type Plan, type PlanDay, type PlanExercise, type Settings,
@@ -91,6 +91,17 @@ function migrateProfile(raw: unknown): UserProfile {
     if (isDateKey(r.date) && weight !== null) byDate.set(r.date, weight);
   }
   profile.weighIns = [...byDate].sort(([a], [b]) => (a < b ? -1 : 1)).map(([date, weight]) => ({ date, weight }));
+
+  // Meta sem ponto de partida gravado (ou de um alvo antigo): o app antigo media o progresso a
+  // partir da primeira pesagem. Vira uma meta explícita com os marcos refeitos pelo histórico.
+  const target = profile.targetWeightKg;
+  const first = profile.weighIns[0];
+  if (target && first && profile.weightGoal?.targetWeight !== target) {
+    let goal: WeightGoal = { startWeight: first.weight, targetWeight: target, startedAt: first.date };
+    for (const w of profile.weighIns) goal = recordGoalCheckpoints(goal, w.weight, w.date);
+    if (goal.checkpoints && !Object.keys(goal.checkpoints).length) delete goal.checkpoints;
+    profile.weightGoal = goal;
+  }
   return profile;
 }
 

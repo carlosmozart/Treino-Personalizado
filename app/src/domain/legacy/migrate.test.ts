@@ -106,6 +106,18 @@ describe('demais dados', () => {
     });
   });
 
+  test('alvo sem meta gravada vira meta a partir da primeira pesagem, com marcos pelo histórico', () => {
+    const raw = structuredClone(LEGACY_FIXTURE) as Record<string, unknown>;
+    const profile = JSON.parse(raw.treino_user_profile as string) as Record<string, unknown>;
+    delete profile.weightGoal;
+    profile.targetWeight = '80';
+    profile.weightHistory = [{ date: '2026-08-16', weight: 100 }, { date: '2026-09-07', weight: 95 }, { date: '2026-09-29', weight: 94.2 }];
+    raw.treino_user_profile = JSON.stringify(profile);
+    expect(migrate(raw).data.profile.weightGoal).toEqual({
+      startWeight: 100, targetWeight: 80, startedAt: '2026-08-16', checkpoints: { 25: '2026-09-07' }
+    });
+  });
+
   test('planos com metas numéricas, alternativas e dias por semana calculados', () => {
     const ppl = data.plans.default!;
     expect(ppl.days.SEG.exercises[0]!.alternatives).toEqual([{ name: 'Supino com Halteres', mode: 'reps' }]);
