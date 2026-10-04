@@ -87,3 +87,22 @@ test('dados anteriores aos carimbos são completados sem perder XP', () => {
   expect(fixed.gamification).toMatchObject({ totalXP: 330, baseXP: 230, waterBonus: { '2026-10-01': 0 } });
   expect(fixed.sync.changed).toMatchObject({ 'plan:p1': at(2).toISOString(), profile: at(2).toISOString() });
 });
+
+test('plano de exemplo criado em dois aparelhos ao mesmo tempo: os dois ficam, nada é sobrescrito', async () => {
+  const { seedPlan } = await import('../data/seed-plan');
+  const { addPlan } = await import('./actions');
+  const { newId } = await import('./ids');
+  const empty = stampAll({ ...sampleData(), plans: {}, activePlanId: null }, at(1));
+  const phone = addPlan(empty, seedPlan('2026-10-05', newId('plano')), at(5, 9)).data;
+  const tablet = addPlan(empty, seedPlan('2026-10-05', newId('plano')), at(5, 10)).data;
+  const merged = mergeAppData(phone, tablet);
+  expect(Object.keys(merged.plans)).toHaveLength(2);
+  expect(merged.activePlanId).toBe(tablet.activePlanId);
+});
+
+test('ids novos têm prefixo e não se repetem', async () => {
+  const { newId } = await import('./ids');
+  const ids = new Set(Array.from({ length: 1000 }, () => newId('plano')));
+  expect(ids.size).toBe(1000);
+  expect([...ids][0]).toMatch(/^plano-[0-9a-f]{12}$/);
+});

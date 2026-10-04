@@ -401,9 +401,10 @@ const DAYS: Record<DayKey, PlanDay> = {
   }
 };
 
-export function seedPlan(today: DateKey): Plan {
+/** `id`: use newId('plano') ao criar no aparelho; o padrão só serve a testes e à migração. */
+export function seedPlan(today: DateKey, id = SEED_PLAN_ID): Plan {
   return {
-    id: SEED_PLAN_ID,
+    id,
     name: 'PPL Hipertrofia e Emagrecimento',
     description: 'Plano original: Push/Pull/Legs 2x por semana, adaptado a escoliose e joelho, com ênfase em peitoral inferior.',
     trainingTime: '12:00',

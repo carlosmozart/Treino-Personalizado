@@ -3,6 +3,7 @@ import { addPlan } from '../../domain/actions';
 import { toDateKey } from '../../domain/dates';
 import { dayKeyOf, type Plan } from '../../domain/model';
 import { seedPlan } from '../../data/seed-plan';
+import { newId } from '../../domain/ids';
 import { useAppStore } from '../../store';
 import { dayTitle, plural } from '../../ui/format';
 
@@ -18,7 +19,7 @@ export function DayPicker() {
       <section className="mt-6 rounded-2xl border border-line bg-surface p-4">
         <h2 className="text-lg font-bold">Você ainda não tem um plano</h2>
         <p className="mt-1 text-muted">Comece pelo plano de exemplo (Push/Pull/Legs, 6 dias) e ajuste depois.</p>
-        <button type="button" onClick={() => run((d, now) => addPlan(d, seedPlan(toDateKey(now)), now))}
+        <button type="button" onClick={() => run((d, now) => addPlan(d, seedPlan(toDateKey(now), newId('plano')), now))}
           className="mt-4 h-12 w-full rounded-xl bg-primary text-base font-bold text-white">
           Usar plano de exemplo
         </button>

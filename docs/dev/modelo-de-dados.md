@@ -147,6 +147,10 @@ Firebase; ver a projeção do projeto). O transporte muda; a junção é a mesma
 - **Dados anteriores** a isso (versões de desenvolvimento e backups delas) são completados ao
   abrir (`normalizeAppData`): tudo carimbado na hora, bônus `true` viram 0 e o resto vai para a base.
 
-Limitação conhecida: dois aparelhos que criam o plano de exemplo ao mesmo tempo geram a mesma
-chave `plan:default`, e a versão mais recente vence. Ids de plano únicos por aparelho resolvem;
-fica para quando a sincronização for implementada.
+Ids: planos criados no aparelho recebem id único (`newId`, em `domain/ids.ts`); treinos usam o id
+da sessão (UUID). Assim, dois aparelhos criando um plano ao mesmo tempo ficam com dois planos em
+vez de um sobrescrever o outro. Dados migrados do app antigo mantêm os ids de lá: dois aparelhos
+migrando os mesmos dados geram as mesmas chaves, e a junção os trata como o mesmo registro.
+
+Na nuvem, os treinos ficam em partes por ano (ou mês) para caber no limite de 1 MiB por documento
+do Firestore (`sync/chunks.ts`).
