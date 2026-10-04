@@ -7,6 +7,11 @@ on:
         description: Publicar como Release no GitHub (usada pela atualização dentro do app)
         type: boolean
         default: true
+      app:
+        description: Conteúdo do APK — "atual" (raiz, 2.x) ou "novo" (app/, a partir da 3.0.0, P8)
+        type: choice
+        options: [atual, novo]
+        default: atual
 
 permissions:
   contents: write
@@ -35,13 +40,36 @@ jobs:
         run: npm ci
 
       - name: Validate web release contracts
+        if: ${{ inputs.app == 'atual' }}
         run: npm run verify
 
       - name: Install Chromium for smoke tests
         run: npx playwright install --with-deps chromium
 
       - name: Test onboarding flow
+        if: ${{ inputs.app == 'atual' }}
         run: npm run test:smoke
+
+      # App novo: a versão do app/ precisa ser a da release, senão o atualizador dentro do app
+      # compara errado (ex.: "3.0.0-dev" contra a release v3.0.0).
+      - name: Check app novo version
+        if: ${{ inputs.app == 'novo' }}
+        run: |
+          ROOT=$(node -p "require('./package.json').version")
+          APP=$(node -p "require('./app/package.json').version")
+          GRADLE=$(sed -n 's/.*versionName "\(.*\)".*/\1/p' android/app/build.gradle)
+          if [ "$ROOT" != "$APP" ] || [ "$ROOT" != "$GRADLE" ]; then
+            echo "::error::Versões diferentes: package.json $ROOT, app/package.json $APP, build.gradle $GRADLE."
+            exit 1
+          fi
+
+      - name: Test and build app novo
+        if: ${{ inputs.app == 'novo' }}
+        run: |
+          npm ci --prefix app
+          npm test --prefix app
+          npm run build --prefix app
+          npm run test:e2e --prefix app
 
       - name: Restore signing key
         env:
@@ -60,7 +88,15 @@ jobs:
           EOF
 
       - name: Sync web app
+        if: ${{ inputs.app == 'atual' }}
         run: npm run sync:android
+
+      - name: Sync web app (app novo)
+        if: ${{ inputs.app == 'novo' }}
+        run: |
+          rm -rf www
+          cp -r app/dist www
+          npx cap sync android
 
       - name: Build signed release APK
         run: |
