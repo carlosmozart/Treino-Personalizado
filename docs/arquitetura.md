@@ -100,3 +100,21 @@ que deixaria duas formas de montar telas convivendo por muito tempo.
 - A troca (versão 3.0.0) só ocorre com a lista de equivalência completa e validada no aparelho.
 
 Etapas: TODO.txt, seção P.
+
+### Trabalhando no app novo (`app/`)
+
+Pacote independente, com dependências e lockfile próprios:
+
+```bash
+cd app
+npm install
+npm run dev        # servidor de desenvolvimento
+npm run build      # typecheck + build de produção em app/dist (com service worker)
+npm test           # testes unitários (Vitest + Testing Library)
+npm run test:e2e   # Playwright contra o build de produção, em tamanho de celular
+```
+
+Organização: `src/domain` (regras puras e tipadas, sem React nem DOM), `src/store` (estado
+com Zustand), `src/platform` (Capacitor/navegador), `src/ui` (componentes). Cores vêm dos
+tokens em `src/index.css`, espelhando `docs/guia-interface.md`. Até a troca (P8), o Capacitor
+e o GitHub Pages continuam servindo o app da raiz.

@@ -12,3 +12,5 @@ local.properties
 .DS_Store
 playwright-report/
 test-results/
+app/dist/
+app/dev-dist/

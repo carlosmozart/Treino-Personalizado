@@ -1,0 +1,49 @@
+@import "tailwindcss";
+
+/* Tokens do docs/guia-interface.md. Componentes usam estes nomes (bg-surface, text-muted,
+   bg-primary…) em vez de cores soltas, para o tema poder mudar num lugar só (M25). */
+@theme {
+  --color-page: #020617;        /* slate-950: fundo */
+  --color-surface: #0f172a;     /* slate-900: cartões */
+  --color-surface-2: #1e293b;   /* slate-800: elementos sobre cartões */
+  --color-line: #1e293b;        /* bordas sutis */
+  --color-ink: #f1f5f9;         /* texto primário */
+  --color-muted: #94a3b8;       /* texto secundário (slate-400) */
+  --color-faint: #64748b;       /* metadados (slate-500) */
+  --color-primary: #2563eb;     /* ação principal */
+  --color-success: #059669;     /* concluído, XP */
+  --color-warning: #d97706;     /* atenção */
+  --color-danger: #e11d48;      /* destrutivo */
+  --color-info: #93c5fd;        /* dicas e links */
+}
+
+:root {
+  color-scheme: dark;
+  -webkit-tap-highlight-color: transparent;
+}
+
+html, body, #root {
+  min-height: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--color-page);
+  color: var(--color-ink);
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  font-size: 16px;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Área segura de aparelhos com recorte e barra de gestos (viewport-fit=cover). */
+.safe-top { padding-top: env(safe-area-inset-top); }
+.safe-bottom { padding-bottom: env(safe-area-inset-bottom); }
+
+:focus-visible {
+  outline: 2px solid var(--color-info);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; }
+}
