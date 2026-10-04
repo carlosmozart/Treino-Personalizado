@@ -28,7 +28,7 @@ export function ExerciseProgressCard({ initialKey }: { initialKey?: string }) {
         </select>
       </label>
       <div className="mt-3">
-        <LineChart unit={unit} points={charted.map(p => ({ label: shortDate(p.date), value: p.value }))}
+        <LineChart unit={unit} points={charted.map(p => ({ label: shortDate(p.date), value: p.value, date: p.date }))}
           summary={`${selected.name}: ${cardio ? 'minutos' : 'melhor carga'} em ${charted.length} sessões, de ${charted[0]?.value ?? 0} a ${charted.at(-1)?.value ?? 0} ${unit}`} />
       </div>
       <ul className="mt-3 divide-y divide-line text-sm">

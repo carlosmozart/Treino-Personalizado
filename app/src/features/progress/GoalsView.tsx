@@ -15,7 +15,8 @@ export function GoalsView() {
   if (!data) return null;
   const list = achievementList(data);
   const unlocked = list.filter(a => a.unlockedAt).length;
-  const ordered = [...list].sort((a, b) => Number(!!b.unlockedAt) - Number(!!a.unlockedAt) || b.current / b.target - a.current / a.target);
+  const [filter, setFilter] = useState<'all' | 'done' | 'todo'>('all');
+  const ordered = [...list].filter(a => filter === 'all' || (filter === 'done') === !!a.unlockedAt).sort((a, b) => Number(!!b.unlockedAt) - Number(!!a.unlockedAt) || b.current / b.target - a.current / a.target);
   return (
     <div className="mt-4 space-y-4">
       <WeightGoalCard />
@@ -25,6 +26,13 @@ export function GoalsView() {
           <h2 className="font-bold">Conquistas</h2>
           <span className="text-sm text-muted" data-testid="conquistas">{unlocked}/{list.length}</span>
         </div>
+        <div role="group" aria-label="Filtrar conquistas" className="mt-3 flex gap-1">
+          {([['all', 'Todas'], ['done', 'Desbloqueadas'], ['todo', 'Bloqueadas']] as const).map(([id, label]) => (
+            <button key={id} type="button" aria-pressed={filter === id} onClick={() => setFilter(id)}
+              className={`h-9 rounded-lg px-3 text-xs font-semibold ${filter === id ? 'bg-primary text-white' : 'bg-surface-2 text-muted'}`}>{label}</button>
+          ))}
+        </div>
+        {ordered.length === 0 && <p className="mt-3 text-sm text-muted">{filter === 'done' ? 'Nenhuma conquista ainda — a primeira vem no primeiro check-in.' : 'Todas desbloqueadas!'}</p>}
         <ul className="mt-3 space-y-3">
           {ordered.map(a => (
             <li key={a.id} className={`flex gap-3 ${a.unlockedAt ? '' : 'opacity-70'}`}>
@@ -112,7 +120,7 @@ function WeighInsCard() {
       <h2 className="font-bold">Pesagens</h2>
       <div className="mt-2">
         <LineChart unit="kg" {...(target ? { reference: target } : {})}
-          points={profile.weighIns.map(w => ({ label: shortDate(w.date), value: w.weight }))}
+          points={profile.weighIns.map(w => ({ label: shortDate(w.date), value: w.weight, date: w.date }))}
           summary={`Peso em ${profile.weighIns.length} pesagens, de ${formatNumber(profile.weighIns[0]!.weight)} a ${formatNumber(list[0]!.weight)} kg`} />
       </div>
       <ul className="mt-2 divide-y divide-line text-sm">

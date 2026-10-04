@@ -49,6 +49,9 @@ test('metas: conquista do primeiro check-in e meta de peso com marcos', async ({
   await page.getByRole('button', { name: 'Progresso', exact: true }).click();
   await page.getByRole('tab', { name: 'Metas' }).click();
   await expect(page.getByTestId('conquistas')).toHaveText('1/28');
+  await page.getByRole('button', { name: 'Desbloqueadas' }).click();
+  await expect(page.getByText('Primeiro Passo', { exact: true })).toBeVisible();
+  await expect(page.getByText('Ganhando Ritmo')).toHaveCount(0);
   await page.getByRole('button', { name: 'Definir meta' }).click();
   await page.getByRole('textbox', { name: 'Peso desejado em kg' }).fill('82');
   await page.getByRole('button', { name: 'Começar meta' }).click();

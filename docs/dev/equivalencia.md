@@ -83,7 +83,7 @@ Legenda: ✅ feito no app novo · 🟡 parcial · ❌ falta · ➖ não será po
 | Volume semanal (esta semana × passada) | ✅ | 8 semanas em barras |
 | Calendário de treinos | ✅ | mapa de calor de 6 meses + histórico por mês |
 | Contador de dias treinados no mês | ✅ | |
-| Gráficos com pontos consultáveis e seletor de faixa | 🟡 | gráfico de peso simples, sem toque nem faixa (M42) |
+| Gráficos com pontos consultáveis e seletor de faixa | ✅ | tocar/arrastar mostra o valor; 30 dias, 90 dias ou tudo (M42) |
 | Histórico de peso: lista e apagar pesagem | ✅ | Progresso → Metas, com gráfico e linha da meta |
 
 ## Perfil, saúde e metas
@@ -107,7 +107,7 @@ Legenda: ✅ feito no app novo · 🟡 parcial · ❌ falta · ➖ não será po
 | Refeição livre (80% da semana) | ✅ | |
 | Bônus da meta de água | ✅ | |
 | 28 conquistas | ✅ | mesmos ids |
-| Filtro de conquistas (todas/desbloqueadas/bloqueadas) | 🟡 | desbloqueadas aparecem primeiro; sem filtro |
+| Filtro de conquistas (todas/desbloqueadas/bloqueadas) | ✅ | |
 | Os Pesos de Rock Lee (+10 kg de uma vez pelo botão) | ✅ | |
 
 ## App e Android
@@ -136,4 +136,4 @@ Faltam (❌) para a troca, por prioridade:
 5. ~~Treino~~: feito em 04/10/2026.
 6. ~~Cadastro inicial, novidades, backup com senha, lembrete de backup, aviso de falta de espaço~~: feito em 04/10/2026.
 
-Com isso, todos os ❌ do levantamento estão feitos. Restam os 🟡 (cards que recolhem ao concluir, filtro de conquistas, gráficos com toque e faixa, virada de dia) e a validação no aparelho (📱).
+Com isso, todos os ❌ do levantamento estão feitos. Os 🟡 também foram feitos em 04/10/2026. Resta a validação no aparelho (📱).
