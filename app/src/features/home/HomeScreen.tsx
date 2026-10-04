@@ -5,6 +5,7 @@ import { progressCard, todayCard, waterCard, weekStrip, weightCard, type WeightC
 import { useAppStore } from '../../store';
 import { useUiStore } from '../../store/ui-store';
 import { askRestAlarmPermission } from '../workout/rest-alarm-instance';
+import { HomeNotices } from './HomeNotices';
 import { NumberField } from '../../ui/NumberField';
 import { Sheet } from '../../ui/Sheet';
 import { formatNumber, plural, shortDate } from '../../ui/format';
@@ -28,6 +29,7 @@ export function HomeScreen() {
         <p className="text-muted">{greeting(now)}{name ? `, ${name}` : ''}</p>
         <h1 className="text-3xl font-black tracking-tight">Início</h1>
       </header>
+      <HomeNotices />
       <WeekStrip />
       <TodayCard card={todayCard(data, now, session)} />
       <ProgressSection />

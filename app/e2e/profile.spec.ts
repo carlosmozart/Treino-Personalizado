@@ -36,3 +36,28 @@ test('perfil: dados, saúde, configurações e backup de ida e volta', async ({ 
   await expect(page.getByRole('heading', { name: 'Ana', level: 1 })).toBeVisible();
   expect(errors).toEqual([]);
 });
+
+test('boas-vindas e backup com senha de ida e volta', async ({ page }) => {
+  await page.goto('/');
+  await expect(page.getByRole('heading', { name: 'Bem-vindo(a)!' })).toBeVisible();
+  await page.getByRole('button', { name: 'Preencher' }).click();
+  await page.getByRole('textbox', { name: 'Nome' }).fill('Bia');
+  await page.getByRole('button', { name: 'Início', exact: true }).click();
+  await expect(page.getByRole('heading', { name: 'Bem-vindo(a)!' })).toHaveCount(0);
+
+  await page.getByRole('button', { name: 'Perfil', exact: true }).click();
+  await page.getByRole('switch', { name: 'Proteger o backup com senha' }).check();
+  await page.getByRole('textbox', { name: 'Nova senha do backup' }).fill('segredo1');
+  await page.getByRole('textbox', { name: 'Repita a senha' }).fill('segredo1');
+  const [download] = await Promise.all([page.waitForEvent('download'), page.getByRole('button', { name: 'Fazer backup' }).click()]);
+  await expect(page.getByText(/Backup com senha salvo/)).toBeVisible();
+  await expect(page.getByText(/Último backup:/)).toBeVisible();
+
+  await page.getByRole('textbox', { name: 'Nome' }).fill('Outra');
+  await page.getByLabel('Arquivo de backup').setInputFiles(await download.path());
+  await expect(page.getByText('Este backup tem senha.')).toBeVisible();
+  page.once('dialog', d => d.accept());
+  await page.getByRole('textbox', { name: 'Senha do backup', exact: true }).fill('segredo1');
+  await page.getByRole('button', { name: 'Abrir' }).click();
+  await expect(page.getByRole('heading', { name: 'Bia', level: 1 })).toBeVisible();
+});

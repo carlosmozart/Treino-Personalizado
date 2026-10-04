@@ -153,6 +153,18 @@ export function markBigWeightJump(data: AppData): ActionResult {
   return { data: { ...data, gamification: { ...data.gamification, bigWeightJump: true } }, events: [] };
 }
 
+/** Dados do próprio aparelho (último backup, versão vista, dicas): não sincronizam. */
+export function updateMeta(data: AppData, patch: Partial<AppData['meta']>): ActionResult {
+  return { data: { ...data, meta: { ...data.meta, ...patch, hintsSeen: { ...data.meta.hintsSeen, ...patch.hintsSeen } } }, events: [] };
+}
+
+/** Lembrete de backup: há o que perder e o último backup tem mais de 14 dias (ou nunca). */
+export function backupReminderDue(data: AppData, now: Date, autoBackupOn: boolean): boolean {
+  if (autoBackupOn || !data.workouts.length || data.meta.hintsSeen.backupReminderOff) return false;
+  const last = data.meta.lastBackupAt ? Date.parse(data.meta.lastBackupAt) : 0;
+  return now.getTime() - last > 14 * 24 * 60 * 60 * 1000;
+}
+
 type ProfilePatch = Partial<Omit<UserProfile, 'weighIns' | 'weightKg'>>;
 
 /** Dados de cadastro. O peso muda por logWeight, para manter o histórico coerente. */

@@ -17,12 +17,12 @@ Legenda: ✅ feito no app novo · 🟡 parcial · ❌ falta · ➖ não será po
 | Migração dos dados na primeira abertura | ✅ | cópia bruta guardada antes; testada com 2 backups reais do Carlos |
 | Meta de peso sem ponto de partida gravado (alvo + primeira pesagem) | ✅ | corrigido em 04/10 após teste no aparelho |
 | Backup manual (exportar JSON) | ✅ 📱 | APK pelo seletor de arquivos |
-| Backup com senha (exportar) | ❌ | o app novo lê backups com senha, mas ainda não gera |
+| Backup com senha (exportar) | ✅ | mesmo formato cifrado do app atual |
 | Restaurar backup (v1, atual, com senha) | ✅ | inclui backups do app atual |
 | Recuperar restauração interrompida | ✅ | a restauração no app novo é uma troca única em memória + gravação; sem estado intermediário |
-| Status do último backup e lembrete para fazer backup | ❌ | no APK o backup automático cobre; no navegador falta o lembrete |
+| Status do último backup e lembrete para fazer backup | ✅ | data do último backup; lembrete no Início após 14 dias quando não há backup automático |
 | Backup automático | ✅ 📱 | novo (O11), só APK |
-| Aviso de falta de espaço ao gravar | 🟡 | a store guarda `saveError`, mas não há aviso na tela |
+| Aviso de falta de espaço ao gravar | ✅ | aviso fixo enquanto a gravação falhar |
 
 ## Treino
 
@@ -90,7 +90,7 @@ Legenda: ✅ feito no app novo · 🟡 parcial · ❌ falta · ➖ não será po
 
 | Função do app atual | App novo | Observação |
 | --- | --- | --- |
-| Cadastro inicial obrigatório (onboarding) | ❌ | o app novo abre direto; dados vêm da migração |
+| Cadastro inicial obrigatório (onboarding) | ✅ | convite de boas-vindas no Início, sem travar o app (decisão: não obrigatório) |
 | Nome, nascimento, sexo, altura, atividade, % gordura | ✅ | |
 | IMC com faixa e explicação | ✅ | tabela de referência da OMS ainda não |
 | TMB com 3 fórmulas e gasto diário | ✅ | |
@@ -117,7 +117,7 @@ Legenda: ✅ feito no app novo · 🟡 parcial · ❌ falta · ➖ não será po
 | Funciona offline (PWA / APK) | ✅ | |
 | Atualização do APK pelo próprio app | ✅ 📱 | consulta diária e botão em Perfil → Sobre; mesmo AppUpdatePlugin. Só dá para testar de verdade quando houver uma release mais nova que o app instalado |
 | Lembretes semanais de treino | ✅ 📱 | Perfil → Treino; horário em Plano → Planos |
-| Novidades da versão e histórico de versões | ❌ | |
+| Novidades da versão e histórico de versões | ✅ | uma vez após atualizar e em Perfil → Sobre; o histórico antigo fica no CHANGELOG |
 | Virada de dia com o app aberto | 🟡 | telas usam a hora atual; conferir check-in/água após meia-noite |
 | Navegação por arrasto entre abas | ➖ | substituída pela barra de abas com botão central (N11) |
 | Cabeçalho retrátil, posição de rolagem por aba | ➖ | cabeçalho não fixo no app novo; rolagem por aba a avaliar |
@@ -134,4 +134,6 @@ Faltam (❌) para a troca, por prioridade:
 3. ~~Montar treino com IA~~: feito em 04/10/2026.
 4. ~~Histórico~~: feito em 04/10/2026.
 5. ~~Treino~~: feito em 04/10/2026.
-6. **Cadastro inicial** para quem instala do zero, **novidades da versão**, backup com senha, lembrete de backup no navegador, aviso de falta de espaço.
+6. ~~Cadastro inicial, novidades, backup com senha, lembrete de backup, aviso de falta de espaço~~: feito em 04/10/2026.
+
+Com isso, todos os ❌ do levantamento estão feitos. Restam os 🟡 (cards que recolhem ao concluir, filtro de conquistas, gráficos com toque e faixa, virada de dia) e a validação no aparelho (📱).

@@ -1,0 +1,26 @@
+// Novidades por versão, mostradas uma vez depois de atualizar (e em Perfil → Sobre).
+export interface ReleaseNote { version: string; date: string; items: string[] }
+
+export const RELEASE_NOTES: readonly ReleaseNote[] = [
+  {
+    version: '3.0.0',
+    date: '2026-10',
+    items: [
+      'App refeito do zero, mais rápido e com a mesma cara em qualquer celular. Seus treinos, planos, peso e conquistas vieram junto.',
+      'Treino: colunas Carga · Reps, botões de ajuste de carga, menu ⋯ com troca por qualquer exercício, ilustrações dos exercícios e tela ligada durante o treino.',
+      'Descanso avisa pelo alarme do Android, com o app aberto ou a tela bloqueada.',
+      'Início com a semana, o treino de hoje, peso com gráfico e água.',
+      'Plano em cartões por dia, com descanso explícito; montar treino com IA.',
+      'Progresso com mapa de calor, volume semanal, evolução por exercício, metas e conquistas.',
+      'Backup automático em Downloads/TreinoPersonalizado e botão voltar do Android.'
+    ]
+  }
+];
+
+/** "3.0.0-dev" e "3.0.1" contam como a mesma série de novidades da "3.0". */
+export const notesKey = (version: string) => version.replace(/^v/, '').split(/[.-]/).slice(0, 2).join('.');
+
+export function notesToShow(lastSeen: string | undefined, current: string): ReleaseNote | null {
+  if (lastSeen && notesKey(lastSeen) === notesKey(current)) return null;
+  return RELEASE_NOTES.find(n => notesKey(n.version) === notesKey(current)) ?? null;
+}

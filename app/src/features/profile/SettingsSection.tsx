@@ -1,5 +1,5 @@
 import { useRef, useState } from 'react';
-import { updateSettings } from '../../domain/actions';
+import { updateMeta, updateSettings } from '../../domain/actions';
 import { buildBackup, readBackup } from '../../domain/backup';
 import { canAutoBackup, saveBackupFile } from '../../platform/backup-file';
 import { errorReport, useErrorLog } from '../../platform/error-log';
@@ -12,6 +12,8 @@ import { plural } from '../../ui/format';
 import { Card, INPUT } from './ProfileScreen';
 import { AlarmSettings } from './AlarmSettings';
 import { UpdateControls } from './UpdateOffer';
+import { WhatsNewButton } from './WhatsNew';
+import { encryptBackup } from '../../domain/backup-crypto';
 import { ensureNotificationPermission, notificationsAvailable } from '../../platform/notifications';
 import { resyncReminders } from '../plan/reminders-sync';
 import { parseTrainingTime } from '../../domain/reminders';
@@ -47,6 +49,7 @@ export function SettingsSection() {
       <Card title="Sobre">
         <p className="text-sm text-muted">Versão {__APP_VERSION__}. Ilustrações dos exercícios: Everkinetic (CC BY-SA 4.0).</p>
         <UpdateControls />
+        <WhatsNewButton />
         <ErrorLogButton />
       </Card>
     </>
@@ -70,14 +73,25 @@ function BackupCard() {
   const [message, setMessage] = useState('');
 
   const settings = useAppStore(s => s.data?.settings);
+  const lastBackupAt = useAppStore(s => s.data?.meta.lastBackupAt);
+  const [protect, setProtect] = useState(false);
+  const [newPassword, setNewPassword] = useState('');
+  const [repeat, setRepeat] = useState('');
+  const passwordProblem = !protect ? '' : newPassword.length < 6 ? 'A senha precisa de pelo menos 6 caracteres.'
+    : newPassword !== repeat ? 'As senhas não conferem.' : '';
   const exportNow = async () => {
+    if (passwordProblem) { setMessage(passwordProblem); return; }
     await useAppStore.getState().flush();
     const data = useAppStore.getState().data;
     if (!data) return;
     try {
+      const backup = buildBackup(data, __APP_VERSION__);
+      // com senha: o mesmo formato cifrado do app atual (AES-GCM + PBKDF2), lido nos dois apps
+      const content = JSON.stringify(protect ? await encryptBackup(backup, newPassword, __APP_VERSION__) : backup);
       // a mensagem de sucesso só aparece depois que o arquivo foi de fato gravado
-      const result = await saveBackupFile(`treino-backup-${toDateKey(new Date())}.json`, JSON.stringify(buildBackup(data, __APP_VERSION__)));
-      setMessage(result === 'saved' ? 'Backup salvo.' : '');
+      const result = await saveBackupFile(`treino-backup-${toDateKey(new Date())}.json`, content);
+      if (result === 'saved') run(d => updateMeta(d, { lastBackupAt: new Date().toISOString() }));
+      setMessage(result === 'saved' ? (protect ? 'Backup com senha salvo. Sem a senha, ele não pode ser aberto.' : 'Backup salvo.') : '');
     } catch (e) {
       useErrorLog.getState().report(e, 'Backup');
       setMessage('Não foi possível salvar o backup.');
@@ -99,6 +113,15 @@ function BackupCard() {
   return (
     <Card title="Dados e backup">
       <p className="text-sm text-muted">Guarde um arquivo com tudo (treinos, planos, peso) fora do aparelho. Aceita backups do app atual.</p>
+      {lastBackupAt && <p className="text-xs text-faint">Último backup: {new Date(lastBackupAt).toLocaleDateString('pt-BR')}</p>}
+      <Toggle label="Proteger o backup com senha" checked={protect} onChange={setProtect} />
+      {protect && (
+        <div className="grid grid-cols-2 gap-2">
+          <input type="password" value={newPassword} onChange={e => setNewPassword(e.target.value)} aria-label="Nova senha do backup" placeholder="Senha" className={`${INPUT} mt-0`} />
+          <input type="password" value={repeat} onChange={e => setRepeat(e.target.value)} aria-label="Repita a senha" placeholder="Repita" className={`${INPUT} mt-0`} />
+          {passwordProblem && newPassword && <p className="col-span-2 text-xs text-warning">{passwordProblem}</p>}
+        </div>
+      )}
       <div className="grid grid-cols-2 gap-2">
         <button type="button" onClick={() => void exportNow()} className="h-12 rounded-xl bg-primary font-bold text-white">Fazer backup</button>
         <button type="button" onClick={() => fileRef.current?.click()} className="h-12 rounded-xl bg-surface-2 font-bold">Restaurar</button>

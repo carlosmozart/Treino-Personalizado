@@ -2,6 +2,7 @@ import { TabBar, TAB_LABELS } from './ui/TabBar';
 import { Toaster } from './ui/Toaster';
 import { ErrorNotice } from './ui/ErrorNotice';
 import { UpdateOffer } from './features/profile/UpdateOffer';
+import { WhatsNew } from './features/profile/WhatsNew';
 import { useUiStore } from './store/ui-store';
 import { useAppStore } from './store';
 import { WorkoutScreen } from './features/workout/WorkoutScreen';
@@ -43,6 +44,7 @@ export function App() {
       <Toaster />
       <ErrorNotice />
       <UpdateOffer />
+      <WhatsNew />
       <TabBar />
     </div>
   );

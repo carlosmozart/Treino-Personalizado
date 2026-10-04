@@ -1,12 +1,24 @@
 import { useState } from 'react';
 import { errorReport, useErrorLog } from '../platform/error-log';
 import { Icon } from './Icon';
+import { useAppStore } from '../store';
 
 /** Aviso discreto de erro inesperado, com cópia dos detalhes para relatar (O12). */
 export function ErrorNotice() {
   const notice = useErrorLog(s => s.notice);
+  const saveError = useAppStore(s => s.saveError);
   const dismiss = useErrorLog(s => s.dismiss);
   const [copied, setCopied] = useState(false);
+  if (saveError) {
+    // gravação falhando (ex.: sem espaço): os dados ficam só na memória até voltar a gravar
+    return (
+      <div role="alert" className="fixed inset-x-0 bottom-36 z-50 mx-auto max-w-xl px-4">
+        <p className="rounded-2xl border border-danger/60 bg-surface px-4 py-3 text-sm shadow-lg">
+          <strong>Não foi possível salvar no aparelho.</strong> Libere espaço e não feche o app; ele tenta de novo a cada mudança. ({saveError})
+        </p>
+      </div>
+    );
+  }
   if (!notice) return null;
   const copy = async () => {
     try { await navigator.clipboard.writeText(errorReport([notice], __APP_VERSION__, navigator.userAgent)); setCopied(true); }
