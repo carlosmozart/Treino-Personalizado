@@ -34,6 +34,8 @@ test('progresso: estatísticas, mapa de calor e histórico com apagar', async ({
 });
 
 test('metas: conquista do primeiro check-in e meta de peso com marcos', async ({ page }) => {
+  // meio-dia: à noite também sairia a conquista do check-in noturno
+  await page.clock.setFixedTime(new Date(2026, 9, 7, 12));
   await page.goto('/');
   await page.getByRole('button', { name: 'Treino', exact: true }).click();
   await page.getByRole('button', { name: 'Usar plano de exemplo' }).click();
