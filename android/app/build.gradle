@@ -37,6 +37,14 @@ android {
         }
     }
     buildTypes {
+        debug {
+            // APK de teste do app novo (-PappNovo): outro id, instala ao lado do app atual sem
+            // tocar nos dados dele. Ver .github/workflows/android-app-novo-apk.yml.
+            if (project.hasProperty('appNovo')) {
+                applicationIdSuffix '.novo'
+                versionNameSuffix '-novo'
+            }
+        }
         release {
             if (keystorePropertiesFile.exists()) {
                 signingConfig signingConfigs.release

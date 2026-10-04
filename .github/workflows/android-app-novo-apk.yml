@@ -1,0 +1,69 @@
+name: APK de teste do app novo
+
+# APK do app novo (app/) para testar no celular antes da troca (P6/P7). Id próprio
+# (com.treinopersonalizado.app.novo): instala ao lado do app atual, com dados separados.
+# Assinado com a chave de debug e publicado só como artefato desta execução, nunca como
+# Release, para o atualizador do app atual não oferecê-lo.
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: Gerar APK de teste
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Configure Node
+        uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: |
+            package-lock.json
+            app/package-lock.json
+
+      - name: Configure Java
+        uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - name: Install dependencies
+        run: |
+          npm ci
+          npm ci --prefix app
+
+      - name: Build app novo
+        run: npm run build --prefix app
+
+      - name: Use app novo as the web content
+        run: |
+          rm -rf www
+          cp -r app/dist www
+          npx cap sync android
+          sed -i 's|<string name="app_name">.*</string>|<string name="app_name">Vigor Gym (teste)</string>|; s|<string name="title_activity_main">.*</string>|<string name="title_activity_main">Vigor Gym (teste)</string>|' android/app/src/main/res/values/strings.xml
+
+      - name: Build debug APK
+        run: |
+          chmod +x android/gradlew
+          cd android
+          ./gradlew :app:assembleDebug -PappNovo --no-daemon --console=plain
+
+      - name: Name APK
+        run: |
+          SHA=$(git rev-parse --short HEAD)
+          mkdir -p dist
+          cp android/app/build/outputs/apk/debug/app-debug.apk "dist/vigor-gym-teste-${SHA}.apk"
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v6
+        with:
+          name: vigor-gym-teste
+          path: dist/*.apk
+          retention-days: 30
