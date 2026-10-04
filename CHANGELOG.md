@@ -6,6 +6,12 @@ Todas as mudanças relevantes do app ficam registradas aqui. Ao lançar uma nova
    atualizar o app instalado
 3. Adicione uma entrada aqui, nesse formato
 
+## [2.21.0] - 2026-10-04
+
+- Atualização do APK pelo próprio app: consulta diária (ou pelo botão "Procurar atualização" no rodapé) da release mais recente no GitHub, download nativo restrito às releases do repositório, SHA-256 obrigatório e instalador do Android. É a única chamada de rede do app e só existe no APK.
+- O workflow do APK passa a publicar a Release `vX.Y.Z` com o `.apk`, o `.apk.sha256` e as notas do CHANGELOG.
+- Registra no TODO as ideias avaliadas a partir do openGym (seção M).
+
 ## [2.20.3] - 2026-09-30
 
 - Aumenta as fontes mínimas da interface: rótulos de 9–10 px passam a 11 px, e os de 7–8 px passam a 9–10 px em selos e grades compactas.

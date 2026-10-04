@@ -96,3 +96,24 @@ Curva de aprendizado	Você já domina	Nova stack para manter
 Distribuição	1 build → ambos os stores	Build separado por plataforma
 Deep hardware	Via plugins (BLE, NFC, câmera avançada) 	Acesso direto
 Notificações agendadas	Requer plugin (@capacitor/local-notifications) 	Sim
+
+M. Ideias inspiradas no openGym (github.com/DuarteSantos8/openGym — análise de 03/10/2026)
+O openGym é AGPL-3.0: reimplementar as ideias, nunca copiar código. Fora de escopo: servidor/sincronização, passkeys, painel admin, MCP e a biblioteca de mídia de exercícios (direitos de imagem em disputa).
+#	Sugestão	Prioridade
+M1	✅ Atualização do APK pelo próprio app: consulta diária da release mais recente no GitHub, download nativo com SHA-256 obrigatório e instalador do Android. Falta o workflow publicar a Release (ver docs/android-apk.md)	Alta
+M2	Manter a tela ligada durante o treino (Wake Lock / plugin keep-awake), liberando ao finalizar; opção para desligar	Alta
+M3	1RM estimado por exercício (Epley/Brzycki, só até 12 reps) com indicação da série usada e curva de evolução	Alta
+M4	Recordes pessoais (PR) detectados ao finalizar: maior carga, maior 1RM estimado e maior volume, com selo no histórico	Alta
+M5	Séries de aquecimento marcáveis, excluídas de volume, 1RM, recordes e progressão	Média
+M6	Progressão dupla explícita por faixa de reps (ex.: 8–12): sugerir carga da próxima sessão e explicar o porquê; deload após estagnação	Média
+M7	Calculadora de anilhas para barra: "Barra 20 kg · 30 kg por lado", com anilhas disponíveis configuráveis	Média
+M8	Exercícios por tempo (prancha, isometria) com cronômetro de execução separado do descanso	Média
+M9	Mapa de calor anual de treinos (estilo GitHub) no histórico	Média
+M10	Registrar treino passado e corrigir data/hora de um treino já salvo, sem gerar recordes retroativos	Média
+M11	Bi-set/superset: agrupar dois exercícios com um único descanso ao fim da rodada	Média
+M12	Esforço por série opcional (RIR ou RPE), sem afetar progressão	Baixa
+M13	Remarcar o treino do dia para outro dia sem alterar o plano semanal; escolher início da semana (seg/dom)	Baixa
+M14	Compartilhar plano (arquivo só com rotinas, sem dados pessoais) e importar mesclando	Baixa
+M15	Importar histórico de Strong/Hevy/FitNotes (CSV), casando nomes com a biblioteca	Baixa
+M16	Tema claro e cor de destaque configurável	Baixa
+M17	Favoritar exercícios para aparecerem primeiro na troca/biblioteca	Baixa

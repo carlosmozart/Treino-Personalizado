@@ -1127,6 +1127,10 @@
     <span class="text-[11px] text-slate-600 font-bold tracking-wider">Treino Personalizado <span id="appVersion">v1.2.0</span></span>
     <br/>
     <button type="button" onclick="openNovidades()" class="mt-2 text-[11px] font-black text-blue-400 uppercase tracking-wider hover:text-blue-300">🆕 Ver Novidades</button>
+    <div id="appUpdateBox" class="hidden mt-3">
+      <button type="button" onclick="checkAppUpdate()" class="py-3 px-4 text-[11px] font-black text-blue-400 uppercase tracking-wider">⬆️ Procurar atualização</button>
+      <p id="appUpdateStatus" class="hidden text-[11px] text-slate-400 mt-1" role="status" aria-live="polite"></p>
+    </div>
   </footer>
 
   <div id="confirmFinishOverlay" class="hidden fixed inset-0 bg-slate-950/95 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
@@ -1213,6 +1217,7 @@
   <script src="js/ui/notifications.js"></script>
   <script src="js/ui/rest-timer.js"></script>
   <script src="js/ui/release-notes.js"></script>
+  <script src="js/ui/app-update.js"></script>
   <script src="js/ui/onboarding.js"></script>
   <script src="js/ui/modal-accessibility.js"></script>
   <script src="js/ui/app-lifecycle.js"></script>
@@ -1238,7 +1243,7 @@
   <script src="js/ui/exercise-progress.js"></script>
   <script src="js/ui/charts.js"></script>
   <script>
-    const APP_VERSION = '2.20.3'; // manter sincronizado com CACHE_NAME em sw.js e com o CHANGELOG.md
+    const APP_VERSION = '2.21.0'; // manter sincronizado com CACHE_NAME em sw.js e com o CHANGELOG.md
 
     const RELEASE_NOTES = TREINO_STATIC.releaseNotes;
 
@@ -2339,5 +2344,13 @@
       loadString, LAST_SEEN_VERSION_KEY: releaseNotesUI.LAST_SEEN_VERSION_KEY,
       openNovidades: window.openNovidades, saveString, maybeShowSwipeHint, maybeSuggestBackup
     });
+
+    // Atualização do APK pelas releases do GitHub (só no app Android).
+    const appUpdate = TREINO_APP_UPDATE.create({
+      document, window, fetch: (...args) => window.fetch(...args), PLATFORM, APP_VERSION,
+      loadString, saveString, askConfirm, escapeHtml
+    });
+    window.checkAppUpdate = () => appUpdate.checkForUpdate({ manual: true });
+    window.addEventListener('load', () => setTimeout(() => appUpdate.setup(), 3000));
   </script></body>
 </html>

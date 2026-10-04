@@ -37,4 +37,6 @@
     <uses-permission android:name="android.permission.INTERNET" />
     <!-- Necessária apenas para o fim pontual do descanso; lembretes semanais seguem inexatos. -->
     <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
+    <!-- Atualização pelo próprio app: abre o instalador do Android com o APK verificado. -->
+    <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
 </manifest>

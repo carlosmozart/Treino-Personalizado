@@ -70,3 +70,23 @@ reconhecida como atualização da anterior.
 - Após configurar a assinatura de release no Android Studio, use `npm run build:aab`. O resultado
   fica em `android/app/build/outputs/bundle/release/`.
 - A cada alteração web, rode `npm run sync:android` antes de abrir/compilar o Android.
+
+## Atualização dentro do app
+
+O APK verifica, no máximo uma vez por dia e também pelo botão "Procurar atualização" no rodapé,
+a release mais recente de `carlosmozart/Treino-Personalizado` na API pública do GitHub. Se a tag
+(`vX.Y.Z`) for maior que `APP_VERSION`, o app oferece a atualização:
+
+1. `AppUpdatePlugin` (Java) baixa o `.apk` só de `github.com/carlosmozart/Treino-Personalizado/releases/download/`.
+2. O SHA-256 é obrigatório: vem do campo `digest` do asset ou da linha `SHA-256: <hex>` nas notas
+   da release. Sem hash ou com hash diferente, nada é instalado.
+3. O instalador do Android é aberto; na primeira vez ele pede a permissão "instalar apps desconhecidos".
+   O Android também recusa um APK assinado com outra chave, então os dados do app são preservados.
+
+Esta é a única chamada de rede do app, e só existe no APK (a versão web não consulta nada).
+
+Para publicar uma atualização: suba a versão (e a entrada do CHANGELOG) e rode o workflow
+**Android release APK** com "Publicar como Release" marcado. Ele cria a tag `vX.Y.Z`, anexa o
+`.apk` e o `.apk.sha256` e usa a seção da versão do CHANGELOG como notas, com a linha `SHA-256:`
+no fim. Se a release já existir, o workflow falha em vez de sobrescrever. Releases marcadas como
+*pre-release* ou rascunho são ignoradas pelo app.

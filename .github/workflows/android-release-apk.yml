@@ -2,9 +2,14 @@ name: Android release APK
 
 on:
   workflow_dispatch:
+    inputs:
+      publish:
+        description: Publicar como Release no GitHub (usada pela atualização dentro do app)
+        type: boolean
+        default: true
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   build:
@@ -64,10 +69,41 @@ jobs:
           ./gradlew :app:testDebugUnitTest --no-daemon --console=plain
           ./gradlew :app:assembleRelease --no-daemon --console=plain
 
+      - name: Name APK and compute SHA-256
+        id: apk
+        run: |
+          VERSION=$(node -p "require('./package.json').version")
+          NAME="treino-personalizado-v${VERSION}.apk"
+          mkdir -p dist
+          # O build.gradle já nomeia a saída como treino-personalizado-v<versão>.apk.
+          cp "android/app/build/outputs/apk/release/${NAME}" "dist/${NAME}"
+          (cd dist && sha256sum "${NAME}" > "${NAME}.sha256")
+          echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
+          echo "name=${NAME}" >> "$GITHUB_OUTPUT"
+          echo "sha256=$(cut -d' ' -f1 "dist/${NAME}.sha256")" >> "$GITHUB_OUTPUT"
+
+      - name: Publish GitHub release
+        if: ${{ inputs.publish }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ steps.apk.outputs.version }}
+          NAME: ${{ steps.apk.outputs.name }}
+          SHA256: ${{ steps.apk.outputs.sha256 }}
+        run: |
+          if gh release view "v${VERSION}" >/dev/null 2>&1; then
+            echo "::error::A release v${VERSION} já existe. Suba a versão antes de publicar."
+            exit 1
+          fi
+          # Notas = seção da versão no CHANGELOG + hash lido pelo app como reserva ao digest.
+          awk -v v="## [${VERSION}]" 'index($0, v) == 1 {on=1; next} /^## \[/ {on=0} on' CHANGELOG.md > notes.md
+          printf '\nSHA-256: `%s`\n' "$SHA256" >> notes.md
+          gh release create "v${VERSION}" "dist/${NAME}" "dist/${NAME}.sha256" \
+            --target "$GITHUB_SHA" --title "v${VERSION}" --notes-file notes.md
+
       - name: Upload APK
         uses: actions/upload-artifact@v6
         with:
           name: treino-personalizado-release-apk
-          path: android/app/build/outputs/apk/release/*.apk
+          path: dist/*
           if-no-files-found: error
           retention-days: 1

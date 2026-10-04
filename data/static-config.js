@@ -5,6 +5,12 @@ window.TREINO_STATIC = {
   metCardioPadrao: 6.0,
   releaseNotes: [
       {
+        version: '2.21.0', date: '2026-10-04',
+        highlights: [
+          '⬆️ <strong>Atualização pelo próprio app.</strong> No Android, o app avisa quando há versão nova, baixa do GitHub, confere a integridade do arquivo e abre o instalador. Seus dados continuam no aparelho.'
+        ]
+      },
+      {
         version: '2.20.3', date: '2026-09-30',
         highlights: [
           '🔎 <strong>Textos mais legíveis.</strong> Rótulos e detalhes pequenos ficaram maiores para facilitar a leitura durante o treino.',

@@ -1,4 +1,4 @@
-const CACHE_NAME = 'treino-cache-v2.20.3';
+const CACHE_NAME = 'treino-cache-v2.21.0';
 const ASSETS = [
   './',
   './index.html',
@@ -47,6 +47,7 @@ const ASSETS = [
   './js/ui/notifications.js',
   './js/ui/rest-timer.js',
   './js/ui/release-notes.js',
+  './js/ui/app-update.js',
   './js/ui/onboarding.js',
   './js/ui/modal-accessibility.js',
   './js/ui/app-lifecycle.js',
