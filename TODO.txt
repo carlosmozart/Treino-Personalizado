@@ -97,23 +97,74 @@ Distribuição	1 build → ambos os stores	Build separado por plataforma
 Deep hardware	Via plugins (BLE, NFC, câmera avançada) 	Acesso direto
 Notificações agendadas	Requer plugin (@capacitor/local-notifications) 	Sim
 
-M. Ideias inspiradas no openGym (github.com/DuarteSantos8/openGym — análise de 03/10/2026)
+M. Evolução inspirada no openGym (github.com/DuarteSantos8/openGym — análise de 03–04/10/2026)
 O openGym é AGPL-3.0: reimplementar as ideias, nunca copiar código. Fora de escopo: servidor/sincronização, passkeys, painel admin, MCP e a biblioteca de mídia de exercícios (direitos de imagem em disputa).
+Cada fase vira uma versão própria; a Fase 2 é a refatoração de maior risco e não deve ser misturada com funções novas.
 #	Sugestão	Prioridade
-M1	✅ Atualização do APK pelo próprio app: consulta diária da release mais recente no GitHub, download nativo com SHA-256 obrigatório e instalador do Android. Falta o workflow publicar a Release (ver docs/android-apk.md)	Alta
-M2	Manter a tela ligada durante o treino (Wake Lock / plugin keep-awake), liberando ao finalizar; opção para desligar	Alta
-M3	1RM estimado por exercício (Epley/Brzycki, só até 12 reps) com indicação da série usada e curva de evolução	Alta
-M4	Recordes pessoais (PR) detectados ao finalizar: maior carga, maior 1RM estimado e maior volume, com selo no histórico	Alta
-M5	Séries de aquecimento marcáveis, excluídas de volume, 1RM, recordes e progressão	Média
-M6	Progressão dupla explícita por faixa de reps (ex.: 8–12): sugerir carga da próxima sessão e explicar o porquê; deload após estagnação	Média
-M7	Calculadora de anilhas para barra: "Barra 20 kg · 30 kg por lado", com anilhas disponíveis configuráveis	Média
-M8	Exercícios por tempo (prancha, isometria) com cronômetro de execução separado do descanso	Média
-M9	Mapa de calor anual de treinos (estilo GitHub) no histórico	Média
-M10	Registrar treino passado e corrigir data/hora de um treino já salvo, sem gerar recordes retroativos	Média
-M11	Bi-set/superset: agrupar dois exercícios com um único descanso ao fim da rodada	Média
-M12	Esforço por série opcional (RIR ou RPE), sem afetar progressão	Baixa
-M13	Remarcar o treino do dia para outro dia sem alterar o plano semanal; escolher início da semana (seg/dom)	Baixa
-M14	Compartilhar plano (arquivo só com rotinas, sem dados pessoais) e importar mesclando	Baixa
-M15	Importar histórico de Strong/Hevy/FitNotes (CSV), casando nomes com a biblioteca	Baixa
-M16	Tema claro e cor de destaque configurável	Baixa
-M17	Favoritar exercícios para aparecerem primeiro na troca/biblioteca	Baixa
+M1	✅ Atualização do APK pelo próprio app (2.21.0): consulta diária da release no GitHub, download nativo restrito ao repositório, SHA-256 obrigatório e instalador do Android; o workflow publica a Release vX.Y.Z. Validar no aparelho a primeira atualização real (2.21.0 → próxima)	Alta
+
+Fase 1 — ganhos rápidos, sem refatorar (2.22)
+M2	Manter a tela ligada durante o treino (Wake Lock com nova tentativa a cada visibilitychange, ou plugin keep-awake no APK); liberar ao finalizar; opção no Perfil	Alta
+M3	1RM estimado por exercício (Epley/Brzycki, só até 12 reps), mostrando a série que o gerou, curva de evolução e calculadora para outras reps	Alta
+M4	Melhorar recordes: hoje recorde = maior carga (100 kg × 1 "vence" 95 kg × 8). Passar a usar 1RM estimado e também recordes de reps e de volume, com selo no histórico	Alta
+
+Fase 2 — refatorar o histórico para "por treino" (2.23)
+M5	Novo modelo no IndexedDB: workouts = {id, data, início, duração, dia/plano, exercícios: [{chave, séries: [{reps, carga, tipo, modo}]}]}. Hoje o log é por exercício (sessionLog[chave], 1 registro/dia, teto de 200), o que impede várias funções abaixo	Alta
+M6	Derivar o formato atual por exercício a partir dos treinos, para as telas existentes seguirem funcionando durante a transição	Alta
+M7	Migração automática com cópia de segurança prévia; backups antigos continuam importáveis; testes de migração com históricos reais (formatos pré e pós 2.11). Validar no APK junto com A9	Alta
+M8	Tipo de série: aquecimento/trabalho (aquecimento fora de volume, 1RM, recordes e progressão) e, depois, drop-set	Média
+M9	Modo do exercício: reps, tempo (prancha/isometria com cronômetro de execução separado do descanso) ou cardio	Média
+
+Fase 3 — progressão automática (2.24)
+M10	Faixa de reps por exercício no plano (ex.: 8–12) e progressão dupla como padrão; linear como opção por plano, com ajuste por exercício	Alta
+M11	Calcular a sugestão sempre a partir do histórico (função pura, nada gravado): série não concluída ou com menos reps nunca sobe carga; estagnação repetida sugere deload de ~10%	Alta
+M12	Treino abre com a carga sugerida e uma linha explicando o porquê ("+2,5 kg: 12 reps nas 3 séries"); substitui o quadro fixo Alerta/Zona segura/Subir carga por informação por exercício	Alta
+M13	Incremento por exercício (1,25/2,5/5 kg) e opção de abrir pelos números do plano ou da última sessão	Média
+M14	Calculadora de anilhas para barra ("Barra 20 kg · 30 kg por lado"), com anilhas disponíveis configuráveis	Média
+
+Fase 4 — funções destravadas pelo novo modelo
+M15	Registrar treino passado (data, início, duração) e corrigir data/hora de um treino salvo, sem gerar recordes retroativos	Média
+M16	Mapa de calor anual de treinos (estilo GitHub) no histórico	Média
+M17	Bi-set/superset: agrupar dois exercícios com um único descanso ao fim da rodada	Média
+M18	Adicionar/remover exercício no meio do treino sem finalizar; treino livre com valores pré-preenchidos da última vez	Média
+M19	Remarcar o treino do dia para outro dia sem alterar o plano semanal; escolher início da semana (seg/dom)	Baixa
+M20	Histórico do exercício acessível de dentro do treino (últimas sessões + linha de evolução)	Média
+
+Fase 5 — descanso, conforto e extras
+M21	Descanso no APK como serviço em primeiro plano: contagem na barra de notificações com −15s/+15s/pausar/pular, sem desbloquear o celular (código nativo; validar no aparelho)	Média
+M22	Esforço por série opcional (RIR ou RPE), sem afetar progressão	Baixa
+M23	Compartilhar plano (arquivo só com rotinas, sem dados pessoais) e importar mesclando; imprimir plano em PDF	Baixa
+M24	Importar histórico de Strong/Hevy/FitNotes (CSV), casando nomes com a biblioteca (depende de M5)	Baixa
+M25	Tema claro e cor de destaque configurável (exige revisar tokens de cor do guia de interface)	Baixa
+M26	Favoritar exercícios para aparecerem primeiro na troca/biblioteca	Baixa
+M27	Ampliar testes no estilo do openGym: casos-limite de cada regra de progressão, 1RM, recordes e migração	Alta
+
+Funções adicionais do openGym aproveitáveis
+M28	Equilíbrio muscular: mapear exercícios → grupos musculares e mostrar séries por grupo na semana/30 dias/90 dias, destacando grupos não treinados (começar com barras/lista; figura do corpo depois, com arte própria)	Média
+M29	Recuperação/fadiga por grupo muscular, decaindo com o tempo desde o último treino (depende de M28)	Baixa
+M30	Exercícios de peso corporal: sem coluna de carga, progressão por reps; carga extra (cinto) somada quando houver	Média
+M31	Reps por lado (afundo, remada unilateral): registra o total, mostra "8 por lado" e progride de 2 em 2	Baixa
+M32	Marcar um plano/semana como deload: entra no histórico mas não vira base da progressão	Baixa
+M33	Copiar treino como texto e salvar um treino feito como novo dia do plano	Baixa
+M34	Revisão do treino pela IA: gerar prompt com o histórico recente para a IA propor ajustes com justificativa, e importar a resposta pelo fluxo de importação que já existe (cada mudança aprovada pelo usuário)	Média
+M35	No dia de descanso, informar quando é o próximo treino e qual é	Baixa
+M36	Filtro por equipamento na troca de exercício (só mostrar o que a academia/casa tem)	Baixa
+M37	Unidade kg/lb com conversão opcional dos dados salvos	Baixa
+
+N. Interface inspirada no openGym (comparação das telas em 04/10/2026)
+Aplicar respeitando docs/guia-interface.md (atualizar o guia quando um padrão novo for adotado).
+#	Sugestão	Prioridade
+N1	Linhas de série com cabeçalho de colunas (CARGA (KG) · REPS) acima, em vez de "reps"/"kg" repetidos em cada linha — sobra largura para o número (resolve o aperto visto em 375 px) e carga vem antes de reps	Alta
+N2	Menu "⋯" por exercício reunindo ações secundárias (observação, evolução, trocar, dica, descanso próprio, remover) no lugar das fileiras de botões; manter visível só o essencial	Alta
+N3	Cabeçalho fixo do treino: nome do dia, tempo decorrido · séries feitas/total, barra de progresso e botão de concluir sempre à mão	Alta
+N4	Contexto por exercício logo abaixo do nome: "Última vez (7 set): 75×8, 75×8, 75×8" e chips (grupo muscular, equipamento, Melhor: 75 kg) — junto com M12 e M14, a linha da progressão e das anilhas	Alta
+N5	Modo foco opcional: um exercício por vez ("Exercício 1/6") com navegação, alternando com a lista completa atual	Média
+N6	Tela inicial com faixa da semana (dias com ponto nos treinados, hoje destacado) e cartão "Hoje: <treino> · Começar"; substituir o seletor de dia como entrada principal	Alta
+N7	Cartão de peso no início: número grande, variação desde o último registro, meta e quanto falta, gráfico com linha da meta e "+ Registrar" direto	Média
+N8	Cartão de sequência ("12 semanas seguidas · 3/3 nesta semana · 35 treinos") no lugar de contadores pequenos em chips	Média
+N9	Aba de estatísticas com blocos de números grandes (treinos, este mês, sequência, peso 30 dias), mapa de calor (M16) e equilíbrio muscular (M28)	Média
+N10	Plano em cartões por dia da semana com "Descanso" explícito e "+ Adicionar" no próprio cartão	Média
+N11	Botão central de destaque na barra inferior para começar/retomar o treino	Média
+N12	Tipografia: menos rótulos em CAIXA ALTA espaçada e minúsculos; títulos maiores e números de destaque grandes (o openGym usa 14–16 px no corpo). Revisar após N1–N4	Média
+N13	Conjunto de ícones próprio (SVG em linha) no lugar de emojis na interface, para aparência igual em todo celular	Baixa
+N14	Linha de status de dados (onde estão salvos, último backup) visível nas configurações, no espírito do "sempre diz onde estão seus dados"	Baixa
