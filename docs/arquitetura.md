@@ -69,3 +69,34 @@ A validação física do APK permanece em A9: a consulta ao ADB não encontrou a
 ## Correção do build Android 2.20.2
 
 A primeira execução do workflow parou no teste de navegação: a animação do cabeçalho deslocava a rolagem restaurada. A navegação agora aguarda as transições e reaplica a posição, ignorando callbacks de navegações anteriores. O teste passou em cinco repetições locais. Também foi corrigida a espera do teste de recuperação de backup para aguardar o término real da inicialização após o recarregamento; passou em cinco repetições. As verificações e os 117 testes unitários passaram; a suíte completa será novamente executada pelo workflow do APK. A versão permanece 2.20.2 (22002), pois a tentativa anterior não gerou artefato.
+
+## Reescrita em React + TypeScript (decisão de 04/10/2026)
+
+A comparação com o openGym (React + Vite + Zustand, regras puras em `lib/`) e a revisão de 04/10
+mostraram que a estrutura atual chegou ao limite para o que vem a seguir (TODO, seções M, N e O):
+
+- sem etapa de build: 70 `<script>` em ordem fixa e cada módulo novo registrado à mão em três
+  lugares (`index.html`, lista do `sw.js`, `tests/release-readiness.mjs`);
+- Tailwind compilado uma vez e congelado: classes novas ficam inertes (2.9.0 e 2.20.3);
+- 75 funções globais chamadas por `onclick` e telas montadas por `innerHTML` com escape manual;
+- estado em variáveis soltas alteradas de vários lugares — origem de erros como o O1
+  (finalizar gravava séries não feitas, corrigido na 2.21.1);
+- histórico gravado por exercício, quando as funções planejadas precisam dele por treino.
+
+Com três usuários e sem problema em pausar, reescrever é mais barato do que migrar por partes,
+que deixaria duas formas de montar telas convivendo por muito tempo.
+
+**Decisões**
+- Pasta `app/` neste repositório; o app atual (raiz) segue publicado e só recebe correções
+  críticas até a troca.
+- Vite + React + TypeScript + Tailwind compilado no build + Zustand + Vitest + Playwright.
+- `app/src/domain`: regras puras e tipadas, sem DOM, portadas de `js/core/` com os testes atuais.
+- Modelo de dados por treino; migração automática na primeira abertura com cópia de segurança;
+  backups antigos continuam importáveis.
+- Capacitor e o código nativo atual (canais de notificação, `AppUpdatePlugin`) são mantidos.
+- Nenhum recurso externo em tempo de execução: tudo empacotado localmente, sem CDN; a única
+  chamada de rede continua sendo a checagem de atualização no APK.
+- O openGym é AGPL-3.0: serve de referência de ideias e organização, nunca de código copiado.
+- A troca (versão 3.0.0) só ocorre com a lista de equivalência completa e validada no aparelho.
+
+Etapas: TODO.txt, seção P.

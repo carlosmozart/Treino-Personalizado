@@ -168,3 +168,50 @@ N11	Botão central de destaque na barra inferior para começar/retomar o treino	
 N12	Tipografia: menos rótulos em CAIXA ALTA espaçada e minúsculos; títulos maiores e números de destaque grandes (o openGym usa 14–16 px no corpo). Revisar após N1–N4	Média
 N13	Conjunto de ícones próprio (SVG em linha) no lugar de emojis na interface, para aparência igual em todo celular	Baixa
 N14	Linha de status de dados (onde estão salvos, último backup) visível nas configurações, no espírito do "sempre diz onde estão seus dados"	Baixa
+
+O. Revisão de 04/10/2026 — robustez (vinda do openGym) e problemas encontrados no nosso app
+Rodada 1 leu os módulos de robustez e as telas do openGym; rodada 2 percorreu nosso app em 375 px (cadastro, treino, finalizar, histórico, planos, perfil, metas).
+#	Sugestão	Prioridade
+Erros encontrados
+O1	✅ Corrigido na 2.21.1 — Finalizar treino gravava TODAS as séries exibidas como feitas, inclusive as nunca marcadas, e marca todos os exercícios como concluídos (workout-recording.js: finalizeWorkout chama recordWorkoutSessions sem apenasConcluidos e sem olhar sr.done). Teste: 1 série feita de 12 → histórico com 4 exercícios 3x completos, volume 4.428 kg, e "🔥 Força sobrando — hora de subir a carga!" num exercício não feito. Gravar só séries marcadas; exercício sem série feita não entra no histórico. Corrigir antes da Fase 3	Alta
+O2	Seletor de dia mostra "Domingo: Extra (Opcional) (Opcional)": o nome do plano padrão já tem o sufixo e workout-summary.js:12 acrescenta de novo	Média
+O3	O plano padrão já abre o editor com o aviso "marcou 6 dias/semana, mas montou exercícios em 7" — o aviso conta o dia opcional. Melhor: calcular dias/semana automaticamente pelos dias obrigatórios com exercícios e remover o campo manual	Média
+O4	Resumo do dia mostra "Duração 1min" ao lado de calorias calculadas com duração estimada (~30 min); quando a duração é substituída pela estimativa, mostrar "~30 min (estimado)"	Baixa
+O5	Mensagem de treino incompleto conta só exercícios inteiros ("0 de 4 exercícios") mesmo com séries feitas; mostrar também séries feitas/total	Baixa
+O6	"Rumo ao objetivo" pede "peso atual e peso alvo" quando só falta o alvo; dizer exatamente o que falta	Baixa
+O7	Concordância: "1 TREINO SEGUIDOS" → singular/plural	Baixa
+O8	Editor de plano: o texto do "Dia opcional" diz "Se você não treinar neste dia, sua sequência será zerada" mesmo com o dia marcado como opcional; o texto deve descrever o estado atual	Baixa
+
+Robustez no Android (comparação com o openGym)
+O9	Botão/gesto voltar do Android não é tratado: sem listener, o Capacitor fecha o app de qualquer tela, inclusive com modal aberto. Voltar deve fechar modal → voltar de aba → "toque de novo para sair" (plugin @capacitor/app)	Alta
+O10	targetSdk 36 obriga tela de ponta a ponta no Android 15+: validar no aparelho barra de status, barra de navegação, safe areas e teclado cobrindo campos (cadastro, editor de plano, observação); corrigir com insets/visualViewport se necessário (junto com A9)	Alta
+O11	Backup automático no APK: após finalizar treino/salvar peso, gravar cópia datada em Documentos/TreinoPersonalizado (mantendo as N mais recentes), opcional nas configurações — protege contra desinstalação/troca de celular, hoje só há backup manual	Alta
+O12	Registro global de erros (window error/unhandledrejection) com aviso discreto e opção de copiar o erro para relatar; hoje uma falha só aparece no console	Média
+O13	Som do descanso: retomar o AudioContext a partir do toque que inicia o descanso e suspender após o aviso, para não falhar após tela bloqueada/troca de app	Média
+
+Interface e experiência (nosso app)
+O14	Nome do exercício no cartão fica com ~100 px e corta cedo ("Crossover ...") por causa de três botões redondos ao lado; com N2 (menu ⋯) o nome ganha a linha inteira	Alta
+O15	Botão de trocar exercício aparece mesmo sem reservas ("Sem reservas cadastradas"); esconder ou levar para o menu ⋯	Média
+O16	Círculo vazio "Marcar como concluído" no cabeçalho do cartão se confunde com os círculos das séries; concluir o exercício deve ser consequência de marcar as séries (ou ação explícita no menu)	Média
+O17	Botões de ajuste de carga (−10…+10) têm 30×30 px e o × de apagar peso tem 24 px, abaixo dos 44 px do guia; rever junto com N1	Média
+O18	Cronômetro de descanso + barra inferior ocupam ~1/4 da tela; versão compacta (uma linha) com toque para expandir	Média
+O19	Configurações espalhadas em Perfil > Dados (descanso, lembretes, backup junto do cadastro); criar tela/seção Configurações agrupada (Treino, Descanso, Lembretes, Dados e backup, Aparência), como no openGym	Média
+O20	Opção "botões − / + nas séries" liga/desliga (desligado: tocar no número e digitar), liberando largura	Baixa
+O21	Textos longos em Saúde (IMC, TMB) e Perfil: resumo curto + "Saiba mais" expansível; parágrafo justificado do cadastro vira alinhado à esquerda	Baixa
+O22	Água: além de ±100 ml, atalhos de copo/garrafa (250/500 ml)	Baixa
+O23	Nomenclatura: "Perfil de Treino", "Plano" e "Editar Perfil" se referem à mesma coisa; padronizar como "Plano" (Criar plano, Editar plano)	Baixa
+O24	Toast de sucesso cobre o título do app logo após o cadastro; posicionar abaixo do cabeçalho ou em baixo, acima da barra de abas	Baixa
+O25	Editor de plano muito denso (todos os campos e reservas de cada exercício abertos); cartões recolhidos por exercício, expandindo ao tocar, e reordenar arrastando	Média
+
+P. Reescrita em React + TypeScript (decisão de 04/10/2026)
+Motivo: a estrutura atual (70 scripts globais em ordem fixa, Tailwind congelado, 75 handlers onclick globais, telas por innerHTML, estado em variáveis soltas) não comporta bem as fases M, N e O; o histórico precisa mudar de formato de qualquer jeito e a interface será refeita. Com 3 usuários e sem problema em pausar, reescrever sai mais barato que migrar por partes. Detalhes em docs/arquitetura.md ("Reescrita").
+O app atual continua no ar e recebe só correções críticas até a troca.
+#	Etapa	Prioridade
+P1	Base em app/ no mesmo repositório: Vite + React + TypeScript + Tailwind compilado + Zustand + Vitest + Playwright; PWA com cache offline gerado no build; Capacitor apontando para o build novo; workflow publicando o Pages a partir do build (hoje o Pages serve a raiz da main) mantendo o mesmo endereço	Alta
+P2	Domínio puro em app/src/domain: portar js/core/* com os testes existentes (datas, sequência, níveis/XP, saúde, calorias, backup e validação, parser da IA, séries); nada de DOM nessa camada	Alta
+P3	Novo modelo de dados por treino (M5, M8, M9) e migração na primeira abertura: lê localStorage/IndexedDB atuais (mesma origem e mesmo pacote Android), cópia de segurança antes, backups antigos continuam importáveis; testar com cópia real dos dados dos 3 usuários	Alta
+P4	Estado central e persistência; ações como funções puras (ex.: finalizar treino) testadas isoladamente	Alta
+P5	Telas na interface nova, uma a uma: treino (N1–N5, O14–O18, M2–M4), início (N6–N8), plano (N10, O3, O8, O25), histórico/estatísticas (N9, M16), perfil/saúde, configurações (O19–O21), metas e conquistas	Alta
+P6	Robustez Android desde o início: voltar (O9), tela de ponta a ponta e teclado (O10), backup automático (O11), registro de erros (O12), som do descanso (O13); reaproveitar o código nativo atual (canais de notificação, AppUpdatePlugin)	Alta
+P7	Lista de equivalência com todas as funções atuais (usar CHANGELOG.md como roteiro de casos-limite já corrigidos); a troca só acontece com a lista completa e validada no aparelho (A9)	Alta
+P8	Troca: publicar a versão 3.0.0 pelo atualizador do APK, migrar os 3 usuários e arquivar o app antigo; depois seguir com as fases M restantes direto na estrutura nova	Alta
