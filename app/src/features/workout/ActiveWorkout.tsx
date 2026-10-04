@@ -1,5 +1,7 @@
 import { useState } from 'react';
-import { sessionProgress, type ActiveSession } from '../../domain/session';
+import { isExerciseDone, sessionProgress, type ActiveSession } from '../../domain/session';
+import { updateSettings } from '../../domain/actions';
+import { Icon } from '../../ui/Icon';
 import { useNow } from '../../hooks/use-now';
 import { useWakeLock } from '../../hooks/use-wake-lock';
 import { useAppStore } from '../../store';
@@ -15,6 +17,12 @@ export function ActiveWorkout({ session }: { session: ActiveSession }) {
   const keepScreenOn = useAppStore(s => s.data?.settings.keepScreenOn ?? true);
   useWakeLock(keepScreenOn);
   const progress = sessionProgress(session);
+  const run = useAppStore(s => s.run);
+  const focus = useAppStore(s => s.data?.settings.focusMode ?? false);
+  const total = session.exercises.length;
+  const firstOpen = Math.max(0, session.exercises.findIndex(ex => !isExerciseDone(ex)));
+  const [current, setCurrent] = useState(firstOpen);
+  const at = Math.min(current, total - 1);
   const elapsed = (now - Date.parse(session.startedAt)) / 1000;
   const pct = progress.setsTotal ? (progress.setsDone / progress.setsTotal) * 100 : 0;
 
@@ -29,6 +37,11 @@ export function ActiveWorkout({ session }: { session: ActiveSession }) {
               {formatClock(elapsed)} · {progress.setsDone}/{progress.setsTotal} séries
             </p>
           </div>
+          <button type="button" onClick={() => run((d, t) => updateSettings(d, { focusMode: !focus }, t))} aria-pressed={focus}
+            aria-label={focus ? 'Ver todos os exercícios' : 'Um exercício por vez'}
+            className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-surface-2 text-muted">
+            <Icon name={focus ? 'opcoes' : 'treino'} />
+          </button>
           <button type="button" onClick={() => setFinishing(true)}
             className="h-11 shrink-0 rounded-xl bg-primary px-4 font-bold text-white">
             Concluir
@@ -39,9 +52,35 @@ export function ActiveWorkout({ session }: { session: ActiveSession }) {
         </div>
       </header>
 
-      <div className="mt-4 space-y-3">
-        {session.exercises.map((ex, i) => <ExerciseCard key={`${ex.slotId}-${i}`} session={session} index={i} />)}
-      </div>
+      {focus && total > 0 ? (
+        // N5: um exercício por vez, com navegação; o próximo pendente fica a um toque
+        <div className="mt-4 space-y-3">
+          <nav aria-label="Exercícios" className="flex items-center gap-2">
+            <button type="button" disabled={at === 0} onClick={() => setCurrent(at - 1)} aria-label="Exercício anterior"
+              className="flex size-11 items-center justify-center rounded-xl bg-surface-2 disabled:opacity-40"><Icon name="subir" className="size-6 -rotate-90" /></button>
+            <p className="flex-1 text-center font-semibold" aria-live="polite">Exercício {at + 1}/{total}</p>
+            <button type="button" disabled={at === total - 1} onClick={() => setCurrent(at + 1)} aria-label="Próximo exercício"
+              className={`flex size-11 items-center justify-center rounded-xl disabled:opacity-40 ${isExerciseDone(session.exercises[at]!) ? 'bg-primary text-white' : 'bg-surface-2'}`}>
+              <Icon name="subir" className="size-6 rotate-90" />
+            </button>
+          </nav>
+          <ExerciseCard key={`${session.exercises[at]!.slotId}-${at}`} session={session} index={at} alwaysOpen />
+          <ol className="flex flex-wrap justify-center" aria-label="Situação dos exercícios">
+            {session.exercises.map((ex, i) => (
+              <li key={`${ex.slotId}-${i}`}>
+                <button type="button" onClick={() => setCurrent(i)} aria-label={`Ir para ${ex.name}${isExerciseDone(ex) ? ', concluído' : ''}`} aria-current={i === at ? 'step' : undefined}
+                  className="flex size-11 items-center justify-center">
+                  <span className={`size-3 rounded-full ${isExerciseDone(ex) ? 'bg-success' : 'bg-surface-2'} ${i === at ? 'ring-2 ring-primary ring-offset-2 ring-offset-page' : ''}`} />
+                </button>
+              </li>
+            ))}
+          </ol>
+        </div>
+      ) : (
+        <div className="mt-4 space-y-3">
+          {session.exercises.map((ex, i) => <ExerciseCard key={`${ex.slotId}-${i}`} session={session} index={i} />)}
+        </div>
+      )}
 
       <FinishSheet open={finishing} onClose={() => setFinishing(false)} session={session} />
     </div>

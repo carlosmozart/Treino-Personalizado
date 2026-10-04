@@ -1,6 +1,7 @@
 import { expect, test } from 'vitest';
 import { markBigWeightJump } from './actions';
-import { adjustWeights, startSession, swapExercise, toggleSet } from './session';
+import { addWarmupSet, adjustWeights, removeWarmupSet, sessionToWorkout, startSession, swapExercise, toggleSet } from './session';
+import { entryVolume } from './workouts';
 import { suspiciousWeight } from './workouts';
 import { sampleData, workout } from './testing';
 
@@ -45,4 +46,15 @@ test('Rock Lee: marca uma vez', () => {
   const next = markBigWeightJump(data).data;
   expect(next.gamification.bigWeightJump).toBe(true);
   expect(markBigWeightJump(next).data).toBe(next);
+});
+
+test('aquecimento entra antes do trabalho e fica fora do volume', () => {
+  const { s } = session();
+  let next = addWarmupSet(addWarmupSet(s, 0), 0);
+  expect(next.exercises[0]!.sets.map(x => `${x.kind}:${x.weight}`)).toEqual(['warmup:10', 'warmup:10', 'work:20', 'work:20', 'work:20']);
+  next = removeWarmupSet(next, 0);
+  next = { ...next, exercises: next.exercises.map((ex, i) => (i === 0 ? { ...ex, sets: ex.sets.map(x => ({ ...x, done: true })) } : ex)) };
+  const w = sessionToWorkout(next, new Date(2026, 9, 5, 10))!;
+  expect(w.entries[0]!.sets.filter(x => x.kind === 'warmup')).toHaveLength(1);
+  expect(entryVolume(w.entries[0]!)).toBe(600);
 });

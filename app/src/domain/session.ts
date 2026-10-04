@@ -125,6 +125,30 @@ export function addSet(s: ActiveSession, exIndex: number): ActiveSession {
   });
 }
 
+/**
+ * Série de aquecimento (M8) antes das séries de trabalho: metade da carga da primeira série,
+ * 10 reps. Fica fora de volume, recordes, 1RM e progressão (só séries de trabalho contam).
+ */
+export function addWarmupSet(s: ActiveSession, exIndex: number): ActiveSession {
+  return mapExercise(s, exIndex, ex => {
+    if (ex.mode === 'cardio' || ex.sets.length >= 20) return ex;
+    const firstWork = ex.sets.find(x => x.kind === 'work');
+    const at = ex.sets.filter(x => x.kind === 'warmup').length;
+    const weight = Math.round(((firstWork?.weight ?? 0) / 2) * 2) / 2;
+    const sets = [...ex.sets];
+    sets.splice(at, 0, { reps: 10, weight, kind: 'warmup', done: false });
+    return { ...ex, sets };
+  });
+}
+
+/** Remove a última série de aquecimento. */
+export function removeWarmupSet(s: ActiveSession, exIndex: number): ActiveSession {
+  return mapExercise(s, exIndex, ex => {
+    const i = ex.sets.map(x => x.kind).lastIndexOf('warmup');
+    return i < 0 ? ex : { ...ex, sets: ex.sets.filter((_, j) => j !== i) };
+  });
+}
+
 export function removeSet(s: ActiveSession, exIndex: number, setIndex: number): ActiveSession {
   return mapExercise(s, exIndex, ex => (ex.sets.length > 1 ? { ...ex, sets: ex.sets.filter((_, i) => i !== setIndex) } : ex));
 }

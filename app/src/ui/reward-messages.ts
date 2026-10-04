@@ -15,7 +15,12 @@ export function rewardToast(event: RewardEvent): Toast | null {
     case 'free-meal': return { text: 'Refeição livre liberada! Você bateu 80% do treino da semana.', tone: 'trophy' };
     case 'water-goal': return { text: `Meta de água batida! +${event.xp} XP`, tone: 'trophy' };
     case 'birthday': return { text: `Feliz aniversário${event.name ? `, ${event.name}` : ''}! Que o novo ano venha com mais força e saúde.`, tone: 'trophy' };
-    case 'record': return { text: `Recorde em ${event.name}: ${formatNumber(event.weight)} kg × ${event.reps}`, tone: 'trophy' };
+    case 'record': {
+      const set = `${formatNumber(event.weight)} kg × ${event.reps}`;
+      if (event.records.includes('e1rm') && event.e1rm) return { text: `Recorde em ${event.name}: 1RM estimado ${formatNumber(event.e1rm)} kg (${set})`, tone: 'trophy' };
+      if (event.records.includes('weight')) return { text: `Recorde de carga em ${event.name}: ${set}`, tone: 'trophy' };
+      return { text: `Recorde de volume em ${event.name}`, tone: 'trophy' };
+    }
     case 'xp':
       return event.reason === 'checkin-half' ? { text: `Check-in feito: +${event.amount} XP (meio, treino incompleto)`, tone: 'info' }
         : event.reason === 'checkin-full' || event.reason === 'checkin-upgrade' ? { text: `Check-in feito: +${event.amount} XP`, tone: 'info' }

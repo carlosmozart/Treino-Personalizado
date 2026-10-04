@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
 import { EXERCISE_LIBRARY, groupOf } from '../../data/exercise-library';
 import {
-  addSet, adjustWeights, completeExercise, isExerciseDone, removeSet, setNote, swapExercise, toggleSet, updateCardio, updateSet,
+  addSet, addWarmupSet, adjustWeights, removeWarmupSet, completeExercise, isExerciseDone, removeSet, setNote, swapExercise, toggleSet, updateCardio, updateSet,
   type ActiveSession, type SessionExercise
 } from '../../domain/session';
 import { bestSet, lastSessionBefore, sessionsOf, suspiciousWeight, workSets } from '../../domain/workouts';
@@ -20,6 +20,8 @@ const ADJUSTS = [-5, -0.5, 0.5, 5, 10] as const;
 interface Props {
   session: ActiveSession;
   index: number;
+  /** Modo foco: o cartão não recolhe ao concluir (é o único na tela). */
+  alwaysOpen?: boolean;
 }
 
 /** Contexto do exercício (N4): última vez e melhor série, pelo histórico do nome. */
@@ -40,7 +42,7 @@ function useExerciseContext(ex: SessionExercise, date: string) {
   }, [workouts, ex.key, ex.mode, date]);
 }
 
-export function ExerciseCard({ session, index }: Props) {
+export function ExerciseCard({ session, index, alwaysOpen = false }: Props) {
   const ex = session.exercises[index]!;
   const update = useAppStore(s => s.updateSession);
   const data = useAppStore(s => s.data);
@@ -73,7 +75,7 @@ export function ExerciseCard({ session, index }: Props) {
 
   // exercício concluído recolhe para uma linha (o próximo sobe na tela); toque reabre
   const [expanded, setExpanded] = useState(false);
-  if (done && !expanded) {
+  if (done && !expanded && !alwaysOpen) {
     const summary = ex.mode === 'cardio' && ex.cardio
       ? `${ex.cardio.minutes} min${ex.cardio.km ? ` · ${formatNumber(ex.cardio.km)} km` : ''}`
       : ex.sets.filter(x => x.done).map(x => `${formatNumber(x.weight)}×${x.reps}`).join(', ');
@@ -175,6 +177,10 @@ export function ExerciseCard({ session, index }: Props) {
             <Icon name="check" />{done ? 'Desmarcar todas as séries' : 'Marcar todas as séries'}
           </SheetAction>
           <SheetAction onClick={() => { update(s => addSet(s, index)); close(); }}><Icon name="mais" />Adicionar série</SheetAction>
+          <SheetAction onClick={() => { update(s => addWarmupSet(s, index)); close(); }}><Icon name="mais" />Adicionar série de aquecimento</SheetAction>
+          {ex.sets.some(x => x.kind === 'warmup') && (
+            <SheetAction onClick={() => { update(s => removeWarmupSet(s, index)); close(); }}><Icon name="menos" />Remover aquecimento</SheetAction>
+          )}
           {ex.sets.length > 1 && (
             <SheetAction onClick={() => { update(s => removeSet(s, index, ex.sets.length - 1)); close(); }}><Icon name="menos" />Remover última série</SheetAction>
           )}

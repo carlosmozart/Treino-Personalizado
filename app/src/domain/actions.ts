@@ -7,7 +7,8 @@ import { recordGoalCheckpoints } from './body-goal';
 import type { AppData, Plan, Settings, UserProfile, Workout, WorkoutEntry } from './model';
 import { checkBirthday, checkWaterGoal, grantCheckin, revokeCheckin, type RewardEvent } from './rewards';
 import { sessionProgress, sessionToWorkout, type ActiveSession } from './session';
-import { bestSet, isPersonalRecord } from './workouts';
+import { bestSet } from './workouts';
+import { bestE1rm, recordKinds } from './strength';
 import { key, tombstone, touch } from './sync';
 
 export interface ActionResult {
@@ -39,10 +40,12 @@ export function finishWorkout(data: AppData, session: ActiveSession, now: Date):
   touch(draft, key.workout(workout.id), now);
 
   for (const entry of workout.entries) {
-    const best = bestSet(entry);
-    if (best && isPersonalRecord(draft.workouts, workout, entry)) {
-      events.push({ kind: 'record', name: entry.name, reps: best.reps, weight: best.weight });
-    }
+    const records = recordKinds(draft.workouts, workout, entry);
+    if (!records.length) continue;
+    // a série que conta: a do 1RM estimado quando ele é recorde; senão a mais pesada
+    const strongest = bestE1rm(entry);
+    const set = records.includes('e1rm') && strongest ? strongest.set : bestSet(entry)!;
+    events.push({ kind: 'record', name: entry.name, reps: set.reps, weight: set.weight, records, e1rm: strongest?.value ?? null });
   }
 
   const { complete } = sessionProgress(session);

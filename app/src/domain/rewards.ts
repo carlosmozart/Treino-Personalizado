@@ -10,6 +10,8 @@ import {
 import { waterTargetMl } from './health';
 import { computeTotalXP, dayKeyOf, trainingDaysPerWeek, type AppData } from './model';
 
+import type { RecordKind } from './strength';
+
 export type RewardEvent =
   | { kind: 'xp'; amount: number; reason: 'checkin-full' | 'checkin-half' | 'checkin-upgrade' | 'streak' | 'water' }
   | { kind: 'xp-removed'; amount: number }
@@ -18,7 +20,7 @@ export type RewardEvent =
   | { kind: 'free-meal' }
   | { kind: 'water-goal'; xp: number }
   | { kind: 'birthday'; name: string }
-  | { kind: 'record'; name: string; reps: number; weight: number }
+  | { kind: 'record'; name: string; reps: number; weight: number; records: RecordKind[]; e1rm: number | null }
   | { kind: 'achievement'; name: string };
 
 /** Dias de treino da semana pelo plano ativo; 6 sem plano (o padrão do app antigo). */

@@ -48,7 +48,7 @@ test('aponta recorde quando a melhor série supera as sessões anteriores', () =
   s = { ...s, exercises: s.exercises.map((ex, i) => (i === 0 ? { ...ex, sets: ex.sets.map(set => ({ ...set, weight: 25, done: true })) } : ex)) };
   const r = finishWorkout(data, s, later(MONDAY, 30));
   if (r.kind !== 'saved') throw new Error();
-  expect(r.events).toContainEqual({ kind: 'record', name: 'Supino Reto', reps: 10, weight: 25 });
+  expect(r.events).toContainEqual({ kind: 'record', name: 'Supino Reto', reps: 10, weight: 25, records: ['e1rm', 'weight', 'volume'], e1rm: 33.3 });
   expect(r.events.filter(e => e.kind === 'record')).toHaveLength(1);
 });
 

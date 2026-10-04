@@ -1,4 +1,5 @@
-import { describeEntry, isPersonalRecord, workoutCalories, workoutVolume } from '../../domain/workouts';
+import { describeEntry, workoutCalories, workoutVolume } from '../../domain/workouts';
+import { RECORD_LABEL, recordKinds } from '../../domain/strength';
 import { useAppStore } from '../../store';
 import { Icon } from '../../ui/Icon';
 import { formatNumber } from '../../ui/format';
@@ -32,11 +33,14 @@ export function WorkoutSummary({ id }: { id: string }) {
               <p className="font-semibold">{entry.name}</p>
               <p className="text-sm text-muted">{describeEntry(entry)}</p>
             </div>
-            {isPersonalRecord(data.workouts, workout, entry) && (
-              <span className="flex items-center gap-1 rounded-full bg-warning/15 px-2 py-1 text-xs font-bold text-warning">
-                <Icon name="trofeu" className="size-4" />Recorde
-              </span>
-            )}
+            {(() => {
+              const records = recordKinds(data.workouts, workout, entry);
+              return records.length > 0 && (
+                <span className="flex items-center gap-1 rounded-full bg-warning/15 px-2 py-1 text-xs font-bold text-warning">
+                  <Icon name="trofeu" className="size-4" />Recorde: {records.map(r => RECORD_LABEL[r]).join(', ')}
+                </span>
+              );
+            })()}
           </li>
         ))}
       </ul>
