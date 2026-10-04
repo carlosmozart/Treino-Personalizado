@@ -5,7 +5,8 @@ import { toDateKey } from '../../domain/dates';
 import { newId } from '../../domain/ids';
 import { DAY_FULL_NAMES, MAX_EXERCISES_PER_DAY, dayKeyOf, trainingDaysPerWeek, type Plan, type PlanExercise } from '../../domain/model';
 import {
-  addExercise, clearDay, deletePlan, editPlan, moveExercise, newPlanExercise, optionalHint, removeExercise, updateDay, updateExercise
+  addAlternative, addExercise, blankPlan, clearDay, deletePlan, duplicatePlan, editPlan, moveExercise, newPlanExercise, optionalHint,
+  removeAlternative, removeExercise, updateDay, updateExercise
 } from '../../domain/plan-edit';
 import { EXERCISE_LIBRARY } from '../../data/exercise-library';
 import { seedPlan } from '../../data/seed-plan';
@@ -92,6 +93,12 @@ export function PlanScreen() {
             </button>
           </div>
         ))}
+        <SheetAction onClick={() => { run((d, now) => addPlan(d, duplicatePlan(plan, newId('plano'), toDateKey(now)), now)); setPlansOpen(false); }}>
+          <Icon name="mais" /> Duplicar este plano
+        </SheetAction>
+        <SheetAction onClick={() => { run((d, now) => addPlan(d, blankPlan(newId('plano'), toDateKey(now)), now)); setPlansOpen(false); }}>
+          <Icon name="mais" /> Novo plano em branco
+        </SheetAction>
         <SheetAction onClick={() => { useSeed(); setPlansOpen(false); }}>
           <Icon name="mais" /> Novo plano a partir do exemplo
         </SheetAction>
@@ -133,7 +140,9 @@ function DayCard({ plan, dayKey, today, edit }: { plan: Plan; dayKey: DayKey; to
               onToggle={() => setOpenId(openId === ex.id ? null : ex.id)}
               onChange={patch => edit(p => updateExercise(p, dayKey, ex.id, patch))}
               onMove={delta => edit(p => moveExercise(p, dayKey, ex.id, delta))}
-              onRemove={() => { setOpenId(null); edit(p => removeExercise(p, dayKey, ex.id)); }} />
+              onRemove={() => { setOpenId(null); edit(p => removeExercise(p, dayKey, ex.id)); }}
+              onAddAlt={name => edit(p => addAlternative(p, dayKey, ex.id, name))}
+              onRemoveAlt={i => edit(p => removeAlternative(p, dayKey, ex.id, i))} />
           ))}
         </ul>
       )}
@@ -184,10 +193,13 @@ function summary(ex: PlanExercise): string {
 interface RowProps {
   ex: PlanExercise; open: boolean; first: boolean; last: boolean;
   onToggle: () => void; onChange: (patch: Partial<PlanExercise>) => void; onMove: (delta: -1 | 1) => void; onRemove: () => void;
+  onAddAlt: (name: string) => void; onRemoveAlt: (index: number) => void;
 }
 
 /** Exercício recolhido; ao tocar abre os campos (O25). */
-function ExerciseRow({ ex, open, first, last, onToggle, onChange, onMove, onRemove }: RowProps) {
+function ExerciseRow({ ex, open, first, last, onToggle, onChange, onMove, onRemove, onAddAlt, onRemoveAlt }: RowProps) {
+  const [alt, setAlt] = useState('');
+  const listId = useId();
   const field = (label: string, value: number, set: (n: number) => void, decimal = false) => (
     <label className="text-xs font-semibold text-muted">{label}
       <NumberField label={`${label} de ${ex.name}`} decimal={decimal} value={value} onChange={set} className="mt-1" />
@@ -224,6 +236,27 @@ function ExerciseRow({ ex, open, first, last, onToggle, onChange, onMove, onRemo
             <input value={ex.tip ?? ''} placeholder="Execução ou substituição" onChange={e => onChange({ tip: e.target.value })}
               className="mt-1 h-11 w-full rounded-xl border border-line bg-surface-2 px-3 text-base text-ink" />
           </label>
+          <label className="mt-3 flex min-h-11 items-center gap-3">
+            <input type="checkbox" checked={ex.optional} onChange={e => onChange({ optional: e.target.checked })} className="size-5 accent-[var(--color-primary)]" />
+            <span className="text-sm font-semibold">Exercício opcional</span>
+          </label>
+          <div className="mt-2">
+            <p className="text-xs font-semibold text-muted">Reservas (para trocar no treino)</p>
+            {ex.alternatives.map((a, i) => (
+              <div key={`${a.name}-${i}`} className="flex items-center justify-between gap-2 text-sm">
+                <span className="min-w-0 truncate">{a.name}</span>
+                <button type="button" onClick={() => onRemoveAlt(i)} aria-label={`Remover reserva ${a.name}`} className="flex size-11 shrink-0 items-center justify-center text-muted">
+                  <Icon name="fechar" className="size-5" />
+                </button>
+              </div>
+            ))}
+            <form className="mt-1 flex gap-2" onSubmit={e => { e.preventDefault(); if (alt.trim()) { onAddAlt(alt); setAlt(''); } }}>
+              <input value={alt} onChange={e => setAlt(e.target.value)} list={listId} placeholder="Nome da reserva" aria-label={`Reserva de ${ex.name}`}
+                className="h-11 min-w-0 flex-1 rounded-xl border border-line bg-surface-2 px-3 text-base text-ink" />
+              <datalist id={listId}>{ALL_NAMES.map(n => <option key={n} value={n} />)}</datalist>
+              <button type="submit" className="h-11 shrink-0 rounded-xl bg-surface-2 px-3 font-semibold">Adicionar</button>
+            </form>
+          </div>
           <div className="mt-2 flex gap-2">
             <button type="button" disabled={first} onClick={() => onMove(-1)} aria-label={`Subir ${ex.name}`}
               className="flex size-11 items-center justify-center rounded-xl bg-surface-2 disabled:opacity-40"><Icon name="subir" /></button>

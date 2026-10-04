@@ -66,3 +66,20 @@ test('plano: nome e horário do treino', async ({ page }) => {
   await page.getByRole('button', { name: 'Planos' }).click();
   await expect(page.getByLabel('Horário do treino')).toHaveValue('18:30');
 });
+
+test('plano: reserva, opcional e duplicar', async ({ page }) => {
+  await page.goto('/');
+  await page.getByRole('button', { name: 'Plano', exact: true }).click();
+  await page.getByRole('button', { name: 'Usar plano de exemplo' }).click();
+  const monday = page.getByRole('article', { name: 'Segunda' });
+  await monday.getByRole('button', { expanded: false }).first().click();
+  const reserve = monday.getByRole('combobox', { name: /^Reserva de / });
+  await reserve.fill('Supino Reto (Halteres)');
+  await monday.getByRole('button', { name: 'Adicionar', exact: true }).click();
+  await expect(monday.getByRole('button', { name: 'Remover reserva Supino Reto (Halteres)' })).toBeVisible();
+  await monday.getByRole('checkbox', { name: 'Exercício opcional' }).check();
+
+  await page.getByRole('button', { name: 'Planos' }).click();
+  await page.getByRole('button', { name: 'Duplicar este plano' }).click();
+  await expect(page.getByText(/^Cópia de /)).toBeVisible();
+});

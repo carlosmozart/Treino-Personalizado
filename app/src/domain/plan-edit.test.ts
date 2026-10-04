@@ -1,5 +1,5 @@
 import { expect, test } from 'vitest';
-import { addExercise, clearDay, deletePlan, editPlan, moveExercise, newPlanExercise, optionalHint, removeExercise, updateDay, updateExercise } from './plan-edit';
+import { addAlternative, blankPlan, duplicatePlan, removeAlternative, addExercise, clearDay, deletePlan, editPlan, moveExercise, newPlanExercise, optionalHint, removeExercise, updateDay, updateExercise } from './plan-edit';
 import { trainingDaysPerWeek } from './model';
 import { planExercise, sampleData, samplePlan } from './testing';
 
@@ -65,4 +65,25 @@ test('apagar plano: só o inativo, com registro de exclusão', () => {
   const { data: next } = deletePlan(data, 'p2', NOW);
   expect(next.plans.p2).toBeUndefined();
   expect(next.sync.deleted['plan:p2']).toBe(NOW.toISOString());
+});
+
+test('plano em branco e cópia independente', () => {
+  const blank = blankPlan('b', '2026-10-07');
+  expect(Object.values(blank.days).every(d => d.exercises.length === 0)).toBe(true);
+  let n = 0;
+  const copy = duplicatePlan(samplePlan(), 'p2', '2026-10-07', () => `n${++n}`);
+  expect(copy).toMatchObject({ id: 'p2', name: 'Cópia de Plano', createdAt: '2026-10-07' });
+  expect(copy.days.SEG.exercises.map(e => e.id)).toEqual(['n1', 'n2']);
+  copy.days.SEG.exercises[0]!.alternatives.push({ name: 'X', mode: 'reps' });
+  expect(samplePlan().days.SEG.exercises[0]!.alternatives).toEqual([]);
+});
+
+test('reservas: adiciona sem repetir e remove', () => {
+  let plan = samplePlan();
+  plan = addAlternative(plan, 'SEG', 'e1', 'Supino com Halteres');
+  expect(addAlternative(plan, 'SEG', 'e1', ' supino com halteres ')).toBe(plan);
+  plan = addAlternative(plan, 'SEG', 'e1', 'Esteira');
+  expect(plan.days.SEG.exercises[0]!.alternatives).toEqual([{ name: 'Supino com Halteres', mode: 'reps' }, { name: 'Esteira', mode: 'cardio' }]);
+  plan = removeAlternative(plan, 'SEG', 'e1', 0);
+  expect(plan.days.SEG.exercises[0]!.alternatives.map(a => a.name)).toEqual(['Esteira']);
 });

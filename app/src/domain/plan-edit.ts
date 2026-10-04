@@ -1,5 +1,5 @@
 // Edição do plano (N10, O3, O8, O25): funções puras sobre o plano e uma ação que grava e carimba.
-import type { DayKey } from './ai-plan';
+import { DAY_KEYS, type DayKey } from './ai-plan';
 import { toDateKey } from './dates';
 import { newId } from './ids';
 import { MAX_EXERCISES_PER_DAY, type AppData, type Plan, type PlanDay, type PlanExercise } from './model';
@@ -85,4 +85,35 @@ export function deletePlan(data: AppData, planId: string, now: Date): ActionResu
   const draft: AppData = { ...data, plans, sync: { changed: { ...data.sync.changed }, deleted: { ...data.sync.deleted } } };
   tombstone(draft, key.plan(planId), now);
   return { data: draft, events: [] };
+}
+
+/** Plano vazio: todos os dias de descanso. */
+export function blankPlan(id: string, today: string, name = 'Novo plano'): Plan {
+  const rest = (): PlanDay => ({ name: '', focus: '', optional: false, exercises: [] });
+  const days = Object.fromEntries(DAY_KEYS.map(k => [k, rest()])) as Plan['days'];
+  return { id, name, description: '', trainingTime: '', createdAt: today, updatedAt: today, days };
+}
+
+/** Cópia independente de um plano (exercícios com ids novos). */
+export function duplicatePlan(plan: Plan, id: string, today: string, makeId: () => string = () => newId('ex')): Plan {
+  const days = Object.fromEntries(DAY_KEYS.map(k => [k, {
+    ...plan.days[k], exercises: plan.days[k].exercises.map(e => ({ ...structuredClone(e), id: makeId() }))
+  }])) as Plan['days'];
+  return { ...plan, id, name: `Cópia de ${plan.name}`, createdAt: today, updatedAt: today, days };
+}
+
+/** Reserva (exercício para trocar no treino); sem nome vazio nem repetida. */
+export function addAlternative(plan: Plan, dayKey: DayKey, id: string, name: string): Plan {
+  const clean = name.trim();
+  return mapDay(plan, dayKey, day => {
+    const ex = day.exercises.find(e => e.id === id);
+    if (!ex || !clean || ex.alternatives.some(a => a.name.toLowerCase() === clean.toLowerCase())) return day;
+    return { ...day, exercises: day.exercises.map(e => e.id === id ? { ...e, alternatives: [...e.alternatives, { name: clean, mode: isCardioName(clean) ? 'cardio' as const : e.mode }] } : e) };
+  });
+}
+
+export function removeAlternative(plan: Plan, dayKey: DayKey, id: string, index: number): Plan {
+  return mapDay(plan, dayKey, day => ({
+    ...day, exercises: day.exercises.map(e => e.id === id ? { ...e, alternatives: e.alternatives.filter((_, i) => i !== index) } : e)
+  }));
 }

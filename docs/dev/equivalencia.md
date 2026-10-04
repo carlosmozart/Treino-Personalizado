@@ -58,14 +58,14 @@ Legenda: ✅ feito no app novo · 🟡 parcial · ❌ falta · ➖ não será po
 | Função do app atual | App novo | Observação |
 | --- | --- | --- |
 | Vários planos, escolher o ativo, excluir | ✅ | |
-| Criar plano novo | 🟡 | só a partir do exemplo |
-| Duplicar plano | ❌ | |
+| Criar plano novo | ✅ | em branco ou a partir do exemplo |
+| Duplicar plano | ✅ | |
 | Renomear plano, descrição, horário de treino | ✅ | Plano → Planos |
 | Editar dias: nome, foco, opcional, descanso | ✅ | |
 | Adicionar/editar/remover/reordenar exercícios | ✅ | arrastar fica para depois |
 | Busca na biblioteca (~70 exercícios) | ✅ | |
-| Reservas (alternativas) do exercício | ❌ | migradas e usadas no treino, mas não editáveis no plano |
-| Exercício opcional no editor | ❌ | migrado, mas sem campo no editor |
+| Reservas (alternativas) do exercício | ✅ | |
+| Exercício opcional no editor | ✅ | |
 | Limite de 10 exercícios por dia | ✅ | |
 | Dias por semana calculados | ✅ | O3 |
 | Montar treino com IA: gerar prompt | ❌ | |
@@ -130,7 +130,7 @@ Legenda: ✅ feito no app novo · 🟡 parcial · ❌ falta · ➖ não será po
 Faltam (❌) para a troca, por prioridade:
 
 1. ~~Atualização do APK pelo app~~ e ~~notificações~~: feitos em 04/10/2026 (falta validar a atualização com uma release real).
-2. **Plano**: duplicar, criar em branco, reservas e opcional no editor.
+2. ~~Plano: duplicar, criar em branco, reservas e opcional no editor~~: feito em 04/10/2026.
 3. **Montar treino com IA** (prompt + importar).
 4. **Histórico**: editar registro, apagar exercício isolado, evolução por exercício, volume semanal, lista de pesagens.
 5. **Treino**: botões de ajuste de carga (O20), troca pela biblioteca, valor suspeito.
