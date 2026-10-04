@@ -1,0 +1,167 @@
+import { useState } from 'react';
+import { deleteWorkout } from '../../domain/actions';
+import { fromDateKey } from '../../domain/dates';
+import type { Workout } from '../../domain/model';
+import { heatmap, historyByMonth, muscleBalance, statsSummary, type HeatLevel } from '../../domain/stats';
+import { describeEntry, workoutVolume } from '../../domain/workouts';
+import { useAppStore } from '../../store';
+import { useNow } from '../../hooks/use-now';
+import { Icon } from '../../ui/Icon';
+import { formatNumber, plural, shortDate } from '../../ui/format';
+
+const MONTH_NAMES = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
+const monthTitle = (ym: string) => `${MONTH_NAMES[Number(ym.slice(5, 7)) - 1]} de ${ym.slice(0, 4)}`;
+const WEEKDAYS = ['dom', 'seg', 'ter', 'qua', 'qui', 'sex', 'sáb'];
+
+const NO_WORKOUTS: Workout[] = [];
+
+type View = 'stats' | 'history';
+
+/** Estatísticas (N9, M16, M28) e histórico dos treinos. */
+export function ProgressScreen() {
+  const [view, setView] = useState<View>('stats');
+  return (
+    <>
+      <h1 className="pt-6 text-3xl font-black tracking-tight">Progresso</h1>
+      <div role="tablist" className="mt-4 grid grid-cols-2 gap-1 rounded-xl bg-surface-2 p-1">
+        {(['stats', 'history'] as const).map(v => (
+          <button key={v} type="button" role="tab" aria-selected={view === v} onClick={() => setView(v)}
+            className={`h-10 rounded-lg font-semibold ${view === v ? 'bg-surface text-ink' : 'text-muted'}`}>
+            {v === 'stats' ? 'Estatísticas' : 'Histórico'}
+          </button>
+        ))}
+      </div>
+      {view === 'stats' ? <Stats /> : <History />}
+    </>
+  );
+}
+
+function Stats() {
+  const data = useAppStore(s => s.data);
+  const now = new Date(useNow(60_000));
+  if (!data) return null;
+  const s = statsSummary(data, now);
+  const balance = muscleBalance(data, now);
+  const max = balance[0]?.sets ?? 1;
+  const w = s.weight30d;
+  return (
+    <div className="mt-4 space-y-4">
+      <div className="grid grid-cols-2 gap-3">
+        <Block label="Treinos" value={String(s.totalWorkouts)} />
+        <Block label="Este mês" value={String(s.thisMonth)} hint="dias treinados" />
+        <Block label="Sequência" value={String(s.streak)} hint={`recorde ${s.longestStreak}`} />
+        <Block label="Peso em 30 dias" value={w === null ? '—' : `${w > 0 ? '+' : ''}${formatNumber(w)} kg`} />
+      </div>
+      <section className="rounded-2xl border border-line bg-surface p-4">
+        <h2 className="font-bold">Últimos 6 meses</h2>
+        <Heatmap />
+      </section>
+      <section className="rounded-2xl border border-line bg-surface p-4">
+        <h2 className="font-bold">Séries por grupo (30 dias)</h2>
+        {balance.length === 0 ? <p className="mt-2 text-sm text-muted">Sem séries registradas no período.</p> : (
+          <ul className="mt-3 space-y-2">
+            {balance.map(g => (
+              <li key={g.group} className="grid grid-cols-[6rem_1fr_2.5rem] items-center gap-2 text-sm">
+                <span className="font-semibold">{g.group}</span>
+                <span className="h-3 rounded-full bg-surface-2"><span className="block h-3 rounded-full bg-primary" style={{ width: `${(g.sets / max) * 100}%` }} /></span>
+                <span className="text-right text-muted">{g.sets}</span>
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
+    </div>
+  );
+}
+
+function Block({ label, value, hint }: { label: string; value: string; hint?: string }) {
+  return (
+    <div className="rounded-2xl border border-line bg-surface p-4">
+      <p className="text-sm text-muted">{label}</p>
+      <p className="text-3xl font-black tracking-tight">{value}</p>
+      {hint && <p className="text-xs text-faint">{hint}</p>}
+    </div>
+  );
+}
+
+const HEAT: Record<HeatLevel, string> = { 0: 'bg-surface-2', 1: 'bg-primary/35', 2: 'bg-primary/70', 3: 'bg-primary' };
+
+function Heatmap() {
+  const data = useAppStore(s => s.data);
+  const now = new Date(useNow(60_000));
+  if (!data) return null;
+  const grid = heatmap(data, now);
+  const trained = grid.flat().filter(c => c.level > 0).length;
+  return (
+    <>
+      <div className="mt-3 flex gap-[3px]" role="img" aria-label={`Mapa de treinos: ${plural(trained, 'dia treinado', 'dias treinados')} nos últimos 6 meses`}>
+        {grid.map((week, c) => (
+          <div key={c} className="flex flex-1 flex-col gap-[3px]">
+            {week.map(cell => <span key={cell.date} title={cell.date} className={`aspect-square rounded-[3px] ${cell.future ? 'opacity-0' : HEAT[cell.level]}`} />)}
+          </div>
+        ))}
+      </div>
+      <p className="mt-2 text-xs text-faint">{plural(trained, 'dia treinado', 'dias treinados')}</p>
+    </>
+  );
+}
+
+function History() {
+  const workouts = useAppStore(s => s.data?.workouts) ?? NO_WORKOUTS;
+  const run = useAppStore(s => s.run);
+  const [open, setOpen] = useState<string | null>(null);
+  const groups = historyByMonth(workouts);
+  if (!groups.length) {
+    return <p className="mt-6 rounded-2xl border border-line bg-surface p-4 text-muted">Nenhum treino registrado ainda. Os treinos concluídos aparecem aqui.</p>;
+  }
+  return (
+    <div className="mt-4 space-y-5">
+      {groups.map(g => (
+        <section key={g.month}>
+          <h2 className="text-sm font-bold text-muted">{monthTitle(g.month)} · {plural(g.workouts.length, 'treino', 'treinos')}</h2>
+          <ul className="mt-2 space-y-2">
+            {g.workouts.map(w => (
+              <WorkoutItem key={w.id} w={w} open={open === w.id} onToggle={() => setOpen(open === w.id ? null : w.id)}
+                onDelete={() => { if (confirm(`Apagar o treino de ${shortDate(w.date)}?`)) run((d, now) => deleteWorkout(d, w.id, now)); }} />
+            ))}
+          </ul>
+        </section>
+      ))}
+    </div>
+  );
+}
+
+function WorkoutItem({ w, open, onToggle, onDelete }: { w: Workout; open: boolean; onToggle: () => void; onDelete: () => void }) {
+  const volume = workoutVolume(w);
+  const meta = [plural(w.entries.length, 'exercício', 'exercícios'), w.durationMin ? `${w.durationMin} min` : '', volume ? `${formatNumber(volume)} kg` : ''].filter(Boolean).join(' · ');
+  return (
+    <li className="rounded-2xl border border-line bg-surface">
+      <button type="button" onClick={onToggle} aria-expanded={open} className="flex min-h-14 w-full items-center gap-3 px-4 py-2 text-left">
+        <span className="w-10 shrink-0 text-center">
+          <span className="block text-xl font-black leading-none">{Number(w.date.slice(8, 10))}</span>
+          <span className="text-xs text-muted">{WEEKDAYS[fromDateKey(w.date).getDay()]}</span>
+        </span>
+        <span className="min-w-0 flex-1">
+          <span className="block truncate font-semibold">{w.dayName || 'Treino'}</span>
+          <span className="block text-sm text-muted">{meta}</span>
+        </span>
+        <Icon name={open ? 'subir' : 'descer'} className="size-5 shrink-0 text-faint" />
+      </button>
+      {open && (
+        <div className="border-t border-line px-4 pb-3 pt-2">
+          <ul className="space-y-1">
+            {w.entries.map(e => (
+              <li key={e.key} className="flex justify-between gap-3 text-sm">
+                <span className="min-w-0 truncate">{e.name}</span>
+                <span className="shrink-0 text-muted">{describeEntry(e)}</span>
+              </li>
+            ))}
+          </ul>
+          <button type="button" onClick={onDelete} className="mt-3 flex h-11 items-center gap-2 rounded-xl px-2 font-semibold text-danger">
+            <Icon name="lixo" className="size-5" /> Apagar treino
+          </button>
+        </div>
+      )}
+    </li>
+  );
+}
