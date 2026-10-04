@@ -31,6 +31,8 @@ test('treino completo: plano de exemplo, marcar séries, descanso, sobreviver ao
   // menu ⋯: marcar todas as séries
   await again.getByRole('button', { name: /^Opções de / }).click();
   await page.getByRole('button', { name: 'Marcar todas as séries' }).click();
+  // concluído recolhe para uma linha; toque reabre
+  await expect(page.getByRole('button', { name: /, concluído\. Abrir$/ }).first()).toBeVisible();
 
   await page.getByRole('button', { name: 'Concluir' }).click();
   await expect(page.getByText(/Treino incompleto/)).toBeVisible();

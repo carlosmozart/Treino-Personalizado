@@ -9,6 +9,8 @@ import { startAutoBackup } from './platform/auto-backup';
 import { keepFocusedFieldVisible } from './platform/keyboard';
 import { useUpdate } from './platform/app-update';
 import { startRemindersSync } from './features/plan/reminders-sync';
+import { startDayWatcher } from './hooks/use-today';
+import { dailyCheck } from './domain/actions';
 import { autoSaveBackupFile, canAutoBackup } from './platform/backup-file';
 import './index.css';
 
@@ -16,6 +18,7 @@ installGlobalErrorHandlers();
 void useAppStore.getState().init().then(() => {
   syncController.start();
   startRemindersSync();
+  startDayWatcher(() => useAppStore.getState().run(dailyCheck));
   void useUpdate.getState().check(false);
 });
 flushOnHide();

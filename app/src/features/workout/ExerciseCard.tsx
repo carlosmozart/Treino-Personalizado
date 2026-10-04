@@ -71,6 +71,27 @@ export function ExerciseCard({ session, index }: Props) {
 
   const close = () => setMenu(false);
 
+  // exercício concluído recolhe para uma linha (o próximo sobe na tela); toque reabre
+  const [expanded, setExpanded] = useState(false);
+  if (done && !expanded) {
+    const summary = ex.mode === 'cardio' && ex.cardio
+      ? `${ex.cardio.minutes} min${ex.cardio.km ? ` · ${formatNumber(ex.cardio.km)} km` : ''}`
+      : ex.sets.filter(x => x.done).map(x => `${formatNumber(x.weight)}×${x.reps}`).join(', ');
+    return (
+      <article aria-label={ex.name} className="rounded-2xl border border-success/60 bg-surface">
+        <button type="button" onClick={() => setExpanded(true)} aria-expanded={false} aria-label={`${ex.name}, concluído. Abrir`}
+          className="flex min-h-14 w-full items-center gap-3 px-4 py-2 text-left">
+          <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-success text-white"><Icon name="check" className="size-5" /></span>
+          <span className="min-w-0 flex-1">
+            <span className="block truncate font-bold">{ex.name}</span>
+            <span className="block truncate text-sm text-muted">{summary}</span>
+          </span>
+          <Icon name="descer" className="size-5 shrink-0 text-faint" />
+        </button>
+      </article>
+    );
+  }
+
   return (
     <article aria-label={ex.name} className={`rounded-2xl border bg-surface p-4 ${done ? 'border-success/60' : 'border-line'}`}>
       {/* O14/N2: o nome ganha a linha; ações secundárias ficam no menu ⋯ */}

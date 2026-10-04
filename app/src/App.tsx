@@ -4,6 +4,7 @@ import { ErrorNotice } from './ui/ErrorNotice';
 import { UpdateOffer } from './features/profile/UpdateOffer';
 import { WhatsNew } from './features/profile/WhatsNew';
 import { useUiStore } from './store/ui-store';
+import { useToday } from './hooks/use-today';
 import { useAppStore } from './store';
 import { WorkoutScreen } from './features/workout/WorkoutScreen';
 import { RestBar } from './features/workout/RestBar';
@@ -16,13 +17,15 @@ const SCREENS = { inicio: () => <HomeScreen />, plano: () => <PlanScreen />, tre
 
 export function App() {
   const tab = useUiStore(s => s.tab);
+  // redesenha tudo na virada do dia (as telas calculam "hoje" ao desenhar)
+  const today = useToday(s => s.today);
   const status = useAppStore(s => s.status);
   const error = useAppStore(s => s.error);
   const workoutCount = useAppStore(s => s.data?.workouts.length ?? 0);
 
   return (
     <div className="safe-top min-h-dvh pb-44">
-      <main className="mx-auto max-w-xl px-4">
+      <main data-today={today} className="mx-auto max-w-xl px-4">
         {status === 'ready' && tab in SCREENS ? SCREENS[tab as keyof typeof SCREENS]() : (
           <>
             <h1 className="pt-6 text-3xl font-black tracking-tight">{TAB_LABELS[tab]}</h1>

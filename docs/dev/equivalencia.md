@@ -48,7 +48,7 @@ Legenda: ✅ feito no app novo · 🟡 parcial · ❌ falta · ➖ não será po
 | Check-in cheio/meio, presença sem registrar | ✅ | |
 | Resumo do treino (volume, calorias, recordes) | ✅ | |
 | Recordes pessoais | ✅ | |
-| Cards recolhem ao concluir | 🟡 | card concluído muda de cor; não recolhe |
+| Cards recolhem ao concluir | ✅ | vira uma linha com o resumo das séries; toque reabre |
 | Bolha com nome completo do exercício | ➖ | nomes quebram linha em vez de cortar |
 | Tela ligada no treino | ✅ 📱 | novo (M2) |
 | Ilustrações dos exercícios | ✅ | novo (Q2) |
@@ -118,7 +118,7 @@ Legenda: ✅ feito no app novo · 🟡 parcial · ❌ falta · ➖ não será po
 | Atualização do APK pelo próprio app | ✅ 📱 | consulta diária e botão em Perfil → Sobre; mesmo AppUpdatePlugin. Só dá para testar de verdade quando houver uma release mais nova que o app instalado |
 | Lembretes semanais de treino | ✅ 📱 | Perfil → Treino; horário em Plano → Planos |
 | Novidades da versão e histórico de versões | ✅ | uma vez após atualizar e em Perfil → Sobre; o histórico antigo fica no CHANGELOG |
-| Virada de dia com o app aberto | 🟡 | telas usam a hora atual; conferir check-in/água após meia-noite |
+| Virada de dia com o app aberto | ✅ | vigia do dia (a cada minuto e ao voltar do segundo plano) redesenha e roda a checagem diária |
 | Navegação por arrasto entre abas | ➖ | substituída pela barra de abas com botão central (N11) |
 | Cabeçalho retrátil, posição de rolagem por aba | ➖ | cabeçalho não fixo no app novo; rolagem por aba a avaliar |
 | Dicas de descoberta | ➖ | sem gestos escondidos para ensinar |
