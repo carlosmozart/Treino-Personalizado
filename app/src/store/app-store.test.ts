@@ -84,3 +84,23 @@ test('falha ao abrir vira estado de erro; falha ao gravar fica visível', async 
   expect(failing.getState().saveError).toBe('QuotaExceededError');
   expect(store.getState().saveError).toBeNull();
 });
+
+test('cada mudança avisa a sincronização; dados vindos da nuvem são gravados sem novo aviso', async () => {
+  const idb = new IDBFactory();
+  const db = await openAppDb(idb);
+  await saveAppData(db, sampleData());
+  db.close();
+  const changes: number[] = [];
+  const store = createAppStore({
+    load: () => loadOrMigrate({ storage: null, idb }), repo: idbRepository(idb), now: () => MONDAY, saveDelay: 0,
+    onDataChanged: data => changes.push(data.water['2026-10-05'] ?? 0)
+  });
+  await store.getState().init();
+  store.getState().run((data, now) => addWater(data, 500, now));
+  expect(changes).toEqual([500]);
+  const fromCloud = { ...store.getState().data!, water: { '2026-10-05': 900 } };
+  store.getState().applySynced(fromCloud);
+  expect(changes).toEqual([500]);
+  await store.getState().flush();
+  expect((await savedData(idb))!.water['2026-10-05']).toBe(900);
+});

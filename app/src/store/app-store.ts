@@ -17,6 +17,8 @@ export interface AppStoreDeps {
   now?: () => Date;
   makeId?: () => string;
   saveDelay?: number;
+  /** Chamado a cada mudança local nos dados (a sincronização marca como pendente). */
+  onDataChanged?: (data: AppData) => void;
 }
 
 export interface AppState {
@@ -40,6 +42,8 @@ export interface AppState {
   takeEvents(): RewardEvent[];
   /** Grava o que estiver pendente (ao sair do app, antes de exportar). */
   flush(): Promise<void>;
+  /** Dados vindos da nuvem, já juntados com os locais: aplica e grava, sem nova sincronização. */
+  applySynced(data: AppData): void;
 }
 
 const message = (error: unknown) => (error instanceof Error ? error.message : String(error));
@@ -59,6 +63,7 @@ export function createAppStore(deps: AppStoreDeps) {
     function commit(data: AppData, events: RewardEvent[]) {
       set(state => ({ data, events: events.length ? [...state.events, ...events] : state.events }));
       dataPersister.schedule(data);
+      deps.onDataChanged?.(data);
     }
 
     return {
@@ -136,6 +141,11 @@ export function createAppStore(deps: AppStoreDeps) {
         const { events } = get();
         if (events.length) set({ events: [] });
         return events;
+      },
+
+      applySynced(data) {
+        set({ data });
+        dataPersister.schedule(data);
       },
 
       async flush() {

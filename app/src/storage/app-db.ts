@@ -2,6 +2,7 @@
 import { SCHEMA_VERSION, type AppData } from '../domain/model';
 import { normalizeAppData } from '../domain/sync';
 import type { ActiveSession } from '../domain/session';
+import { INITIAL_CLOUD_STATE, type CloudState } from '../sync/controller';
 import { idbDelete, idbGet, idbPut, openDb } from './idb';
 
 export const APP_DB = 'treino-app';
@@ -10,6 +11,8 @@ const DATA_KEY = 'app';
 const LEGACY_SNAPSHOT_KEY = 'legacy-snapshot';
 /** Treino em andamento: fica à parte porque é gravado a cada toque. */
 const SESSION_KEY = 'session';
+/** O que o aparelho lembra da nuvem (revisão, última sincronização, pendências). */
+const CLOUD_STATE_KEY = 'cloud-state';
 
 export interface LegacySnapshot {
   takenAt: string;
@@ -45,4 +48,12 @@ export function loadSession(db: IDBDatabase): Promise<ActiveSession | undefined>
 
 export function saveSession(db: IDBDatabase, session: ActiveSession | null): Promise<void> {
   return session ? idbPut(db, STORE, SESSION_KEY, session) : idbDelete(db, STORE, SESSION_KEY);
+}
+
+export async function loadCloudState(db: IDBDatabase): Promise<CloudState> {
+  return (await idbGet<CloudState>(db, STORE, CLOUD_STATE_KEY)) ?? { ...INITIAL_CLOUD_STATE };
+}
+
+export function saveCloudState(db: IDBDatabase, state: CloudState): Promise<void> {
+  return idbPut(db, STORE, CLOUD_STATE_KEY, state);
 }
