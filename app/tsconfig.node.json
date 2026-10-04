@@ -21,6 +21,8 @@
   },
   "include": [
     "vite.config.ts",
-    "playwright.config.ts"
+    "playwright.config.ts",
+    "vitest.rules.config.ts",
+    "firebase/**/*.ts"
   ]
 }

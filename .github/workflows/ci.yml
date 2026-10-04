@@ -63,6 +63,15 @@ jobs:
       - name: Unit tests
         run: npm test
 
+      - name: Configure Java (Firestore emulator)
+        uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - name: Firestore security rules (emulator)
+        run: npm run test:rules
+
       - name: Install Chromium
         run: npx playwright install --with-deps chromium
 
