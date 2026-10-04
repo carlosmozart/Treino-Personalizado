@@ -60,7 +60,7 @@ Legenda: ✅ feito no app novo · 🟡 parcial · ❌ falta · ➖ não será po
 | Vários planos, escolher o ativo, excluir | ✅ | |
 | Criar plano novo | 🟡 | só a partir do exemplo |
 | Duplicar plano | ❌ | |
-| Renomear plano, descrição, horário de treino | ❌ | o horário alimenta os lembretes |
+| Renomear plano, descrição, horário de treino | ✅ | Plano → Planos |
 | Editar dias: nome, foco, opcional, descanso | ✅ | |
 | Adicionar/editar/remover/reordenar exercícios | ✅ | arrastar fica para depois |
 | Busca na biblioteca (~70 exercícios) | ✅ | |
@@ -115,8 +115,8 @@ Legenda: ✅ feito no app novo · 🟡 parcial · ❌ falta · ➖ não será po
 | Função do app atual | App novo | Observação |
 | --- | --- | --- |
 | Funciona offline (PWA / APK) | ✅ | |
-| Atualização do APK pelo próprio app | ❌ | AppUpdatePlugin existe; falta a interface no app novo — necessário antes da troca |
-| Lembretes semanais de treino | ❌ | |
+| Atualização do APK pelo próprio app | ✅ 📱 | consulta diária e botão em Perfil → Sobre; mesmo AppUpdatePlugin. Só dá para testar de verdade quando houver uma release mais nova que o app instalado |
+| Lembretes semanais de treino | ✅ 📱 | Perfil → Treino; horário em Plano → Planos |
 | Novidades da versão e histórico de versões | ❌ | |
 | Virada de dia com o app aberto | 🟡 | telas usam a hora atual; conferir check-in/água após meia-noite |
 | Navegação por arrasto entre abas | ➖ | substituída pela barra de abas com botão central (N11) |
@@ -129,10 +129,9 @@ Legenda: ✅ feito no app novo · 🟡 parcial · ❌ falta · ➖ não será po
 
 Faltam (❌) para a troca, por prioridade:
 
-1. **Atualização do APK pelo app** — sem ela, os usuários ficam presos na 3.0.0.
-2. **Notificação de fim do descanso em segundo plano** e **lembretes semanais** (usam o horário do plano).
-3. **Plano**: renomear/descrição/horário, duplicar, criar em branco, reservas e opcional no editor.
-4. **Montar treino com IA** (prompt + importar).
-5. **Histórico**: editar registro, apagar exercício isolado, evolução por exercício, volume semanal, lista de pesagens.
-6. **Treino**: botões de ajuste de carga (O20), troca pela biblioteca, valor suspeito.
-7. **Cadastro inicial** para quem instala do zero, **novidades da versão**, backup com senha, lembrete de backup no navegador, aviso de falta de espaço.
+1. ~~Atualização do APK pelo app~~ e ~~notificações~~: feitos em 04/10/2026 (falta validar a atualização com uma release real).
+2. **Plano**: duplicar, criar em branco, reservas e opcional no editor.
+3. **Montar treino com IA** (prompt + importar).
+4. **Histórico**: editar registro, apagar exercício isolado, evolução por exercício, volume semanal, lista de pesagens.
+5. **Treino**: botões de ajuste de carga (O20), troca pela biblioteca, valor suspeito.
+6. **Cadastro inicial** para quem instala do zero, **novidades da versão**, backup com senha, lembrete de backup no navegador, aviso de falta de espaço.

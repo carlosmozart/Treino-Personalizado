@@ -65,7 +65,22 @@ export function PlanScreen() {
       </div>
 
       <Sheet title="Planos" open={plansOpen} onClose={() => setPlansOpen(false)}>
-        <p className="px-3 pb-2 text-sm text-muted">Ativo: <strong className="text-ink">{plan.name}</strong></p>
+        <div className="space-y-3 pb-3">
+          <label className="block text-sm font-semibold text-muted">Nome do plano
+            <input value={plan.name} onChange={e => edit(p => ({ ...p, name: e.target.value }))}
+              className="mt-1 h-12 w-full rounded-xl border border-line bg-surface-2 px-3 text-base text-ink" />
+          </label>
+          <label className="block text-sm font-semibold text-muted">Descrição
+            <textarea value={plan.description} rows={2} maxLength={500} onChange={e => edit(p => ({ ...p, description: e.target.value }))}
+              className="mt-1 w-full rounded-xl border border-line bg-surface-2 px-3 py-2 text-base text-ink" />
+          </label>
+          <label className="block text-sm font-semibold text-muted">Horário do treino
+            <input type="time" value={plan.trainingTime} onChange={e => edit(p => ({ ...p, trainingTime: e.target.value }))}
+              className="mt-1 h-12 w-full rounded-xl border border-line bg-surface-2 px-3 text-base text-ink" />
+            <span className="mt-1 block text-xs font-normal text-faint">Usado nos lembretes dos dias de treino (Perfil → Treino).</span>
+          </label>
+        </div>
+        {others.length > 0 && <p className="px-3 pb-1 pt-2 text-sm font-semibold text-muted">Outros planos</p>}
         {others.map(p => (
           <div key={p.id} className="flex items-center gap-2">
             <SheetAction onClick={() => { run((d, now) => setActivePlan(d, p.id, now)); setPlansOpen(false); }}>

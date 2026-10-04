@@ -1,4 +1,5 @@
 // Notificações locais do Android (plugin LocalNotifications do Capacitor, já no APK).
+// Lembretes semanais e aviso do descanso.
 // O aviso do descanso é agendado no sistema assim que o descanso começa: toca pelo canal de
 // alarme criado no MainActivity (volume de "Alarmes", não o de mídia) com o app aberto, em
 // segundo plano ou com a tela bloqueada. No navegador nada disso existe e fica o bipe da página.
@@ -12,6 +13,7 @@ interface LocalNotificationsPlugin {
   checkExactNotificationSetting?(): Promise<{ exact_alarm: string }>;
   changeExactNotificationSetting?(): Promise<{ exact_alarm: string }>;
   schedule(o: { notifications: unknown[] }): Promise<unknown>;
+  createChannel?(o: Record<string, unknown>): Promise<void>;
   cancel(o: { notifications: { id: number }[] }): Promise<void>;
 }
 
@@ -76,4 +78,35 @@ export async function cancelRestAlarm(): Promise<void> {
   const p = plugin();
   if (!p) return;
   await p.cancel({ notifications: [{ id: REST_NOTIFICATION_ID }] }).catch(() => undefined);
+}
+
+// ---------- lembretes semanais ----------
+
+/** Canal dos lembretes (o mesmo do app atual; versionado porque o Android congela o canal criado). */
+const REMINDER_CHANNEL = 'treino-avisos-v2';
+
+export interface ReminderNotification { id: number; weekday: number; hour: number; minute: number; body: string }
+
+/**
+ * Refaz os lembretes: cancela os 7 ids e agenda os de agora. Desligado ou sem permissão, só
+ * cancela. Devolve se ficaram agendados.
+ */
+export async function syncTrainingReminders(ids: number[], reminders: ReminderNotification[], enabled: boolean): Promise<boolean> {
+  const p = plugin();
+  if (!p) return false;
+  await p.cancel({ notifications: ids.map(id => ({ id })) }).catch(() => undefined);
+  if (!enabled || !reminders.length || !(await ensureNotificationPermission(false))) return false;
+  await p.createChannel?.({
+    id: REMINDER_CHANNEL, name: 'Avisos de treino', description: 'Horários de treino e fim dos descansos',
+    importance: 5, visibility: 1, sound: 'default', vibration: true, lights: true
+  });
+  await p.schedule({
+    notifications: reminders.map(r => ({
+      id: r.id, title: 'Hora do treino', body: r.body, channelId: REMINDER_CHANNEL,
+      extra: { type: 'training-reminder' },
+      schedule: { on: { weekday: r.weekday, hour: r.hour, minute: r.minute }, allowWhileIdle: true },
+      isExactNotification: false
+    }))
+  });
+  return true;
 }

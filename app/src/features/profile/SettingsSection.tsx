@@ -11,6 +11,10 @@ import { NumberField } from '../../ui/NumberField';
 import { plural } from '../../ui/format';
 import { Card, INPUT } from './ProfileScreen';
 import { AlarmSettings } from './AlarmSettings';
+import { UpdateControls } from './UpdateOffer';
+import { ensureNotificationPermission, notificationsAvailable } from '../../platform/notifications';
+import { resyncReminders } from '../plan/reminders-sync';
+import { parseTrainingTime } from '../../domain/reminders';
 
 /** Configurações agrupadas (O19): treino, dados e backup, conta, sobre. */
 export function SettingsSection() {
@@ -31,6 +35,7 @@ export function SettingsSection() {
         {toggle('restSound', 'Som no fim do descanso')}
         {toggle('restVibrate', 'Vibrar no fim do descanso')}
         <AlarmSettings />
+        {notificationsAvailable() && <ReminderToggle on={!!settings.trainingReminders} set={set} />}
         <Toggle label="Manter a tela ligada no treino" checked={settings.keepScreenOn ?? true} onChange={v => set({ keepScreenOn: v })} />
         <Toggle label="Mostrar ilustrações dos exercícios" checked={settings.showIllustrations ?? true} onChange={v => set({ showIllustrations: v })} />
       </Card>
@@ -40,6 +45,7 @@ export function SettingsSection() {
       </Card>
       <Card title="Sobre">
         <p className="text-sm text-muted">Versão {__APP_VERSION__}. Ilustrações dos exercícios: Everkinetic (CC BY-SA 4.0).</p>
+        <UpdateControls />
         <ErrorLogButton />
       </Card>
     </>
@@ -125,5 +131,24 @@ function ErrorLogButton() {
     }}>
       {copied ? 'Registro copiado' : `Copiar registro de erros (${entries.length})`}
     </button>
+  );
+}
+
+function ReminderToggle({ on, set }: { on: boolean; set: (patch: Partial<Settings>) => void }) {
+  const plan = useAppStore(s => (s.data?.activePlanId ? s.data.plans[s.data.activePlanId] : undefined));
+  const hasTime = !!plan && !!parseTrainingTime(plan.trainingTime);
+  const [denied, setDenied] = useState(false);
+  return (
+    <>
+      <Toggle label="Lembrete nos dias de treino" checked={on} onChange={async v => {
+        if (v && !(await ensureNotificationPermission(true))) { setDenied(true); return; }
+        setDenied(false);
+        set({ trainingReminders: v });
+        if (v) resyncReminders();
+      }} />
+      {on && !hasTime && <p className="text-xs text-warning">Defina o horário do treino em Plano → Planos para receber o lembrete.</p>}
+      {on && hasTime && <p className="text-xs text-faint">Às {plan!.trainingTime}, nos dias obrigatórios com exercícios.</p>}
+      {denied && <p className="text-xs text-warning">Permissão de notificações não concedida.</p>}
+    </>
   );
 }

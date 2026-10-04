@@ -7,11 +7,17 @@ import { listenBack } from './store/ui-store';
 import { installGlobalErrorHandlers, useErrorLog } from './platform/error-log';
 import { startAutoBackup } from './platform/auto-backup';
 import { keepFocusedFieldVisible } from './platform/keyboard';
+import { useUpdate } from './platform/app-update';
+import { startRemindersSync } from './features/plan/reminders-sync';
 import { autoSaveBackupFile, canAutoBackup } from './platform/backup-file';
 import './index.css';
 
 installGlobalErrorHandlers();
-void useAppStore.getState().init().then(() => syncController.start());
+void useAppStore.getState().init().then(() => {
+  syncController.start();
+  startRemindersSync();
+  void useUpdate.getState().check(false);
+});
 flushOnHide();
 listenBack();
 if (isNative()) keepFocusedFieldVisible();

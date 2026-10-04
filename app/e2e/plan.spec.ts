@@ -50,3 +50,19 @@ test('plano: dias em cartões, adicionar, editar recolhido, descanso e opcional'
   await page.screenshot({ path: 'test-results/plano.png', fullPage: true });
   expect(errors).toEqual([]);
 });
+
+test('plano: nome e horário do treino', async ({ page }) => {
+  await page.goto('/');
+  await page.getByRole('button', { name: 'Plano', exact: true }).click();
+  await page.getByRole('button', { name: 'Usar plano de exemplo' }).click();
+  await page.getByRole('button', { name: 'Planos' }).click();
+  await page.getByRole('textbox', { name: 'Nome do plano' }).fill('Meu PPL');
+  await page.getByLabel('Horário do treino').fill('18:30');
+  await page.getByRole('button', { name: 'Fechar' }).click();
+  await expect(page.getByText('Meu PPL')).toBeVisible();
+  await page.waitForTimeout(400);
+  await page.reload();
+  await page.getByRole('button', { name: 'Plano', exact: true }).click();
+  await page.getByRole('button', { name: 'Planos' }).click();
+  await expect(page.getByLabel('Horário do treino')).toHaveValue('18:30');
+});
