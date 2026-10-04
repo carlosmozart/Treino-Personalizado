@@ -26,6 +26,8 @@ export interface SessionExercise {
   seconds?: number;
   cardio?: { minutes: number; km: number; done: boolean };
   note: string;
+  restSeconds?: number;
+  tip?: string;
   alternatives: { name: string; mode: ExerciseMode }[];
   /** Nome original do plano quando trocado por uma reserva. */
   swappedFrom?: string;
@@ -70,6 +72,8 @@ function fromPlanExercise(data: AppData, ex: PlanExercise, date: DateKey): Sessi
     alternatives: ex.alternatives
   };
   if (ex.mode === 'time' && ex.seconds) out.seconds = ex.seconds;
+  if (ex.restSeconds) out.restSeconds = ex.restSeconds;
+  if (ex.tip) out.tip = ex.tip;
   if (ex.mode === 'cardio') out.cardio = { minutes: ex.minutes, km: ex.km, done: false };
   return out;
 }
@@ -169,6 +173,8 @@ export function swapExercise(s: ActiveSession, data: AppData, exIndex: number, n
       sets: initialSets(data, name, mode, planEx && mode === planEx.mode ? { ...planEx, weight: 0 } : null, s.date),
       note: ex.note, alternatives: ex.alternatives, swappedFrom: original
     };
+    if (ex.restSeconds) swapped.restSeconds = ex.restSeconds;
+    if (ex.tip) swapped.tip = ex.tip;
     if (mode === 'cardio') swapped.cardio = { minutes: planEx?.minutes || 20, km: 0, done: false };
     return swapped;
   });

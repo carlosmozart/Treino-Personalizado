@@ -1,5 +1,5 @@
 import { expect, test } from 'vitest';
-import { addWater, dailyCheck, deleteWorkout, finishWorkout, logWeight, toggleCheckin, updateSettings } from './actions';
+import { addPlan, addWater, dailyCheck, deleteWorkout, finishWorkout, logWeight, toggleCheckin, updateSettings } from './actions';
 import { completeExercise, startSession, toggleSet } from './session';
 import { sampleData, workout } from './testing';
 import { addDays } from './dates';
@@ -116,4 +116,14 @@ test('aniversário cumprimenta uma vez por ano', () => {
   expect(r.events).toEqual([{ kind: 'birthday', name: 'Ana' }]);
   expect(dailyCheck(r.data, MONDAY).data).toBe(r.data);
   expect(dailyCheck(sampleData(), MONDAY).events).toEqual([]);
+});
+
+test('adicionar plano não sobrescreve um existente e ativa o novo', async () => {
+  const { seedPlan } = await import('../data/seed-plan');
+  const data = sampleData();
+  const r = addPlan(addPlan(data, seedPlan('2026-10-04')).data, seedPlan('2026-10-04'));
+  expect(Object.keys(r.data.plans)).toEqual(['p1', 'default', 'default-2']);
+  expect(r.data.activePlanId).toBe('default-2');
+  expect(r.data.plans['default-2']!.days.DOM.optional).toBe(true);
+  expect(addPlan(data, seedPlan('2026-10-04'), false).data.activePlanId).toBe('p1');
 });

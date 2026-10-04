@@ -4,7 +4,7 @@
 import { toDateKey, type DateKey } from './dates';
 import type { DayKey } from './ai-plan';
 import { recordGoalCheckpoints } from './body-goal';
-import type { AppData, Settings, UserProfile, Workout } from './model';
+import type { AppData, Plan, Settings, UserProfile, Workout } from './model';
 import { checkBirthday, checkWaterGoal, grantCheckin, revokeCheckin, type RewardEvent } from './rewards';
 import { sessionProgress, sessionToWorkout, type ActiveSession } from './session';
 import { bestSet, isPersonalRecord } from './workouts';
@@ -119,6 +119,18 @@ export function updateSettings(data: AppData, patch: Partial<Settings>): ActionR
   const settings = { ...data.settings, ...patch };
   settings.restSeconds = Math.min(600, Math.max(15, Math.round(settings.restSeconds)));
   return { data: { ...data, settings }, events: [] };
+}
+
+/** Adiciona um plano (id novo se já existir) e, por padrão, ativa. */
+export function addPlan(data: AppData, plan: Plan, activate = true): ActionResult {
+  let id = plan.id;
+  for (let n = 2; data.plans[id]; n++) id = `${plan.id}-${n}`;
+  const plans = { ...data.plans, [id]: { ...plan, id } };
+  if (!activate) return { data: { ...data, plans }, events: [] };
+  return {
+    data: { ...data, plans, activePlanId: id, gamification: { ...data.gamification, activatedPlans: { ...data.gamification.activatedPlans, [id]: true } } },
+    events: []
+  };
 }
 
 export function setActivePlan(data: AppData, planId: string): ActionResult {

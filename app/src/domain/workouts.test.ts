@@ -61,3 +61,8 @@ test('calorias usam a duração medida, ou a estimada quando o cronômetro falho
   expect(falhou.kcal).toBeGreaterThan(medido.kcal * 0.5);
   expect(workoutCalories(workout('w', '2026-10-01', [entry(sets)]), 0, 90)).toBeNull();
 });
+
+test('descrição usa vírgula decimal', () => {
+  const entry = { key: 'x', name: 'X', mode: 'reps' as const, sets: [{ reps: 12, weight: 42.5, kind: 'work' as const }, { reps: 12, weight: 15, kind: 'work' as const }] };
+  expect(describeEntry(entry)).toBe('2x12 · 42,5-15kg');
+});

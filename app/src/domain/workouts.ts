@@ -41,7 +41,8 @@ export function describeEntry(entry: WorkoutEntry): string {
   const sameReps = reps.every(r => r === reps[0]);
   const sameWeight = weights.every(w => w === weights[0]);
   const repsPart = sameReps ? `${sets.length}x${reps[0]}` : reps.join('/');
-  const weightPart = sameWeight ? `${weights[0]}kg` : `${Math.max(...weights)}-${Math.min(...weights)}kg`;
+  const kg = (n: number) => String(n).replace('.', ',');
+  const weightPart = sameWeight ? `${kg(weights[0]!)}kg` : `${kg(Math.max(...weights))}-${kg(Math.min(...weights))}kg`;
   return `${repsPart} · ${weightPart}${entry.aggregated ? ' (registro antigo)' : ''}`;
 }
 

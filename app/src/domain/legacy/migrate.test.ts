@@ -109,6 +109,7 @@ describe('demais dados', () => {
   test('planos com metas numéricas, alternativas e dias por semana calculados', () => {
     const ppl = data.plans.default!;
     expect(ppl.days.SEG.exercises[0]!.alternatives).toEqual([{ name: 'Supino com Halteres', mode: 'reps' }]);
+    expect(ppl.days.SEG.exercises[0]!.tip).toBe('Sem banco livre? Use o Supino Máquina.');
     expect(ppl.days.SEG.exercises[1]).toMatchObject({ sets: 3, reps: 12, weight: 8, restSeconds: 60 });
     expect(ppl.days.QUI.exercises[0]).toMatchObject({ mode: 'cardio', minutes: 20, km: 2, optional: true });
     expect(ppl.days.DOM.optional).toBe(true);

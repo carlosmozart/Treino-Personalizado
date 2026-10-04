@@ -116,6 +116,8 @@ function migrateExercise(raw: Obj): PlanExercise {
       .filter(b => str(b.name).trim() !== '')
       .map(b => ({ name: str(b.name).trim(), mode: modeOf(b.type) }))
   };
+  const tip = str(raw.alt).trim();
+  if (tip) exercise.tip = tip.slice(0, 500);
   const rest = positive(raw.restSeconds);
   if (rest !== null) exercise.restSeconds = rest;
   return exercise;

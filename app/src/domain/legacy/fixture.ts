@@ -5,7 +5,7 @@ const day = (name: string, exercises: object[] = [], extra: object = {}) => ({ n
 
 const pplSchedule = {
   SEG: day('Segunda: Push', [
-    { id: 'ex1', name: 'Supino Reto (Barra)', type: 'forca', targetSets: 3, targetReps: 10, targetWeight: 40,
+    { id: 'ex1', name: 'Supino Reto (Barra)', type: 'forca', targetSets: 3, targetReps: 10, targetWeight: 40, alt: '  Sem banco livre? Use o Supino Máquina.  ',
       backups: [{ name: 'Supino com Halteres', type: 'forca' }, { name: '', type: 'forca' }] },
     { id: 'ex2', name: 'Elevação Lateral (Halteres)', type: 'forca', targetSets: '3', targetReps: '12', targetWeight: '8', restSeconds: 60 }
   ]),

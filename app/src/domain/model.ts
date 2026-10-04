@@ -55,6 +55,8 @@ export interface PlanExercise {
   minutes: number;
   km: number;
   restSeconds?: number;
+  /** Dica de execução ou substituição mostrada no treino (o "alt" do app antigo). */
+  tip?: string;
   optional: boolean;
   alternatives: { name: string; mode: ExerciseMode }[];
 }
@@ -124,6 +126,8 @@ export interface Settings {
   trainingReminders: boolean;
   restBackgroundNotification: boolean;
   restBackgroundHintShown: boolean;
+  /** Tela ligada durante o treino (M2). Ausente em dados antigos = ligado. */
+  keepScreenOn?: boolean;
 }
 
 export const DEFAULT_SETTINGS: Settings = {
