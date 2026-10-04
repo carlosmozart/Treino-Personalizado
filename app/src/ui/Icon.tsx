@@ -14,7 +14,11 @@ const PATHS = {
   nota: 'M5 4h10l4 4v12H5zM9 12h6M9 16h4',
   dica: 'M9 18h6m-5 3h4M12 3a6 6 0 00-3.5 10.9V16h7v-2.1A6 6 0 0012 3z',
   relogio: 'M12 7v5l3 2M12 21a9 9 0 100-18 9 9 0 000 18z',
-  trofeu: 'M8 4h8v5a4 4 0 01-8 0zM8 6H5a3 3 0 003 4m8-4h3a3 3 0 01-3 4M12 13v4m-4 3h8'
+  trofeu: 'M8 4h8v5a4 4 0 01-8 0zM8 6H5a3 3 0 003 4m8-4h3a3 3 0 01-3 4M12 13v4m-4 3h8',
+  subir: 'M6 15l6-6 6 6',
+  descer: 'M6 9l6 6 6-6',
+  lixo: 'M4 7h16M10 11v6m4-6v6M6 7l1 13h10l1-13M9 7V4h6v3',
+  editar: 'M4 20h4L19 9l-4-4L4 16zM13 7l4 4'
 } as const;
 
 export type IconName = keyof typeof PATHS;
