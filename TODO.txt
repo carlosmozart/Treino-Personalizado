@@ -150,6 +150,10 @@ M34	Revisão do treino pela IA: gerar prompt com o histórico recente para a IA 
 M35	No dia de descanso, informar quando é o próximo treino e qual é	Baixa
 M36	Filtro por equipamento na troca de exercício (só mostrar o que a academia/casa tem)	Baixa
 M37	Unidade kg/lb com conversão opcional dos dados salvos	Baixa
+M38	Peso por semana: agrupar pesagens por semana com média, nº de pesagens e variação da média em relação à semana anterior (o peso diário oscila mais com água/sal/refeição do que em um mês); complementa a média móvel atual	Média
+M39	Colorir variações de peso pela direção da meta: verde quando aproxima do alvo, vermelho quando afasta (quem quer ganhar vê +0,5 kg em verde)	Média
+M40	Pesagem opcional ao começar o treino (desligável nas configurações), para o histórico de peso se manter sem depender de abrir o Perfil
+Saúde: comparado em 04/10/2026 — o openGym só acompanha peso corporal (sem IMC, TMB/TDEE, água ou gordura corporal); nossas funções de saúde são mais completas e seguem como estão, com M38–M40 trazendo o que o acompanhamento de peso dele faz melhor
 
 N. Interface inspirada no openGym (comparação das telas em 04/10/2026)
 Aplicar respeitando docs/guia-interface.md (atualizar o guia quando um padrão novo for adotado).
