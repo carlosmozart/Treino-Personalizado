@@ -20,6 +20,7 @@ export function rewardToast(event: RewardEvent): Toast | null {
       return event.reason === 'checkin-half' ? { text: `Check-in feito: +${event.amount} XP (meio, treino incompleto)`, tone: 'info' }
         : event.reason === 'checkin-full' || event.reason === 'checkin-upgrade' ? { text: `Check-in feito: +${event.amount} XP`, tone: 'info' }
         : null;
+    case 'achievement': return { text: `Conquista desbloqueada: ${event.name}`, tone: 'trophy' };
     case 'xp-removed': return { text: `Check-in desfeito: −${event.amount} XP`, tone: 'info' };
   }
 }

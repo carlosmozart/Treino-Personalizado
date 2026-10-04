@@ -32,3 +32,25 @@ test('progresso: estatísticas, mapa de calor e histórico com apagar', async ({
   await expect(page.getByText('Nenhum treino registrado ainda.', { exact: false })).toBeVisible();
   expect(errors).toEqual([]);
 });
+
+test('metas: conquista do primeiro check-in e meta de peso com marcos', async ({ page }) => {
+  await page.goto('/');
+  await page.getByRole('button', { name: 'Treino', exact: true }).click();
+  await page.getByRole('button', { name: 'Usar plano de exemplo' }).click();
+  await page.getByRole('button', { name: 'Início', exact: true }).click();
+  await page.getByRole('button', { name: /presença/ }).click();
+  await expect(page.getByText('Conquista desbloqueada: Primeiro Passo')).toBeVisible();
+  await page.getByRole('button', { name: /Registrar/ }).click();
+  await page.getByRole('textbox', { name: 'Peso de hoje em kg' }).fill('90');
+  await page.getByRole('button', { name: 'Salvar' }).click();
+
+  await page.getByRole('button', { name: 'Progresso', exact: true }).click();
+  await page.getByRole('tab', { name: 'Metas' }).click();
+  await expect(page.getByTestId('conquistas')).toHaveText('1/28');
+  await page.getByRole('button', { name: 'Definir meta' }).click();
+  await page.getByRole('textbox', { name: 'Peso desejado em kg' }).fill('82');
+  await page.getByRole('button', { name: 'Começar meta' }).click();
+  await expect(page.getByText('faltam 8 kg')).toBeVisible();
+  await expect(page.getByText('88 kg', { exact: true })).toBeVisible();
+  await page.screenshot({ path: 'test-results/metas.png', fullPage: true });
+});

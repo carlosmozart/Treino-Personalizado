@@ -7,6 +7,7 @@ import { describeEntry, workoutVolume } from '../../domain/workouts';
 import { useAppStore } from '../../store';
 import { useNow } from '../../hooks/use-now';
 import { Icon } from '../../ui/Icon';
+import { GoalsView } from './GoalsView';
 import { formatNumber, plural, shortDate } from '../../ui/format';
 
 const MONTH_NAMES = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
@@ -15,7 +16,8 @@ const WEEKDAYS = ['dom', 'seg', 'ter', 'qua', 'qui', 'sex', 'sáb'];
 
 const NO_WORKOUTS: Workout[] = [];
 
-type View = 'stats' | 'history';
+type View = 'stats' | 'goals' | 'history';
+const VIEW_LABEL: Record<View, string> = { stats: 'Estatísticas', goals: 'Metas', history: 'Histórico' };
 
 /** Estatísticas (N9, M16, M28) e histórico dos treinos. */
 export function ProgressScreen() {
@@ -23,15 +25,15 @@ export function ProgressScreen() {
   return (
     <>
       <h1 className="pt-6 text-3xl font-black tracking-tight">Progresso</h1>
-      <div role="tablist" className="mt-4 grid grid-cols-2 gap-1 rounded-xl bg-surface-2 p-1">
-        {(['stats', 'history'] as const).map(v => (
+      <div role="tablist" className="mt-4 grid grid-cols-3 gap-1 rounded-xl bg-surface-2 p-1">
+        {(['stats', 'goals', 'history'] as const).map(v => (
           <button key={v} type="button" role="tab" aria-selected={view === v} onClick={() => setView(v)}
             className={`h-10 rounded-lg font-semibold ${view === v ? 'bg-surface text-ink' : 'text-muted'}`}>
-            {v === 'stats' ? 'Estatísticas' : 'Histórico'}
+            {VIEW_LABEL[v]}
           </button>
         ))}
       </div>
-      {view === 'stats' ? <Stats /> : <History />}
+      {view === 'stats' ? <Stats /> : view === 'goals' ? <GoalsView /> : <History />}
     </>
   );
 }

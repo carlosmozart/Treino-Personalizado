@@ -18,7 +18,8 @@ export type RewardEvent =
   | { kind: 'free-meal' }
   | { kind: 'water-goal'; xp: number }
   | { kind: 'birthday'; name: string }
-  | { kind: 'record'; name: string; reps: number; weight: number };
+  | { kind: 'record'; name: string; reps: number; weight: number }
+  | { kind: 'achievement'; name: string };
 
 /** Dias de treino da semana pelo plano ativo; 6 sem plano (o padrão do app antigo). */
 export function daysPerWeekOf(data: AppData): number {

@@ -2,6 +2,7 @@
 // ainda não exibidos. As regras ficam em domain/; aqui só se aplica a ação e se agenda a gravação.
 import { create } from 'zustand';
 import * as actions from '../domain/actions';
+import { unlockAchievements } from '../domain/achievements';
 import type { DayKey } from '../domain/ai-plan';
 import type { AppData } from '../domain/model';
 import type { MigrationReport } from '../domain/legacy/migrate';
@@ -97,8 +98,12 @@ export function createAppStore(deps: AppStoreDeps) {
       run(action) {
         const { data } = get();
         if (!data) return;
-        const result = action(data, now());
-        if (result.data !== data) commit(result.data, result.events);
+        const t = now();
+        const result = action(data, t);
+        if (result.data !== data) {
+          const unlocked = unlockAchievements(result.data, t);
+          commit(unlocked.data, [...result.events, ...unlocked.events]);
+        }
         else if (result.events.length) set(state => ({ events: [...state.events, ...result.events] }));
       },
 
@@ -129,9 +134,11 @@ export function createAppStore(deps: AppStoreDeps) {
       finishWorkout() {
         const { data, session } = get();
         if (!data || !session) return 'no-session';
-        const result = actions.finishWorkout(data, session, now());
+        const t = now();
+        const result = actions.finishWorkout(data, session, t);
         if (result.kind === 'empty') return 'empty';
-        commit(result.data, result.events);
+        const unlocked = unlockAchievements(result.data, t);
+        commit(unlocked.data, [...result.events, ...unlocked.events]);
         set({ session: null });
         sessionPersister.schedule(null);
         return 'saved';

@@ -50,7 +50,7 @@ test('treino em andamento sobrevive a fechar o app e finalizar grava treino e re
   first.setClock(new Date(MONDAY.getTime() + 45 * 60000));
   expect(store.getState().finishWorkout()).toBe('saved');
   expect(store.getState().session).toBeNull();
-  expect(store.getState().takeEvents().map(e => e.kind)).toEqual(['xp', 'level-up']);
+  expect(store.getState().takeEvents().map(e => e.kind)).toEqual(['xp', 'level-up', 'achievement']);
   expect(store.getState().events).toEqual([]);
   await store.getState().flush();
   const saved = await savedData(first.idb);
