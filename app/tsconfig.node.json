@@ -1,14 +1,8 @@
 {
   "compilerOptions": {
     "target": "es2022",
-    "lib": [
-      "es2023",
-      "dom",
-      "dom.iterable"
-    ],
     "module": "esnext",
     "moduleResolution": "bundler",
-    "jsx": "react-jsx",
     "strict": true,
     "noUncheckedIndexedAccess": true,
     "noImplicitOverride": true,
@@ -18,14 +12,15 @@
     "isolatedModules": true,
     "skipLibCheck": true,
     "noEmit": true,
+    "lib": [
+      "es2023"
+    ],
     "types": [
-      "vite/client",
-      "vite-plugin-pwa/client",
-      "@testing-library/jest-dom/vitest"
+      "node"
     ]
   },
   "include": [
-    "src",
-    "e2e"
+    "vite.config.ts",
+    "playwright.config.ts"
   ]
 }
