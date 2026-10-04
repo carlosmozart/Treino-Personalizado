@@ -7,8 +7,9 @@ import { RestBar } from './features/workout/RestBar';
 import { HomeScreen } from './features/home/HomeScreen';
 import { PlanScreen } from './features/plan/PlanScreen';
 import { ProgressScreen } from './features/progress/ProgressScreen';
+import { ProfileScreen } from './features/profile/ProfileScreen';
 
-const SCREENS = { inicio: () => <HomeScreen />, plano: () => <PlanScreen />, treino: () => <WorkoutScreen />, progresso: () => <ProgressScreen /> };
+const SCREENS = { inicio: () => <HomeScreen />, plano: () => <PlanScreen />, treino: () => <WorkoutScreen />, progresso: () => <ProgressScreen />, perfil: () => <ProfileScreen /> };
 
 export function App() {
   const tab = useUiStore(s => s.tab);
