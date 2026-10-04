@@ -60,7 +60,7 @@ window.TREINO_WORKOUT_CONTROLS = {
       const total = obrigatorios.length;
       const doneCount = obrigatorios.filter(ex => getFormData()[ex.id] && getFormData()[ex.id].done).length;
       document.getElementById('confirmFinishText').textContent =
-        `Você concluiu ${doneCount} de ${total} exercícios. Finalizar agora vai valer apenas metade do XP do check-in (${getHalfCheckinXP()} XP em vez de ${getFullCheckinXP()} XP). Quer voltar e completar os exercícios restantes, ou finalizar assim mesmo?`;
+        `Você concluiu ${doneCount} de ${total} exercícios. Finalizar agora vai valer apenas metade do XP do check-in (${getHalfCheckinXP()} XP em vez de ${getFullCheckinXP()} XP). Só as séries marcadas entram no histórico. Quer voltar e completar os exercícios restantes, ou finalizar assim mesmo?`;
       document.getElementById('confirmFinishOverlay').classList.remove('hidden');
     });
 

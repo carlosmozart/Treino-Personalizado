@@ -464,13 +464,19 @@ test('concluir todos os exercícios registra check-in e histórico', async ({ pa
 test('finalização, detalhe e correção do histórico persistem sem duplicação', async ({ page }) => {
   await page.goto(baseUrl);
   await completeOnboarding(page);
+  // só o que foi feito entra no histórico: conclui o primeiro exercício antes de finalizar
+  await page.locator('#exercisesContainer button[title="Marcar como concluído"]').first().click();
   await page.locator('#btnGenerate').click();
   await expect(page.locator('#confirmFinishOverlay')).toBeVisible();
   await page.getByRole('button', { name: 'Finalizar Assim', exact: true }).click();
   await expect(page.locator('#confirmFinishOverlay')).toBeHidden();
   await expect(page.locator('#reportOutput')).toHaveValue(/RESUMO DO TREINO/);
+  // finalizar de novo no mesmo dia atualiza o registro, sem duplicar
   await page.locator('#btnGenerate').click();
+  await page.getByRole('button', { name: 'Finalizar Assim', exact: true }).click();
   await expect(page.locator('#confirmFinishOverlay')).toBeHidden();
+  // o exercício concluído fica retraído; reabre para chegar à evolução dele
+  await page.locator('#exercisesContainer button[title="Expandir"]').first().click();
   await page.locator('#exercisesContainer button[onclick^="openExerciseProgress"]').first().click();
   await expect(page.locator('#exerciseProgressOverlay')).toBeVisible();
   await expect(page.locator('#progressBody')).toContainText('Última sessão');

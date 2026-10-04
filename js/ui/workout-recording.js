@@ -24,6 +24,12 @@ window.TREINO_WORKOUT_RECORDING = {
         // registra apenas o que foi de fato realizado: um exercicio deixado de lado nao deve
         // entrar no historico como se tivesse sido feito
         if (opts.apenasConcluidos && !state.done) return;
+        // so entra no historico o que foi feito: cardio precisa estar concluido, e na forca
+        // contam as series marcadas (concluir pelo botao redondo marca todas). Antes, finalizar
+        // gravava tudo o que estava na tela e a sugestao de carga lia series nunca realizadas.
+        const seriesMarcadas = state.type === 'cardio' ? []
+          : getSeries(state, ex).filter(sr => state.done || sr.done);
+        if (state.type === 'cardio' ? !state.done : seriesMarcadas.length === 0) return;
 
         try {
           const historyKey = getHistoryKey(ex.id, state.variantIndex || 0, state.customName);
@@ -36,7 +42,7 @@ window.TREINO_WORKOUT_RECORDING = {
             entry = { type: 'cardio', name: state.name, duration: state.duration, distance: state.distance, date: today };
             linhas += `> ${state.name}: ${state.duration}min${state.distance ? ` | ${state.distance}km` : ''}`;
           } else {
-            const seriesFeitas = getSeries(state, ex).map(sr => ({ reps: sr.reps, weight: sr.weight }));
+            const seriesFeitas = seriesMarcadas.map(sr => ({ reps: sr.reps, weight: sr.weight }));
             entry = { type: 'forca', name: state.name, series: seriesFeitas,
                       // sets/reps/weight seguem gravados: telas e versoes anteriores os leem
                       sets: seriesFeitas.length,

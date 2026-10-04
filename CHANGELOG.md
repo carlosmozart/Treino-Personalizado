@@ -6,6 +6,11 @@ Todas as mudanças relevantes do app ficam registradas aqui. Ao lançar uma nova
    atualizar o app instalado
 3. Adicione uma entrada aqui, nesse formato
 
+## [2.21.1] - 2026-10-04
+
+- Corrige a finalização do treino: antes ela gravava todas as séries exibidas como feitas, inclusive as nunca marcadas, e marcava todos os exercícios como concluídos — inflando volume, calorias e recordes e sugerindo subir carga em exercícios não realizados. Agora entram no histórico só as séries marcadas (concluir pelo botão redondo marca todas), exercício sem série feita fica de fora e cardio entra só se for marcado como feito. Registros antigos não são alterados.
+- O aviso de treino incompleto informa que só as séries marcadas entram no histórico.
+
 ## [2.21.0] - 2026-10-04
 
 - Atualização do APK pelo próprio app: consulta diária (ou pelo botão "Procurar atualização" no rodapé) da release mais recente no GitHub, download nativo restrito às releases do repositório, SHA-256 obrigatório e instalador do Android. É a única chamada de rede do app e só existe no APK.

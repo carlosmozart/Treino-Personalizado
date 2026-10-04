@@ -5,6 +5,12 @@ window.TREINO_STATIC = {
   metCardioPadrao: 6.0,
   releaseNotes: [
       {
+        version: '2.21.1', date: '2026-10-04',
+        highlights: [
+          '✅ <strong>Histórico fiel ao que você fez.</strong> Ao finalizar, só as séries marcadas entram no histórico; exercícios não feitos ficam de fora e não geram sugestão de subir carga.'
+        ]
+      },
+      {
         version: '2.21.0', date: '2026-10-04',
         highlights: [
           '⬆️ <strong>Atualização pelo próprio app.</strong> No Android, o app avisa quando há versão nova, baixa do GitHub, confere a integridade do arquivo e abre o instalador. Seus dados continuam no aparelho.'
