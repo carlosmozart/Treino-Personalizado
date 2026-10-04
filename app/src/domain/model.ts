@@ -128,6 +128,8 @@ export interface Settings {
   restBackgroundHintShown: boolean;
   /** Tela ligada durante o treino (M2). Ausente em dados antigos = ligado. */
   keepScreenOn?: boolean;
+  /** Ilustrações dos exercícios no treino (Q2). Ausente = ligado. */
+  showIllustrations?: boolean;
 }
 
 export const DEFAULT_SETTINGS: Settings = {

@@ -237,9 +237,9 @@ Q. Ilustrações dos exercícios (decisão de 04/10/2026)
 Fonte escolhida: Everkinetic (github.com/everkinetic/data), CC-BY-SA 4.0 — 293 exercícios, cada um com posição inicial e final em SVG de traço. Exige crédito e que as imagens modificadas (ex.: traço recolorido) sigam CC-BY-SA; o código do app não é afetado.
 Descartadas: imagens do openGym/ExerciseDB (autoria em disputa; o próprio openGym não as distribui) e free-exercise-db (origem das imagens desconhecida, com indícios de serem do ExRx.net — github.com/yuhonas/free-exercise-db/issues/13).
 #	Etapa	Prioridade
-Q1	Script de importação: tabela de correspondência nome da nossa biblioteca (77 exercícios) → id Everkinetic, conferida exercício a exercício; copia só os SVGs usados, troca o traço preto por currentColor e otimiza; tudo empacotado no app (offline, sem rede)	Alta
-Q2	Exibir no cartão do exercício, na troca de exercício e na biblioteca; animação alternando posição inicial/final, com opção de tamanho ou ocultar e respeitando "reduzir movimento"	Alta
-Q3	Tela de créditos com a atribuição exigida e arquivo de licença ao lado das imagens	Alta
+Q1	✅ (04/10/2026: 56 ilustrações para 70 nomes da biblioteca e do plano de exemplo, conferidas numa folha de contato; app/scripts/import-illustrations.ts; ~8 KB cada, carregadas sob demanda e guardadas para uso offline) Script de importação: tabela de correspondência nome da nossa biblioteca (77 exercícios) → id Everkinetic, conferida exercício a exercício; copia só os SVGs usados, troca o traço preto por currentColor e otimiza; tudo empacotado no app (offline, sem rede)	Alta
+Q2	🟡 (cartão do treino feito: miniatura animada, parada com 'reduzir movimento', tocar abre início/fim; esconder pelo menu ⋯. Falta: na troca de exercício, na biblioteca e opção de tamanho) Exibir no cartão do exercício, na troca de exercício e na biblioteca; animação alternando posição inicial/final, com opção de tamanho ou ocultar e respeitando "reduzir movimento"	Alta
+Q3	🟡 (crédito ao abrir a ilustração, LICENSE.txt junto das imagens e docs/creditos.md; falta a tela Sobre/Créditos nas configurações) Tela de créditos com a atribuição exigida e arquivo de licença ao lado das imagens	Alta
 Q4	Lacunas (aparelhos de cardio, prancha frontal): ícones próprios; e foto/vídeo do próprio usuário para qualquer exercício (exercícios personalizados)	Média
 Q5	Exercícios criados pela IA ou pelo usuário recebem ilustração pela correspondência de nome, quando houver	Média
 Entra na reescrita junto com a tela de treino nova (P5).

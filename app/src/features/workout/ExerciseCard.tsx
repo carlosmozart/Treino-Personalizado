@@ -8,6 +8,8 @@ import { bestSet, lastSessionBefore, sessionsOf, workSets } from '../../domain/w
 import { useAppStore } from '../../store';
 import { Icon } from '../../ui/Icon';
 import { NumberField } from '../../ui/NumberField';
+import { ExerciseIllustration, hasIllustration } from '../../ui/ExerciseIllustration';
+import { updateSettings } from '../../domain/actions';
 import { Sheet, SheetAction } from '../../ui/Sheet';
 import { formatNumber, shortDate } from '../../ui/format';
 import { useRestStore } from './rest-store';
@@ -39,6 +41,8 @@ export function ExerciseCard({ session, index }: Props) {
   const ex = session.exercises[index]!;
   const update = useAppStore(s => s.updateSession);
   const data = useAppStore(s => s.data);
+  const run = useAppStore(s => s.run);
+  const showIllustrations = data?.settings.showIllustrations ?? true;
   const [menu, setMenu] = useState(false);
   const [swapOpen, setSwapOpen] = useState(false);
   const [noteOpen, setNoteOpen] = useState(ex.note !== '');
@@ -66,18 +70,23 @@ export function ExerciseCard({ session, index }: Props) {
             <span className="mr-2 text-faint">{index + 1}</span>{ex.name}
           </h3>
           {ex.swappedFrom && <p className="text-sm text-muted">no lugar de {ex.swappedFrom}</p>}
-          <div className="mt-1 flex flex-wrap gap-1.5 text-xs font-semibold">
-            {group && <span className="rounded-full bg-surface-2 px-2 py-0.5 text-muted">{group}</span>}
-            {ex.optional && <span className="rounded-full bg-surface-2 px-2 py-0.5 text-muted">Opcional</span>}
-            {best && <span className="rounded-full bg-surface-2 px-2 py-0.5 text-muted">Melhor: {formatNumber(best.weight)} kg × {best.reps}</span>}
-          </div>
-          {last && <p className="mt-1.5 text-sm text-muted">Última vez ({last})</p>}
         </div>
         <button type="button" onClick={() => setMenu(true)} aria-label={`Opções de ${ex.name}`}
           className="-mr-2 -mt-1 flex size-11 shrink-0 items-center justify-center rounded-full text-muted active:bg-surface-2">
           <Icon name="opcoes" className="size-7" />
         </button>
       </header>
+      <div className="mt-2 flex gap-3">
+        {showIllustrations && <ExerciseIllustration name={ex.name} />}
+        <div className="min-w-0 flex-1">
+          <div className="flex flex-wrap gap-1.5 text-xs font-semibold">
+            {group && <span className="rounded-full bg-surface-2 px-2 py-0.5 text-muted">{group}</span>}
+            {ex.optional && <span className="rounded-full bg-surface-2 px-2 py-0.5 text-muted">Opcional</span>}
+            {best && <span className="rounded-full bg-surface-2 px-2 py-0.5 text-muted">Melhor: {formatNumber(best.weight)} kg × {best.reps}</span>}
+          </div>
+          {last && <p className="mt-1.5 text-sm text-muted">Última vez ({last})</p>}
+        </div>
+      </div>
 
       {ex.mode === 'cardio' && ex.cardio ? (
         <div className="mt-3 grid grid-cols-[1fr_1fr_auto] items-end gap-2">
@@ -133,6 +142,11 @@ export function ExerciseCard({ session, index }: Props) {
           <SheetAction onClick={() => { close(); setSwapOpen(true); }}><Icon name="trocar" />Trocar exercício</SheetAction>
         )}
         <SheetAction onClick={() => { setNoteOpen(o => !o); close(); }}><Icon name="nota" />{noteOpen ? 'Esconder observação' : 'Observação'}</SheetAction>
+        {hasIllustration(ex.name) && (
+          <SheetAction onClick={() => { run(d => updateSettings(d, { showIllustrations: !showIllustrations })); close(); }}>
+            <Icon name="treino" />{showIllustrations ? 'Esconder ilustrações' : 'Mostrar ilustrações'}
+          </SheetAction>
+        )}
         {ex.tip && <SheetAction onClick={() => { setTipOpen(o => !o); close(); }}><Icon name="dica" />{tipOpen ? 'Esconder dica' : 'Ver dica'}</SheetAction>}
       </Sheet>
 

@@ -1,0 +1,11 @@
+Ilustrações de exercícios: Everkinetic (https://github.com/everkinetic/data),
+projeto de dados abertos baseado em everkinetic.com, criado por Greg Priday.
+Licença: Creative Commons Attribution-ShareAlike 4.0 International (CC BY-SA 4.0),
+https://creativecommons.org/licenses/by-sa/4.0/
+
+Modificações feitas pelo Treino Personalizado: remoção do fundo branco, cor do traço
+trocada por currentColor e coordenadas arredondadas a uma casa decimal. Estas versões
+modificadas são distribuídas sob a mesma licença CC BY-SA 4.0.
+
+Arquivos: <id>-a.svg (posição inicial) e <id>-b.svg (posição final).
+Ids usados: 0004, 0018, 0021, 0025, 0026, 0029, 0030, 0033, 0042, 0043, 0048, 0049, 0054, 0055, 0056, 0061, 0066, 0077, 0079, 0085, 0087, 0092, 0096, 0099, 0103, 0112, 0115, 0117, 0118, 0119, 0122, 0123, 0124, 0127, 0142, 0156, 0157, 0162, 0183, 0198, 0204, 0205, 0206, 0211, 0212, 0220, 0223, 0227, 0236, 0239, 0273, 0279, 0282, 0286, 0287, 0288

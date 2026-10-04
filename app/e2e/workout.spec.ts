@@ -43,3 +43,22 @@ test('treino completo: plano de exemplo, marcar séries, descanso, sobreviver ao
   await expect(page.getByRole('status')).toHaveText('1 treino no histórico.');
   expect(errors).toEqual([]);
 });
+
+test('ilustração do exercício aparece, abre as duas posições com crédito e pode ser escondida', async ({ page }) => {
+  await page.goto('/');
+  await page.getByRole('button', { name: 'Treino', exact: true }).click();
+  await page.getByRole('button', { name: 'Usar plano de exemplo' }).click();
+  await page.getByRole('button', { name: /^Começar Segunda/ }).click();
+  const card = page.getByRole('article', { name: 'Supino Declinado (Máquina)' });
+  const thumb = card.getByRole('button', { name: 'Ver ilustração de Supino Declinado (Máquina)' });
+  await expect(thumb.locator('svg')).toBeVisible();
+  await page.screenshot({ path: 'test-results/treino-ilustracao.png' });
+  await thumb.click();
+  await expect(page.getByText(/Everkinetic.*CC BY-SA 4\.0/)).toBeVisible();
+  await expect(page.getByRole('dialog').locator('svg')).toHaveCount(3); // 2 posições + ícone de fechar
+  await page.screenshot({ path: 'test-results/treino-ilustracao-aberta.png' });
+  await page.getByRole('button', { name: 'Fechar' }).click();
+  await card.getByRole('button', { name: /^Opções de / }).click();
+  await page.getByRole('button', { name: 'Esconder ilustrações' }).click();
+  await expect(thumb).toHaveCount(0);
+});
