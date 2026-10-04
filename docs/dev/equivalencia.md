@@ -68,8 +68,8 @@ Legenda: ✅ feito no app novo · 🟡 parcial · ❌ falta · ➖ não será po
 | Exercício opcional no editor | ✅ | |
 | Limite de 10 exercícios por dia | ✅ | |
 | Dias por semana calculados | ✅ | O3 |
-| Montar treino com IA: gerar prompt | ❌ | |
-| Montar treino com IA: colar resposta, conferir e criar plano | ❌ | o leitor (domínio) já está portado e testado |
+| Montar treino com IA: gerar prompt | ✅ | Plano → Planos (ou sem plano) |
+| Montar treino com IA: colar resposta, conferir e criar plano | ✅ | |
 
 ## Progresso e histórico
 
@@ -80,7 +80,7 @@ Legenda: ✅ feito no app novo · 🟡 parcial · ❌ falta · ➖ não será po
 | Corrigir um registro do histórico (editar séries) | ❌ | |
 | Apagar um exercício isolado do histórico | ❌ | |
 | Evolução por exercício (gráfico de carga e lista) | ❌ | |
-| Volume semanal (esta semana × passada) | ❌ | |
+| Volume semanal (esta semana × passada) | ✅ | 8 semanas em barras |
 | Calendário de treinos | ✅ | mapa de calor de 6 meses + histórico por mês |
 | Contador de dias treinados no mês | ✅ | |
 | Gráficos com pontos consultáveis e seletor de faixa | 🟡 | gráfico de peso simples, sem toque nem faixa (M42) |
@@ -131,7 +131,7 @@ Faltam (❌) para a troca, por prioridade:
 
 1. ~~Atualização do APK pelo app~~ e ~~notificações~~: feitos em 04/10/2026 (falta validar a atualização com uma release real).
 2. ~~Plano: duplicar, criar em branco, reservas e opcional no editor~~: feito em 04/10/2026.
-3. **Montar treino com IA** (prompt + importar).
-4. **Histórico**: editar registro, apagar exercício isolado, evolução por exercício, volume semanal, lista de pesagens.
+3. ~~Montar treino com IA~~: feito em 04/10/2026.
+4. **Histórico**: editar registro, apagar exercício isolado, evolução por exercício, lista de pesagens (volume semanal feito).
 5. **Treino**: botões de ajuste de carga (O20), troca pela biblioteca, valor suspeito.
 6. **Cadastro inicial** para quem instala do zero, **novidades da versão**, backup com senha, lembrete de backup no navegador, aviso de falta de espaço.

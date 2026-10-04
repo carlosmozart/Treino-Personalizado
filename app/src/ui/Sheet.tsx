@@ -38,7 +38,7 @@ export function Sheet({ title, open, onClose, children }: Props) {
             <Icon name="fechar" />
           </button>
         </div>
-        <div className="mt-2">{children}</div>
+        <div className="mt-2 max-h-[80dvh] overflow-y-auto overscroll-contain">{children}</div>
       </div>
     </dialog>
   );

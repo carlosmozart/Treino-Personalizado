@@ -12,6 +12,7 @@ import { EXERCISE_LIBRARY } from '../../data/exercise-library';
 import { seedPlan } from '../../data/seed-plan';
 import { useAppStore } from '../../store';
 import { Icon } from '../../ui/Icon';
+import { AiPlanSheet } from './AiPlanSheet';
 import { NumberField } from '../../ui/NumberField';
 import { Sheet, SheetAction } from '../../ui/Sheet';
 import { dayTitle, formatNumber, plural } from '../../ui/format';
@@ -23,6 +24,7 @@ export function PlanScreen() {
   const data = useAppStore(s => s.data);
   const run = useAppStore(s => s.run);
   const [plansOpen, setPlansOpen] = useState(false);
+  const [aiOpen, setAiOpen] = useState(false);
   const plan = data?.activePlanId ? data.plans[data.activePlanId] : undefined;
   const useSeed = () => run((d, now) => addPlan(d, seedPlan(toDateKey(now), newId('plano')), now));
 
@@ -37,7 +39,12 @@ export function PlanScreen() {
           <button type="button" onClick={useSeed} className="mt-4 h-12 w-full rounded-xl bg-primary text-base font-bold text-white">
             Usar plano de exemplo
           </button>
+          <button type="button" onClick={() => setAiOpen(true)} className="mt-2 h-12 w-full rounded-xl bg-surface-2 text-base font-bold">
+            Montar treino com IA
+          </button>
         </section>
+        {/* mesma chave nos dois retornos: o painel continua aberto quando o plano criado vira o ativo */}
+        <AiPlanSheet key="ai" open={aiOpen} onClose={() => setAiOpen(false)} />
       </>
     );
   }
@@ -93,6 +100,9 @@ export function PlanScreen() {
             </button>
           </div>
         ))}
+        <SheetAction onClick={() => { setPlansOpen(false); setAiOpen(true); }}>
+          <Icon name="dica" /> Montar treino com IA
+        </SheetAction>
         <SheetAction onClick={() => { run((d, now) => addPlan(d, duplicatePlan(plan, newId('plano'), toDateKey(now)), now)); setPlansOpen(false); }}>
           <Icon name="mais" /> Duplicar este plano
         </SheetAction>
@@ -103,6 +113,7 @@ export function PlanScreen() {
           <Icon name="mais" /> Novo plano a partir do exemplo
         </SheetAction>
       </Sheet>
+      <AiPlanSheet key="ai" open={aiOpen} onClose={() => setAiOpen(false)} />
     </>
   );
 }

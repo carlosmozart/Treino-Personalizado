@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { deleteWorkout } from '../../domain/actions';
 import { fromDateKey } from '../../domain/dates';
 import type { Workout } from '../../domain/model';
-import { heatmap, historyByMonth, muscleBalance, statsSummary, type HeatLevel } from '../../domain/stats';
+import { heatmap, historyByMonth, muscleBalance, statsSummary, weeklyVolume, type HeatLevel } from '../../domain/stats';
 import { describeEntry, workoutVolume } from '../../domain/workouts';
 import { useAppStore } from '../../store';
 import { useNow } from '../../hooks/use-now';
@@ -58,6 +58,7 @@ function Stats() {
         <h2 className="font-bold">Últimos 6 meses</h2>
         <Heatmap />
       </section>
+      <WeeklyVolume />
       <section className="rounded-2xl border border-line bg-surface p-4">
         <h2 className="font-bold">Séries por grupo (30 dias)</h2>
         {balance.length === 0 ? <p className="mt-2 text-sm text-muted">Sem séries registradas no período.</p> : (
@@ -165,5 +166,36 @@ function WorkoutItem({ w, open, onToggle, onDelete }: { w: Workout; open: boolea
         </div>
       )}
     </li>
+  );
+}
+
+function WeeklyVolume() {
+  const data = useAppStore(s => s.data);
+  const now = new Date(useNow(60_000));
+  if (!data) return null;
+  const weeks = weeklyVolume(data, now, 8);
+  const current = weeks.at(-1)!;
+  const previous = weeks.at(-2)!;
+  const max = Math.max(1, ...weeks.map(w => w.volume));
+  const change = previous.volume ? Math.round(((current.volume - previous.volume) / previous.volume) * 100) : null;
+  const kg = (n: number) => `${n.toLocaleString('pt-BR')} kg`;
+  return (
+    <section className="rounded-2xl border border-line bg-surface p-4">
+      <h2 className="font-bold">Volume semanal</h2>
+      <p className="mt-1 text-sm text-muted">
+        Esta semana: <strong className="text-ink">{kg(current.volume)}</strong> · semana passada: {kg(previous.volume)}
+        {change !== null && <span className={change >= 0 ? 'text-success' : 'text-warning'}> ({change > 0 ? '+' : ''}{change}%)</span>}
+      </p>
+      <div className="mt-3 flex h-24 items-end gap-1.5" role="img"
+        aria-label={`Volume das últimas 8 semanas: ${weeks.map(w => kg(w.volume)).join(', ')}`}>
+        {weeks.map(w => (
+          <div key={w.start} className="flex flex-1 flex-col items-center gap-1">
+            <span className={`w-full rounded-t ${w === current ? 'bg-primary' : 'bg-primary/40'}`} style={{ height: `${Math.max(2, (w.volume / max) * 80)}px` }} />
+            <span className="text-[10px] text-faint">{w.start.slice(8, 10)}/{w.start.slice(5, 7)}</span>
+          </div>
+        ))}
+      </div>
+      <p className="mt-1 text-xs text-faint">Semanas de segunda a domingo; semana sem treino aparece como zero.</p>
+    </section>
   );
 }
