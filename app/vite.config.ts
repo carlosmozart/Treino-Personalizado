@@ -42,6 +42,8 @@ export default defineConfig({
     })
   ],
   build: { target: 'es2022', sourcemap: true },
+  // Só nos testes: lê módulos do app antigo (js/core) para conferir compatibilidade de formatos.
+  ...(process.env.VITEST ? { server: { fs: { allow: ['.', '../js/core'] } } } : {}),
   test: {
     environment: 'jsdom',
     include: ['src/**/*.test.{ts,tsx}'],
