@@ -3,6 +3,7 @@ import { useNow } from '../../hooks/use-now';
 import { useAppStore } from '../../store';
 import { formatClock } from '../../ui/format';
 import { restAlert, useRestStore } from './rest-store';
+import { restAlarm } from './rest-alarm-instance';
 
 /** Descanso em uma linha acima da barra inferior (O18): não toma 1/4 da tela. */
 export function RestBar() {
@@ -16,7 +17,9 @@ export function RestBar() {
   useEffect(() => {
     if (endsAt === null || remaining > 0) return;
     const settings = useAppStore.getState().data?.settings;
-    restAlert({ sound: settings?.restSound ?? true, vibrate: settings?.restVibrate ?? true });
+    // com o alarme do Android agendado na hora certa, ele já toca: a página só vibra
+    const native = restAlarm.handledNatively(endsAt);
+    restAlert({ sound: !native && (settings?.restSound ?? true), vibrate: settings?.restVibrate ?? true });
     stop();
   }, [endsAt, remaining, stop]);
 

@@ -4,6 +4,7 @@ import { toDateKey } from '../../domain/dates';
 import { progressCard, todayCard, waterCard, weekStrip, weightCard, type WeightCard as WeightData } from '../../domain/home';
 import { useAppStore } from '../../store';
 import { useUiStore } from '../../store/ui-store';
+import { askRestAlarmPermission } from '../workout/rest-alarm-instance';
 import { NumberField } from '../../ui/NumberField';
 import { Sheet } from '../../ui/Sheet';
 import { formatNumber, plural, shortDate } from '../../ui/format';
@@ -104,7 +105,7 @@ function TodayCard({ card }: { card: ReturnType<typeof todayCard> }) {
         <p className="mt-3 font-semibold text-success">Treino de hoje feito.</p>
       ) : (
         <>
-          <button type="button" onClick={() => { if (data.activePlanId && start(data.activePlanId, card.dayKey)) setTab('treino'); }}
+          <button type="button" onClick={() => { askRestAlarmPermission(); if (data.activePlanId && start(data.activePlanId, card.dayKey)) setTab('treino'); }}
             className="mt-4 h-12 w-full rounded-xl bg-primary text-base font-bold text-white">
             Começar treino
           </button>

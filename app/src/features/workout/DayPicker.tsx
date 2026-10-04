@@ -5,6 +5,7 @@ import { dayKeyOf, type Plan } from '../../domain/model';
 import { seedPlan } from '../../data/seed-plan';
 import { newId } from '../../domain/ids';
 import { useAppStore } from '../../store';
+import { askRestAlarmPermission } from './rest-alarm-instance';
 import { dayTitle, plural } from '../../ui/format';
 
 /** Escolha do treino: hoje em destaque e os demais dias logo abaixo. */
@@ -32,7 +33,7 @@ export function DayPicker() {
   return (
     <div className="mt-6 space-y-3">
       <p className="text-sm text-muted">{plan.name}</p>
-      {order.map(key => <DayCard key={key} plan={plan} dayKey={key} today={key === today} onStart={() => start(plan.id, key)} />)}
+      {order.map(key => <DayCard key={key} plan={plan} dayKey={key} today={key === today} onStart={() => { askRestAlarmPermission(); start(plan.id, key); }} />)}
     </div>
   );
 }

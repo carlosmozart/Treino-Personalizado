@@ -39,4 +39,6 @@
     <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
     <!-- Atualização pelo próprio app: abre o instalador do Android com o APK verificado. -->
     <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
+    <!-- navigator.vibrate no WebView (fim do descanso com o app aberto); permissão comum, sem pedido. -->
+    <uses-permission android:name="android.permission.VIBRATE" />
 </manifest>

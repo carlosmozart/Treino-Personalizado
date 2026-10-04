@@ -10,6 +10,7 @@ import { useAppStore } from '../../store';
 import { NumberField } from '../../ui/NumberField';
 import { plural } from '../../ui/format';
 import { Card, INPUT } from './ProfileScreen';
+import { AlarmSettings } from './AlarmSettings';
 
 /** Configurações agrupadas (O19): treino, dados e backup, conta, sobre. */
 export function SettingsSection() {
@@ -29,6 +30,7 @@ export function SettingsSection() {
         {toggle('restAutoStart', 'Iniciar o descanso ao marcar a série')}
         {toggle('restSound', 'Som no fim do descanso')}
         {toggle('restVibrate', 'Vibrar no fim do descanso')}
+        <AlarmSettings />
         <Toggle label="Manter a tela ligada no treino" checked={settings.keepScreenOn ?? true} onChange={v => set({ keepScreenOn: v })} />
         <Toggle label="Mostrar ilustrações dos exercícios" checked={settings.showIllustrations ?? true} onChange={v => set({ showIllustrations: v })} />
       </Card>

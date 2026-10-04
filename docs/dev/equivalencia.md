@@ -41,7 +41,7 @@ Legenda: ✅ feito no app novo · 🟡 parcial · ❌ falta · ➖ não será po
 | Troca pela reserva do plano | ✅ | |
 | Troca avulsa por qualquer exercício da biblioteca | ❌ | O15 decidiu mostrar "Trocar" só com reserva; falta a troca pela biblioteca |
 | Cronômetro de descanso (tempo por exercício, auto-início, som, vibração) | ✅ 📱 | |
-| Notificação de fim do descanso com o app em segundo plano | ❌ | canais nativos existem; falta usar no app novo |
+| Notificação de fim do descanso com o app em segundo plano | ✅ 📱 | agendada no Android ao iniciar o descanso, pelo canal de alarme; vale também com o app aberto (o bipe da página não tocava no APK) |
 | Rascunho do treino em andamento (sobrevive a fechar) | ✅ | |
 | Duração do treino | ✅ | |
 | Finalizar incompleto com aviso (só séries marcadas) | ✅ | |
