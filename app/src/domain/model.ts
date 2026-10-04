@@ -180,3 +180,9 @@ export function emptyAppData(): AppData {
 export function trainingDaysPerWeek(plan: Plan): number {
   return Object.values(plan.days).filter(d => !d.optional && d.exercises.length > 0).length;
 }
+
+const WEEKDAY_TO_DAY_KEY: readonly DayKey[] = ['DOM', 'SEG', 'TER', 'QUA', 'QUI', 'SEX', 'SAB'];
+
+export function dayKeyOf(date: Date): DayKey {
+  return WEEKDAY_TO_DAY_KEY[date.getDay()]!;
+}

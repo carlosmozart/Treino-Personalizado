@@ -104,5 +104,24 @@ Ler do aparelho e ler de um arquivo de backup antigo passam pelo **mesmo** conve
   (`__proto__`) → ignorados sem quebrar;
 - backup v1 exportado pelo app atual → mesmo resultado que ler do aparelho.
 
-Pendente para validação real (P3, TODO): rodar a migração sobre um backup exportado pelos
-usuários atuais, localmente, e comparar contagens com o que o app antigo mostra.
+Validação real (P3): o backup de um usuário (2.19.1) converteu 11 treinos e 49 exercícios sem
+descartes. Falta rodar sobre os backups dos outros dois usuários, localmente, antes da troca.
+
+## Estado e ações (P4)
+
+- **Ações puras** (`domain/actions.ts`): `(dados, argumentos, agora) → { data, events }`. Cada
+  uma trabalha numa cópia; quando nada muda, devolve o mesmo objeto (a store não grava à toa).
+- **Recompensas** (`domain/rewards.ts`): XP de check-in (cheio com todos os obrigatórios
+  concluídos, meio caso contrário, upgrade só pela diferença), nível, bônus de sequência por
+  ciclo do plano, refeição livre a 80% da semana, meta de água e aniversário. Viram **eventos**;
+  quem mostra é a interface. Conquistas entram com a tela de progresso (P5).
+- **Treino em andamento** (`domain/session.ts`): `ActiveSession` com séries marcáveis. Carga
+  inicial = última série da última sessão do exercício (pelo nome), ou a do plano. Trocar pela
+  reserva refaz as séries com o histórico dela. Ao finalizar, só as séries marcadas viram
+  `Workout` (O1); nada marcado → nada é gravado. Duração acima de 5 h é descartada.
+- **Store** (`store/app-store.ts`, Zustand): `init` (carrega ou migra), `run(ação)`,
+  `startWorkout`/`updateSession`/`finishWorkout`/`discardWorkout`, `takeEvents`, `flush`.
+- **Gravação** (`storage/persister.ts`): adiada (~250 ms), em fila, a última versão vence; o
+  treino em andamento fica numa chave própria (`session`) por ser gravado a cada toque. Ao ir
+  para segundo plano (`visibilitychange`/`pagehide`) tudo é gravado na hora. Falha de gravação
+  aparece em `saveError` para a interface avisar.

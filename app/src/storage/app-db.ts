@@ -1,11 +1,14 @@
 // Banco do app novo: o documento AppData e a cópia bruta dos dados antigos.
 import { SCHEMA_VERSION, type AppData } from '../domain/model';
-import { idbGet, idbPut, openDb } from './idb';
+import type { ActiveSession } from '../domain/session';
+import { idbDelete, idbGet, idbPut, openDb } from './idb';
 
 export const APP_DB = 'treino-app';
 const STORE = 'data';
 const DATA_KEY = 'app';
 const LEGACY_SNAPSHOT_KEY = 'legacy-snapshot';
+/** Treino em andamento: fica à parte porque é gravado a cada toque. */
+const SESSION_KEY = 'session';
 
 export interface LegacySnapshot {
   takenAt: string;
@@ -33,4 +36,12 @@ export function loadLegacySnapshot(db: IDBDatabase): Promise<LegacySnapshot | un
 
 export function saveLegacySnapshot(db: IDBDatabase, snapshot: LegacySnapshot): Promise<void> {
   return idbPut(db, STORE, LEGACY_SNAPSHOT_KEY, snapshot);
+}
+
+export function loadSession(db: IDBDatabase): Promise<ActiveSession | undefined> {
+  return idbGet<ActiveSession>(db, STORE, SESSION_KEY);
+}
+
+export function saveSession(db: IDBDatabase, session: ActiveSession | null): Promise<void> {
+  return session ? idbPut(db, STORE, SESSION_KEY, session) : idbDelete(db, STORE, SESSION_KEY);
 }

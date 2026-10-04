@@ -35,3 +35,13 @@ export async function dbExists(name: string, factory: IDBFactory = indexedDB): P
   }
   return true; // sem como listar: quem chama trata o banco vazio
 }
+
+export function idbDelete(db: IDBDatabase, store: string, key: IDBValidKey): Promise<void> {
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(store, 'readwrite');
+    tx.objectStore(store).delete(key);
+    tx.oncomplete = () => resolve();
+    tx.onerror = () => reject(tx.error);
+    tx.onabort = () => reject(tx.error);
+  });
+}

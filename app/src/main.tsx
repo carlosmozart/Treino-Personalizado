@@ -2,7 +2,11 @@ import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { App } from './App';
 import { isNative } from './platform/platform';
+import { flushOnHide, useAppStore } from './store';
 import './index.css';
+
+void useAppStore.getState().init();
+flushOnHide();
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>

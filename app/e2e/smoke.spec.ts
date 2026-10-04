@@ -12,6 +12,8 @@ test('abre sem erros, navega pelas abas e não acessa nada fora do app', async (
 
   await page.goto('/');
   await expect(page.getByRole('heading', { level: 1 })).toHaveText('Início');
+  // banco novo criado na primeira abertura, sem dados do app antigo
+  await expect(page.getByRole('status')).toHaveText('0 treinos no histórico.');
   for (const aba of ['Plano', 'Treino', 'Progresso', 'Perfil', 'Início']) {
     await page.getByRole('button', { name: aba, exact: true }).click();
     await expect(page.getByRole('heading', { level: 1 })).toHaveText(aba);
