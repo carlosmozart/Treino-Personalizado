@@ -31,15 +31,15 @@ Legenda: ✅ feito no app novo · 🟡 parcial · ❌ falta · ➖ não será po
 | Treino do dia carregado automaticamente | ✅ | escolha do dia com hoje em destaque |
 | Séries com carga e reps, marcar feita | ✅ | |
 | Pré-preenchimento pela última sessão | ✅ | |
-| Botões ±0,5 / ±5 / ±10 kg | ❌ | hoje só digitação; O20 prevê botões −/+ opcionais |
-| Proteção contra carga digitada errada (valor suspeito) | ❌ | |
+| Botões ±0,5 / ±5 / ±10 kg | ✅ | −5, −0,5, +0,5, +5, +10 nas séries não feitas; desligável (O20) |
+| Proteção contra carga digitada errada (valor suspeito) | ✅ | confere ao marcar a série, com sugestão ÷10 |
 | Adicionar/remover série, marcar todas | ✅ | |
 | Cardio com minutos e km | ✅ | |
 | Exercício de tempo (prancha) | ✅ | |
 | Exercício opcional | ✅ | |
 | Dicas do exercício e observação | ✅ | |
 | Troca pela reserva do plano | ✅ | |
-| Troca avulsa por qualquer exercício da biblioteca | ❌ | O15 decidiu mostrar "Trocar" só com reserva; falta a troca pela biblioteca |
+| Troca avulsa por qualquer exercício da biblioteca | ✅ | reservas primeiro, depois busca na biblioteca ou nome livre |
 | Cronômetro de descanso (tempo por exercício, auto-início, som, vibração) | ✅ 📱 | |
 | Notificação de fim do descanso com o app em segundo plano | ✅ 📱 | agendada no Android ao iniciar o descanso, pelo canal de alarme; vale também com o app aberto (o bipe da página não tocava no APK) |
 | Rascunho do treino em andamento (sobrevive a fechar) | ✅ | |
@@ -108,7 +108,7 @@ Legenda: ✅ feito no app novo · 🟡 parcial · ❌ falta · ➖ não será po
 | Bônus da meta de água | ✅ | |
 | 28 conquistas | ✅ | mesmos ids |
 | Filtro de conquistas (todas/desbloqueadas/bloqueadas) | 🟡 | desbloqueadas aparecem primeiro; sem filtro |
-| Os Pesos de Rock Lee (+10 kg de uma vez pelo botão) | 🟡 | a conquista existe, mas sem botões de ajuste ninguém a desbloqueia no app novo |
+| Os Pesos de Rock Lee (+10 kg de uma vez pelo botão) | ✅ | |
 
 ## App e Android
 
@@ -133,5 +133,5 @@ Faltam (❌) para a troca, por prioridade:
 2. ~~Plano: duplicar, criar em branco, reservas e opcional no editor~~: feito em 04/10/2026.
 3. ~~Montar treino com IA~~: feito em 04/10/2026.
 4. ~~Histórico~~: feito em 04/10/2026.
-5. **Treino**: botões de ajuste de carga (O20), troca pela biblioteca, valor suspeito.
+5. ~~Treino~~: feito em 04/10/2026.
 6. **Cadastro inicial** para quem instala do zero, **novidades da versão**, backup com senha, lembrete de backup no navegador, aviso de falta de espaço.

@@ -145,3 +145,21 @@ export function exerciseProgress(workouts: readonly Workout[], key: string): Pro
     return { date: workout.date, workoutId: workout.id, value, label: describeEntry(entry), volume: Math.round(entryVolume(entry)) };
   });
 }
+
+/**
+ * Carga provavelmente digitada errada (um dígito a mais): bem acima do melhor registro, ou
+ * absurda sem histórico. Devolve o melhor registro e, quando faz sentido, a carga ÷ 10.
+ * Progressão ousada (40 → 85 kg) passa; 600 no lugar de 60 não.
+ */
+export function suspiciousWeight(workouts: readonly Workout[], key: string, weight: number): { max: number; suggestion: number | null } | null {
+  if (!(weight > 0)) return null;
+  let max = 0;
+  for (const { entry } of sessionsOf(workouts, key)) for (const s of workSets(entry)) if (s.weight > max) max = s.weight;
+  const divided = weight >= 100 ? Math.round(weight * 10) / 100 : null;
+  if (max > 0) {
+    if (weight <= max * 2.5) return null;
+    const plausible = divided !== null && divided <= max * 2.5 && divided > max * 0.3;
+    return { max, suggestion: plausible ? divided : null };
+  }
+  return weight > 500 ? { max: 0, suggestion: divided } : null;
+}

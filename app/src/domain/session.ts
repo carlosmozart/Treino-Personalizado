@@ -6,6 +6,7 @@ import { toDateKey } from './dates';
 import { normalizeExerciseName } from './text';
 import type { AppData, ExerciseMode, PlanExercise, SetKind, Workout, WorkoutEntry } from './model';
 import { lastSessionBefore, workSets } from './workouts';
+import { isCardioName } from '../data/exercise-library';
 
 export interface SessionSet {
   reps: number;
@@ -156,20 +157,34 @@ export function setNote(s: ActiveSession, exIndex: number, note: string): Active
  * Troca pelo exercício reserva (ou volta ao original). As séries são refeitas com o histórico
  * do novo exercício, já que a carga de um não serve para o outro.
  */
+/** Soma `delta` kg à carga das séries ainda não feitas (botões de ajuste, O20). */
+export function adjustWeights(s: ActiveSession, exIndex: number, delta: number): ActiveSession {
+  return mapExercise(s, exIndex, ex => {
+    if (!ex.sets.some(set => !set.done)) return ex;
+    return { ...ex, sets: ex.sets.map(set => (set.done ? set : { ...set, weight: Math.round(Math.max(0, set.weight + delta) * 10) / 10 })) };
+  });
+}
+
+/**
+ * Troca o exercício neste treino: pela reserva do plano, de volta ao original ou por qualquer
+ * nome (biblioteca ou digitado). O plano não muda.
+ */
 export function swapExercise(s: ActiveSession, data: AppData, exIndex: number, name: string): ActiveSession {
   return mapExercise(s, exIndex, ex => {
     const original = ex.swappedFrom ?? ex.name;
     const planEx = data.plans[s.planId]?.days[s.dayKey].exercises.find(p => p.id === ex.slotId);
     const backToOriginal = normalizeExerciseName(name) === normalizeExerciseName(original);
-    const option = backToOriginal ? null : ex.alternatives.find(a => normalizeExerciseName(a.name) === normalizeExerciseName(name));
-    if (!backToOriginal && !option) return ex;
+    if (!name.trim() || normalizeExerciseName(name) === normalizeExerciseName(ex.name)) return ex;
+    const option = backToOriginal ? null
+      : ex.alternatives.find(a => normalizeExerciseName(a.name) === normalizeExerciseName(name))
+        ?? { name: name.trim(), mode: isCardioName(name) ? 'cardio' as const : ex.mode === 'cardio' ? 'reps' as const : ex.mode };
     if (backToOriginal && planEx) {
       const restored = fromPlanExercise(data, planEx, s.date);
       return { ...restored, note: ex.note };
     }
     const mode = option?.mode ?? ex.mode;
     const swapped: SessionExercise = {
-      slotId: ex.slotId, name, key: normalizeExerciseName(name), mode, optional: ex.optional,
+      slotId: ex.slotId, name: name.trim(), key: normalizeExerciseName(name), mode, optional: ex.optional,
       sets: initialSets(data, name, mode, planEx && mode === planEx.mode ? { ...planEx, weight: 0 } : null, s.date),
       note: ex.note, alternatives: ex.alternatives, swappedFrom: original
     };

@@ -65,5 +65,7 @@ test('troca pela reserva usa o histórico dela e volta ao original', () => {
   const back = swapExercise(swapped, data, 0, 'Supino Reto');
   expect(back.exercises[0]).toMatchObject({ name: 'Supino Reto', key: 'supino reto' });
   expect(back.exercises[0]!.swappedFrom).toBeUndefined();
-  expect(swapExercise(s0, data, 0, 'Inventado')).toBe(s0);
+  // fora das reservas também vale (troca pela biblioteca); o mesmo nome não muda nada
+  expect(swapExercise(s0, data, 0, 'Inventado').exercises[0]!.name).toBe('Inventado');
+  expect(swapExercise(s0, data, 0, s0.exercises[0]!.name)).toBe(s0);
 });

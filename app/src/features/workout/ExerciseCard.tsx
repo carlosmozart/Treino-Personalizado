@@ -1,18 +1,21 @@
 import { useMemo, useState } from 'react';
-import { groupOf } from '../../data/exercise-library';
+import { EXERCISE_LIBRARY, groupOf } from '../../data/exercise-library';
 import {
-  addSet, completeExercise, isExerciseDone, removeSet, setNote, swapExercise, toggleSet, updateCardio, updateSet,
+  addSet, adjustWeights, completeExercise, isExerciseDone, removeSet, setNote, swapExercise, toggleSet, updateCardio, updateSet,
   type ActiveSession, type SessionExercise
 } from '../../domain/session';
-import { bestSet, lastSessionBefore, sessionsOf, workSets } from '../../domain/workouts';
+import { bestSet, lastSessionBefore, sessionsOf, suspiciousWeight, workSets } from '../../domain/workouts';
 import { useAppStore } from '../../store';
 import { Icon } from '../../ui/Icon';
 import { NumberField } from '../../ui/NumberField';
 import { ExerciseIllustration, hasIllustration } from '../../ui/ExerciseIllustration';
-import { updateSettings } from '../../domain/actions';
+import { markBigWeightJump, updateSettings } from '../../domain/actions';
 import { Sheet, SheetAction } from '../../ui/Sheet';
 import { formatNumber, shortDate } from '../../ui/format';
 import { useRestStore } from './rest-store';
+
+const ALL_NAMES = [...new Set(Object.values(EXERCISE_LIBRARY).flat())];
+const ADJUSTS = [-5, -0.5, 0.5, 5, 10] as const;
 
 interface Props {
   session: ActiveSession;
@@ -52,8 +55,15 @@ export function ExerciseCard({ session, index }: Props) {
   const done = isExerciseDone(ex);
   const unit = ex.mode === 'time' ? 'Seg' : 'Reps';
 
-  function toggle(setIndex: number) {
+  const [check, setCheck] = useState<{ set: number; weight: number; max: number; suggestion: number | null } | null>(null);
+  const [query, setQuery] = useState('');
+
+  function toggle(setIndex: number, confirmed = false) {
     const wasDone = ex.sets[setIndex]?.done;
+    const weight = ex.sets[setIndex]?.weight ?? 0;
+    // carga com um dígito a mais vira recorde falso e achata o gráfico: confere antes
+    const suspicious = !wasDone && !confirmed && data ? suspiciousWeight(data.workouts, ex.key, weight) : null;
+    if (suspicious) { setCheck({ set: setIndex, weight, ...suspicious }); return; }
     update(s => toggleSet(s, index, setIndex));
     const settings = data?.settings;
     if (!wasDone && settings?.restAutoStart) useRestStore.getState().start(ex.restSeconds ?? settings.restSeconds);
@@ -116,6 +126,17 @@ export function ExerciseCard({ session, index }: Props) {
               </li>
             ))}
           </ol>
+          {(data?.settings.weightButtons ?? true) && ex.sets.some(set => !set.done) && (
+            <div className="mt-2 flex items-center gap-1" role="group" aria-label={`Ajustar a carga das séries não feitas de ${ex.name}`}>
+              <span className="mr-1 text-xs font-semibold text-faint">Carga</span>
+              {ADJUSTS.map(d => (
+                <button key={d} type="button" onClick={() => { update(s => adjustWeights(s, index, d)); if (d >= 10) run(markBigWeightJump); }}
+                  className="h-10 flex-1 rounded-lg bg-surface-2 text-sm font-bold text-muted active:bg-line">
+                  {d > 0 ? '+' : '−'}{formatNumber(Math.abs(d))}
+                </button>
+              ))}
+            </div>
+          )}
         </div>
       )}
 
@@ -137,10 +158,7 @@ export function ExerciseCard({ session, index }: Props) {
             <SheetAction onClick={() => { update(s => removeSet(s, index, ex.sets.length - 1)); close(); }}><Icon name="menos" />Remover última série</SheetAction>
           )}
         </>}
-        {/* O15: trocar só aparece quando há reserva (ou para voltar ao original) */}
-        {(ex.alternatives.length > 0 || ex.swappedFrom) && (
-          <SheetAction onClick={() => { close(); setSwapOpen(true); }}><Icon name="trocar" />Trocar exercício</SheetAction>
-        )}
+        <SheetAction onClick={() => { close(); setSwapOpen(true); }}><Icon name="trocar" />Trocar exercício</SheetAction>
         <SheetAction onClick={() => { setNoteOpen(o => !o); close(); }}><Icon name="nota" />{noteOpen ? 'Esconder observação' : 'Observação'}</SheetAction>
         {hasIllustration(ex.name) && (
           <SheetAction onClick={() => { run((d, now) => updateSettings(d, { showIllustrations: !showIllustrations }, now)); close(); }}>
@@ -158,7 +176,49 @@ export function ExerciseCard({ session, index }: Props) {
               <Icon name="trocar" />{a.name}{a.name === ex.swappedFrom ? ' (original)' : ''}
             </SheetAction>
           ))}
+        {(ex.alternatives.length > 0 || ex.swappedFrom) && <p className="mt-3 px-3 text-xs font-semibold text-faint">Ou qualquer exercício:</p>}
+        <input value={query} onChange={e => setQuery(e.target.value)} placeholder="Buscar ou digitar o nome" aria-label="Buscar exercício para trocar"
+          className="mt-2 h-12 w-full rounded-xl border border-line bg-surface-2 px-3 text-base text-ink" />
+        {(() => {
+          const q = query.trim().toLowerCase();
+          if (!q) return null;
+          const matches = ALL_NAMES.filter(n => n.toLowerCase().includes(q) && n !== ex.name).slice(0, 6);
+          const pick = (name: string) => { if (data) update(s => swapExercise(s, data, index, name)); setSwapOpen(false); setQuery(''); };
+          return (
+            <>
+              {matches.map(n => <SheetAction key={n} onClick={() => pick(n)}><Icon name="trocar" />{n}</SheetAction>)}
+              {!matches.some(n => n.toLowerCase() === q) && (
+                <SheetAction onClick={() => pick(query)}><Icon name="mais" />Usar “{query.trim()}”</SheetAction>
+              )}
+            </>
+          );
+        })()}
         <p className="mt-2 px-3 text-sm text-faint">A troca vale só para este treino; o plano continua igual.</p>
+      </Sheet>
+
+      <Sheet title="Conferir a carga" open={check !== null} onClose={() => setCheck(null)}>
+        {check && (
+          <>
+            <p className="text-muted">
+              Você digitou <strong className="text-ink">{formatNumber(check.weight)} kg</strong>
+              {check.max > 0 ? <>, bem acima do seu melhor registro neste exercício ({formatNumber(check.max)} kg).</> : '.'}
+              {' '}Um valor errado vira recorde e achata o gráfico de evolução.
+            </p>
+            <div className="mt-4 space-y-2">
+              {check.suggestion !== null && (
+                <button type="button" className="h-12 w-full rounded-xl bg-primary font-bold text-white" onClick={() => {
+                  update(s => updateSet(s, index, check.set, { weight: check.suggestion! }));
+                  setCheck(null);
+                  toggle(check.set, true);
+                }}>Corrigir para {formatNumber(check.suggestion)} kg</button>
+              )}
+              <button type="button" className="h-12 w-full rounded-xl bg-surface-2 font-bold" onClick={() => { setCheck(null); toggle(check.set, true); }}>
+                Está correto
+              </button>
+              <button type="button" className="h-11 w-full font-semibold text-muted" onClick={() => setCheck(null)}>Voltar e corrigir</button>
+            </div>
+          </>
+        )}
       </Sheet>
     </article>
   );

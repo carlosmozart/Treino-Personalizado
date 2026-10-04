@@ -147,6 +147,12 @@ export function removeWorkoutEntry(data: AppData, workoutId: string, index: numb
   return { data: draft, events: [] };
 }
 
+/** Conquista "Os Pesos de Rock Lee": subiu 10 kg de uma vez pelo botão de ajuste. */
+export function markBigWeightJump(data: AppData): ActionResult {
+  if (data.gamification.bigWeightJump) return unchanged(data);
+  return { data: { ...data, gamification: { ...data.gamification, bigWeightJump: true } }, events: [] };
+}
+
 type ProfilePatch = Partial<Omit<UserProfile, 'weighIns' | 'weightKg'>>;
 
 /** Dados de cadastro. O peso muda por logWeight, para manter o histórico coerente. */

@@ -137,6 +137,8 @@ export interface Settings {
   keepScreenOn?: boolean;
   /** Ilustrações dos exercícios no treino (Q2). Ausente = ligado. */
   showIllustrations?: boolean;
+  /** Botões de ajuste de carga no treino (O20). Ausente = ligado. */
+  weightButtons?: boolean;
   /** Backup automático no APK (O11). Ausente = ligado. */
   autoBackup?: boolean;
 }
