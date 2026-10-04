@@ -8,7 +8,7 @@ import { bestSet, lastSessionBefore, sessionsOf, suspiciousWeight, workSets } fr
 import { useAppStore } from '../../store';
 import { Icon } from '../../ui/Icon';
 import { NumberField } from '../../ui/NumberField';
-import { ExerciseIllustration, hasIllustration } from '../../ui/ExerciseIllustration';
+import { ExerciseIllustration, ExerciseThumb, hasIllustration } from '../../ui/ExerciseIllustration';
 import { markBigWeightJump, updateSettings } from '../../domain/actions';
 import { Sheet, SheetAction } from '../../ui/Sheet';
 import { formatNumber, shortDate } from '../../ui/format';
@@ -200,7 +200,7 @@ export function ExerciseCard({ session, index, alwaysOpen = false }: Props) {
           .filter(a => a.name !== ex.name)
           .map(a => (
             <SheetAction key={a.name} onClick={() => { if (data) update(s => swapExercise(s, data, index, a.name)); setSwapOpen(false); }}>
-              <Icon name="trocar" />{a.name}{a.name === ex.swappedFrom ? ' (original)' : ''}
+              <ExerciseThumb name={a.name} />{a.name}{a.name === ex.swappedFrom ? ' (original)' : ''}
             </SheetAction>
           ))}
         {(ex.alternatives.length > 0 || ex.swappedFrom) && <p className="mt-3 px-3 text-xs font-semibold text-faint">Ou qualquer exercício:</p>}
@@ -213,7 +213,7 @@ export function ExerciseCard({ session, index, alwaysOpen = false }: Props) {
           const pick = (name: string) => { if (data) update(s => swapExercise(s, data, index, name)); setSwapOpen(false); setQuery(''); };
           return (
             <>
-              {matches.map(n => <SheetAction key={n} onClick={() => pick(n)}><Icon name="trocar" />{n}</SheetAction>)}
+              {matches.map(n => <SheetAction key={n} onClick={() => pick(n)}><ExerciseThumb name={n} />{n}</SheetAction>)}
               {!matches.some(n => n.toLowerCase() === q) && (
                 <SheetAction onClick={() => pick(query)}><Icon name="mais" />Usar “{query.trim()}”</SheetAction>
               )}

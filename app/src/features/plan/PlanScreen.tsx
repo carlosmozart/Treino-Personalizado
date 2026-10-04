@@ -12,6 +12,7 @@ import { EXERCISE_LIBRARY } from '../../data/exercise-library';
 import { seedPlan } from '../../data/seed-plan';
 import { useAppStore } from '../../store';
 import { Icon } from '../../ui/Icon';
+import { ExerciseThumb } from '../../ui/ExerciseIllustration';
 import { AiPlanSheet } from './AiPlanSheet';
 import { NumberField } from '../../ui/NumberField';
 import { Sheet, SheetAction } from '../../ui/Sheet';
@@ -293,7 +294,7 @@ function AddExerciseSheet({ open, dayName, onClose, onAdd }: { open: boolean; da
       <input autoFocus value={query} onChange={e => setQuery(e.target.value)} placeholder="Buscar ou digitar o nome" aria-label="Nome do exercício"
         aria-controls={listId} className="h-12 w-full rounded-xl border border-line bg-surface-2 px-3 text-base text-ink" />
       <ul id={listId} className="mt-2">
-        {matches.map(name => <li key={name}><SheetAction onClick={() => add(name)}>{name}</SheetAction></li>)}
+        {matches.map(name => <li key={name}><SheetAction onClick={() => add(name)}><ExerciseThumb name={name} />{name}</SheetAction></li>)}
       </ul>
       {q && !matches.some(n => n.toLowerCase() === q) && (
         <button type="button" onClick={() => add(query)} className="mt-2 h-12 w-full rounded-xl bg-primary text-base font-bold text-white">

@@ -78,3 +78,13 @@ export function ExerciseIllustration({ name }: { name: string }) {
 export function hasIllustration(name: string): boolean {
   return illustrationIdFor(name) !== null;
 }
+
+/** Miniatura parada (posição inicial) para listas: biblioteca, troca, plano (Q2). */
+export function ExerciseThumb({ name }: { name: string }) {
+  const frames = useFrames(name);
+  return (
+    <span aria-hidden="true" className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-surface-2 p-0.5 text-ink">
+      {frames && <Frame svg={frames.start} className="size-full" />}
+    </span>
+  );
+}
