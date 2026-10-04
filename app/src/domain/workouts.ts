@@ -1,0 +1,114 @@
+// Leituras derivadas dos treinos. Nada daqui é gravado: corrigir um treino corrige tudo.
+import { cardioMet, kcal, strengthMet, type LoggedSet } from './calories';
+import type { Workout, WorkoutEntry, WorkoutSet } from './model';
+
+/** Segundos médios de execução de uma série, para estimar a duração quando o cronômetro falha. */
+export const SECONDS_PER_SET = 45;
+
+/** Séries que contam para volume, recordes e progressão (aquecimento fica de fora). */
+export function workSets(entry: WorkoutEntry): WorkoutSet[] {
+  return entry.sets.filter(s => s.kind === 'work');
+}
+
+export function entryVolume(entry: WorkoutEntry): number {
+  return workSets(entry).reduce((total, s) => total + s.reps * s.weight, 0);
+}
+
+export function workoutVolume(workout: Workout): number {
+  return workout.entries.reduce((total, e) => total + entryVolume(e), 0);
+}
+
+/** Maior carga; empate decidido por repetições. */
+export function bestSet(entry: WorkoutEntry): WorkoutSet | null {
+  const sets = workSets(entry);
+  if (!sets.length) return null;
+  return sets.reduce((best, s) => (s.weight > best.weight || (s.weight === best.weight && s.reps > best.reps) ? s : best));
+}
+
+/**
+ * Resumo curto: "3x10 · 40kg", "12/10/8 · 50-40kg", "25min · 3km".
+ * Registros reconstruídos do formato antigo são identificados para não fingir precisão.
+ */
+export function describeEntry(entry: WorkoutEntry): string {
+  if (entry.mode === 'cardio') {
+    const c = entry.cardio;
+    return c ? `${c.minutes}min${c.km ? ` · ${c.km}km` : ''}` : '--';
+  }
+  const sets = workSets(entry);
+  if (!sets.length) return '--';
+  const reps = sets.map(s => s.reps);
+  const weights = sets.map(s => s.weight);
+  const sameReps = reps.every(r => r === reps[0]);
+  const sameWeight = weights.every(w => w === weights[0]);
+  const repsPart = sameReps ? `${sets.length}x${reps[0]}` : reps.join('/');
+  const weightPart = sameWeight ? `${weights[0]}kg` : `${Math.max(...weights)}-${Math.min(...weights)}kg`;
+  return `${repsPart} · ${weightPart}${entry.aggregated ? ' (registro antigo)' : ''}`;
+}
+
+/** Sessões de um exercício (pela identidade do nome), em ordem de data. */
+export function sessionsOf(workouts: readonly Workout[], key: string): { workout: Workout; entry: WorkoutEntry }[] {
+  const out: { workout: Workout; entry: WorkoutEntry }[] = [];
+  for (const workout of workouts) {
+    for (const entry of workout.entries) if (entry.key === key) out.push({ workout, entry });
+  }
+  return out.sort((a, b) => (a.workout.date < b.workout.date ? -1 : a.workout.date > b.workout.date ? 1 : 0));
+}
+
+/** Última sessão do exercício antes de uma data (exclusiva), para pré-preencher o treino. */
+export function lastSessionBefore(workouts: readonly Workout[], key: string, date: string) {
+  const before = sessionsOf(workouts, key).filter(s => s.workout.date < date);
+  return before[before.length - 1] ?? null;
+}
+
+/**
+ * Recorde: a melhor série supera a melhor de todas as sessões ANTERIORES (por data).
+ * A primeira sessão não conta. Treinos registrados depois, com data antiga, não ganham
+ * recorde sobre treinos que vieram depois deles.
+ */
+export function isPersonalRecord(workouts: readonly Workout[], workout: Workout, entry: WorkoutEntry): boolean {
+  const current = bestSet(entry);
+  if (!current) return false;
+  let previousBest: WorkoutSet | null = null;
+  for (const s of sessionsOf(workouts, entry.key)) {
+    if (s.workout.date >= workout.date || s.workout.id === workout.id) continue;
+    const b = bestSet(s.entry);
+    if (b && (!previousBest || b.weight > previousBest.weight || (b.weight === previousBest.weight && b.reps > previousBest.reps))) previousBest = b;
+  }
+  if (!previousBest) return false;
+  return current.weight > previousBest.weight || (current.weight === previousBest.weight && current.reps > previousBest.reps);
+}
+
+/** Duração mínima plausível: séries × (execução + descanso). */
+export function estimatedStrengthMinutes(workout: Workout, restSeconds: number): number {
+  const sets = workout.entries.filter(e => e.mode !== 'cardio').reduce((n, e) => n + e.sets.length, 0);
+  return (sets * (SECONDS_PER_SET + (restSeconds || 90))) / 60;
+}
+
+export interface WorkoutCalories {
+  kcal: number;
+  /** false quando a duração usada foi a estimada (cronômetro ausente ou muito abaixo do plausível). */
+  measured: boolean;
+  /** Minutos de força efetivamente usados no cálculo, para a interface mostrar "~30 min (estimado)" (O4). */
+  strengthMinutes: number;
+}
+
+export function workoutCalories(workout: Workout, bodyWeightKg: number, restSeconds: number): WorkoutCalories | null {
+  if (!bodyWeightKg || !workout.entries.length) return null;
+  let total = 0;
+  let cardioMinutes = 0;
+  for (const e of workout.entries) {
+    if (e.mode !== 'cardio' || !e.cardio) continue;
+    cardioMinutes += e.cardio.minutes;
+    total += kcal(cardioMet(e.cardio.minutes, e.cardio.km ?? 0), bodyWeightKg, e.cardio.minutes);
+  }
+  const estimated = estimatedStrengthMinutes(workout, restSeconds);
+  let minutes = workout.durationMin ? Math.max(0, workout.durationMin - cardioMinutes) : estimated;
+  let measured = !!workout.durationMin;
+  // Cronômetro que só começou no fim registra 2 min para uma hora de treino: abaixo de metade
+  // do mínimo físico, vale a estimativa.
+  if (measured && estimated > 0 && minutes < estimated * 0.5) { minutes = estimated; measured = false; }
+  const sets: LoggedSet[] = workout.entries.filter(e => e.mode !== 'cardio').flatMap(workSets);
+  if (sets.length) total += kcal(strengthMet(sets, bodyWeightKg, minutes), bodyWeightKg, minutes);
+  if (total <= 0) return null;
+  return { kcal: Math.round(total), measured, strengthMinutes: Math.round(minutes) };
+}
