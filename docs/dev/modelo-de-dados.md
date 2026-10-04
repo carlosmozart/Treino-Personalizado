@@ -125,3 +125,28 @@ descartes. Falta rodar sobre os backups dos outros dois usuários, localmente, a
   treino em andamento fica numa chave própria (`session`) por ser gravado a cada toque. Ao ir
   para segundo plano (`visibilitychange`/`pagehide`) tudo é gravado na hora. Falha de gravação
   aparece em `saveError` para a interface avisar.
+
+## Pronto para sincronizar
+
+Preparação feita antes de a 3.0 sair, para qualquer nuvem escolhida (servidor próprio ou
+Firebase; ver a projeção do projeto). O transporte muda; a junção é a mesma (`domain/sync.ts`).
+
+- **Carimbos** (`AppData.sync.changed`): cada registro tem a hora da última alteração, por chave
+  — `workout:<id>`, `plan:<id>`, `weighin:<data>`, `checkin:<data>`, `water:<data>`, `profile`,
+  `settings`, `activePlan`. Toda ação do domínio carimba o que muda.
+- **Exclusões** (`AppData.sync.deleted`): apagar deixa a chave e a hora. Sem isso, um registro
+  apagado num aparelho voltaria ao juntar com outro que ainda o tem.
+- **Junção** (`mergeAppData(local, remoto)`): por chave, vence a alteração ou exclusão mais
+  recente; empate fica com o local. Perfil, ajustes e plano ativo são registros inteiros. O peso
+  atual é recalculado pela pesagem mais recente. Juntar de novo não muda nada (testado).
+- **XP derivado**: o total é sempre `computeTotalXP` = base + XP de cada check-in + bônus de água
+  e de sequência, cada um com o próprio valor. Na junção, o check-in de um dia fica com o maior
+  valor (cheio vence meio, sem contar em dobro), bônus e conquistas de qualquer aparelho ficam,
+  e o XP de check-in de um dia sem check-in sai. A **base** guarda o XP do app antigo que não
+  tem registro de origem (o app antigo não gravava o valor de cada bônus).
+- **Dados anteriores** a isso (versões de desenvolvimento e backups delas) são completados ao
+  abrir (`normalizeAppData`): tudo carimbado na hora, bônus `true` viram 0 e o resto vai para a base.
+
+Limitação conhecida: dois aparelhos que criam o plano de exemplo ao mesmo tempo geram a mesma
+chave `plan:default`, e a versão mais recente vence. Ids de plano únicos por aparelho resolvem;
+fica para quando a sincronização for implementada.

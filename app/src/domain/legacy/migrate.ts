@@ -6,10 +6,11 @@ import { DAY_KEYS, type DayKey } from '../ai-plan';
 import type { ActivityLevel, Sex, TmbFormulaId } from '../health';
 import type { GoalMark, WeightGoal } from '../body-goal';
 import {
-  DEFAULT_SETTINGS, SCHEMA_VERSION, emptyGamification, emptyProfile,
+  DEFAULT_SETTINGS, SCHEMA_VERSION, computeTotalXP, emptyGamification, emptyProfile,
   type AppData, type ExerciseMode, type Plan, type PlanDay, type PlanExercise, type Settings,
   type UserProfile, type Workout, type WorkoutEntry, type WorkoutSet
 } from '../model';
+import { stampAll } from '../sync';
 import type { LegacyParseResult } from './validate';
 
 type Obj = Record<string, unknown>;
@@ -284,13 +285,17 @@ function migrateGamification(raw: unknown): AppData['gamification'] {
     const amount = num(r.amount);
     if (isDateKey(date) && amount !== null) out.checkinXP[date] = { amount, full: r.full === true };
   }
-  out.waterBonus = trueKeys(g.waterBonus);
-  out.streakBonuses = trueKeys(g.streakBonuses);
+  // o app antigo não guardava o XP de cada bônus: ficam com 0 e o valor deles vai para a base
+  out.waterBonus = Object.fromEntries(Object.keys(trueKeys(g.waterBonus)).map(k => [k, 0]));
+  out.streakBonuses = Object.fromEntries(Object.keys(trueKeys(g.streakBonuses)).map(k => [k, 0]));
   out.freeMealRewards = trueKeys(g.freeMealRewards);
   out.birthdayGreeted = trueKeys(g.birthdayGreeted);
   out.nightCheckins = trueKeys(g.nightCheckins);
   out.activatedPlans = trueKeys(g.equippedProfiles);
   out.achievements = Object.fromEntries(Object.entries(objOf(g.unlockedAchievements)).filter(([, d]) => typeof d === 'string')) as Record<string, string>;
+  // o total do app antigo é preservado: o que não está nos registros de check-in vira base
+  out.baseXP = Math.max(0, out.totalXP - computeTotalXP({ ...out, baseXP: 0 }));
+  out.totalXP = computeTotalXP(out);
   return out;
 }
 
@@ -317,7 +322,7 @@ export function migrateLegacy(parsed: LegacyParseResult, now = new Date()): Migr
   if (str(values.treino_last_backup_at)) meta.lastBackupAt = str(values.treino_last_backup_at);
   if (str(values.treino_last_seen_version)) meta.lastSeenVersion = str(values.treino_last_seen_version);
 
-  const data: AppData = {
+  const data: AppData = stampAll({
     schemaVersion: SCHEMA_VERSION,
     profile,
     plans,
@@ -327,8 +332,9 @@ export function migrateLegacy(parsed: LegacyParseResult, now = new Date()): Migr
     water,
     gamification: migrateGamification(values.treino_gamification),
     settings: migrateSettings(values.treino_settings),
+    sync: { changed: {}, deleted: {} },
     meta
-  };
+  }, now);
 
   return {
     data,

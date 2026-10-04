@@ -8,6 +8,7 @@ import type { AppData, Plan, Settings, UserProfile, Workout } from './model';
 import { checkBirthday, checkWaterGoal, grantCheckin, revokeCheckin, type RewardEvent } from './rewards';
 import { sessionProgress, sessionToWorkout, type ActiveSession } from './session';
 import { bestSet, isPersonalRecord } from './workouts';
+import { key, tombstone, touch } from './sync';
 
 export interface ActionResult {
   data: AppData;
@@ -35,6 +36,7 @@ export function finishWorkout(data: AppData, session: ActiveSession, now: Date):
   const draft = structuredClone(data);
   const events: RewardEvent[] = [];
   draft.workouts = [...draft.workouts.filter(w => w.id !== workout.id), workout].sort(byDateThenStart);
+  touch(draft, key.workout(workout.id), now);
 
   for (const entry of workout.entries) {
     const best = bestSet(entry);
@@ -46,6 +48,7 @@ export function finishWorkout(data: AppData, session: ActiveSession, now: Date):
   const { complete } = sessionProgress(session);
   // um treino finalizado de um dia passado (sessão esquecida aberta) faz check-in daquele dia
   draft.checkins[workout.date] = { dayKey: session.dayKey };
+  touch(draft, key.checkin(workout.date), now);
   grantCheckin(draft, workout.date, complete, now, events);
   return { kind: 'saved', data: draft, events, workout, full: complete };
 }
@@ -57,9 +60,11 @@ export function toggleCheckin(data: AppData, dayKey: DayKey | null, now: Date): 
   const events: RewardEvent[] = [];
   if (draft.checkins[today]) {
     delete draft.checkins[today];
+    tombstone(draft, key.checkin(today), now);
     revokeCheckin(draft, today, events);
   } else {
     draft.checkins[today] = { dayKey };
+    touch(draft, key.checkin(today), now);
     grantCheckin(draft, today, false, now, events);
   }
   return { data: draft, events };
@@ -74,14 +79,19 @@ export function addWater(data: AppData, deltaMl: number, now: Date): ActionResul
   if (next === current) return unchanged(data);
   const draft = structuredClone(data);
   const events: RewardEvent[] = [];
-  if (next) draft.water[today] = next;
-  else delete draft.water[today];
+  if (next) {
+    draft.water[today] = next;
+    touch(draft, key.water(today), now);
+  } else {
+    delete draft.water[today];
+    tombstone(draft, key.water(today), now);
+  }
   checkWaterGoal(draft, today, events);
   return { data: draft, events };
 }
 
 /** Pesagem: uma por dia (a nova substitui), peso atual = pesagem mais recente. */
-export function logWeight(data: AppData, weightKg: number, date: DateKey): ActionResult {
+export function logWeight(data: AppData, weightKg: number, date: DateKey, now: Date): ActionResult {
   if (!Number.isFinite(weightKg) || weightKg < 20 || weightKg > 400) return unchanged(data);
   const weight = Math.round(weightKg * 10) / 10;
   const draft = structuredClone(data);
@@ -90,52 +100,65 @@ export function logWeight(data: AppData, weightKg: number, date: DateKey): Actio
   const latest = p.weighIns[p.weighIns.length - 1]!;
   p.weightKg = latest.weight;
   if (p.weightGoal) p.weightGoal = recordGoalCheckpoints(p.weightGoal, latest.weight, latest.date);
+  touch(draft, key.weighIn(date), now);
   return { data: draft, events: [] };
 }
 
-export function removeWeighIn(data: AppData, date: DateKey): ActionResult {
+export function removeWeighIn(data: AppData, date: DateKey, now: Date): ActionResult {
   if (!data.profile.weighIns.some(w => w.date === date)) return unchanged(data);
   const draft = structuredClone(data);
   draft.profile.weighIns = draft.profile.weighIns.filter(w => w.date !== date);
   const latest = draft.profile.weighIns[draft.profile.weighIns.length - 1];
   if (latest) draft.profile.weightKg = latest.weight;
+  tombstone(draft, key.weighIn(date), now);
   return { data: draft, events: [] };
 }
 
-export function deleteWorkout(data: AppData, id: string): ActionResult {
+export function deleteWorkout(data: AppData, id: string, now: Date): ActionResult {
   if (!data.workouts.some(w => w.id === id)) return unchanged(data);
   // o check-in do dia fica: ele registra presença, não o conteúdo do treino
-  return { data: { ...data, workouts: data.workouts.filter(w => w.id !== id) }, events: [] };
+  const draft = structuredClone(data);
+  draft.workouts = draft.workouts.filter(w => w.id !== id);
+  tombstone(draft, key.workout(id), now);
+  return { data: draft, events: [] };
 }
 
 type ProfilePatch = Partial<Omit<UserProfile, 'weighIns' | 'weightKg'>>;
 
 /** Dados de cadastro. O peso muda por logWeight, para manter o histórico coerente. */
-export function updateProfile(data: AppData, patch: ProfilePatch): ActionResult {
-  return { data: { ...data, profile: { ...data.profile, ...patch } }, events: [] };
+export function updateProfile(data: AppData, patch: ProfilePatch, now: Date): ActionResult {
+  const draft = { ...data, profile: { ...data.profile, ...patch }, sync: cloneSync(data) };
+  touch(draft, key.profile, now);
+  return { data: draft, events: [] };
 }
 
-export function updateSettings(data: AppData, patch: Partial<Settings>): ActionResult {
+export function updateSettings(data: AppData, patch: Partial<Settings>, now: Date): ActionResult {
   const settings = { ...data.settings, ...patch };
   settings.restSeconds = Math.min(600, Math.max(15, Math.round(settings.restSeconds)));
-  return { data: { ...data, settings }, events: [] };
+  const draft = { ...data, settings, sync: cloneSync(data) };
+  touch(draft, key.settings, now);
+  return { data: draft, events: [] };
 }
 
 /** Adiciona um plano (id novo se já existir) e, por padrão, ativa. */
-export function addPlan(data: AppData, plan: Plan, activate = true): ActionResult {
+export function addPlan(data: AppData, plan: Plan, now: Date, activate = true): ActionResult {
   let id = plan.id;
   for (let n = 2; data.plans[id]; n++) id = `${plan.id}-${n}`;
-  const plans = { ...data.plans, [id]: { ...plan, id } };
-  if (!activate) return { data: { ...data, plans }, events: [] };
-  return {
-    data: { ...data, plans, activePlanId: id, gamification: { ...data.gamification, activatedPlans: { ...data.gamification.activatedPlans, [id]: true } } },
-    events: []
-  };
+  const draft: AppData = { ...data, plans: { ...data.plans, [id]: { ...plan, id } }, sync: cloneSync(data) };
+  touch(draft, key.plan(id), now);
+  if (activate) {
+    draft.activePlanId = id;
+    draft.gamification = { ...data.gamification, activatedPlans: { ...data.gamification.activatedPlans, [id]: true } };
+    touch(draft, key.activePlan, now);
+  }
+  return { data: draft, events: [] };
 }
 
-export function setActivePlan(data: AppData, planId: string): ActionResult {
+export function setActivePlan(data: AppData, planId: string, now: Date): ActionResult {
   if (!data.plans[planId] || data.activePlanId === planId) return unchanged(data);
-  return { data: { ...data, activePlanId: planId }, events: [] };
+  const draft = { ...data, activePlanId: planId, sync: cloneSync(data) };
+  touch(draft, key.activePlan, now);
+  return { data: draft, events: [] };
 }
 
 /** Saudações do dia ao abrir o app (aniversário). */
@@ -145,3 +168,5 @@ export function dailyCheck(data: AppData, now: Date): ActionResult {
   checkBirthday(draft, now, events);
   return events.length ? { data: draft, events } : unchanged(data);
 }
+
+const cloneSync = (data: AppData): AppData['sync'] => ({ changed: { ...data.sync.changed }, deleted: { ...data.sync.deleted } });

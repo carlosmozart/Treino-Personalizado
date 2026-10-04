@@ -18,7 +18,7 @@ export function DayPicker() {
       <section className="mt-6 rounded-2xl border border-line bg-surface p-4">
         <h2 className="text-lg font-bold">Você ainda não tem um plano</h2>
         <p className="mt-1 text-muted">Comece pelo plano de exemplo (Push/Pull/Legs, 6 dias) e ajuste depois.</p>
-        <button type="button" onClick={() => run((d, now) => addPlan(d, seedPlan(toDateKey(now))))}
+        <button type="button" onClick={() => run((d, now) => addPlan(d, seedPlan(toDateKey(now)), now))}
           className="mt-4 h-12 w-full rounded-xl bg-primary text-base font-bold text-white">
           Usar plano de exemplo
         </button>

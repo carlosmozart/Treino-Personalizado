@@ -104,11 +104,18 @@ export interface UserProfile {
 }
 
 export interface Gamification {
+  /**
+   * Total exibido. Sempre igual a computeTotalXP (base + registros abaixo): guardado só para
+   * leitura rápida, recalculado depois de cada ação e de cada sincronização.
+   */
   totalXP: number;
+  /** XP vindo do app antigo que não dá para atribuir a um registro (bônus sem valor gravado). */
+  baseXP: number;
   longestStreak: number;
   checkinXP: Record<DateKey, CheckinXPRecord>;
-  waterBonus: Record<DateKey, true>;
-  streakBonuses: Record<string, true>;
+  /** Bônus concedidos, com o XP de cada um (0 = herdado do app antigo, já contado na base). */
+  waterBonus: Record<DateKey, number>;
+  streakBonuses: Record<string, number>;
   freeMealRewards: Record<DateKey, true>;
   /** Conquista → data em que foi desbloqueada. */
   achievements: Record<string, string>;
@@ -153,6 +160,8 @@ export interface AppData {
   water: Record<DateKey, number>;
   gamification: Gamification;
   settings: Settings;
+  /** Carimbos para juntar dados de dois aparelhos (ver sync.ts). */
+  sync: SyncStamps;
   meta: {
     lastBackupAt?: string;
     lastSeenVersion?: string;
@@ -160,9 +169,22 @@ export interface AppData {
   };
 }
 
+/**
+ * Chave de cada registro sincronizável: "workout:<id>", "plan:<id>", "weighin:<data>",
+ * "checkin:<data>", "water:<data>", "profile", "settings", "activePlan".
+ */
+export type SyncKey = string;
+
+export interface SyncStamps {
+  /** Quando cada registro foi alterado pela última vez (ISO). */
+  changed: Record<SyncKey, string>;
+  /** Registros apagados e quando, para a exclusão não voltar ao juntar com outro aparelho. */
+  deleted: Record<SyncKey, string>;
+}
+
 export function emptyGamification(): Gamification {
   return {
-    totalXP: 0, longestStreak: 0, checkinXP: {}, waterBonus: {}, streakBonuses: {}, freeMealRewards: {},
+    totalXP: 0, baseXP: 0, longestStreak: 0, checkinXP: {}, waterBonus: {}, streakBonuses: {}, freeMealRewards: {},
     achievements: {}, birthdayGreeted: {}, nightCheckins: {}, activatedPlans: {}, bigWeightJump: false
   };
 }
@@ -178,7 +200,7 @@ export function emptyAppData(): AppData {
   return {
     schemaVersion: SCHEMA_VERSION, profile: emptyProfile(), plans: {}, activePlanId: null, workouts: [],
     checkins: {}, water: {}, gamification: emptyGamification(), settings: { ...DEFAULT_SETTINGS },
-    meta: { hintsSeen: {} }
+    sync: { changed: {}, deleted: {} }, meta: { hintsSeen: {} }
   };
 }
 
@@ -191,4 +213,13 @@ const WEEKDAY_TO_DAY_KEY: readonly DayKey[] = ['DOM', 'SEG', 'TER', 'QUA', 'QUI'
 
 export function dayKeyOf(date: Date): DayKey {
   return WEEKDAY_TO_DAY_KEY[date.getDay()]!;
+}
+
+const sumValues = (record: Record<string, number>) => Object.values(record).reduce((n, v) => n + v, 0);
+
+/** XP total derivado dos registros: o que permite juntar dados de dois aparelhos sem divergir. */
+export function computeTotalXP(g: Gamification): number {
+  return g.baseXP
+    + Object.values(g.checkinXP).reduce((n, r) => n + r.amount, 0)
+    + sumValues(g.waterBonus) + sumValues(g.streakBonuses);
 }

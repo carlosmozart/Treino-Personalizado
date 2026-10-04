@@ -143,7 +143,7 @@ export function ExerciseCard({ session, index }: Props) {
         )}
         <SheetAction onClick={() => { setNoteOpen(o => !o); close(); }}><Icon name="nota" />{noteOpen ? 'Esconder observação' : 'Observação'}</SheetAction>
         {hasIllustration(ex.name) && (
-          <SheetAction onClick={() => { run(d => updateSettings(d, { showIllustrations: !showIllustrations })); close(); }}>
+          <SheetAction onClick={() => { run((d, now) => updateSettings(d, { showIllustrations: !showIllustrations }, now)); close(); }}>
             <Icon name="treino" />{showIllustrations ? 'Esconder ilustrações' : 'Mostrar ilustrações'}
           </SheetAction>
         )}

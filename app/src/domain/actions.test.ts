@@ -92,19 +92,19 @@ test('água: meta do dia dá bônus uma vez; nunca negativa', () => {
 test('pesagem: uma por dia, peso atual é a mais recente e marcos da meta são registrados', () => {
   let data = sampleData();
   data.profile.weightGoal = { startWeight: 90, targetWeight: 80, startedAt: '2026-09-01' };
-  data = logWeight(data, 85, '2026-10-01').data;
-  data = logWeight(data, 84.96, '2026-10-01').data;
-  data = logWeight(data, 88, '2026-09-20').data;
+  data = logWeight(data, 85, '2026-10-01', MONDAY).data;
+  data = logWeight(data, 84.96, '2026-10-01', MONDAY).data;
+  data = logWeight(data, 88, '2026-09-20', MONDAY).data;
   expect(data.profile.weighIns).toEqual([{ date: '2026-09-20', weight: 88 }, { date: '2026-10-01', weight: 85 }]);
   expect(data.profile.weightKg).toBe(85);
   expect(data.profile.weightGoal?.checkpoints).toEqual({ 25: '2026-10-01', 50: '2026-10-01' });
-  expect(logWeight(data, 5, '2026-10-02').data).toBe(data);
+  expect(logWeight(data, 5, '2026-10-02', MONDAY).data).toBe(data);
 });
 
 test('ajustes limitam o descanso; apagar treino mantém o check-in', () => {
-  expect(updateSettings(sampleData(), { restSeconds: 3 }).data.settings.restSeconds).toBe(15);
+  expect(updateSettings(sampleData(), { restSeconds: 3 }, MONDAY).data.settings.restSeconds).toBe(15);
   const data = sampleData({ workouts: [workout('2026-10-01', 'Supino Reto', [[10, 20]], 'w1')], checkins: { '2026-10-01': { dayKey: 'QUI' } } });
-  const r = deleteWorkout(data, 'w1');
+  const r = deleteWorkout(data, 'w1', MONDAY);
   expect(r.data.workouts).toEqual([]);
   expect(r.data.checkins['2026-10-01']).toBeDefined();
 });
@@ -121,9 +121,9 @@ test('aniversário cumprimenta uma vez por ano', () => {
 test('adicionar plano não sobrescreve um existente e ativa o novo', async () => {
   const { seedPlan } = await import('../data/seed-plan');
   const data = sampleData();
-  const r = addPlan(addPlan(data, seedPlan('2026-10-04')).data, seedPlan('2026-10-04'));
+  const r = addPlan(addPlan(data, seedPlan('2026-10-04'), MONDAY).data, seedPlan('2026-10-04'), MONDAY);
   expect(Object.keys(r.data.plans)).toEqual(['p1', 'default', 'default-2']);
   expect(r.data.activePlanId).toBe('default-2');
   expect(r.data.plans['default-2']!.days.DOM.optional).toBe(true);
-  expect(addPlan(data, seedPlan('2026-10-04'), false).data.activePlanId).toBe('p1');
+  expect(addPlan(data, seedPlan('2026-10-04'), MONDAY, false).data.activePlanId).toBe('p1');
 });

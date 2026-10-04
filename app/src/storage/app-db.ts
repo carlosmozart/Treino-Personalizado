@@ -1,5 +1,6 @@
 // Banco do app novo: o documento AppData e a cópia bruta dos dados antigos.
 import { SCHEMA_VERSION, type AppData } from '../domain/model';
+import { normalizeAppData } from '../domain/sync';
 import type { ActiveSession } from '../domain/session';
 import { idbDelete, idbGet, idbPut, openDb } from './idb';
 
@@ -23,7 +24,7 @@ export async function loadAppData(db: IDBDatabase): Promise<AppData | null> {
   const data = await idbGet<AppData>(db, STORE, DATA_KEY);
   if (!data) return null;
   if (data.schemaVersion !== SCHEMA_VERSION) throw new Error(`Versão de dados desconhecida: ${String(data.schemaVersion)}`);
-  return data;
+  return normalizeAppData(data, new Date());
 }
 
 export function saveAppData(db: IDBDatabase, data: AppData): Promise<void> {

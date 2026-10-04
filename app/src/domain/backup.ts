@@ -3,6 +3,7 @@ import { SCHEMA_VERSION, type AppData } from './model';
 import { decryptBackup, isEncryptedBackup } from './backup-crypto';
 import { isLegacyBackupEnvelope, parseLegacyData, safeTree } from './legacy/validate';
 import { migrateLegacy, type MigrationReport } from './legacy/migrate';
+import { normalizeAppData } from './sync';
 
 export const BACKUP_VERSION = 3;
 /** Teto de tamanho ao ler um arquivo: protege celulares modestos de arquivos errados ou enormes. */
@@ -46,6 +47,10 @@ export function isAppData(v: unknown): v is AppData {
   if (!isObj(water) || !Object.entries(water).every(([d, ml]) => isDate(d) && isNum(ml))) return false;
   if (!isObj(gamification) || !isNum(gamification.totalXP)) return false;
   if (!isObj(settings) || !isNum(settings.restSeconds)) return false;
+  // carimbos de sincronização: ausentes em backups antigos da 3.0 (completados ao ler)
+  const { sync } = v;
+  if (sync !== undefined && !(isObj(sync) && isObj(sync.changed) && isObj(sync.deleted)
+    && [...Object.values(sync.changed), ...Object.values(sync.deleted)].every(isStr))) return false;
   return isObj(meta);
 }
 
@@ -74,7 +79,7 @@ async function readBackupObject(parsed: unknown, password?: string): Promise<Bac
   const exportedAt = isStr(parsed.exportedAt) ? parsed.exportedAt : '';
   if (parsed.backupVersion === BACKUP_VERSION) {
     return isAppData(parsed.data)
-      ? { kind: 'ok', data: parsed.data, source: 'current', exportedAt }
+      ? { kind: 'ok', data: normalizeAppData(parsed.data, new Date()), source: 'current', exportedAt }
       : { kind: 'invalid', reason: 'O backup está incompleto ou corrompido.' };
   }
   if (isLegacyBackupEnvelope(parsed)) {
