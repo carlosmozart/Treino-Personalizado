@@ -1,7 +1,7 @@
 # Troca para a 3.0.0 (P8)
 
 Roteiro para o app novo (`app/`) substituir o app atual (raiz, 2.x) no mesmo pacote Android.
-Preparado em 04/10/2026; a execução depende do nome final e da validação no aparelho (A9).
+**Publicada em 04/10/2026** (release v3.0.0), a pedido do Carlos, com os 3 usuários cientes, mantendo o nome visual antigo; a semana seguinte é de testes em uso real. Nome, ícone, Pages e arquivamento ficam para depois.
 
 ## Por que a migração acontece sozinha
 
