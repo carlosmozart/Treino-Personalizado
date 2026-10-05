@@ -6,6 +6,19 @@ Todas as mudanças relevantes do app ficam registradas aqui. Ao lançar uma nova
    atualizar o app instalado
 3. Adicione uma entrada aqui, nesse formato
 
+## [3.0.0] - 2026-10-04
+
+App refeito do zero (React + TypeScript), no mesmo aplicativo: ao abrir pela primeira vez, ele converte sozinho os treinos, planos, peso, check-ins, XP e conquistas do 2.x. Os dados antigos não são apagados nem alterados.
+
+- Treino: colunas Carga · Reps, botões de ajuste de carga (−5 a +10 kg), menu ⋯ com troca por qualquer exercício da biblioteca, série de aquecimento, observação e dica; ilustrações dos exercícios; modo foco (um exercício por vez); exercício concluído recolhe para uma linha; tela ligada durante o treino; conferência de carga digitada errada.
+- Descanso avisa pelo alarme do Android, com o app aberto, em segundo plano ou com a tela bloqueada.
+- Início com a semana, o treino de hoje (ou o próximo, no descanso), sequência, nível, peso com gráfico e água.
+- Plano em cartões por dia com descanso explícito; adicionar exercício no próprio dia; editor com reservas, opcional, horário; duplicar ou criar em branco; montar treino com IA.
+- Progresso: estatísticas, mapa de calor de 6 meses, volume semanal, séries por grupo muscular, evolução por exercício com 1RM estimado e calculadora, histórico com correção de registros; recordes por 1RM, carga e volume.
+- Metas de peso com marcos, pesagens com gráfico, 28 conquistas com progresso e filtro.
+- Perfil com saúde (IMC, metabolismo, gasto diário, água) e configurações agrupadas.
+- Backup pelo seletor de arquivos, com senha opcional; backup automático em Downloads/TreinoPersonalizado; botão voltar do Android; lembretes nos dias de treino; atualização pelo próprio app; aviso discreto e registro de erros para relatar.
+
 ## [2.21.2] - 2026-10-04
 
 - Corrige o backup no APK: o WebView do Android não tem a folha de compartilhamento e ignora links de download, então o app dizia "Backup exportado!" sem gerar arquivo nenhum (e ainda marcava o backup como feito, calando o lembrete). Agora o APK salva pelo seletor de arquivos do Android — você escolhe a pasta (Downloads, Drive...) sem precisar de permissão —, e o aviso de sucesso só aparece depois que o arquivo foi gravado. No navegador nada muda.

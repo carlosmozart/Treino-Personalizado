@@ -38,9 +38,14 @@ const lockVersion = JSON.parse(lockfile).version;
 const androidVersion = gradle.match(/versionName "([^"]+)"/)?.[1];
 assert.ok(appVersion, 'APP_VERSION deve existir no index.html.');
 assert.equal(cacheVersion, appVersion, 'Versão do cache PWA deve acompanhar o app.');
-assert.equal(packageVersion, appVersion, 'Versão do package deve acompanhar o app.');
-assert.equal(lockVersion, appVersion, 'Versão do lockfile deve acompanhar o app.');
-assert.equal(androidVersion, appVersion, 'Versão do Android deve acompanhar o app.');
+// A partir da 3.0.0 o APK leva o app novo (app/): package, lockfile e Android acompanham a
+// versão dele; o index.html da raiz segue na 2.x enquanto o GitHub Pages servir o app antigo.
+const shippedVersion = Number(packageVersion.split('.')[0]) >= 3
+  ? JSON.parse(await readFile(new URL('../app/package.json', import.meta.url), 'utf8')).version
+  : appVersion;
+assert.equal(packageVersion, shippedVersion, 'Versão do package deve acompanhar o app publicado.');
+assert.equal(lockVersion, shippedVersion, 'Versão do lockfile deve acompanhar o app publicado.');
+assert.equal(androidVersion, shippedVersion, 'Versão do Android deve acompanhar o app publicado.');
 
 const applicationId = gradle.match(/applicationId "([^"]+)"/)?.[1];
 assert.equal(applicationId, 'com.treinopersonalizado.app', 'Identificador Android inesperado.');
