@@ -159,7 +159,7 @@ M42	Componente de gráfico na reescrita: eixos com valores e datas, linha da met
 M43	Métrica escolhível na evolução do exercício: melhor série, 1RM estimado (M3), mais repetições numa série, volume da sessão; tempo segurado (M9) e velocidade no cardio quando aplicável	Média
 M44	Equilíbrio entre exercícios: comparar levantamentos entre si (ex.: supino × remada, agachamento × terra) e apontar o elo mais fraco	Baixa
 Gráficos: comparados em 04/10/2026 — o openGym é melhor no componente (eixos, legenda, interação) e nas métricas; já previstos M3, M16, M22, M28–M29, M38 e N9, completados por M41–M44
-M45	Planos prontos para carregar e editar (ex.: Push/Pull/Legs, Superior/Inferior, Corpo inteiro, 5×5), além do plano padrão e do gerado pela IA	Média
+M45	✅ Planos prontos para carregar e editar (ex.: Push/Pull/Legs, Superior/Inferior, Corpo inteiro, 5×5), além do plano padrão e do gerado pela IA	Média
 M46	Tela Biblioteca de exercícios: busca, filtros por grupo muscular e equipamento, criar exercício próprio (nome + grupo, foto opcional — Q4) e adicionar ao plano em um toque; usa as ilustrações da seção Q	Alta
 M47	Lembretes por data em vez de semanais fixos: agendar só dias planejados ainda sem treino e cancelar ao finalizar ou remarcar. Hoje o lembrete repete toda semana e dispara mesmo se você já treinou naquele dia	Média
 M48	Combinar dois dias/planos num mesmo treino (ex.: treino do dia + abdômen), mantendo cada exercício ligado ao seu plano	Baixa

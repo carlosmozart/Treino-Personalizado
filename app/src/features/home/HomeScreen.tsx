@@ -6,6 +6,7 @@ import { useAppStore } from '../../store';
 import { useUiStore } from '../../store/ui-store';
 import { askRestAlarmPermission } from '../workout/rest-alarm-instance';
 import { HomeNotices } from './HomeNotices';
+import { TemplateSheet } from '../plan/TemplateSheet';
 import { NumberField } from '../../ui/NumberField';
 import { Sheet } from '../../ui/Sheet';
 import { formatNumber, plural, shortDate } from '../../ui/format';
@@ -64,13 +65,15 @@ function TodayCard({ card }: { card: ReturnType<typeof todayCard> }) {
   const start = useAppStore(s => s.startWorkout);
   const run = useAppStore(s => s.run);
   const data = useAppStore(s => s.data)!;
+  const [templatesOpen, setTemplatesOpen] = useState(false);
 
   if (card.kind === 'no-plan') {
     return (
       <section className="rounded-2xl border border-primary bg-surface p-4">
         <h2 className="text-lg font-bold">Comece pelo seu plano</h2>
-        <p className="mt-1 text-muted">Escolha um plano de treino para o app montar o seu dia.</p>
-        <button type="button" onClick={() => setTab('treino')} className="mt-4 h-12 w-full rounded-xl bg-primary text-base font-bold text-white">Ver planos</button>
+        <p className="mt-1 text-muted">Escolha um modelo pronto para o app montar o seu dia; dá para ajustar tudo depois.</p>
+        <button type="button" onClick={() => setTemplatesOpen(true)} className="mt-4 h-12 w-full rounded-xl bg-primary text-base font-bold text-white">Escolher um modelo</button>
+        <TemplateSheet open={templatesOpen} onClose={() => setTemplatesOpen(false)} />
       </section>
     );
   }

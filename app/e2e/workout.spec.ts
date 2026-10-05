@@ -5,7 +5,8 @@ test('treino completo: plano de exemplo, marcar séries, descanso, sobreviver ao
   page.on('console', msg => { if (msg.type() === 'error') errors.push(msg.text()); });
   await page.goto('/');
   await page.getByRole('button', { name: 'Treino', exact: true }).click();
-  await page.getByRole('button', { name: 'Usar plano de exemplo' }).click();
+  await page.getByRole('button', { name: 'Escolher um modelo' }).click();
+  await page.getByRole('button', { name: 'Usar PPL do app original' }).click();
 
   // começa o primeiro dia da lista (hoje)
   await page.getByRole('button', { name: /^Começar / }).first().click();
@@ -50,7 +51,8 @@ test('treino completo: plano de exemplo, marcar séries, descanso, sobreviver ao
 test('ilustração do exercício aparece, abre as duas posições com crédito e pode ser escondida', async ({ page }) => {
   await page.goto('/');
   await page.getByRole('button', { name: 'Treino', exact: true }).click();
-  await page.getByRole('button', { name: 'Usar plano de exemplo' }).click();
+  await page.getByRole('button', { name: 'Escolher um modelo' }).click();
+  await page.getByRole('button', { name: 'Usar PPL do app original' }).click();
   await page.getByRole('button', { name: /^Começar Segunda/ }).click();
   const card = page.getByRole('article', { name: 'Supino Declinado (Máquina)' });
   const thumb = card.getByRole('button', { name: 'Ver ilustração de Supino Declinado (Máquina)' });
@@ -68,8 +70,8 @@ test('ilustração do exercício aparece, abre as duas posições com crédito e
 
 test('início: começar pelo cartão de hoje, registrar peso e água', async ({ page }) => {
   await page.goto('/');
-  await page.getByRole('button', { name: 'Ver planos' }).click();
-  await page.getByRole('button', { name: 'Usar plano de exemplo' }).click();
+  await page.getByRole('button', { name: 'Escolher um modelo' }).click();
+  await page.getByRole('button', { name: 'Usar PPL do app original' }).click();
   await page.getByRole('button', { name: 'Início', exact: true }).click();
   await page.getByRole('button', { name: '+ Registrar' }).click();
   await page.getByRole('textbox', { name: 'Peso de hoje em kg' }).fill('82,4');

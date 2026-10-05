@@ -9,11 +9,11 @@ import {
   removeAlternative, removeExercise, updateDay, updateExercise
 } from '../../domain/plan-edit';
 import { EXERCISE_LIBRARY } from '../../data/exercise-library';
-import { seedPlan } from '../../data/seed-plan';
 import { useAppStore } from '../../store';
 import { Icon } from '../../ui/Icon';
 import { ExerciseThumb } from '../../ui/ExerciseIllustration';
 import { AiPlanSheet } from './AiPlanSheet';
+import { TemplateSheet } from './TemplateSheet';
 import { NumberField } from '../../ui/NumberField';
 import { Sheet, SheetAction } from '../../ui/Sheet';
 import { dayTitle, formatNumber, plural } from '../../ui/format';
@@ -26,8 +26,8 @@ export function PlanScreen() {
   const run = useAppStore(s => s.run);
   const [plansOpen, setPlansOpen] = useState(false);
   const [aiOpen, setAiOpen] = useState(false);
+  const [templatesOpen, setTemplatesOpen] = useState(false);
   const plan = data?.activePlanId ? data.plans[data.activePlanId] : undefined;
-  const useSeed = () => run((d, now) => addPlan(d, seedPlan(toDateKey(now), newId('plano')), now));
 
   if (!data) return null;
   if (!plan) {
@@ -36,9 +36,9 @@ export function PlanScreen() {
         <h1 className="pt-6 text-3xl font-black tracking-tight">Plano</h1>
         <section className="mt-6 rounded-2xl border border-line bg-surface p-4">
           <h2 className="text-lg font-bold">Você ainda não tem um plano</h2>
-          <p className="mt-1 text-muted">Comece pelo plano de exemplo (Push/Pull/Legs, 6 dias) e ajuste os dias aqui.</p>
-          <button type="button" onClick={useSeed} className="mt-4 h-12 w-full rounded-xl bg-primary text-base font-bold text-white">
-            Usar plano de exemplo
+          <p className="mt-1 text-muted">Comece por um modelo pronto (corpo inteiro, ABC, superior/inferior, em casa…) e ajuste os dias aqui.</p>
+          <button type="button" onClick={() => setTemplatesOpen(true)} className="mt-4 h-12 w-full rounded-xl bg-primary text-base font-bold text-white">
+            Escolher um modelo
           </button>
           <button type="button" onClick={() => setAiOpen(true)} className="mt-2 h-12 w-full rounded-xl bg-surface-2 text-base font-bold">
             Montar treino com IA
@@ -46,6 +46,7 @@ export function PlanScreen() {
         </section>
         {/* mesma chave nos dois retornos: o painel continua aberto quando o plano criado vira o ativo */}
         <AiPlanSheet key="ai" open={aiOpen} onClose={() => setAiOpen(false)} />
+        <TemplateSheet key="modelos" open={templatesOpen} onClose={() => setTemplatesOpen(false)} />
       </>
     );
   }
@@ -110,11 +111,12 @@ export function PlanScreen() {
         <SheetAction onClick={() => { run((d, now) => addPlan(d, blankPlan(newId('plano'), toDateKey(now)), now)); setPlansOpen(false); }}>
           <Icon name="mais" /> Novo plano em branco
         </SheetAction>
-        <SheetAction onClick={() => { useSeed(); setPlansOpen(false); }}>
-          <Icon name="mais" /> Novo plano a partir do exemplo
+        <SheetAction onClick={() => { setPlansOpen(false); setTemplatesOpen(true); }}>
+          <Icon name="mais" /> Novo plano a partir de um modelo
         </SheetAction>
       </Sheet>
       <AiPlanSheet key="ai" open={aiOpen} onClose={() => setAiOpen(false)} />
+      <TemplateSheet key="modelos" open={templatesOpen} onClose={() => setTemplatesOpen(false)} />
     </>
   );
 }

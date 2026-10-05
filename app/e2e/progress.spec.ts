@@ -10,7 +10,8 @@ test('progresso: estatísticas, mapa de calor e histórico com apagar', async ({
 
   // um treino curto
   await page.getByRole('button', { name: 'Treino', exact: true }).click();
-  await page.getByRole('button', { name: 'Usar plano de exemplo' }).click();
+  await page.getByRole('button', { name: 'Escolher um modelo' }).click();
+  await page.getByRole('button', { name: 'Usar PPL do app original' }).click();
   await page.getByRole('button', { name: /^Começar / }).first().click();
   const first = page.getByRole('article').first();
   await first.getByRole('button', { name: 'Série 1 feita' }).click();
@@ -38,7 +39,8 @@ test('metas: conquista do primeiro check-in e meta de peso com marcos', async ({
   await page.clock.setFixedTime(new Date(2026, 9, 7, 12));
   await page.goto('/');
   await page.getByRole('button', { name: 'Treino', exact: true }).click();
-  await page.getByRole('button', { name: 'Usar plano de exemplo' }).click();
+  await page.getByRole('button', { name: 'Escolher um modelo' }).click();
+  await page.getByRole('button', { name: 'Usar PPL do app original' }).click();
   await page.getByRole('button', { name: 'Início', exact: true }).click();
   await page.getByRole('button', { name: /presença/ }).click();
   await expect(page.getByText('Conquista desbloqueada: Primeiro Passo')).toBeVisible();
@@ -65,7 +67,8 @@ test('histórico: corrigir um exercício, evolução e apagar pesagem', async ({
   page.on('console', msg => { if (msg.type() === 'error') errors.push(msg.text()); });
   await page.goto('/');
   await page.getByRole('button', { name: 'Treino', exact: true }).click();
-  await page.getByRole('button', { name: 'Usar plano de exemplo' }).click();
+  await page.getByRole('button', { name: 'Escolher um modelo' }).click();
+  await page.getByRole('button', { name: 'Usar PPL do app original' }).click();
   await page.getByRole('button', { name: /^Começar / }).first().click();
   const first = page.getByRole('article').first();
   const name = await first.getAttribute('aria-label');

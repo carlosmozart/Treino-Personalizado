@@ -5,7 +5,8 @@ test('perfil: dados, saúde, configurações e backup de ida e volta', async ({ 
   page.on('console', msg => { if (msg.type() === 'error') errors.push(msg.text()); });
   await page.goto('/');
   await page.getByRole('button', { name: 'Plano', exact: true }).click();
-  await page.getByRole('button', { name: 'Usar plano de exemplo' }).click();
+  await page.getByRole('button', { name: 'Escolher um modelo' }).click();
+  await page.getByRole('button', { name: 'Usar PPL do app original' }).click();
   await page.getByRole('button', { name: 'Perfil', exact: true }).click();
 
   await page.getByRole('textbox', { name: 'Nome' }).fill('Ana');

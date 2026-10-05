@@ -3,7 +3,8 @@ import { expect, test } from '@playwright/test';
 test('modo foco: um exercício por vez, navegação e preferência lembrada; aquecimento', async ({ page }) => {
   await page.goto('/');
   await page.getByRole('button', { name: 'Treino', exact: true }).click();
-  await page.getByRole('button', { name: 'Usar plano de exemplo' }).click();
+  await page.getByRole('button', { name: 'Escolher um modelo' }).click();
+  await page.getByRole('button', { name: 'Usar PPL do app original' }).click();
   await page.getByRole('button', { name: /^Começar / }).first().click();
   await page.getByRole('button', { name: 'Um exercício por vez' }).click();
   await expect(page.getByText(/^Exercício 1\/\d+$/)).toBeVisible();

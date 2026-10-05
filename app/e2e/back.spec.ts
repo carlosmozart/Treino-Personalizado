@@ -3,7 +3,8 @@ import { expect, test } from '@playwright/test';
 test('voltar: fecha o painel, depois volta para o Início', async ({ page }) => {
   await page.goto('/');
   await page.getByRole('button', { name: 'Plano', exact: true }).click();
-  await page.getByRole('button', { name: 'Usar plano de exemplo' }).click();
+  await page.getByRole('button', { name: 'Escolher um modelo' }).click();
+  await page.getByRole('button', { name: 'Usar PPL do app original' }).click();
   await page.getByRole('button', { name: 'Progresso', exact: true }).click();
   await page.getByRole('button', { name: 'Plano', exact: true }).click();
   await page.getByRole('button', { name: 'Editar Segunda' }).click();

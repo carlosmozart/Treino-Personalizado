@@ -5,7 +5,8 @@ test('treino: ajuste de carga, troca pela biblioteca e carga suspeita', async ({
   page.on('console', msg => { if (msg.type() === 'error') errors.push(msg.text()); });
   await page.goto('/');
   await page.getByRole('button', { name: 'Treino', exact: true }).click();
-  await page.getByRole('button', { name: 'Usar plano de exemplo' }).click();
+  await page.getByRole('button', { name: 'Escolher um modelo' }).click();
+  await page.getByRole('button', { name: 'Usar PPL do app original' }).click();
   await page.getByRole('button', { name: /^Começar / }).first().click();
   const first = page.getByRole('article').first();
 

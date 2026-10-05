@@ -1,9 +1,7 @@
+import { useState } from 'react';
 import { DAY_KEYS, type DayKey } from '../../domain/ai-plan';
-import { addPlan } from '../../domain/actions';
-import { toDateKey } from '../../domain/dates';
 import { dayKeyOf, type Plan } from '../../domain/model';
-import { seedPlan } from '../../data/seed-plan';
-import { newId } from '../../domain/ids';
+import { TemplateSheet } from '../plan/TemplateSheet';
 import { useAppStore } from '../../store';
 import { askRestAlarmPermission } from './rest-alarm-instance';
 import { dayTitle, plural } from '../../ui/format';
@@ -11,19 +9,20 @@ import { dayTitle, plural } from '../../ui/format';
 /** Escolha do treino: hoje em destaque e os demais dias logo abaixo. */
 export function DayPicker() {
   const data = useAppStore(s => s.data);
-  const run = useAppStore(s => s.run);
   const start = useAppStore(s => s.startWorkout);
   const plan = data?.activePlanId ? data.plans[data.activePlanId] : undefined;
+  const [templatesOpen, setTemplatesOpen] = useState(false);
 
   if (!plan) {
     return (
       <section className="mt-6 rounded-2xl border border-line bg-surface p-4">
         <h2 className="text-lg font-bold">Você ainda não tem um plano</h2>
-        <p className="mt-1 text-muted">Comece pelo plano de exemplo (Push/Pull/Legs, 6 dias) e ajuste depois.</p>
-        <button type="button" onClick={() => run((d, now) => addPlan(d, seedPlan(toDateKey(now), newId('plano')), now))}
+        <p className="mt-1 text-muted">Comece por um modelo pronto e ajuste depois na aba Plano.</p>
+        <button type="button" onClick={() => setTemplatesOpen(true)}
           className="mt-4 h-12 w-full rounded-xl bg-primary text-base font-bold text-white">
-          Usar plano de exemplo
+          Escolher um modelo
         </button>
+        <TemplateSheet open={templatesOpen} onClose={() => setTemplatesOpen(false)} />
       </section>
     );
   }
