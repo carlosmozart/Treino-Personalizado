@@ -66,4 +66,4 @@ jobs:
         with:
           name: vigor-gym-teste
           path: dist/*.apk
-          retention-days: 30
+          retention-days: 1

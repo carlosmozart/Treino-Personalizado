@@ -3,6 +3,14 @@ export interface ReleaseNote { version: string; date: string; items: string[] }
 
 export const RELEASE_NOTES: readonly ReleaseNote[] = [
   {
+    version: '3.1.0',
+    date: '2026-10',
+    items: [
+      'Modelos de plano prontos: Corpo inteiro, Em casa (peso do corpo), ABC, Superior / Inferior, Push / Pull / Legs e Força 5×5. Em Plano → Planos → "Novo plano a partir de um modelo".',
+      'Cada modelo mostra o nível, os dias por semana e os treinos antes de escolher; depois dá para editar tudo.'
+    ]
+  },
+  {
     version: '3.0.0',
     date: '2026-10',
     items: [

@@ -6,7 +6,7 @@ Todas as mudanças relevantes do app ficam registradas aqui. Ao lançar uma nova
    atualizar o app instalado
 3. Adicione uma entrada aqui, nesse formato
 
-## [Não lançado]
+## [3.1.0] - 2026-10-05
 
 - Modelos de plano prontos para escolher e editar: Corpo inteiro 3×, Em casa 3× (peso do corpo), ABC 3×, Superior / Inferior 4×, Push / Pull / Legs 6× e Força 5×5, além do PPL original. Aparecem no Início, no Treino e em Plano → Planos, com a prévia dos treinos.
 
