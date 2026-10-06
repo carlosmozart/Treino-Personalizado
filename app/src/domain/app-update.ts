@@ -3,8 +3,9 @@
 
 export const RELEASES_URL = 'https://api.github.com/repos/carlosmozart/Treino-Personalizado/releases/latest';
 export const DOWNLOAD_PREFIX = 'https://github.com/carlosmozart/Treino-Personalizado/releases/download/';
-// 3 h: uma versão nova chega no mesmo dia; bem abaixo do limite da API do GitHub (60/h por IP)
-export const CHECK_INTERVAL_MS = 3 * 60 * 60 * 1000;
+// Consulta toda vez que o app abre ou volta à tela; a folga de 2 min só evita repetir ao alternar
+// entre apps no treino (a API do GitHub aceita 60 consultas/h por IP).
+export const CHECK_INTERVAL_MS = 2 * 60 * 1000;
 
 /** "2.20.10" > "2.20.9"; ignora "v" e o que vem depois de "+" ou "-". */
 export function compareVersions(a: string, b: string): number {

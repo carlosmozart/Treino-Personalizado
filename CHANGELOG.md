@@ -8,7 +8,7 @@ Todas as mudanças relevantes do app ficam registradas aqui. Ao lançar uma nova
 
 ## [Não lançado]
 
-- Atualização: o app procura versão nova ao abrir e ao voltar a ele, a cada 3 h (antes, uma vez por dia e só ao abrir do zero); a oferta não interrompe um treino em andamento.
+- Atualização: o app procura versão nova toda vez que é aberto ou volta à tela (antes, uma vez por dia e só ao abrir do zero); a oferta não interrompe um treino em andamento.
 
 ## [3.2.0] - 2026-10-05
 
