@@ -20,6 +20,8 @@ void useAppStore.getState().init().then(() => {
   startRemindersSync();
   startDayWatcher(() => useAppStore.getState().run(dailyCheck));
   void useUpdate.getState().check(false);
+  // o Android mantém o app na memória: voltar a ele não reinicia, então consulta também aqui
+  document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') void useUpdate.getState().check(false); });
 });
 flushOnHide();
 listenBack();

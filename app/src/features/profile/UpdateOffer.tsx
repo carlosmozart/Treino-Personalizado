@@ -1,12 +1,15 @@
 import { useUpdate, updatesAvailable } from '../../platform/app-update';
 import { Sheet } from '../../ui/Sheet';
+import { useAppStore } from '../../store';
 
-/** Oferta de versão nova (aparece sozinha após a consulta diária). */
+/** Oferta de versão nova (aparece sozinha após a consulta automática). */
 export function UpdateOffer() {
   const offer = useUpdate(s => s.offer);
   const dismiss = useUpdate(s => s.dismiss);
   const install = useUpdate(s => s.install);
-  if (!offer) return null;
+  // não interrompe um treino: a oferta espera e aparece quando ele termina
+  const training = useAppStore(s => s.session !== null);
+  if (!offer || training) return null;
   const size = offer.size ? ` (${(offer.size / 1048576).toFixed(1).replace('.', ',')} MB)` : '';
   return (
     <Sheet title={`Versão ${offer.version} disponível`} open onClose={dismiss}>

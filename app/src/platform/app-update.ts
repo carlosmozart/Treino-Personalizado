@@ -1,4 +1,4 @@
-// Atualização do APK: consulta a release do GitHub (no máximo uma vez por dia, ou pelo botão),
+// Atualização do APK: consulta a release do GitHub (ao abrir e ao voltar ao app, no máximo a cada 3 h, ou pelo botão),
 // oferece a versão nova e usa o AppUpdatePlugin nativo para baixar, conferir o SHA-256 e abrir o
 // instalador do Android. Os dados ficam: é o mesmo app, atualizado por cima.
 import { create } from 'zustand';

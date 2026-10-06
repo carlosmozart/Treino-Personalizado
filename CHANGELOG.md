@@ -6,6 +6,10 @@ Todas as mudanças relevantes do app ficam registradas aqui. Ao lançar uma nova
    atualizar o app instalado
 3. Adicione uma entrada aqui, nesse formato
 
+## [Não lançado]
+
+- Atualização: o app procura versão nova ao abrir e ao voltar a ele, a cada 3 h (antes, uma vez por dia e só ao abrir do zero); a oferta não interrompe um treino em andamento.
+
 ## [3.2.0] - 2026-10-05
 
 - Início: cartão do plano com "Editar plano" e "Novo plano" (modelo pronto, do zero, com IA ou voltar a um plano salvo); sem plano, dá para criar do zero ali mesmo.

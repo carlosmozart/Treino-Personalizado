@@ -3,7 +3,8 @@
 
 export const RELEASES_URL = 'https://api.github.com/repos/carlosmozart/Treino-Personalizado/releases/latest';
 export const DOWNLOAD_PREFIX = 'https://github.com/carlosmozart/Treino-Personalizado/releases/download/';
-export const CHECK_INTERVAL_MS = 24 * 60 * 60 * 1000;
+// 3 h: uma versão nova chega no mesmo dia; bem abaixo do limite da API do GitHub (60/h por IP)
+export const CHECK_INTERVAL_MS = 3 * 60 * 60 * 1000;
 
 /** "2.20.10" > "2.20.9"; ignora "v" e o que vem depois de "+" ou "-". */
 export function compareVersions(a: string, b: string): number {
