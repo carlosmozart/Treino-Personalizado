@@ -5,6 +5,7 @@ import { useAppStore } from '../../store';
 import { useUiStore } from '../../store/ui-store';
 import { askRestAlarmPermission } from '../workout/rest-alarm-instance';
 import { HomeNotices } from './HomeNotices';
+import { IosInstallNotice } from './IosInstallNotice';
 import { WeightLogSheet } from './WeightLogSheet';
 import { PlanChooser, type ChooserMode } from '../plan/PlanChooser';
 import { formatNumber, plural, shortDate } from '../../ui/format';
@@ -30,6 +31,7 @@ export function HomeScreen() {
         <p className="text-muted">{greeting(now)}{name ? `, ${name}` : ''}</p>
         <h1 className="text-3xl font-black tracking-tight">Início</h1>
       </header>
+      <IosInstallNotice />
       <HomeNotices />
       <WeekStrip />
       <TodayCard card={todayCard(data, now, session)} onChoose={setChooser} />

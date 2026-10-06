@@ -3,6 +3,16 @@ export interface ReleaseNote { version: string; date: string; items: string[] }
 
 export const RELEASE_NOTES: readonly ReleaseNote[] = [
   {
+    version: '3.2.0',
+    date: '2026-10',
+    items: [
+      'Início: cartão do plano com "Editar plano" e "Novo plano" (modelo pronto, do zero ou com IA).',
+      'Perfil: registre o peso direto no campo "Peso atual".',
+      'Treino: "Trocar ou cancelar treino" para fazer o treino de outro dia ou desistir sem salvar.',
+      'Versão web para iPhone, com instruções para adicionar à Tela de Início.'
+    ]
+  },
+  {
     version: '3.1.0',
     date: '2026-10',
     items: [

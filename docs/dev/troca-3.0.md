@@ -43,6 +43,6 @@ aceita versionCode menor); o app 2.x volta a ler exatamente o que havia antes.
 
 ## Depois
 
-- [ ] GitHub Pages: hoje publica a raiz (2.x). Passar a publicar `app/dist` (workflow de Pages).
+- [x] GitHub Pages publica `app/dist` pelo workflow `pages.yml` (desde a 3.2.0, 05/10/2026).
 - [ ] Arquivar o app antigo (raiz) numa pasta/branch e limpar o CI.
 - [ ] Nuvem (P10): Firebase com login Google, quando o projeto existir.

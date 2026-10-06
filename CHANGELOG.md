@@ -6,11 +6,12 @@ Todas as mudanças relevantes do app ficam registradas aqui. Ao lançar uma nova
    atualizar o app instalado
 3. Adicione uma entrada aqui, nesse formato
 
-## [Não lançado]
+## [3.2.0] - 2026-10-05
 
 - Início: cartão do plano com "Editar plano" e "Novo plano" (modelo pronto, do zero, com IA ou voltar a um plano salvo); sem plano, dá para criar do zero ali mesmo.
 - Perfil: botão para registrar o peso no campo "Peso atual".
 - Treino: "Trocar ou cancelar treino" no topo, para fazer o treino de outro dia no lugar ou desistir sem salvar.
+- Versão web publicada com o app novo (https://carlosmozart.github.io/Treino-Personalizado/); no iPhone, o Início ensina a adicionar à Tela de Início.
 
 ## [3.1.0] - 2026-10-05
 
