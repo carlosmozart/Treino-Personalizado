@@ -9,6 +9,7 @@ import { useNow } from '../../hooks/use-now';
 import { NumberField } from '../../ui/NumberField';
 import { formatNumber } from '../../ui/format';
 import { SettingsSection } from './SettingsSection';
+import { WeightLogSheet } from '../home/WeightLogSheet';
 
 const ACTIVITY: Record<ActivityLevel, string> = { sedentario: 'Sedentário', moderado: 'Moderado (3–5 treinos)', intenso: 'Intenso (6–7 treinos)' };
 const TONE = { info: 'text-primary', success: 'text-success', warning: 'text-warning', danger: 'text-danger' } as const;
@@ -18,6 +19,7 @@ export function ProfileScreen() {
   const data = useAppStore(s => s.data);
   const run = useAppStore(s => s.run);
   const now = new Date(useNow(60_000));
+  const [weighing, setWeighing] = useState(false);
   if (!data) return null;
   const p = data.profile;
   const set = (patch: Partial<Omit<UserProfile, 'weighIns' | 'weightKg'>>) => run((d, t) => updateProfile(d, patch, t));
@@ -52,16 +54,20 @@ export function ProfileScreen() {
             <NumberField label="Meta de peso em kg" decimal value={p.weightGoal?.targetWeight ?? p.targetWeightKg ?? 0}
               onChange={n => set(p.weightGoal ? { weightGoal: { ...p.weightGoal, targetWeight: n } } : { targetWeightKg: n > 0 ? n : null })} />
           </Field>
-          <Field label="Peso atual">
-            <p className="flex h-12 items-center text-base">{h.weightKg ? `${formatNumber(h.weightKg)} kg` : '—'}</p>
-          </Field>
+          <div className="text-sm font-semibold text-muted">Peso atual
+            <div className="flex h-12 items-center justify-between gap-2 text-ink">
+              <span className="text-base">{h.weightKg ? `${formatNumber(h.weightKg)} kg` : '—'}</span>
+              <button type="button" onClick={() => setWeighing(true)} aria-label="Registrar peso" className="h-10 shrink-0 rounded-xl bg-surface-2 px-3 text-sm font-bold">+ Registrar</button>
+            </div>
+          </div>
         </div>
         <Field label="Atividade">
           <select value={p.activityLevel} onChange={e => set({ activityLevel: e.target.value as ActivityLevel })} className={INPUT}>
             {Object.entries(ACTIVITY).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
           </select>
         </Field>
-        <p className="text-xs text-faint">O peso é registrado na tela de Início, para manter o histórico.</p>
+        <p className="text-xs text-faint">Cada pesagem entra no histórico de peso (gráfico no Início e no Progresso).</p>
+        <WeightLogSheet open={weighing} onClose={() => setWeighing(false)} initial={h.weightKg} />
       </Card>
 
       <Card title="Saúde">

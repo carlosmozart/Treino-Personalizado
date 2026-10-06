@@ -6,6 +6,12 @@ Todas as mudanças relevantes do app ficam registradas aqui. Ao lançar uma nova
    atualizar o app instalado
 3. Adicione uma entrada aqui, nesse formato
 
+## [Não lançado]
+
+- Início: cartão do plano com "Editar plano" e "Novo plano" (modelo pronto, do zero, com IA ou voltar a um plano salvo); sem plano, dá para criar do zero ali mesmo.
+- Perfil: botão para registrar o peso no campo "Peso atual".
+- Treino: "Trocar ou cancelar treino" no topo, para fazer o treino de outro dia no lugar ou desistir sem salvar.
+
 ## [3.1.0] - 2026-10-05
 
 - Modelos de plano prontos para escolher e editar: Corpo inteiro 3×, Em casa 3× (peso do corpo), ABC 3×, Superior / Inferior 4×, Push / Pull / Legs 6× e Força 5×5, além do PPL original. Aparecem no Início, no Treino e em Plano → Planos, com a prévia dos treinos.

@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { DAY_KEYS } from '../../domain/ai-plan';
 import { isExerciseDone, sessionProgress, type ActiveSession } from '../../domain/session';
 import { updateSettings } from '../../domain/actions';
 import { Icon } from '../../ui/Icon';
@@ -6,7 +7,7 @@ import { useNow } from '../../hooks/use-now';
 import { useWakeLock } from '../../hooks/use-wake-lock';
 import { useAppStore } from '../../store';
 import { Sheet } from '../../ui/Sheet';
-import { formatClock, plural } from '../../ui/format';
+import { dayTitle, formatClock, plural } from '../../ui/format';
 import { ExerciseCard } from './ExerciseCard';
 import { useRestStore } from './rest-store';
 import { useWorkoutUi } from './workout-ui';
@@ -14,6 +15,7 @@ import { useWorkoutUi } from './workout-ui';
 export function ActiveWorkout({ session }: { session: ActiveSession }) {
   const now = useNow(1000);
   const [finishing, setFinishing] = useState(false);
+  const [switching, setSwitching] = useState(false);
   const keepScreenOn = useAppStore(s => s.data?.settings.keepScreenOn ?? true);
   useWakeLock(keepScreenOn);
   const progress = sessionProgress(session);
@@ -50,6 +52,9 @@ export function ActiveWorkout({ session }: { session: ActiveSession }) {
         <div className="mt-2 h-1.5 rounded-full bg-surface-2" aria-hidden="true">
           <div className="h-1.5 rounded-full bg-success transition-[width]" style={{ width: `${pct}%` }} />
         </div>
+        <button type="button" onClick={() => setSwitching(true)} className="mt-1 h-9 text-sm font-semibold text-muted">
+          Trocar ou cancelar treino
+        </button>
       </header>
 
       {focus && total > 0 ? (
@@ -83,7 +88,57 @@ export function ActiveWorkout({ session }: { session: ActiveSession }) {
       )}
 
       <FinishSheet open={finishing} onClose={() => setFinishing(false)} session={session} />
+      <SwitchSheet open={switching} onClose={() => setSwitching(false)} session={session} />
     </div>
+  );
+}
+
+/** Desistir do treino ou trocar pelo de outro dia; as séries marcadas são perdidas. */
+function SwitchSheet({ open, onClose, session }: { open: boolean; onClose: () => void; session: ActiveSession }) {
+  const plan = useAppStore(s => s.data?.plans[session.planId]);
+  const start = useAppStore(s => s.startWorkout);
+  const discard = useAppStore(s => s.discardWorkout);
+  const done = sessionProgress(session).setsDone;
+  const [confirm, setConfirm] = useState(false);
+  const lose = done === 0 ? '' : done === 1 ? 'A série marcada não será salva.' : `As ${done} séries marcadas não serão salvas.`;
+  const close = () => { setConfirm(false); onClose(); };
+  const cancel = () => { discard(); useRestStore.getState().stop(); close(); };
+  const swap = (key: (typeof DAY_KEYS)[number]) => {
+    if (done > 0 && !window.confirm(`Trocar de treino? ${lose}`)) return;
+    useRestStore.getState().stop();
+    if (start(session.planId, key)) close();
+  };
+  const days = plan ? DAY_KEYS.filter(k => k !== session.dayKey && plan.days[k].exercises.length > 0) : [];
+  return (
+    <Sheet title="Trocar ou cancelar treino" open={open} onClose={close}>
+      {days.length > 0 && <p className="px-1 pb-2 text-sm font-semibold text-muted">Fazer outro treino no lugar</p>}
+      <ul className="space-y-2">
+        {days.map(k => {
+          const title = dayTitle(plan!.days[k], k).title;
+          return (
+            <li key={k}>
+              <button type="button" onClick={() => swap(k)} aria-label={`Trocar por ${title}`}
+                className="w-full rounded-xl bg-surface-2 px-3 py-3 text-left">
+                <span className="block font-semibold">{title}</span>
+                <span className="text-sm text-muted">{plural(plan!.days[k].exercises.length, 'exercício', 'exercícios')}</span>
+              </button>
+            </li>
+          );
+        })}
+      </ul>
+      {lose && <p className="mt-3 px-1 text-sm text-warning">{lose}</p>}
+      {confirm ? (
+        <button type="button" onClick={cancel}
+          className="mt-3 h-12 w-full rounded-xl border border-danger text-base font-bold text-danger">
+          Confirmar: cancelar sem salvar
+        </button>
+      ) : (
+        <button type="button" onClick={() => (done > 0 ? setConfirm(true) : cancel())}
+          className="mt-3 h-12 w-full rounded-xl text-base font-semibold text-danger">
+          Cancelar treino
+        </button>
+      )}
+    </Sheet>
   );
 }
 

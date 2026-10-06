@@ -1,16 +1,14 @@
 import { useState } from 'react';
-import { addWater, logWeight, toggleCheckin } from '../../domain/actions';
-import { toDateKey } from '../../domain/dates';
+import { addWater, toggleCheckin } from '../../domain/actions';
 import { progressCard, todayCard, waterCard, weekStrip, weightCard, type WeightCard as WeightData } from '../../domain/home';
 import { useAppStore } from '../../store';
 import { useUiStore } from '../../store/ui-store';
 import { askRestAlarmPermission } from '../workout/rest-alarm-instance';
 import { HomeNotices } from './HomeNotices';
-import { TemplateSheet } from '../plan/TemplateSheet';
-import { NumberField } from '../../ui/NumberField';
-import { Sheet } from '../../ui/Sheet';
+import { WeightLogSheet } from './WeightLogSheet';
+import { PlanChooser, type ChooserMode } from '../plan/PlanChooser';
 import { formatNumber, plural, shortDate } from '../../ui/format';
-import { DAY_FULL_NAMES } from '../../domain/model';
+import { DAY_FULL_NAMES, trainingDaysPerWeek } from '../../domain/model';
 
 function greeting(now: Date): string {
   const h = now.getHours();
@@ -20,6 +18,8 @@ function greeting(now: Date): string {
 export function HomeScreen() {
   const data = useAppStore(s => s.data);
   const session = useAppStore(s => s.session);
+  // fica fora dos cartões: o painel continua montado quando o plano criado muda o cartão de hoje
+  const [chooser, setChooser] = useState<ChooserMode>(null);
   if (!data) return null;
   const now = new Date();
   const name = data.profile.name.trim().split(/\s+/)[0];
@@ -32,11 +32,32 @@ export function HomeScreen() {
       </header>
       <HomeNotices />
       <WeekStrip />
-      <TodayCard card={todayCard(data, now, session)} />
+      <TodayCard card={todayCard(data, now, session)} onChoose={setChooser} />
+      <PlanSection onChoose={setChooser} />
       <ProgressSection />
       <WeightSection card={weightCard(data)} />
       <WaterSection />
+      <PlanChooser mode={chooser} setMode={setChooser} />
     </div>
+  );
+}
+
+/** Plano ativo com atalhos para editar ou começar outro (modelo, do zero, IA). */
+function PlanSection({ onChoose }: { onChoose: (m: ChooserMode) => void }) {
+  const data = useAppStore(s => s.data)!;
+  const setTab = useUiStore(s => s.setTab);
+  const plan = data.activePlanId ? data.plans[data.activePlanId] : undefined;
+  if (!plan) return null;
+  return (
+    <section aria-label="Plano de treino" className="rounded-2xl border border-line bg-surface p-4">
+      <p className="text-xs font-semibold text-muted">Plano de treino</p>
+      <h2 className="truncate text-lg font-bold">{plan.name}</h2>
+      <p className="text-sm text-muted">{plural(trainingDaysPerWeek(plan), 'dia', 'dias')} por semana</p>
+      <div className="mt-3 grid grid-cols-2 gap-2">
+        <button type="button" onClick={() => setTab('plano')} className="h-11 rounded-xl bg-surface-2 font-bold">Editar plano</button>
+        <button type="button" onClick={() => onChoose('menu')} className="h-11 rounded-xl bg-surface-2 font-bold">Novo plano</button>
+      </div>
+    </section>
   );
 }
 
@@ -60,20 +81,19 @@ function WeekStrip() {
   );
 }
 
-function TodayCard({ card }: { card: ReturnType<typeof todayCard> }) {
+function TodayCard({ card, onChoose }: { card: ReturnType<typeof todayCard>; onChoose: (m: ChooserMode) => void }) {
   const setTab = useUiStore(s => s.setTab);
   const start = useAppStore(s => s.startWorkout);
   const run = useAppStore(s => s.run);
   const data = useAppStore(s => s.data)!;
-  const [templatesOpen, setTemplatesOpen] = useState(false);
 
   if (card.kind === 'no-plan') {
     return (
       <section className="rounded-2xl border border-primary bg-surface p-4">
         <h2 className="text-lg font-bold">Comece pelo seu plano</h2>
         <p className="mt-1 text-muted">Escolha um modelo pronto para o app montar o seu dia; dá para ajustar tudo depois.</p>
-        <button type="button" onClick={() => setTemplatesOpen(true)} className="mt-4 h-12 w-full rounded-xl bg-primary text-base font-bold text-white">Escolher um modelo</button>
-        <TemplateSheet open={templatesOpen} onClose={() => setTemplatesOpen(false)} />
+        <button type="button" onClick={() => onChoose('templates')} className="mt-4 h-12 w-full rounded-xl bg-primary text-base font-bold text-white">Escolher um modelo</button>
+        <button type="button" onClick={() => onChoose('menu')} className="mt-2 h-12 w-full rounded-xl bg-surface-2 text-base font-bold">Criar do zero ou com IA</button>
       </section>
     );
   }
@@ -155,10 +175,7 @@ function ProgressSection() {
 
 /** N7: peso com variação, meta e registro direto. */
 function WeightSection({ card }: { card: WeightData | null }) {
-  const run = useAppStore(s => s.run);
   const [open, setOpen] = useState(false);
-  const [value, setValue] = useState(card?.current ?? 70);
-  const save = () => { run((d, now) => logWeight(d, value, toDateKey(now), now)); setOpen(false); };
   const deltaTone = card?.towardGoal === null || card?.towardGoal === undefined ? 'text-muted' : card.towardGoal ? 'text-success' : 'text-danger';
 
   return (
@@ -173,7 +190,7 @@ function WeightSection({ card }: { card: WeightData | null }) {
             <p className={`text-sm font-semibold ${deltaTone}`}>{card.delta > 0 ? '+' : ''}{formatNumber(card.delta)} kg desde a anterior</p>
           )}
         </div>
-        <button type="button" onClick={() => { setValue(card?.current ?? 70); setOpen(true); }} className="h-11 shrink-0 rounded-xl bg-surface-2 px-4 font-bold">+ Registrar</button>
+        <button type="button" onClick={() => setOpen(true)} className="h-11 shrink-0 rounded-xl bg-surface-2 px-4 font-bold">+ Registrar</button>
       </div>
       {card && card.target !== null && (
         <p className="mt-2 text-sm text-muted">
@@ -181,12 +198,7 @@ function WeightSection({ card }: { card: WeightData | null }) {
         </p>
       )}
       {card && card.points.length >= 2 && <WeightChart points={card.points} target={card.target} />}
-      <Sheet title="Registrar peso" open={open} onClose={() => setOpen(false)}>
-        <label className="block text-sm font-semibold text-muted">Peso de hoje (kg)
-          <NumberField label="Peso de hoje em kg" decimal value={value} onChange={setValue} className="mt-1" />
-        </label>
-        <button type="button" onClick={save} className="mt-4 h-12 w-full rounded-xl bg-primary text-base font-bold text-white">Salvar</button>
-      </Sheet>
+      <WeightLogSheet open={open} onClose={() => setOpen(false)} initial={card?.current ?? null} />
     </section>
   );
 }
