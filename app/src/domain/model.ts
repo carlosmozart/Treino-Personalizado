@@ -143,7 +143,11 @@ export interface Settings {
   weightButtons?: boolean;
   /** Backup automático no APK (O11). Ausente = ligado. */
   autoBackup?: boolean;
+  /** Tema da interface. Ausente = acompanha o sistema. */
+  theme?: ThemePref;
 }
+
+export type ThemePref = 'system' | 'light' | 'dark';
 
 export const DEFAULT_SETTINGS: Settings = {
   restSeconds: 90,

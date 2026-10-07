@@ -4,7 +4,7 @@ import { buildBackup, readBackup } from '../../domain/backup';
 import { canAutoBackup, saveBackupFile } from '../../platform/backup-file';
 import { errorReport, useErrorLog } from '../../platform/error-log';
 import { toDateKey } from '../../domain/dates';
-import type { AppData, Settings } from '../../domain/model';
+import type { AppData, Settings, ThemePref } from '../../domain/model';
 import { restoreBackup } from '../../domain/profile-view';
 import { useAppStore } from '../../store';
 import { NumberField } from '../../ui/NumberField';
@@ -41,6 +41,9 @@ export function SettingsSection() {
         <Toggle label="Botões de ajuste de carga no treino" checked={settings.weightButtons ?? true} onChange={v => set({ weightButtons: v })} />
         <Toggle label="Manter a tela ligada no treino" checked={settings.keepScreenOn ?? true} onChange={v => set({ keepScreenOn: v })} />
         <Toggle label="Mostrar ilustrações dos exercícios" checked={settings.showIllustrations ?? true} onChange={v => set({ showIllustrations: v })} />
+      </Card>
+      <Card title="Aparência">
+        <ThemeChoice value={settings.theme ?? 'system'} onChange={v => set({ theme: v })} />
       </Card>
       <BackupCard />
       <Card title="Conta e nuvem">
@@ -174,5 +177,24 @@ function ReminderToggle({ on, set }: { on: boolean; set: (patch: Partial<Setting
       {on && hasTime && <p className="text-xs text-faint">Às {plan!.trainingTime}, nos dias obrigatórios com exercícios.</p>}
       {denied && <p className="text-xs text-warning">Permissão de notificações não concedida.</p>}
     </>
+  );
+}
+
+const THEMES: { id: ThemePref; label: string }[] = [
+  { id: 'system', label: 'Sistema' },
+  { id: 'light', label: 'Claro' },
+  { id: 'dark', label: 'Escuro' }
+];
+
+function ThemeChoice({ value, onChange }: { value: ThemePref; onChange: (v: ThemePref) => void }) {
+  return (
+    <div role="radiogroup" aria-label="Tema" className="grid grid-cols-3 gap-1 rounded-xl bg-surface-2 p-1">
+      {THEMES.map(t => (
+        <button key={t.id} type="button" role="radio" aria-checked={value === t.id} onClick={() => onChange(t.id)}
+          className={`min-h-11 rounded-lg text-sm font-semibold ${value === t.id ? 'bg-primary text-white' : 'text-muted'}`}>
+          {t.label}
+        </button>
+      ))}
+    </div>
   );
 }

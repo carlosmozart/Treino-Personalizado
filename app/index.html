@@ -3,7 +3,16 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, interactive-widget=resizes-content" />
-    <meta name="theme-color" content="#020617" />
+    <meta name="theme-color" content="#000000" />
+    <script>
+      // tema salvo, aplicado antes do app carregar (ver src/ui/theme.ts)
+      try {
+        var t = localStorage.getItem('tp-theme');
+        var light = t === 'light' || (t !== 'dark' && matchMedia('(prefers-color-scheme: light)').matches);
+        document.documentElement.dataset.theme = light ? 'light' : 'dark';
+        if (light) document.querySelector('meta[name="theme-color"]').setAttribute('content', '#f4f4f5');
+      } catch (e) {}
+    </script>
     <link rel="icon" href="./icon-192.png" />
     <link rel="apple-touch-icon" href="./icon-192.png" />
     <meta name="apple-mobile-web-app-capable" content="yes" />

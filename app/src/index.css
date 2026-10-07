@@ -3,18 +3,36 @@
 /* Tokens do docs/guia-interface.md. Componentes usam estes nomes (bg-surface, text-muted,
    bg-primary…) em vez de cores soltas, para o tema poder mudar num lugar só (M25). */
 @theme {
-  --color-page: #020617;        /* slate-950: fundo */
-  --color-surface: #0f172a;     /* slate-900: cartões */
-  --color-surface-2: #1e293b;   /* slate-800: elementos sobre cartões */
-  --color-line: #1e293b;        /* bordas sutis */
-  --color-ink: #f1f5f9;         /* texto primário */
-  --color-muted: #94a3b8;       /* texto secundário (slate-400) */
-  --color-faint: #64748b;       /* metadados (slate-500) */
+  /* Escuro (padrão): fundo preto */
+  --color-page: #000000;        /* fundo */
+  --color-surface: #111111;     /* cartões */
+  --color-surface-2: #1f1f1f;   /* elementos sobre cartões */
+  --color-line: #262626;        /* bordas sutis */
+  --color-ink: #f5f5f5;         /* texto primário */
+  --color-muted: #a3a3a3;       /* texto secundário */
+  --color-faint: #737373;       /* metadados */
   --color-primary: #2563eb;     /* ação principal */
   --color-success: #059669;     /* concluído, XP */
   --color-warning: #d97706;     /* atenção */
   --color-danger: #e11d48;      /* destrutivo */
   --color-info: #93c5fd;        /* dicas e links */
+}
+
+/* Claro: data-theme é posto em <html> por ui/theme.ts conforme a escolha nas configurações. */
+:root[data-theme="light"] {
+  --color-page: #f4f4f5;
+  --color-surface: #ffffff;
+  --color-surface-2: #e9e9ec;
+  --color-line: #dcdce0;
+  --color-ink: #111111;
+  --color-muted: #52525b;
+  --color-faint: #71717a;
+  --color-primary: #2563eb;
+  --color-success: #047857;
+  --color-warning: #b45309;
+  --color-danger: #be123c;
+  --color-info: #1d4ed8;
+  color-scheme: light;
 }
 
 :root {

@@ -25,8 +25,8 @@ export default defineConfig({
         lang: 'pt-BR',
         display: 'standalone',
         orientation: 'portrait',
-        background_color: '#020617',
-        theme_color: '#020617',
+        background_color: '#000000',
+        theme_color: '#000000',
         start_url: './',
         scope: './',
         icons: [
