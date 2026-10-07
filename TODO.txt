@@ -135,7 +135,7 @@ M21	Descanso no APK como serviço em primeiro plano: contagem na barra de notifi
 M22	Esforço por série opcional (RIR ou RPE), sem afetar progressão	Baixa
 M23	Compartilhar plano (arquivo só com rotinas, sem dados pessoais) e importar mesclando; imprimir plano em PDF	Baixa
 M24	Importar histórico de Strong/Hevy/FitNotes (CSV), casando nomes com a biblioteca (depende de M5)	Baixa
-M25	Tema claro e cor de destaque configurável (exige revisar tokens de cor do guia de interface)	Baixa
+M25	🟡 (tema claro e escuro feitos em 07/10/2026, c7e3046; falta a cor de destaque) Tema claro e cor de destaque configurável (exige revisar tokens de cor do guia de interface)	Baixa
 M26	Favoritar exercícios para aparecerem primeiro na troca/biblioteca	Baixa
 M27	Ampliar testes no estilo do openGym: casos-limite de cada regra de progressão, 1RM, recordes e migração	Alta
 
@@ -244,3 +244,13 @@ Q3	🟡 (crédito ao abrir a ilustração, LICENSE.txt junto das imagens e docs/
 Q4	Lacunas (aparelhos de cardio, prancha frontal): ícones próprios; e foto/vídeo do próprio usuário para qualquer exercício (exercícios personalizados)	Média
 Q5	Exercícios criados pela IA ou pelo usuário recebem ilustração pela correspondência de nome, quando houver	Média
 Entra na reescrita junto com a tela de treino nova (P5).
+
+R. Ideias do openGym v1.3.10 (07/10/2026)
+Só a ideia; o código do openGym é AGPL e não é copiado.
+#	Sugestão	Prioridade
+R1	Rotação de treinos A/B/C ao lado da semana fixa: o próximo treino é o próximo ainda não feito, faltar um dia não desloca o plano; Início mostra o próximo e quanto da volta já foi feito	Média
+R2	Deslizar na série e no plano: esquerda apaga com Desfazer, direita copia/duplica; mantém ao menos uma série; chave única para ligar/desligar	Média
+R3	Roda de tempo de descanso (estilo iPhone, 0:00 a 15:00) nas configurações, por exercício e durante o treino	Baixa
+R4	Repetir hoje: abrir um treino do histórico e começar de novo no mesmo dia	Média
+R5	Configurações durante o treino: folha com descanso, som, vibração e tela acesa sem sair da sessão	Baixa
+R6	"Última vez há X dias" no lugar da data; data completa ao tocar	Baixa
