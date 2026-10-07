@@ -5,6 +5,7 @@ import { TemplateSheet } from '../plan/TemplateSheet';
 import { useAppStore } from '../../store';
 import { askRestAlarmPermission } from './rest-alarm-instance';
 import { dayTitle, plural } from '../../ui/format';
+import { toDateKey } from '../../domain/dates';
 
 /** Escolha do treino: hoje em destaque e os demais dias logo abaixo. */
 export function DayPicker() {
@@ -27,30 +28,35 @@ export function DayPicker() {
     );
   }
 
-  const today = dayKeyOf(new Date());
+  const now = new Date();
+  const today = dayKeyOf(now);
+  // treino concluído (ou presença marcada) hoje: o cartão de hoje não oferece começar de novo
+  const doneToday = !!data?.checkins[toDateKey(now)];
   const order = [today, ...DAY_KEYS.filter(k => k !== today)];
   return (
     <div className="mt-6 space-y-3">
       <p className="text-sm text-muted">{plan.name}</p>
-      {order.map(key => <DayCard key={key} plan={plan} dayKey={key} today={key === today} onStart={() => { askRestAlarmPermission(); start(plan.id, key); }} />)}
+      {order.map(key => <DayCard key={key} plan={plan} dayKey={key} today={key === today} done={key === today && doneToday} onStart={() => { askRestAlarmPermission(); start(plan.id, key); }} />)}
     </div>
   );
 }
 
-function DayCard({ plan, dayKey, today, onStart }: { plan: Plan; dayKey: DayKey; today: boolean; onStart: () => void }) {
+function DayCard({ plan, dayKey, today, done, onStart }: { plan: Plan; dayKey: DayKey; today: boolean; done: boolean; onStart: () => void }) {
   const day = plan.days[dayKey];
   const { title, optional } = dayTitle(day, dayKey);
   const rest = day.exercises.length === 0;
   const tags = [today ? 'Hoje' : '', optional ? 'Opcional' : ''].filter(Boolean).join(' · ');
   return (
-    <article className={`rounded-2xl border bg-surface p-4 ${today ? 'border-primary' : 'border-line'}`}>
+    <article className={`rounded-2xl border bg-surface p-4 ${done ? 'border-success/60' : today ? 'border-primary' : 'border-line'}`}>
       <div className="flex items-center gap-3">
         <div className="min-w-0 flex-1">
           {tags && <p className="text-xs font-semibold text-muted">{tags}</p>}
           <h2 className="text-lg font-bold leading-snug">{title}</h2>
           <p className="text-sm text-muted">{rest ? 'Descanso' : `${plural(day.exercises.length, 'exercício', 'exercícios')}${day.focus ? ` · ${day.focus}` : ''}`}</p>
         </div>
-        {!rest && (
+        {done ? (
+          <p className="shrink-0 font-semibold text-success">Feito hoje</p>
+        ) : !rest && (
           <button type="button" onClick={onStart} aria-label={`Começar ${title}`}
             className={`h-11 shrink-0 rounded-xl px-4 font-bold ${today ? 'bg-primary text-white' : 'bg-surface-2 text-ink'}`}>
             Começar
