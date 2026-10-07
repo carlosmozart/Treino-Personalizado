@@ -9,6 +9,8 @@ Todas as mudanças relevantes do app ficam registradas aqui. Ao lançar uma nova
 ## [Não lançado]
 
 - Atualização: o app procura versão nova toda vez que é aberto ou volta à tela (antes, uma vez por dia e só ao abrir do zero); a oferta não interrompe um treino em andamento.
+- Aparência: tema claro e escuro (fundo preto), ou seguindo o sistema, em Perfil → Aparência; a barra de status do Android acompanha.
+- Treino: depois de concluir o treino do dia, a aba Treino mostra "Feito hoje" no lugar de "Começar".
 
 ## [3.2.0] - 2026-10-05
 
