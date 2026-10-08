@@ -118,6 +118,11 @@ export function ExerciseCard({ session, index, alwaysOpen = false }: Props) {
             {best && <span className="rounded-full bg-surface-2 px-2 py-0.5 text-muted">Melhor: {formatNumber(best.weight)} kg × {best.reps}</span>}
           </div>
           {last && <p className="mt-1.5 text-sm text-muted">Última vez ({last})</p>}
+          {ex.progression && (
+            <p className={`mt-1 text-sm font-semibold ${ex.progression.kind === 'up' ? 'text-success' : ex.progression.kind === 'deload' ? 'text-warning' : 'text-muted'}`}>
+              {ex.progression.reason}
+            </p>
+          )}
         </div>
       </div>
 

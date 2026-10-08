@@ -49,6 +49,11 @@ export interface PlanExercise {
   sets: number;
   /** Repetições-alvo (modo reps). */
   reps: number;
+  /** Faixa de repetições para a progressão dupla (M10). Ausente = só `reps`. */
+  repMin?: number;
+  repMax?: number;
+  /** Quanto a carga sobe na progressão, em kg (M13). Ausente = 2,5. */
+  increment?: number;
   weight: number;
   /** Segundos-alvo por série (modo time: prancha, isometria). */
   seconds?: number;
@@ -143,6 +148,8 @@ export interface Settings {
   weightButtons?: boolean;
   /** Backup automático no APK (O11). Ausente = ligado. */
   autoBackup?: boolean;
+  /** Progressão automática de carga (M10–M12). Ausente = ligada. */
+  autoProgression?: boolean;
   /** Tema da interface. Ausente = acompanha o sistema. */
   theme?: ThemePref;
 }

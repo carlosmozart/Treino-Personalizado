@@ -15,6 +15,7 @@ import { ExerciseThumb } from '../../ui/ExerciseIllustration';
 import { AiPlanSheet } from './AiPlanSheet';
 import { TemplateSheet } from './TemplateSheet';
 import { NumberField } from '../../ui/NumberField';
+import { DEFAULT_INCREMENT, INCREMENTS, repRange } from '../../domain/progression';
 import { Sheet, SheetAction } from '../../ui/Sheet';
 import { dayTitle, formatNumber, plural } from '../../ui/format';
 
@@ -201,7 +202,8 @@ function DayCard({ plan, dayKey, today, edit }: { plan: Plan; dayKey: DayKey; to
 function summary(ex: PlanExercise): string {
   if (ex.mode === 'cardio') return `${ex.minutes} min${ex.km ? ` · ${formatNumber(ex.km)} km` : ''}`;
   if (ex.mode === 'time') return `${ex.sets} × ${ex.seconds ?? 30} s`;
-  return `${ex.sets} × ${ex.reps}${ex.weight ? ` · ${formatNumber(ex.weight)} kg` : ''}`;
+  const { min, max } = repRange(ex);
+  return `${ex.sets} × ${min === max ? max : `${min}–${max}`}${ex.weight ? ` · ${formatNumber(ex.weight)} kg` : ''}`;
 }
 
 interface RowProps {
@@ -238,12 +240,26 @@ function ExerciseRow({ ex, open, first, last, onToggle, onChange, onMove, onRemo
                 {field('Séries', ex.sets, sets => onChange({ sets: Math.max(1, Math.round(sets)) }))}
                 {ex.mode === 'time'
                   ? field('Segundos', ex.seconds ?? 30, seconds => onChange({ seconds }))
-                  : field('Reps', ex.reps, reps => onChange({ reps }))}
-                {field('Carga (kg)', ex.weight, weight => onChange({ weight }), true)}
+                  : <>
+                    {field('Reps mín.', repRange(ex).min, n => onChange(rangePatch(n, repRange(ex).max)))}
+                    {field('Reps máx.', repRange(ex).max, n => onChange(rangePatch(repRange(ex).min, n)))}
+                  </>}
+                {ex.mode === 'time' && field('Carga (kg)', ex.weight, weight => onChange({ weight }), true)}
               </>
             )}
           </div>
           <div className="mt-2 grid grid-cols-3 gap-2">
+            {ex.mode === 'reps' && (
+              <>
+                {field('Carga (kg)', ex.weight, weight => onChange({ weight }), true)}
+                <label className="text-xs font-semibold text-muted">Subir (kg)
+                  <select value={ex.increment ?? DEFAULT_INCREMENT} onChange={e => onChange({ increment: Number(e.target.value) })} aria-label={`Quanto subir a carga de ${ex.name}`}
+                    className="mt-1 h-11 w-full rounded-xl border border-line bg-surface-2 px-2 text-base text-ink">
+                    {INCREMENTS.map(n => <option key={n} value={n}>{formatNumber(n)}</option>)}
+                  </select>
+                </label>
+              </>
+            )}
             {field('Descanso (s)', ex.restSeconds ?? 90, restSeconds => onChange({ restSeconds }))}
           </div>
           <label className="mt-2 block text-xs font-semibold text-muted">Dica
@@ -305,4 +321,12 @@ function AddExerciseSheet({ open, dayName, onClose, onAdd }: { open: boolean; da
       )}
     </Sheet>
   );
+}
+
+/** Faixa de reps (M10). Mínimo igual ao máximo = repetições fixas; `reps` fica sendo o topo. */
+function rangePatch(min: number, max: number): Partial<PlanExercise> {
+  // sem forçar máx ≥ mín aqui: o campo repassa a cada tecla ("12" passa por "1"); repRange corrige
+  const repMin = Math.max(1, Math.round(min));
+  const repMax = Math.max(1, Math.round(max));
+  return { reps: Math.max(repMin, repMax), repMin, repMax };
 }

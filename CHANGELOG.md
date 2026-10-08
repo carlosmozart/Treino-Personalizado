@@ -6,6 +6,10 @@ Todas as mudanças relevantes do app ficam registradas aqui. Ao lançar uma nova
    atualizar o app instalado
 3. Adicione uma entrada aqui, nesse formato
 
+## [Não lançado]
+
+- Progressão automática de carga: o treino abre com a carga sugerida pelo histórico e uma linha dizendo o porquê ("+2,5 kg: 12 reps nas 3 séries"); mantém quando faltou série ou repetição e sugere baixar ~10% depois de 3 treinos parados na mesma carga. No plano, faixa de repetições (mín.–máx.) e quanto subir por exercício (1, 1,25, 2,5 ou 5 kg). Dá para desligar em Perfil → Treino.
+
 ## [3.2.1] - 2026-10-07
 
 - Atualização: o app procura versão nova toda vez que é aberto ou volta à tela (antes, uma vez por dia e só ao abrir do zero); a oferta não interrompe um treino em andamento.

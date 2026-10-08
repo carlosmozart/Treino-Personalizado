@@ -7,6 +7,7 @@ import { normalizeExerciseName } from './text';
 import type { AppData, ExerciseMode, PlanExercise, SetKind, Workout, WorkoutEntry } from './model';
 import { lastSessionBefore, workSets } from './workouts';
 import { isCardioName } from '../data/exercise-library';
+import { suggestProgression, type Progression } from './progression';
 
 export interface SessionSet {
   reps: number;
@@ -32,6 +33,8 @@ export interface SessionExercise {
   alternatives: { name: string; mode: ExerciseMode }[];
   /** Nome original do plano quando trocado por uma reserva. */
   swappedFrom?: string;
+  /** Sugestão da progressão automática que preencheu as séries (M12), com o porquê. */
+  progression?: Progression;
 }
 
 export interface ActiveSession {
@@ -47,18 +50,27 @@ export interface ActiveSession {
 const round1 = (n: number) => Math.round(n * 10) / 10;
 const clamp = (n: number, min: number, max: number) => Math.min(max, Math.max(min, n));
 
+type PlanTarget = Pick<PlanExercise, 'sets' | 'reps' | 'weight' | 'seconds' | 'repMin' | 'repMax' | 'increment'>;
+
 /**
- * Séries iniciais de um exercício: repetições do plano, carga da última sessão (última série
- * válida) ou, sem histórico, a carga do plano.
+ * Séries iniciais de um exercício. Com a progressão automática ligada (M10–M12), carga e
+ * repetições vêm da sugestão (docs/dev/progressao.md). Sem ela: repetições do plano, carga da
+ * última sessão (última série válida) ou, sem histórico, a carga do plano.
  */
-function initialSets(data: AppData, name: string, mode: ExerciseMode, plan: Pick<PlanExercise, 'sets' | 'reps' | 'weight' | 'seconds'> | null, date: DateKey): SessionSet[] {
-  if (mode === 'cardio') return [];
-  const last = lastSessionBefore(data.workouts, normalizeExerciseName(name), date);
+function initialSets(data: AppData, name: string, mode: ExerciseMode, plan: PlanTarget | null, date: DateKey): { sets: SessionSet[]; progression?: Progression } {
+  if (mode === 'cardio') return { sets: [] };
+  const key = normalizeExerciseName(name);
+  const last = lastSessionBefore(data.workouts, key, date);
   const lastSets = last ? workSets(last.entry) : [];
   const count = plan?.sets || lastSets.length || 3;
-  const reps = mode === 'time' ? (plan?.seconds ?? lastSets[0]?.reps ?? 30) : (plan?.reps || lastSets[0]?.reps || 10);
-  const weight = lastSets.length ? lastSets[lastSets.length - 1]!.weight : (plan?.weight ?? 0);
-  return Array.from({ length: count }, () => ({ reps, weight, kind: 'work' as const, done: false }));
+  let reps = mode === 'time' ? (plan?.seconds ?? lastSets[0]?.reps ?? 30) : (plan?.reps || lastSets[0]?.reps || 10);
+  let weight = lastSets.length ? lastSets[lastSets.length - 1]!.weight : (plan?.weight ?? 0);
+  const progression = mode === 'reps' && plan && (data.settings.autoProgression ?? true)
+    ? suggestProgression(data.workouts, key, plan, date) ?? undefined
+    : undefined;
+  if (progression) ({ reps, weight } = progression);
+  const sets = Array.from({ length: count }, () => ({ reps, weight, kind: 'work' as const, done: false }));
+  return progression?.reason ? { sets, progression } : { sets };
 }
 
 function fromPlanExercise(data: AppData, ex: PlanExercise, date: DateKey): SessionExercise {
@@ -68,10 +80,13 @@ function fromPlanExercise(data: AppData, ex: PlanExercise, date: DateKey): Sessi
     key: normalizeExerciseName(ex.name),
     mode: ex.mode,
     optional: ex.optional,
-    sets: initialSets(data, ex.name, ex.mode, ex, date),
+    sets: [],
     note: '',
     alternatives: ex.alternatives
   };
+  const start = initialSets(data, ex.name, ex.mode, ex, date);
+  out.sets = start.sets;
+  if (start.progression) out.progression = start.progression;
   if (ex.mode === 'time' && ex.seconds) out.seconds = ex.seconds;
   if (ex.restSeconds) out.restSeconds = ex.restSeconds;
   if (ex.tip) out.tip = ex.tip;
@@ -209,9 +224,11 @@ export function swapExercise(s: ActiveSession, data: AppData, exIndex: number, n
     const mode = option?.mode ?? ex.mode;
     const swapped: SessionExercise = {
       slotId: ex.slotId, name: name.trim(), key: normalizeExerciseName(name), mode, optional: ex.optional,
-      sets: initialSets(data, name, mode, planEx && mode === planEx.mode ? { ...planEx, weight: 0 } : null, s.date),
-      note: ex.note, alternatives: ex.alternatives, swappedFrom: original
+      sets: [], note: ex.note, alternatives: ex.alternatives, swappedFrom: original
     };
+    const start = initialSets(data, name, mode, planEx && mode === planEx.mode ? { ...planEx, weight: 0 } : null, s.date);
+    swapped.sets = start.sets;
+    if (start.progression) swapped.progression = start.progression;
     if (ex.restSeconds) swapped.restSeconds = ex.restSeconds;
     if (ex.tip) swapped.tip = ex.tip;
     if (mode === 'cardio') swapped.cardio = { minutes: planEx?.minutes || 20, km: 0, done: false };
