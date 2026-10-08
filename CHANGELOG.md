@@ -6,7 +6,7 @@ Todas as mudanças relevantes do app ficam registradas aqui. Ao lançar uma nova
    atualizar o app instalado
 3. Adicione uma entrada aqui, nesse formato
 
-## [Não lançado]
+## [3.3.0] - 2026-10-07
 
 - Plano: rotação A/B/C ao lado da semana fixa. O próximo treino é o seguinte ao último feito, em qualquer dia; faltar um dia não bagunça o plano. Dá para reordenar, definir a meta de treinos por semana e recomeçar do A; o Início mostra o próximo e quanto da volta já foi feito.
 - Progressão automática de carga: o treino abre com a carga sugerida pelo histórico e uma linha dizendo o porquê ("+2,5 kg: 12 reps nas 3 séries"); mantém quando faltou série ou repetição e sugere baixar ~10% depois de 3 treinos parados na mesma carga. No plano, faixa de repetições (mín.–máx.) e quanto subir por exercício (1, 1,25, 2,5 ou 5 kg). Dá para desligar em Perfil → Treino.

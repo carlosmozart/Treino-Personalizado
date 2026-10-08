@@ -3,6 +3,17 @@ export interface ReleaseNote { version: string; date: string; items: string[] }
 
 export const RELEASE_NOTES: readonly ReleaseNote[] = [
   {
+    version: '3.3.0',
+    date: '2026-10',
+    items: [
+      'Progressão automática de carga: o treino abre com a carga sugerida e o porquê ("+2,5 kg: 12 reps nas 3 séries"). No plano, faixa de reps e quanto subir por exercício. Dá para desligar em Perfil → Treino.',
+      'Rotação A/B/C: em Plano, troque a semana fixa pela rotação. O próximo treino é o seguinte ao último feito, em qualquer dia.',
+      'Anilhas na barra: no menu ⋯ dos exercícios com barra, quanto pôr de cada lado.',
+      'Histórico: "Repetir hoje" refaz um treino passado com os mesmos números.',
+      'Treino: "Última vez, há 3 dias" no lugar da data.'
+    ]
+  },
+  {
     version: '3.2.1',
     date: '2026-10',
     items: [
