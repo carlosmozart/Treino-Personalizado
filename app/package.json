@@ -12,7 +12,8 @@
     "test": "vitest run",
     "test:rules": "firebase emulators:exec --only firestore --project demo-treino \"vitest run --config vitest.rules.config.ts\"",
     "test:e2e": "playwright test",
-    "verify": "npm run build && npm run test"
+    "verify": "npm run build && npm run test",
+    "screenshots": "playwright test --config scripts/screenshots/playwright.config.ts"
   },
   "dependencies": {
     "react": "^19.3.0",
