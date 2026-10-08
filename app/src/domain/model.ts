@@ -155,6 +155,8 @@ export interface Settings {
   showIllustrations?: boolean;
   /** Treino um exercício por vez (N5). Ausente = lista completa. */
   focusMode?: boolean;
+  /** Deslizar a série para apagar ou copiar (R2). Ausente = ligado. */
+  swipeSets?: boolean;
   /** Botões de ajuste de carga no treino (O20). Ausente = ligado. */
   weightButtons?: boolean;
   /** Backup automático no APK (O11). Ausente = ligado. */

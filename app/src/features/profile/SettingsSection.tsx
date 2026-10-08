@@ -39,6 +39,7 @@ export function SettingsSection() {
         <AlarmSettings />
         {notificationsAvailable() && <ReminderToggle on={!!settings.trainingReminders} set={set} />}
         <LoadSourceChoice value={loadSourceOf(settings)} onChange={v => set({ loadSource: v, autoProgression: v === 'auto' })} />
+        <Toggle label="Deslizar a série: esquerda apaga, direita copia" checked={settings.swipeSets ?? true} onChange={v => set({ swipeSets: v })} />
         <Toggle label="Botões de ajuste de carga no treino" checked={settings.weightButtons ?? true} onChange={v => set({ weightButtons: v })} />
         <Toggle label="Manter a tela ligada no treino" checked={settings.keepScreenOn ?? true} onChange={v => set({ keepScreenOn: v })} />
         <Toggle label="Mostrar ilustrações dos exercícios" checked={settings.showIllustrations ?? true} onChange={v => set({ showIllustrations: v })} />

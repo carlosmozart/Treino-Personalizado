@@ -208,6 +208,27 @@ export function removeSet(s: ActiveSession, exIndex: number, setIndex: number): 
   return mapExercise(s, exIndex, ex => (ex.sets.length > 1 ? { ...ex, sets: ex.sets.filter((_, i) => i !== setIndex) } : ex));
 }
 
+/** Deslizar para a direita (R2): copia a série logo abaixo, ainda não feita. */
+export function duplicateSet(s: ActiveSession, exIndex: number, setIndex: number): ActiveSession {
+  return mapExercise(s, exIndex, ex => {
+    const set = ex.sets[setIndex];
+    if (!set || ex.mode === 'cardio' || ex.sets.length >= 20) return ex;
+    const sets = [...ex.sets];
+    sets.splice(setIndex + 1, 0, { ...set, done: false });
+    return { ...ex, sets };
+  });
+}
+
+/** Desfazer a série apagada (R2): volta para o mesmo lugar, como estava. */
+export function insertSet(s: ActiveSession, exIndex: number, setIndex: number, set: SessionSet): ActiveSession {
+  return mapExercise(s, exIndex, ex => {
+    if (ex.mode === 'cardio' || ex.sets.length >= 20) return ex;
+    const sets = [...ex.sets];
+    sets.splice(Math.min(Math.max(0, setIndex), sets.length), 0, set);
+    return { ...ex, sets };
+  });
+}
+
 /** Concluir pelo botão do exercício marca todas as séries (ou o cardio). */
 export function completeExercise(s: ActiveSession, exIndex: number, done = true): ActiveSession {
   return mapExercise(s, exIndex, ex => ({

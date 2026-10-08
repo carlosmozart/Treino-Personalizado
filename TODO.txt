@@ -249,7 +249,7 @@ R. Ideias do openGym v1.3.10 (07/10/2026)
 Só a ideia; o código do openGym é AGPL e não é copiado.
 #	Sugestão	Prioridade
 R1	✅ (07/10/2026; regras em docs/dev/rotacao.md) Rotação de treinos A/B/C ao lado da semana fixa: o próximo treino é o próximo ainda não feito, faltar um dia não desloca o plano; Início mostra o próximo e quanto da volta já foi feito	Média
-R2	Deslizar na série e no plano: esquerda apaga com Desfazer, direita copia/duplica; mantém ao menos uma série; chave única para ligar/desligar	Média
+R2	✅ (07/10/2026, na série do treino; no plano fica para depois) Deslizar na série e no plano: esquerda apaga com Desfazer, direita copia/duplica; mantém ao menos uma série; chave única para ligar/desligar	Média
 R3	Roda de tempo de descanso (estilo iPhone, 0:00 a 15:00) nas configurações, por exercício e durante o treino	Baixa
 R4	✅ (07/10/2026) Repetir hoje: abrir um treino do histórico e começar de novo no mesmo dia	Média
 R5	Configurações durante o treino: folha com descanso, som, vibração e tela acesa sem sair da sessão	Baixa

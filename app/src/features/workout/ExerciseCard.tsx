@@ -1,8 +1,8 @@
 import { useMemo, useState } from 'react';
 import { EXERCISE_LIBRARY, groupOf } from '../../data/exercise-library';
 import {
-  addSet, addWarmupSet, adjustWeights, removeWarmupSet, completeExercise, isExerciseDone, removeSet, setNote, swapExercise, toggleSet, updateCardio, updateSet,
-  type ActiveSession, type SessionExercise
+  addSet, addWarmupSet, adjustWeights, removeWarmupSet, completeExercise, isExerciseDone, duplicateSet, insertSet, removeSet, setNote, swapExercise, toggleSet, updateCardio, updateSet,
+  type ActiveSession, type SessionExercise, type SessionSet
 } from '../../domain/session';
 import { bestSet, lastSessionBefore, sessionsOf, suspiciousWeight, workSets } from '../../domain/workouts';
 import { useAppStore } from '../../store';
@@ -14,6 +14,7 @@ import { Sheet, SheetAction } from '../../ui/Sheet';
 import { formatNumber, relativeDate, shortDate } from '../../ui/format';
 import { useRestStore } from './rest-store';
 import { PlateSheet } from './PlateSheet';
+import { SwipeRow } from './SwipeRow';
 import { isBarbell } from '../../domain/plates';
 
 const ALL_NAMES = [...new Set(Object.values(EXERCISE_LIBRARY).flat())];
@@ -59,6 +60,22 @@ export function ExerciseCard({ session, index, alwaysOpen = false }: Props) {
   const [noteOpen, setNoteOpen] = useState(ex.note !== '');
   const [tipOpen, setTipOpen] = useState(false);
   const [platesOpen, setPlatesOpen] = useState(false);
+  // R2: série apagada fica alguns segundos para desfazer
+  const [removed, setRemoved] = useState<{ at: number; set: SessionSet; timer: number } | null>(null);
+  const swipe = data?.settings.swipeSets ?? true;
+  const removeWithUndo = (i: number) => {
+    const set = ex.sets[i];
+    if (!set || ex.sets.length <= 1) return;
+    if (removed) clearTimeout(removed.timer);
+    update(s => removeSet(s, index, i));
+    setRemoved({ at: i, set, timer: window.setTimeout(() => setRemoved(null), 5000) });
+  };
+  const undoRemove = () => {
+    if (!removed) return;
+    clearTimeout(removed.timer);
+    update(s => insertSet(s, index, removed.at, removed.set));
+    setRemoved(null);
+  };
   // R6: "há 3 dias"; tocar mostra a data
   const [showDate, setShowDate] = useState(false);
   const { last, best } = useExerciseContext(ex, session.date);
@@ -158,16 +175,24 @@ export function ExerciseCard({ session, index, alwaysOpen = false }: Props) {
           </div>
           <ol className="mt-1 space-y-2">
             {ex.sets.map((set, i) => (
-              <li key={i} className={`grid grid-cols-[2rem_1fr_1fr_2.75rem] items-center gap-2 rounded-xl ${set.done ? 'bg-success/10' : ''}`}>
+              <SwipeRow key={i} enabled={swipe} onCopy={() => update(s => duplicateSet(s, index, i))}
+                {...(ex.sets.length > 1 ? { onDelete: () => removeWithUndo(i) } : {})}
+                className={`grid grid-cols-[2rem_1fr_1fr_2.75rem] items-center gap-2 rounded-xl ${set.done ? 'bg-success/10' : ''}`}>
                 <span className={`text-center text-base font-bold ${set.kind === 'warmup' ? 'text-warning' : 'text-muted'}`} title={set.kind === 'warmup' ? 'Aquecimento' : undefined}>
                   {set.kind === 'warmup' ? 'A' : i + 1 - ex.sets.slice(0, i).filter(s => s.kind === 'warmup').length}
                 </span>
                 <NumberField label={`Carga da série ${i + 1}`} decimal value={set.weight} onChange={v => update(s => updateSet(s, index, i, { weight: v }))} />
                 <NumberField label={`${unit} da série ${i + 1}`} value={set.reps} onChange={v => update(s => updateSet(s, index, i, { reps: v }))} />
                 <DoneButton done={set.done} label={`Série ${i + 1} feita`} onClick={() => toggle(i)} />
-              </li>
+              </SwipeRow>
             ))}
           </ol>
+          {removed && (
+            <div role="status" className="mt-2 flex items-center justify-between gap-2 rounded-xl bg-surface-2 px-3 py-1 text-sm">
+              <span>Série apagada.</span>
+              <button type="button" onClick={undoRemove} className="h-10 px-2 font-bold text-info">Desfazer</button>
+            </div>
+          )}
           {(data?.settings.weightButtons ?? true) && ex.sets.some(set => !set.done) && (
             <div className="mt-2 flex items-center gap-1" role="group" aria-label={`Ajustar a carga das séries não feitas de ${ex.name}`}>
               <span className="mr-1 text-xs font-semibold text-faint">Carga</span>

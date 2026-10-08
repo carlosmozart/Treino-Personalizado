@@ -6,6 +6,10 @@ Todas as mudanças relevantes do app ficam registradas aqui. Ao lançar uma nova
    atualizar o app instalado
 3. Adicione uma entrada aqui, nesse formato
 
+## [Não lançado]
+
+- Treino: deslize a série para a esquerda para apagar (com "Desfazer" por alguns segundos) ou para a direita para copiar logo abaixo. A última série fica. Dá para desligar em Perfil → Treino.
+
 ## [3.3.1] - 2026-10-07
 
 - Rotação: com os lembretes ligados, o aviso diário diz qual é o próximo treino (antes, a rotação desligava os lembretes).

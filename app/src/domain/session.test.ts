@@ -1,7 +1,7 @@
 import { describe, expect, it, test } from 'vitest';
 import type { Workout } from './model';
 import {
-  addSet, completeExercise, removeSet, repeatSession, sessionProgress, sessionToWorkout, startSession, swapExercise,
+  addSet, completeExercise, duplicateSet, insertSet, removeSet, repeatSession, sessionProgress, sessionToWorkout, startSession, swapExercise,
   toggleSet, updateCardio, updateSet
 } from './session';
 import { planExercise, sampleData, samplePlan, workout } from './testing';
@@ -99,5 +99,34 @@ describe('repetir hoje (R4)', () => {
 
   it('treino sem exercícios não começa', () => {
     expect(repeatSession(sampleData(), { id: 'w', date: '2026-10-01', source: 'app', entries: [] }, now, 's1')).toBeNull();
+  });
+});
+
+describe('deslizar a série (R2)', () => {
+  const now = new Date(2026, 9, 7, 10);
+  const start = () => {
+    const d = sampleData({ workouts: [] });
+    const s = startSession(d, 'p1', 'QUA', now, 's1')!;
+    return updateSet(toggleSet(s, 0, 0), 0, 0, { weight: 50 });
+  };
+
+  it('copiar põe a série logo abaixo, ainda não feita', () => {
+    const s = duplicateSet(start(), 0, 0);
+    expect(s.exercises[0]!.sets).toHaveLength(4);
+    expect(s.exercises[0]!.sets[1]).toMatchObject({ weight: 50, done: false });
+    expect(s.exercises[0]!.sets[0]).toMatchObject({ weight: 50, done: true });
+  });
+
+  it('apagar e desfazer volta a série ao mesmo lugar, como estava', () => {
+    const before = start();
+    const removed = before.exercises[0]!.sets[0]!;
+    const after = insertSet(removeSet(before, 0, 0), 0, 0, removed);
+    expect(after.exercises[0]!.sets).toEqual(before.exercises[0]!.sets);
+  });
+
+  it('a última série fica', () => {
+    let s = start();
+    s = removeSet(removeSet(s, 0, 0), 0, 0);
+    expect(removeSet(s, 0, 0).exercises[0]!.sets).toHaveLength(1);
   });
 });
