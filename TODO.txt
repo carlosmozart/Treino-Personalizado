@@ -120,7 +120,7 @@ M10	🟡 (faixa de reps e progressão dupla feitas em 07/10/2026; falta a opçã
 M11	✅ (07/10/2026, app/src/domain/progression.ts; regras em docs/dev/progressao.md) Calcular a sugestão sempre a partir do histórico (função pura, nada gravado): série não concluída ou com menos reps nunca sobe carga; estagnação repetida sugere deload de ~10%	Alta
 M12	✅ (07/10/2026) Treino abre com a carga sugerida e uma linha explicando o porquê ("+2,5 kg: 12 reps nas 3 séries"); substitui o quadro fixo Alerta/Zona segura/Subir carga por informação por exercício	Alta
 M13	🟡 (incremento por exercício feito em 07/10/2026; falta abrir pelos números do plano) Incremento por exercício (1,25/2,5/5 kg) e opção de abrir pelos números do plano ou da última sessão	Média
-M14	Calculadora de anilhas para barra ("Barra 20 kg · 30 kg por lado"), com anilhas disponíveis configuráveis	Média
+M14	✅ (07/10/2026, menu ⋯ dos exercícios com barra) Calculadora de anilhas para barra ("Barra 20 kg · 30 kg por lado"), com anilhas disponíveis configuráveis	Média
 
 Fase 4 — funções destravadas pelo novo modelo
 M15	Registrar treino passado (data, início, duração) e corrigir data/hora de um treino salvo, sem gerar recordes retroativos	Média

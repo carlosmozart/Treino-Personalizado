@@ -13,6 +13,8 @@ import { markBigWeightJump, updateSettings } from '../../domain/actions';
 import { Sheet, SheetAction } from '../../ui/Sheet';
 import { formatNumber, relativeDate, shortDate } from '../../ui/format';
 import { useRestStore } from './rest-store';
+import { PlateSheet } from './PlateSheet';
+import { isBarbell } from '../../domain/plates';
 
 const ALL_NAMES = [...new Set(Object.values(EXERCISE_LIBRARY).flat())];
 const ADJUSTS = [-5, -0.5, 0.5, 5, 10] as const;
@@ -56,6 +58,7 @@ export function ExerciseCard({ session, index, alwaysOpen = false }: Props) {
   const [swapOpen, setSwapOpen] = useState(false);
   const [noteOpen, setNoteOpen] = useState(ex.note !== '');
   const [tipOpen, setTipOpen] = useState(false);
+  const [platesOpen, setPlatesOpen] = useState(false);
   // R6: "há 3 dias"; tocar mostra a data
   const [showDate, setShowDate] = useState(false);
   const { last, best } = useExerciseContext(ex, session.date);
@@ -201,6 +204,9 @@ export function ExerciseCard({ session, index, alwaysOpen = false }: Props) {
             <SheetAction onClick={() => { update(s => removeSet(s, index, ex.sets.length - 1)); close(); }}><Icon name="menos" />Remover última série</SheetAction>
           )}
         </>}
+        {ex.mode === 'reps' && isBarbell(ex.name) && (
+          <SheetAction onClick={() => { close(); setPlatesOpen(true); }}><Icon name="treino" />Anilhas na barra</SheetAction>
+        )}
         <SheetAction onClick={() => { close(); setSwapOpen(true); }}><Icon name="trocar" />Trocar exercício</SheetAction>
         <SheetAction onClick={() => { setNoteOpen(o => !o); close(); }}><Icon name="nota" />{noteOpen ? 'Esconder observação' : 'Observação'}</SheetAction>
         {hasIllustration(ex.name) && (
@@ -210,6 +216,11 @@ export function ExerciseCard({ session, index, alwaysOpen = false }: Props) {
         )}
         {ex.tip && <SheetAction onClick={() => { setTipOpen(o => !o); close(); }}><Icon name="dica" />{tipOpen ? 'Esconder dica' : 'Ver dica'}</SheetAction>}
       </Sheet>
+
+      {platesOpen && (
+        <PlateSheet open onClose={() => setPlatesOpen(false)}
+          weight={(ex.sets.find(x => !x.done && x.kind === 'work') ?? ex.sets.find(x => x.kind === 'work') ?? ex.sets[0])?.weight ?? 0} />
+      )}
 
       <Sheet title="Trocar por" open={swapOpen} onClose={() => setSwapOpen(false)}>
         {[...(ex.swappedFrom ? [{ name: ex.swappedFrom, mode: 'reps' as const }] : []), ...ex.alternatives]

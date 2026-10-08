@@ -148,6 +148,9 @@ export interface Settings {
   weightButtons?: boolean;
   /** Backup automático no APK (O11). Ausente = ligado. */
   autoBackup?: boolean;
+  /** Calculadora de anilhas (M14): peso da barra e anilhas disponíveis. Ausentes = 20 kg e o jogo comum. */
+  barWeight?: number;
+  plates?: number[];
   /** Progressão automática de carga (M10–M12). Ausente = ligada. */
   autoProgression?: boolean;
   /** Tema da interface. Ausente = acompanha o sistema. */
