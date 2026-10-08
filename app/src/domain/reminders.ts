@@ -18,7 +18,8 @@ export interface Reminder { id: number; dayKey: DayKey; weekday: number; hour: n
 /** Lembretes do plano. Weekday do Capacitor: 1 = domingo, 2 = segunda... */
 export function remindersFor(plan: Plan | undefined): Reminder[] {
   const time = plan ? parseTrainingTime(plan.trainingTime) : null;
-  if (!plan || !time) return [];
+  // rotação (R1): o treino não tem dia da semana fixo
+  if (!plan || !time || plan.rotation) return [];
   return DAY_KEYS.flatMap((dayKey, i) => {
     const day = plan.days[dayKey];
     if (day.optional || !day.exercises.some(e => e.name.trim())) return [];

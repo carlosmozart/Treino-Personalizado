@@ -125,11 +125,15 @@ function TodayCard({ card, onChoose }: { card: ReturnType<typeof todayCard>; onC
   const checkedIn = card.doneToday;
   return (
     <section className={`rounded-2xl border bg-surface p-4 ${checkedIn ? 'border-success/60' : 'border-primary'}`}>
-      <p className="text-xs font-semibold text-muted">Hoje{card.optional ? ' · opcional' : ''}</p>
+      <p className="text-xs font-semibold text-muted">
+        {card.rotation
+          ? `${checkedIn ? 'Próximo treino' : `Hoje · treino ${card.rotation.letter}`} · ${card.rotation.done} de ${card.rotation.total} da volta`
+          : `Hoje${card.optional ? ' · opcional' : ''}`}
+      </p>
       <h2 className="text-lg font-bold leading-snug">{card.title}</h2>
       <p className="text-sm text-muted">{plural(card.exercises, 'exercício', 'exercícios')}{card.focus ? ` · ${card.focus}` : ''}</p>
       {checkedIn ? (
-        <p className="mt-3 font-semibold text-success">Treino de hoje feito.</p>
+        <p className="mt-3 font-semibold text-success">Treino de hoje feito.{card.rotation ? ' Este é o próximo da rotação.' : ''}</p>
       ) : (
         <>
           <button type="button" onClick={() => { askRestAlarmPermission(); if (data.activePlanId && start(data.activePlanId, card.dayKey)) setTab('treino'); }}

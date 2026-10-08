@@ -6,6 +6,7 @@ import { useAppStore } from '../../store';
 import { askRestAlarmPermission } from './rest-alarm-instance';
 import { dayTitle, plural } from '../../ui/format';
 import { toDateKey } from '../../domain/dates';
+import { rotationLetter, rotationState } from '../../domain/rotation';
 
 /** Escolha do treino: hoje em destaque e os demais dias logo abaixo. */
 export function DayPicker() {
@@ -32,20 +33,36 @@ export function DayPicker() {
   const today = dayKeyOf(now);
   // treino concluído (ou presença marcada) hoje: o cartão de hoje não oferece começar de novo
   const doneToday = !!data?.checkins[toDateKey(now)];
+  const startDay = (key: DayKey) => { askRestAlarmPermission(); start(plan.id, key); };
+  // rotação (R1): o próximo primeiro, depois a volta na ordem
+  const rot = data ? rotationState(plan, data.workouts) : null;
+  if (rot) {
+    const i = rot.order.indexOf(rot.next);
+    const order = [...rot.order.slice(i), ...rot.order.slice(0, i)];
+    return (
+      <div className="mt-6 space-y-3">
+        <p className="text-sm text-muted">{plan.name} · rotação, {rot.done} de {rot.order.length} da volta{doneToday ? ' · treino de hoje feito' : ''}</p>
+        {order.map(key => (
+          <DayCard key={key} plan={plan} dayKey={key} today={key === rot.next} done={false} onStart={() => startDay(key)}
+            tag={`Treino ${rotationLetter(plan, key)}${key === rot.next ? ' · Próximo' : ''}`} />
+        ))}
+      </div>
+    );
+  }
   const order = [today, ...DAY_KEYS.filter(k => k !== today)];
   return (
     <div className="mt-6 space-y-3">
       <p className="text-sm text-muted">{plan.name}</p>
-      {order.map(key => <DayCard key={key} plan={plan} dayKey={key} today={key === today} done={key === today && doneToday} onStart={() => { askRestAlarmPermission(); start(plan.id, key); }} />)}
+      {order.map(key => <DayCard key={key} plan={plan} dayKey={key} today={key === today} done={key === today && doneToday} onStart={() => startDay(key)} />)}
     </div>
   );
 }
 
-function DayCard({ plan, dayKey, today, done, onStart }: { plan: Plan; dayKey: DayKey; today: boolean; done: boolean; onStart: () => void }) {
+function DayCard({ plan, dayKey, today, done, onStart, tag }: { plan: Plan; dayKey: DayKey; today: boolean; done: boolean; onStart: () => void; tag?: string }) {
   const day = plan.days[dayKey];
   const { title, optional } = dayTitle(day, dayKey);
   const rest = day.exercises.length === 0;
-  const tags = [today ? 'Hoje' : '', optional ? 'Opcional' : ''].filter(Boolean).join(' · ');
+  const tags = tag ?? [today ? 'Hoje' : '', optional ? 'Opcional' : ''].filter(Boolean).join(' · ');
   return (
     <article className={`rounded-2xl border bg-surface p-4 ${done ? 'border-success/60' : today ? 'border-primary' : 'border-line'}`}>
       <div className="flex items-center gap-3">

@@ -4,6 +4,7 @@ import { addDays, mondayOf, toDateKey, type DateKey } from './dates';
 import { goalProgress } from './body-goal';
 import { levelInfo, freeMealThreshold, type LevelInfo } from './gamification';
 import { dayKeyOf, type AppData, type PlanDay } from './model';
+import { rotationLetter, rotationState } from './rotation';
 import { daysPerWeekOf, streakOf, weekCheckins } from './rewards';
 import { waterTargetMl } from './health';
 
@@ -39,7 +40,7 @@ export function weekStrip(data: AppData, now: Date): WeekDay[] {
     return {
       date, dayKey, letter: SHORT[dayKey], dayOfMonth: Number(date.slice(8, 10)),
       trained: !!data.checkins[date], today: date === today, future: date > today,
-      planned: isTrainingDay(day) && !day!.optional
+      planned: !plan?.rotation && isTrainingDay(day) && !day!.optional
     };
   });
 }
@@ -47,7 +48,9 @@ export function weekStrip(data: AppData, now: Date): WeekDay[] {
 export type TodayCard =
   | { kind: 'no-plan' }
   | { kind: 'in-progress'; title: string; setsDone: number; setsTotal: number }
-  | { kind: 'workout'; dayKey: DayKey; title: string; focus: string; exercises: number; optional: boolean; doneToday: boolean }
+  | { kind: 'workout'; dayKey: DayKey; title: string; focus: string; exercises: number; optional: boolean; doneToday: boolean;
+      /** Rotação (R1): letra, treinos feitos na volta e tamanho da volta. */
+      rotation?: { letter: string; done: number; total: number } }
   /** M35: no descanso, quando é o próximo treino. */
   | { kind: 'rest'; next: { dayKey: DayKey; title: string; inDays: number } | null };
 
@@ -58,6 +61,15 @@ export function todayCard(data: AppData, now: Date, session: { dayName: string; 
   }
   const plan = activePlan(data);
   if (!plan) return { kind: 'no-plan' };
+  const rot = rotationState(plan, data.workouts);
+  if (rot) {
+    const day = plan.days[rot.next];
+    return {
+      kind: 'workout', dayKey: rot.next, title: day.name.replace(/\s*\(opcional\)\s*$/i, '') || `Treino ${rotationLetter(plan, rot.next)}`, focus: day.focus,
+      exercises: day.exercises.length, optional: false, doneToday: !!data.checkins[toDateKey(now)],
+      rotation: { letter: rotationLetter(plan, rot.next), done: rot.done, total: rot.order.length }
+    };
+  }
   const dayKey = dayKeyOf(now);
   const day = plan.days[dayKey];
   if (isTrainingDay(day)) {

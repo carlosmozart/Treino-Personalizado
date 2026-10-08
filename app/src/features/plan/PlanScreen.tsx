@@ -17,6 +17,7 @@ import { TemplateSheet } from './TemplateSheet';
 import { NumberField } from '../../ui/NumberField';
 import { DEFAULT_INCREMENT, INCREMENTS, repRange } from '../../domain/progression';
 import { Sheet, SheetAction } from '../../ui/Sheet';
+import { disableRotation, enableRotation, moveInRotation, restartRotation, rotationLetter, rotationOrder, rotationState, setRotationPerWeek } from '../../domain/rotation';
 import { dayTitle, formatNumber, plural } from '../../ui/format';
 
 const ALL_NAMES = [...new Set(Object.values(EXERCISE_LIBRARY).flat())];
@@ -68,11 +69,33 @@ export function PlanScreen() {
           Planos
         </button>
       </div>
-      {/* O3: calculado pelos dias obrigatórios com exercícios, sem campo manual */}
-      <p className="mt-2 text-sm text-muted" data-testid="dias-semana">{plural(days, 'dia de treino', 'dias de treino')} por semana</p>
+      <div role="radiogroup" aria-label="Como o plano anda" className="mt-3 grid grid-cols-2 gap-1 rounded-xl bg-surface-2 p-1">
+        {([['week', 'Semana fixa'], ['rotation', 'Rotação A/B/C']] as const).map(([mode, label]) => {
+          const on = (mode === 'rotation') === !!plan.rotation;
+          return (
+            <button key={mode} type="button" role="radio" aria-checked={on}
+              onClick={() => {
+                if (on) return;
+                if (mode === 'rotation') edit(enableRotation);
+                else if (confirm('Voltar para a semana fixa? Cada treino volta ao seu dia da semana.')) edit(disableRotation);
+              }}
+              className={`min-h-11 rounded-lg text-sm font-semibold ${on ? 'bg-primary text-white' : 'text-muted'}`}>
+              {label}
+            </button>
+          );
+        })}
+      </div>
+      {plan.rotation ? <RotationPanel plan={plan} edit={edit} /> : (
+        /* O3: calculado pelos dias obrigatórios com exercícios, sem campo manual */
+        <p className="mt-2 text-sm text-muted" data-testid="dias-semana">{plural(days, 'dia de treino', 'dias de treino')} por semana</p>
+      )}
 
       <div className="mt-4 space-y-3">
-        {DAY_KEYS.map(k => <DayCard key={k} plan={plan} dayKey={k} today={k === today} edit={edit} />)}
+        {plan.rotation
+          ? rotationSlots(plan).map(({ key, letter, first, last }) => (
+              <DayCard key={key} plan={plan} dayKey={key} today={false} edit={edit} rotation={{ letter, first, last }} />
+            ))
+          : DAY_KEYS.map(k => <DayCard key={k} plan={plan} dayKey={k} today={k === today} edit={edit} />)}
       </div>
 
       <Sheet title="Planos" open={plansOpen} onClose={() => setPlansOpen(false)}>
@@ -124,7 +147,42 @@ export function PlanScreen() {
 
 type Edit = (fn: (p: Plan) => Plan) => void;
 
-function DayCard({ plan, dayKey, today, edit }: { plan: Plan; dayKey: DayKey; today: boolean; edit: Edit }) {
+/** Espaços na ordem da rotação e, no fim, um vazio para criar o próximo treino (máximo 7). */
+function rotationSlots(plan: Plan) {
+  const order = rotationOrder(plan);
+  const empty = DAY_KEYS.find(k => !order.includes(k));
+  return [
+    ...order.map((key, i) => ({ key, letter: rotationLetter(plan, key), first: i === 0, last: i === order.length - 1 })),
+    ...(empty ? [{ key: empty, letter: '', first: true, last: true }] : [])
+  ];
+}
+
+/** Rotação (R1): meta por semana, onde está a volta e recomeçar do A. */
+function RotationPanel({ plan, edit }: { plan: Plan; edit: Edit }) {
+  const workouts = useAppStore(s => s.data?.workouts);
+  const rot = rotationState(plan, workouts ?? []);
+  if (!plan.rotation) return null;
+  return (
+    <section className="mt-3 rounded-2xl border border-line bg-surface p-4">
+      <p className="text-sm text-muted">
+        O próximo treino é o seguinte ao último feito, em qualquer dia da semana.
+        {rot ? ` Próximo: treino ${rotationLetter(plan, rot.next)} (${rot.done} de ${rot.order.length} da volta).` : ' Adicione exercícios a um treino para começar.'}
+      </p>
+      <div className="mt-3 flex items-end gap-3">
+        <label className="w-32 text-xs font-semibold text-muted">Treinos por semana
+          <NumberField label="Meta de treinos por semana" value={plan.rotation.perWeek} onChange={n => { if (n >= 1 && n <= 7) edit(p => setRotationPerWeek(p, n)); }} className="mt-1" />
+        </label>
+        <button type="button" disabled={!rot || rot.done === 0} onClick={() => { if (confirm('Recomeçar a rotação pelo treino A?')) edit(p => restartRotation(p, new Date())); }}
+          className="h-11 rounded-xl bg-surface-2 px-4 font-semibold disabled:opacity-40">
+          Recomeçar do A
+        </button>
+      </div>
+      <p className="mt-2 text-xs text-faint">A meta vale para a semana, o XP e a sequência. Na rotação, os lembretes por dia da semana ficam desligados.</p>
+    </section>
+  );
+}
+
+function DayCard({ plan, dayKey, today, edit, rotation }: { plan: Plan; dayKey: DayKey; today: boolean; edit: Edit; rotation?: { letter: string; first: boolean; last: boolean } }) {
   const day = plan.days[dayKey];
   const { title, optional } = dayTitle(day, dayKey);
   const rest = day.exercises.length === 0;
@@ -132,17 +190,35 @@ function DayCard({ plan, dayKey, today, edit }: { plan: Plan; dayKey: DayKey; to
   const [adding, setAdding] = useState(false);
   const [dayMenu, setDayMenu] = useState(false);
   const full = day.exercises.length >= MAX_EXERCISES_PER_DAY;
-  const tags = [DAY_FULL_NAMES[dayKey], today ? 'Hoje' : '', optional && !rest ? 'Opcional' : ''].filter(Boolean).join(' · ');
+  // na rotação o espaço é "Treino B" (vazio: "Treino novo"), não o dia da semana
+  const slotName = rotation ? (rotation.letter ? `Treino ${rotation.letter}` : 'Treino novo') : DAY_FULL_NAMES[dayKey];
+  const tags = [slotName, today ? 'Hoje' : '', optional && !rest && !rotation ? 'Opcional' : ''].filter(Boolean).join(' · ');
 
   return (
-    <article aria-label={DAY_FULL_NAMES[dayKey]} className={`rounded-2xl border bg-surface p-4 ${today ? 'border-primary' : 'border-line'}`}>
+    <article aria-label={slotName} className={`rounded-2xl border bg-surface p-4 ${today ? 'border-primary' : 'border-line'}`}>
       <div className="flex items-start gap-2">
         <div className="min-w-0 flex-1">
           <p className="text-xs font-semibold text-muted">{tags}</p>
-          <h2 className="text-lg font-bold leading-snug">{rest ? 'Descanso' : title.replace(new RegExp(`^${DAY_FULL_NAMES[dayKey]}:\s*`, 'i'), '') || title}</h2>
+          <h2 className="text-lg font-bold leading-snug">
+            {rest ? (rotation ? 'Vazio: adicione exercícios para incluir na rotação' : 'Descanso')
+              : rotation && !day.name.trim() ? slotName
+              : title.replace(new RegExp(`^${DAY_FULL_NAMES[dayKey]}:\s*`, 'i'), '') || title}
+          </h2>
           {!rest && day.focus && <p className="text-sm text-muted">{day.focus}</p>}
         </div>
-        <button type="button" onClick={() => setDayMenu(true)} aria-label={`Editar ${DAY_FULL_NAMES[dayKey]}`}
+        {rotation?.letter && (
+          <>
+            <button type="button" disabled={rotation.first} onClick={() => edit(p => moveInRotation(p, dayKey, -1))} aria-label={`Subir ${slotName} na rotação`}
+              className="flex size-11 shrink-0 items-center justify-center rounded-full text-muted disabled:opacity-30">
+              <Icon name="subir" />
+            </button>
+            <button type="button" disabled={rotation.last} onClick={() => edit(p => moveInRotation(p, dayKey, 1))} aria-label={`Descer ${slotName} na rotação`}
+              className="flex size-11 shrink-0 items-center justify-center rounded-full text-muted disabled:opacity-30">
+              <Icon name="descer" />
+            </button>
+          </>
+        )}
+        <button type="button" onClick={() => setDayMenu(true)} aria-label={`Editar ${slotName}`}
           className="flex size-11 shrink-0 items-center justify-center rounded-full text-muted">
           <Icon name="editar" />
         </button>
@@ -167,12 +243,12 @@ function DayCard({ plan, dayKey, today, edit }: { plan: Plan; dayKey: DayKey; to
         <Icon name="mais" className="size-5" /> {full ? `Limite de ${MAX_EXERCISES_PER_DAY} exercícios` : 'Adicionar exercício'}
       </button>
 
-      <AddExerciseSheet open={adding} dayName={DAY_FULL_NAMES[dayKey]} onClose={() => setAdding(false)}
+      <AddExerciseSheet open={adding} dayName={slotName} onClose={() => setAdding(false)}
         onAdd={name => { const ex = newPlanExercise(name); edit(p => addExercise(p, dayKey, ex)); setOpenId(ex.id); setAdding(false); }} />
 
-      <Sheet title={DAY_FULL_NAMES[dayKey]} open={dayMenu} onClose={() => setDayMenu(false)}>
+      <Sheet title={slotName} open={dayMenu} onClose={() => setDayMenu(false)}>
         <label className="block text-sm font-semibold text-muted">Nome do treino
-          <input value={day.name} placeholder={DAY_FULL_NAMES[dayKey]} onChange={e => edit(p => updateDay(p, dayKey, { name: e.target.value }))}
+          <input value={day.name} placeholder={slotName} onChange={e => edit(p => updateDay(p, dayKey, { name: e.target.value }))}
             className="mt-1 h-12 w-full rounded-xl border border-line bg-surface-2 px-3 text-base text-ink" />
         </label>
         <label className="mt-3 block text-sm font-semibold text-muted">Foco
@@ -188,9 +264,9 @@ function DayCard({ plan, dayKey, today, edit }: { plan: Plan; dayKey: DayKey; to
         {!rest && (
           <div className="mt-3">
             <SheetAction tone="danger" onClick={() => {
-              if (confirm(`Transformar ${DAY_FULL_NAMES[dayKey]} em descanso? Os exercícios do dia serão removidos.`)) { edit(p => clearDay(p, dayKey)); setDayMenu(false); }
+              if (confirm(rotation ? `Esvaziar ${slotName}? Os exercícios serão removidos e ele sai da rotação.` : `Transformar ${DAY_FULL_NAMES[dayKey]} em descanso? Os exercícios do dia serão removidos.`)) { edit(p => clearDay(p, dayKey)); setDayMenu(false); }
             }}>
-              <Icon name="lixo" /> Transformar em descanso
+              <Icon name="lixo" /> {rotation ? 'Esvaziar treino' : 'Transformar em descanso'}
             </SheetAction>
           </div>
         )}

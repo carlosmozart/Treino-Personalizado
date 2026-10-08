@@ -87,6 +87,17 @@ export interface Plan {
   createdAt: DateKey;
   updatedAt: DateKey;
   days: Record<DayKey, PlanDay>;
+  /** Rotação A/B/C (R1, docs/dev/rotacao.md). Ausente = semana fixa. */
+  rotation?: PlanRotation;
+}
+
+export interface PlanRotation {
+  /** Ordem dos treinos (espaços com exercícios). */
+  order: DayKey[];
+  /** Meta de treinos por semana (XP, semana e sequência). */
+  perWeek: number;
+  /** "Recomeçar do A": treinos antes deste instante não contam para achar o próximo. */
+  restartAt?: string;
 }
 
 export interface WeighIn {

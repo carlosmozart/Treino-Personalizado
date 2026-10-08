@@ -2,7 +2,8 @@
 // Trabalham sobre um rascunho já copiado pela ação e registram eventos para a interface
 // mostrar — nenhuma regra daqui exibe nada.
 import { calculateStreak } from './streak';
-import { addDays, mondayOf, type DateKey } from './dates';
+import { addDays, mondayOf, toDateKey, type DateKey } from './dates';
+import { maxRestGap } from './rotation';
 import {
   applyCheckinXP, bonusXP, freeMealThreshold, fullCheckinXP, isBirthday, isNightCheckin, levelInfo,
   STREAK_BONUS_PCT, streakBonusKey, WATER_BONUS_PCT
@@ -26,6 +27,7 @@ export type RewardEvent =
 /** Dias de treino da semana pelo plano ativo; 6 sem plano (o padrão do app antigo). */
 export function daysPerWeekOf(data: AppData): number {
   const plan = data.activePlanId ? data.plans[data.activePlanId] : undefined;
+  if (plan?.rotation) return plan.rotation.perWeek;
   return (plan && trainingDaysPerWeek(plan)) || 6;
 }
 
@@ -33,11 +35,31 @@ export function fullXPOf(data: AppData): number {
   return fullCheckinXP(daysPerWeekOf(data));
 }
 
-/** Descanso planejado (dia opcional ou sem exercícios no plano ativo) não quebra a sequência. */
+/**
+ * Descanso planejado (dia opcional ou sem exercícios no plano ativo) não quebra a sequência.
+ * Na rotação (R1) não há dia fixo: uma folga seguida de até maxRestGap dias conta como descanso.
+ */
 export function streakOf(data: AppData, now: Date): number {
   const plan = data.activePlanId ? data.plans[data.activePlanId] : undefined;
+  const isCheckedIn = (key: string) => !!data.checkins[key];
+  if (plan?.rotation) {
+    const gap = maxRestGap(plan.rotation.perWeek);
+    const today = toDateKey(now);
+    return calculateStreak({
+      isCheckedIn,
+      isRestDay: date => {
+        // tamanho da folga que contém este dia (hoje não conta: o dia não acabou)
+        const key = toDateKey(date);
+        let run = 0;
+        for (let k = key; !isCheckedIn(k) && run <= gap; k = addDays(k, -1)) run++;
+        for (let k = addDays(key, 1); k < today && !isCheckedIn(k) && run <= gap; k = addDays(k, 1)) run++;
+        return run <= gap;
+      },
+      now
+    });
+  }
   return calculateStreak({
-    isCheckedIn: key => !!data.checkins[key],
+    isCheckedIn,
     isRestDay: date => {
       const day = plan?.days[dayKeyOf(date)];
       return !!day && (day.optional || day.exercises.length === 0);
