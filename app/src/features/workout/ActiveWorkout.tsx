@@ -11,10 +11,12 @@ import { dayTitle, formatClock, plural } from '../../ui/format';
 import { ExerciseCard } from './ExerciseCard';
 import { useRestStore } from './rest-store';
 import { useWorkoutUi } from './workout-ui';
+import { WorkoutSettingsFields } from '../profile/SettingsSection';
 
 export function ActiveWorkout({ session }: { session: ActiveSession }) {
   const now = useNow(1000);
   const [finishing, setFinishing] = useState(false);
+  const [settingsOpen, setSettingsOpen] = useState(false);
   const [switching, setSwitching] = useState(false);
   const keepScreenOn = useAppStore(s => s.data?.settings.keepScreenOn ?? true);
   useWakeLock(keepScreenOn);
@@ -39,6 +41,10 @@ export function ActiveWorkout({ session }: { session: ActiveSession }) {
               {formatClock(elapsed)} · {progress.setsDone}/{progress.setsTotal} séries
             </p>
           </div>
+          <button type="button" onClick={() => setSettingsOpen(true)} aria-label="Ajustes do treino"
+            className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-surface-2 text-muted">
+            <Icon name="ajustes" />
+          </button>
           <button type="button" onClick={() => run((d, t) => updateSettings(d, { focusMode: !focus }, t))} aria-pressed={focus}
             aria-label={focus ? 'Ver todos os exercícios' : 'Um exercício por vez'}
             className="flex size-11 shrink-0 items-center justify-center rounded-xl bg-surface-2 text-muted">
@@ -58,6 +64,10 @@ export function ActiveWorkout({ session }: { session: ActiveSession }) {
       </header>
 
       <ProgressionNotice session={session} />
+      {/* R5: descanso, som, gesto e carga sem sair do treino */}
+      <Sheet title="Ajustes do treino" open={settingsOpen} onClose={() => setSettingsOpen(false)}>
+        <div className="px-1 pb-3"><WorkoutSettingsFields /></div>
+      </Sheet>
 
       {focus && total > 0 ? (
         // N5: um exercício por vez, com navegação; o próximo pendente fica a um toque

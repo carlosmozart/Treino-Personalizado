@@ -14,7 +14,7 @@ import { Sheet, SheetAction } from '../../ui/Sheet';
 import { formatNumber, relativeDate, shortDate } from '../../ui/format';
 import { useRestStore } from './rest-store';
 import { PlateSheet } from './PlateSheet';
-import { SwipeRow } from './SwipeRow';
+import { SwipeRow } from '../../ui/SwipeRow';
 import { isBarbell } from '../../domain/plates';
 
 const ALL_NAMES = [...new Set(Object.values(EXERCISE_LIBRARY).flat())];

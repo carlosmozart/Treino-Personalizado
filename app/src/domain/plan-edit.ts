@@ -31,6 +31,27 @@ export function addExercise(plan: Plan, dayKey: DayKey, exercise: PlanExercise):
   return mapDay(plan, dayKey, day => day.exercises.length >= MAX_EXERCISES_PER_DAY ? day : { ...day, exercises: [...day.exercises, exercise] });
 }
 
+/** Deslizar para a direita no plano (R2): cópia logo abaixo, com id novo. */
+export function duplicateExercise(plan: Plan, dayKey: DayKey, id: string, newExId: string): Plan {
+  return mapDay(plan, dayKey, day => {
+    const at = day.exercises.findIndex(e => e.id === id);
+    if (at < 0 || day.exercises.length >= MAX_EXERCISES_PER_DAY) return day;
+    const exercises = [...day.exercises];
+    exercises.splice(at + 1, 0, { ...structuredClone(day.exercises[at]!), id: newExId });
+    return { ...day, exercises };
+  });
+}
+
+/** Desfazer a remoção (R2): o exercício volta para a mesma posição. */
+export function insertExercise(plan: Plan, dayKey: DayKey, index: number, exercise: PlanExercise): Plan {
+  return mapDay(plan, dayKey, day => {
+    if (day.exercises.length >= MAX_EXERCISES_PER_DAY || day.exercises.some(e => e.id === exercise.id)) return day;
+    const exercises = [...day.exercises];
+    exercises.splice(Math.min(Math.max(0, index), exercises.length), 0, exercise);
+    return { ...day, exercises };
+  });
+}
+
 export function updateExercise(plan: Plan, dayKey: DayKey, id: string, patch: Partial<Omit<PlanExercise, 'id'>>): Plan {
   return mapDay(plan, dayKey, day => ({ ...day, exercises: day.exercises.map(e => (e.id === id ? { ...e, ...patch } : e)) }));
 }

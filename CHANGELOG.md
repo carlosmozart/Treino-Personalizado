@@ -9,6 +9,9 @@ Todas as mudanças relevantes do app ficam registradas aqui. Ao lançar uma nova
 ## [Não lançado]
 
 - Treino: deslize a série para a esquerda para apagar (com "Desfazer" por alguns segundos) ou para a direita para copiar logo abaixo. A última série fica. Dá para desligar em Perfil → Treino.
+- Plano: o mesmo gesto nos exercícios: esquerda remove (com "Desfazer"), direita duplica logo abaixo.
+- Treino: botão "Ajustes do treino" no cabeçalho abre descanso, som, vibração, carga ao abrir, gesto, tela ligada e ilustrações sem sair do treino.
+- Perfil → Sobre: "Créditos e licenças" com a atribuição das ilustrações (Everkinetic, CC BY-SA 4.0) e dos programas de código aberto.
 
 ## [3.3.1] - 2026-10-07
 

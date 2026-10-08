@@ -13,6 +13,7 @@ import { Card, INPUT } from './ProfileScreen';
 import { AlarmSettings } from './AlarmSettings';
 import { UpdateControls } from './UpdateOffer';
 import { WhatsNewButton } from './WhatsNew';
+import { CreditsButton } from './Credits';
 import { encryptBackup } from '../../domain/backup-crypto';
 import { ensureNotificationPermission, notificationsAvailable } from '../../platform/notifications';
 import { resyncReminders } from '../plan/reminders-sync';
@@ -24,25 +25,13 @@ export function SettingsSection() {
   const run = useAppStore(s => s.run);
   if (!settings) return null;
   const set = (patch: Partial<Settings>) => run((d, t) => updateSettings(d, patch, t));
-  const toggle = (k: 'restAutoStart' | 'restSound' | 'restVibrate', label: string) =>
-    <Toggle label={label} checked={settings[k]} onChange={v => set({ [k]: v })} />;
 
   return (
     <>
       <Card title="Treino">
-        <label className="block text-sm font-semibold text-muted">Descanso padrão (segundos)
-          <NumberField label="Descanso padrão em segundos" value={settings.restSeconds} onChange={n => { if (n >= 15) set({ restSeconds: n }); }} className="mt-1" />
-        </label>
-        {toggle('restAutoStart', 'Iniciar o descanso ao marcar a série')}
-        {toggle('restSound', 'Som no fim do descanso')}
-        {toggle('restVibrate', 'Vibrar no fim do descanso')}
+        <WorkoutSettingsFields />
         <AlarmSettings />
         {notificationsAvailable() && <ReminderToggle on={!!settings.trainingReminders} set={set} />}
-        <LoadSourceChoice value={loadSourceOf(settings)} onChange={v => set({ loadSource: v, autoProgression: v === 'auto' })} />
-        <Toggle label="Deslizar a série: esquerda apaga, direita copia" checked={settings.swipeSets ?? true} onChange={v => set({ swipeSets: v })} />
-        <Toggle label="Botões de ajuste de carga no treino" checked={settings.weightButtons ?? true} onChange={v => set({ weightButtons: v })} />
-        <Toggle label="Manter a tela ligada no treino" checked={settings.keepScreenOn ?? true} onChange={v => set({ keepScreenOn: v })} />
-        <Toggle label="Mostrar ilustrações dos exercícios" checked={settings.showIllustrations ?? true} onChange={v => set({ showIllustrations: v })} />
       </Card>
       <Card title="Aparência">
         <ThemeChoice value={settings.theme ?? 'system'} onChange={v => set({ theme: v })} />
@@ -52,11 +41,40 @@ export function SettingsSection() {
         <p className="text-sm text-muted">Seus dados ficam guardados neste aparelho. Em breve: entrar com o Google para guardar uma cópia na nuvem e usar em mais de um aparelho.</p>
       </Card>
       <Card title="Sobre">
-        <p className="text-sm text-muted">Versão {__APP_VERSION__}. Ilustrações dos exercícios: Everkinetic (CC BY-SA 4.0).</p>
+        <p className="text-sm text-muted">Versão {__APP_VERSION__}. Ilustrações dos exercícios: Everkinetic (CC BY-SA 4.0), detalhes em Créditos e licenças.</p>
         <UpdateControls />
         <WhatsNewButton />
+        <CreditsButton />
         <ErrorLogButton />
       </Card>
+    </>
+  );
+}
+
+/**
+ * Ajustes do treino em si: aparecem em Perfil → Treino e no painel aberto durante o treino (R5),
+ * para mudar descanso, som ou o gesto sem sair da sessão.
+ */
+export function WorkoutSettingsFields() {
+  const settings = useAppStore(s => s.data?.settings);
+  const run = useAppStore(s => s.run);
+  if (!settings) return null;
+  const set = (patch: Partial<Settings>) => run((d, t) => updateSettings(d, patch, t));
+  const toggle = (k: 'restAutoStart' | 'restSound' | 'restVibrate', label: string) =>
+    <Toggle label={label} checked={settings[k]} onChange={v => set({ [k]: v })} />;
+  return (
+    <>
+      <label className="block text-sm font-semibold text-muted">Descanso padrão (segundos)
+        <NumberField label="Descanso padrão em segundos" value={settings.restSeconds} onChange={n => { if (n >= 15) set({ restSeconds: n }); }} className="mt-1" />
+      </label>
+      {toggle('restAutoStart', 'Iniciar o descanso ao marcar a série')}
+      {toggle('restSound', 'Som no fim do descanso')}
+      {toggle('restVibrate', 'Vibrar no fim do descanso')}
+      <LoadSourceChoice value={loadSourceOf(settings)} onChange={v => set({ loadSource: v, autoProgression: v === 'auto' })} />
+      <Toggle label="Deslizar para apagar (esquerda) ou copiar (direita) séries e exercícios do plano" checked={settings.swipeSets ?? true} onChange={v => set({ swipeSets: v })} />
+      <Toggle label="Botões de ajuste de carga no treino" checked={settings.weightButtons ?? true} onChange={v => set({ weightButtons: v })} />
+      <Toggle label="Manter a tela ligada no treino" checked={settings.keepScreenOn ?? true} onChange={v => set({ keepScreenOn: v })} />
+      <Toggle label="Mostrar ilustrações dos exercícios" checked={settings.showIllustrations ?? true} onChange={v => set({ showIllustrations: v })} />
     </>
   );
 }

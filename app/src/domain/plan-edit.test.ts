@@ -1,5 +1,5 @@
-import { expect, test } from 'vitest';
-import { addAlternative, blankPlan, duplicatePlan, removeAlternative, addExercise, clearDay, deletePlan, editPlan, moveExercise, newPlanExercise, optionalHint, removeExercise, updateDay, updateExercise } from './plan-edit';
+import { describe, expect, it, test } from 'vitest';
+import { addAlternative, duplicateExercise, insertExercise, blankPlan, duplicatePlan, removeAlternative, addExercise, clearDay, deletePlan, editPlan, moveExercise, newPlanExercise, optionalHint, removeExercise, updateDay, updateExercise } from './plan-edit';
 import { trainingDaysPerWeek } from './model';
 import { planExercise, sampleData, samplePlan } from './testing';
 
@@ -86,4 +86,21 @@ test('reservas: adiciona sem repetir e remove', () => {
   expect(plan.days.SEG.exercises[0]!.alternatives).toEqual([{ name: 'Supino com Halteres', mode: 'reps' }, { name: 'Esteira', mode: 'cardio' }]);
   plan = removeAlternative(plan, 'SEG', 'e1', 0);
   expect(plan.days.SEG.exercises[0]!.alternatives.map(a => a.name)).toEqual(['Esteira']);
+});
+
+describe('deslizar no plano (R2)', () => {
+  it('duplicar põe a cópia logo abaixo, com id novo', () => {
+    const p = duplicateExercise(samplePlan(), 'SEG', 'e1', 'novo');
+    expect(p.days.SEG.exercises.map(e => e.id)).toEqual(['e1', 'novo', 'e2']);
+    expect(p.days.SEG.exercises[1]!.name).toBe('Supino Reto');
+  });
+
+  it('remover e desfazer volta o exercício à mesma posição', () => {
+    const before = samplePlan();
+    const ex = before.days.SEG.exercises[0]!;
+    const after = insertExercise(removeExercise(before, 'SEG', 'e1'), 'SEG', 0, ex);
+    expect(after.days.SEG.exercises).toEqual(before.days.SEG.exercises);
+    // desfazer duas vezes não duplica
+    expect(insertExercise(after, 'SEG', 0, ex).days.SEG.exercises).toHaveLength(2);
+  });
 });

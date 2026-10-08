@@ -18,7 +18,9 @@ const PATHS = {
   subir: 'M6 15l6-6 6 6',
   descer: 'M6 9l6 6 6-6',
   lixo: 'M4 7h16M10 11v6m4-6v6M6 7l1 13h10l1-13M9 7V4h6v3',
-  editar: 'M4 20h4L19 9l-4-4L4 16zM13 7l4 4'
+  editar: 'M4 20h4L19 9l-4-4L4 16zM13 7l4 4',
+  // três controles deslizantes: ajustes
+  ajustes: 'M4 6h9m4 0h3M4 12h3m4 0h9M4 18h11m4 0h1M15 4v4M9 10v4M17 16v4'
 } as const;
 
 export type IconName = keyof typeof PATHS;

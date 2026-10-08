@@ -5,7 +5,7 @@ import { toDateKey } from '../../domain/dates';
 import { newId } from '../../domain/ids';
 import { DAY_FULL_NAMES, MAX_EXERCISES_PER_DAY, dayKeyOf, trainingDaysPerWeek, type Plan, type PlanExercise } from '../../domain/model';
 import {
-  addAlternative, addExercise, blankPlan, clearDay, deletePlan, duplicatePlan, editPlan, moveExercise, newPlanExercise, optionalHint,
+  addAlternative, addExercise, duplicateExercise, insertExercise, blankPlan, clearDay, deletePlan, duplicatePlan, editPlan, moveExercise, newPlanExercise, optionalHint,
   removeAlternative, removeExercise, updateDay, updateExercise
 } from '../../domain/plan-edit';
 import { EXERCISE_LIBRARY } from '../../data/exercise-library';
@@ -17,6 +17,7 @@ import { TemplateSheet } from './TemplateSheet';
 import { NumberField } from '../../ui/NumberField';
 import { DEFAULT_INCREMENT, INCREMENTS, repRange } from '../../domain/progression';
 import { Sheet, SheetAction } from '../../ui/Sheet';
+import { SwipeRow } from '../../ui/SwipeRow';
 import { disableRotation, enableRotation, moveInRotation, restartRotation, rotationLetter, rotationOrder, rotationState, rotationTitle, setRotationPerWeek } from '../../domain/rotation';
 import { dayTitle, formatNumber, plural } from '../../ui/format';
 
@@ -189,6 +190,23 @@ function DayCard({ plan, dayKey, today, edit, rotation }: { plan: Plan; dayKey: 
   const [openId, setOpenId] = useState<string | null>(null);
   const [adding, setAdding] = useState(false);
   const [dayMenu, setDayMenu] = useState(false);
+  // R2: deslizar o exercício (esquerda remove com Desfazer, direita duplica)
+  const swipe = useAppStore(s => s.data?.settings.swipeSets ?? true);
+  const [removed, setRemoved] = useState<{ at: number; ex: PlanExercise; timer: number } | null>(null);
+  const removeWithUndo = (i: number) => {
+    const ex = day.exercises[i];
+    if (!ex) return;
+    if (removed) clearTimeout(removed.timer);
+    if (openId === ex.id) setOpenId(null);
+    edit(p => removeExercise(p, dayKey, ex.id));
+    setRemoved({ at: i, ex, timer: window.setTimeout(() => setRemoved(null), 5000) });
+  };
+  const undoRemove = () => {
+    if (!removed) return;
+    clearTimeout(removed.timer);
+    edit(p => insertExercise(p, dayKey, removed.at, removed.ex));
+    setRemoved(null);
+  };
   const full = day.exercises.length >= MAX_EXERCISES_PER_DAY;
   // na rotação o espaço é "Treino B" (vazio: "Treino novo"), não o dia da semana
   const slotName = rotation ? (rotation.letter ? `Treino ${rotation.letter}` : 'Treino novo') : DAY_FULL_NAMES[dayKey];
@@ -227,7 +245,9 @@ function DayCard({ plan, dayKey, today, edit, rotation }: { plan: Plan; dayKey: 
       {!rest && (
         <ul className="mt-3 divide-y divide-line">
           {day.exercises.map((ex, i) => (
-            <ExerciseRow key={ex.id} ex={ex} open={openId === ex.id} first={i === 0} last={i === day.exercises.length - 1}
+            <ExerciseRow key={ex.id} ex={ex} open={openId === ex.id} first={i === 0} last={i === day.exercises.length - 1} swipe={swipe}
+              onSwipeRemove={() => removeWithUndo(i)}
+              onDuplicate={() => edit(p => duplicateExercise(p, dayKey, ex.id, newId('ex')))}
               onToggle={() => setOpenId(openId === ex.id ? null : ex.id)}
               onChange={patch => edit(p => updateExercise(p, dayKey, ex.id, patch))}
               onMove={delta => edit(p => moveExercise(p, dayKey, ex.id, delta))}
@@ -236,6 +256,12 @@ function DayCard({ plan, dayKey, today, edit, rotation }: { plan: Plan; dayKey: 
               onRemoveAlt={i => edit(p => removeAlternative(p, dayKey, ex.id, i))} />
           ))}
         </ul>
+      )}
+      {removed && (
+        <div role="status" className="mt-2 flex items-center justify-between gap-2 rounded-xl bg-surface-2 px-3 py-1 text-sm">
+          <span className="min-w-0 truncate">{removed.ex.name} removido.</span>
+          <button type="button" onClick={undoRemove} className="h-10 shrink-0 px-2 font-bold text-info">Desfazer</button>
+        </div>
       )}
 
       <button type="button" disabled={full} onClick={() => setAdding(true)}
@@ -283,13 +309,14 @@ function summary(ex: PlanExercise): string {
 }
 
 interface RowProps {
-  ex: PlanExercise; open: boolean; first: boolean; last: boolean;
+  ex: PlanExercise; open: boolean; first: boolean; last: boolean; swipe: boolean;
+  onSwipeRemove: () => void; onDuplicate: () => void;
   onToggle: () => void; onChange: (patch: Partial<PlanExercise>) => void; onMove: (delta: -1 | 1) => void; onRemove: () => void;
   onAddAlt: (name: string) => void; onRemoveAlt: (index: number) => void;
 }
 
 /** Exercício recolhido; ao tocar abre os campos (O25). */
-function ExerciseRow({ ex, open, first, last, onToggle, onChange, onMove, onRemove, onAddAlt, onRemoveAlt }: RowProps) {
+function ExerciseRow({ ex, open, first, last, swipe, onSwipeRemove, onDuplicate, onToggle, onChange, onMove, onRemove, onAddAlt, onRemoveAlt }: RowProps) {
   const [alt, setAlt] = useState('');
   const listId = useId();
   const field = (label: string, value: number, set: (n: number) => void, decimal = false) => (
@@ -298,7 +325,7 @@ function ExerciseRow({ ex, open, first, last, onToggle, onChange, onMove, onRemo
     </label>
   );
   return (
-    <li className="py-1">
+    <SwipeRow enabled={swipe} onDelete={onSwipeRemove} onCopy={onDuplicate} className="py-1">
       <button type="button" onClick={onToggle} aria-expanded={open} className="flex min-h-12 w-full items-center gap-2 text-left">
         <span className="min-w-0 flex-1">
           <span className="block truncate font-semibold">{ex.name}</span>
@@ -373,7 +400,7 @@ function ExerciseRow({ ex, open, first, last, onToggle, onChange, onMove, onRemo
           </div>
         </div>
       )}
-    </li>
+    </SwipeRow>
   );
 }
 
