@@ -5,6 +5,8 @@ import type { Workout } from '../../domain/model';
 import { heatmap, historyByMonth, muscleBalance, statsSummary, weeklyVolume, type HeatLevel } from '../../domain/stats';
 import { describeEntry, workoutVolume } from '../../domain/workouts';
 import { useAppStore } from '../../store';
+import { useUiStore } from '../../store/ui-store';
+import { askRestAlarmPermission } from '../workout/rest-alarm-instance';
 import { useNow } from '../../hooks/use-now';
 import { Icon } from '../../ui/Icon';
 import { GoalsView } from './GoalsView';
@@ -167,13 +169,30 @@ function WorkoutItem({ w, open, onToggle, onDelete }: { w: Workout; open: boolea
               </li>
             ))}
           </ul>
-          <button type="button" onClick={onDelete} className="mt-3 flex h-11 items-center gap-2 rounded-xl px-2 font-semibold text-danger">
-            <Icon name="lixo" className="size-5" /> Apagar treino
-          </button>
+          <div className="mt-3 flex flex-wrap items-center gap-2">
+            <RepeatButton w={w} />
+            <button type="button" onClick={onDelete} className="flex h-11 items-center gap-2 rounded-xl px-2 font-semibold text-danger">
+              <Icon name="lixo" className="size-5" /> Apagar treino
+            </button>
+          </div>
           {editing !== null && w.entries[editing] && <EntryEditor workout={w} index={editing} onClose={() => setEditing(null)} />}
         </div>
       )}
     </li>
+  );
+}
+
+/** Repetir hoje (R4): começa um treino com os mesmos exercícios e números. */
+function RepeatButton({ w }: { w: Workout }) {
+  const running = useAppStore(s => !!s.session);
+  const repeat = useAppStore(s => s.repeatWorkout);
+  const setTab = useUiStore(s => s.setTab);
+  if (running) return <p className="text-sm text-muted">Termine o treino em andamento para repetir este.</p>;
+  return (
+    <button type="button" onClick={() => { askRestAlarmPermission(); if (repeat(w.id)) setTab('treino'); }}
+      className="h-11 rounded-xl bg-primary px-4 font-bold text-white">
+      Repetir hoje
+    </button>
   );
 }
 

@@ -7,7 +7,7 @@ import type { DayKey } from '../domain/ai-plan';
 import type { AppData } from '../domain/model';
 import type { MigrationReport } from '../domain/legacy/migrate';
 import type { RewardEvent } from '../domain/rewards';
-import { startSession, type ActiveSession } from '../domain/session';
+import { repeatSession, startSession, type ActiveSession } from '../domain/session';
 import { createPersister, type Persister } from '../storage/persister';
 import type { Repository } from '../storage/repository';
 import type { StartupResult } from '../storage/startup';
@@ -37,6 +37,8 @@ export interface AppState {
   /** Aplica uma ação pura do domínio aos dados. */
   run(action: (data: AppData, now: Date) => actions.ActionResult): void;
   startWorkout(planId: string, dayKey: DayKey): boolean;
+  /** Repetir hoje (R4) um treino do histórico. Não substitui um treino em andamento. */
+  repeatWorkout(workoutId: string): boolean;
   updateSession(change: (session: ActiveSession) => ActiveSession): void;
   discardWorkout(): void;
   finishWorkout(): 'saved' | 'empty' | 'no-session';
@@ -111,6 +113,17 @@ export function createAppStore(deps: AppStoreDeps) {
         const { data } = get();
         if (!data) return false;
         const session = startSession(data, planId, dayKey, now(), makeId());
+        if (!session) return false;
+        set({ session });
+        sessionPersister.schedule(session);
+        return true;
+      },
+
+      repeatWorkout(workoutId) {
+        const { data, session: running } = get();
+        const workout = data?.workouts.find(w => w.id === workoutId);
+        if (!data || !workout || running) return false;
+        const session = repeatSession(data, workout, now(), makeId());
         if (!session) return false;
         set({ session });
         sessionPersister.schedule(session);

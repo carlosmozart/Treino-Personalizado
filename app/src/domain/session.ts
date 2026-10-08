@@ -4,7 +4,7 @@ import type { DayKey } from './ai-plan';
 import type { DateKey } from './dates';
 import { toDateKey } from './dates';
 import { normalizeExerciseName } from './text';
-import type { AppData, ExerciseMode, PlanExercise, SetKind, Workout, WorkoutEntry } from './model';
+import { dayKeyOf, type AppData, type ExerciseMode, type PlanExercise, type SetKind, type Workout, type WorkoutEntry } from './model';
 import { lastSessionBefore, workSets } from './workouts';
 import { isCardioName } from '../data/exercise-library';
 import { suggestProgression, type Progression } from './progression';
@@ -101,6 +101,39 @@ export function startSession(data: AppData, planId: string, dayKey: DayKey, now:
   return {
     id, date, startedAt: now.toISOString(), planId, dayKey, dayName: day.name,
     exercises: day.exercises.map(ex => fromPlanExercise(data, ex, date))
+  };
+}
+
+/**
+ * Repetir hoje (R4): um treino do histórico vira o treino de hoje, com os mesmos exercícios e os
+ * mesmos números, nada marcado. Dica, descanso e reservas vêm do plano quando o exercício está nele.
+ */
+export function repeatSession(data: AppData, workout: Workout, now: Date, id: string): ActiveSession | null {
+  if (!workout.entries.length) return null;
+  const planId = workout.planId && data.plans[workout.planId] ? workout.planId : (data.activePlanId ?? '');
+  const dayKey = workout.dayKey ?? dayKeyOf(now);
+  const planExercises = Object.values(data.plans[planId]?.days ?? {}).flatMap(d => d.exercises);
+  const exercises = workout.entries.map((entry, i): SessionExercise => {
+    const planEx = planExercises.find(p => normalizeExerciseName(p.name) === entry.key);
+    const ex: SessionExercise = {
+      slotId: planEx?.id ?? `repetir-${i}`,
+      name: entry.name,
+      key: entry.key,
+      mode: entry.mode,
+      optional: false,
+      sets: entry.sets.map(set => ({ reps: set.reps, weight: set.weight, kind: set.kind, done: false })),
+      note: '',
+      alternatives: planEx?.alternatives ?? []
+    };
+    if (entry.mode === 'cardio') ex.cardio = { minutes: entry.cardio?.minutes ?? 20, km: entry.cardio?.km ?? 0, done: false };
+    if (entry.mode === 'time' && entry.sets[0]) ex.seconds = entry.sets[0].reps;
+    if (planEx?.restSeconds) ex.restSeconds = planEx.restSeconds;
+    if (planEx?.tip) ex.tip = planEx.tip;
+    return ex;
+  });
+  return {
+    id, date: toDateKey(now), startedAt: now.toISOString(), planId, dayKey,
+    dayName: workout.dayName || 'Treino repetido', exercises
   };
 }
 

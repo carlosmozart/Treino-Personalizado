@@ -1,6 +1,7 @@
-import { expect, test } from 'vitest';
+import { describe, expect, it, test } from 'vitest';
+import type { Workout } from './model';
 import {
-  addSet, completeExercise, removeSet, sessionProgress, sessionToWorkout, startSession, swapExercise,
+  addSet, completeExercise, removeSet, repeatSession, sessionProgress, sessionToWorkout, startSession, swapExercise,
   toggleSet, updateCardio, updateSet
 } from './session';
 import { planExercise, sampleData, samplePlan, workout } from './testing';
@@ -68,4 +69,35 @@ test('troca pela reserva usa o histórico dela e volta ao original', () => {
   // fora das reservas também vale (troca pela biblioteca); o mesmo nome não muda nada
   expect(swapExercise(s0, data, 0, 'Inventado').exercises[0]!.name).toBe('Inventado');
   expect(swapExercise(s0, data, 0, s0.exercises[0]!.name)).toBe(s0);
+});
+
+describe('repetir hoje (R4)', () => {
+  const now = new Date(2026, 9, 7, 10);
+
+  it('mesmos exercícios e números, nada marcado, data de hoje', () => {
+    const d = sampleData();
+    const w = workout('2026-10-01', 'Supino Reto', [[10, 40], [8, 42.5]]);
+    w.entries[0]!.key = 'supino reto';
+    w.entries[0]!.sets.unshift({ reps: 10, weight: 20, kind: 'warmup' });
+    w.dayName = 'Treino A';
+    const s = repeatSession(d, w, now, 's1')!;
+    expect(s.date).toBe('2026-10-07');
+    expect(s.dayName).toBe('Treino A');
+    expect(s.exercises[0]!.sets).toEqual([
+      { reps: 10, weight: 20, kind: 'warmup', done: false },
+      { reps: 10, weight: 40, kind: 'work', done: false },
+      { reps: 8, weight: 42.5, kind: 'work', done: false }
+    ]);
+    // o exercício está no plano: liga ao exercício de lá (troca por reserva volta a funcionar)
+    expect(s.exercises[0]!.slotId).toBe('e1');
+  });
+
+  it('cardio mantém minutos e km', () => {
+    const w: Workout = { id: 'w1', date: '2026-10-01', source: 'app', entries: [{ key: 'esteira', name: 'Esteira', mode: 'cardio', sets: [], cardio: { minutes: 25, km: 3 } }] };
+    expect(repeatSession(sampleData(), w, now, 's1')!.exercises[0]!.cardio).toEqual({ minutes: 25, km: 3, done: false });
+  });
+
+  it('treino sem exercícios não começa', () => {
+    expect(repeatSession(sampleData(), { id: 'w', date: '2026-10-01', source: 'app', entries: [] }, now, 's1')).toBeNull();
+  });
 });
