@@ -8,6 +8,7 @@ import { dayKeyOf, loadSourceOf, type AppData, type ExerciseMode, type PlanExerc
 import { lastSessionBefore, workSets } from './workouts';
 import { isCardioName } from '../data/exercise-library';
 import { repRange, suggestProgression, type Progression } from './progression';
+import { rotationTitle } from './rotation';
 
 export interface SessionSet {
   reps: number;
@@ -102,11 +103,13 @@ function fromPlanExercise(data: AppData, ex: PlanExercise, date: DateKey): Sessi
 }
 
 export function startSession(data: AppData, planId: string, dayKey: DayKey, now: Date, id: string): ActiveSession | null {
-  const day = data.plans[planId]?.days[dayKey];
-  if (!day || !day.exercises.length) return null;
+  const plan = data.plans[planId];
+  const day = plan?.days[dayKey];
+  if (!plan || !day || !day.exercises.length) return null;
   const date = toDateKey(now);
   return {
-    id, date, startedAt: now.toISOString(), planId, dayKey, dayName: day.name,
+    // na rotação, sem o "Segunda:" que os modelos põem no nome (o treino não é da segunda)
+    id, date, startedAt: now.toISOString(), planId, dayKey, dayName: plan.rotation ? rotationTitle(plan, dayKey) : day.name,
     exercises: day.exercises.map(ex => fromPlanExercise(data, ex, date))
   };
 }

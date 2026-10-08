@@ -12,6 +12,7 @@ Todas as mudanças relevantes do app ficam registradas aqui. Ao lançar uma nova
 - Plano: o mesmo gesto nos exercícios: esquerda remove (com "Desfazer"), direita duplica logo abaixo.
 - Treino: botão "Ajustes do treino" no cabeçalho abre descanso, som, vibração, carga ao abrir, gesto, tela ligada e ilustrações sem sair do treino.
 - Perfil → Sobre: "Créditos e licenças" com a atribuição das ilustrações (Everkinetic, CC BY-SA 4.0) e dos programas de código aberto.
+- Rotação: o treino em andamento e o histórico mostram o nome do treino sem o dia da semana dos modelos (antes, "Segunda: A: Peito…").
 
 ## [3.3.1] - 2026-10-07
 

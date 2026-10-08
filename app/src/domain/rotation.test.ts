@@ -6,6 +6,7 @@ import { planExercise, sampleData, samplePlan } from './testing';
 import { daysPerWeekOf, streakOf } from './rewards';
 import { todayCard, weekStrip } from './home';
 import { remindersFor } from './reminders';
+import { startSession } from './session';
 import type { DayKey } from './ai-plan';
 import type { Plan, Workout } from './model';
 
@@ -132,5 +133,15 @@ describe('rotação no resto do app', () => {
     p.days.QUA = { ...p.days.QUA, name: '' };
     expect(rotationTitle(p, 'SEG')).toBe('A: Peito');
     expect(rotationTitle(p, 'QUA')).toBe('Treino B');
+  });
+});
+
+describe('treino da rotação', () => {
+  it('o treino começa com o nome sem o dia da semana', () => {
+    const d = sampleData();
+    const p = abc();
+    p.days.QUA = { ...p.days.QUA, name: 'Quarta: B: Costas' };
+    d.plans.p1 = p;
+    expect(startSession(d, 'p1', 'QUA', new Date(2026, 9, 5, 10), 's1')!.dayName).toBe('B: Costas');
   });
 });
