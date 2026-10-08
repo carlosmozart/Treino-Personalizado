@@ -16,6 +16,21 @@ export function shortDate(key: DateKey): string {
   return `${d.getDate()} ${MONTHS[d.getMonth()]}`;
 }
 
+/**
+ * Distância de uma data até hoje (R6): "hoje", "ontem", "há 3 dias", "há 2 semanas",
+ * "há 4 meses", "há 1 ano". Datas futuras viram "hoje".
+ */
+export function relativeDate(key: DateKey, today: DateKey): string {
+  const days = Math.round((fromDateKey(today).getTime() - fromDateKey(key).getTime()) / 86_400_000);
+  if (days <= 0) return 'hoje';
+  if (days === 1) return 'ontem';
+  if (days < 14) return `há ${days} dias`;
+  if (days < 60) return `há ${Math.floor(days / 7)} semanas`;
+  if (days < 365) return `há ${Math.floor(days / 30)} meses`;
+  const years = Math.floor(days / 365);
+  return `há ${plural(years, 'ano', 'anos')}`;
+}
+
 /** Segundos → "1:05" (ou "1:02:05"). */
 export function formatClock(totalSeconds: number): string {
   const s = Math.max(0, Math.floor(totalSeconds));

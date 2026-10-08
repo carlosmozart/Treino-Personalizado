@@ -11,7 +11,7 @@ import { NumberField } from '../../ui/NumberField';
 import { ExerciseIllustration, ExerciseThumb, hasIllustration } from '../../ui/ExerciseIllustration';
 import { markBigWeightJump, updateSettings } from '../../domain/actions';
 import { Sheet, SheetAction } from '../../ui/Sheet';
-import { formatNumber, shortDate } from '../../ui/format';
+import { formatNumber, relativeDate, shortDate } from '../../ui/format';
 import { useRestStore } from './rest-store';
 
 const ALL_NAMES = [...new Set(Object.values(EXERCISE_LIBRARY).flat())];
@@ -36,7 +36,11 @@ function useExerciseContext(ex: SessionExercise, date: string) {
       if (b && (!best || b.weight > best.weight || (b.weight === best.weight && b.reps > best.reps))) best = b;
     }
     const lastText = last
-      ? `${shortDate(last.workout.date)}: ${workSets(last.entry).map(s => `${formatNumber(s.weight)}×${s.reps}`).join(', ')}${last.entry.aggregated ? ' (registro antigo)' : ''}`
+      ? {
+          when: relativeDate(last.workout.date, date),
+          date: shortDate(last.workout.date),
+          sets: `${workSets(last.entry).map(s => `${formatNumber(s.weight)}×${s.reps}`).join(', ')}${last.entry.aggregated ? ' (registro antigo)' : ''}`
+        }
       : null;
     return { last: lastText, best };
   }, [workouts, ex.key, ex.mode, date]);
@@ -52,6 +56,8 @@ export function ExerciseCard({ session, index, alwaysOpen = false }: Props) {
   const [swapOpen, setSwapOpen] = useState(false);
   const [noteOpen, setNoteOpen] = useState(ex.note !== '');
   const [tipOpen, setTipOpen] = useState(false);
+  // R6: "há 3 dias"; tocar mostra a data
+  const [showDate, setShowDate] = useState(false);
   const { last, best } = useExerciseContext(ex, session.date);
   const group = groupOf(ex.name);
   const done = isExerciseDone(ex);
@@ -117,7 +123,12 @@ export function ExerciseCard({ session, index, alwaysOpen = false }: Props) {
             {ex.optional && <span className="rounded-full bg-surface-2 px-2 py-0.5 text-muted">Opcional</span>}
             {best && <span className="rounded-full bg-surface-2 px-2 py-0.5 text-muted">Melhor: {formatNumber(best.weight)} kg × {best.reps}</span>}
           </div>
-          {last && <p className="mt-1.5 text-sm text-muted">Última vez ({last})</p>}
+          {last && (
+            <button type="button" onClick={() => setShowDate(v => !v)} title={last.date} aria-label={`Última vez em ${last.date}: ${last.sets}`}
+              className="mt-1.5 block text-left text-sm text-muted">
+              Última vez, {showDate ? `em ${last.date}` : last.when}: {last.sets}
+            </button>
+          )}
           {ex.progression && (
             <p className={`mt-1 text-sm font-semibold ${ex.progression.kind === 'up' ? 'text-success' : ex.progression.kind === 'deload' ? 'text-warning' : 'text-muted'}`}>
               {ex.progression.reason}
