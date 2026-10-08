@@ -6,7 +6,7 @@ Todas as mudanças relevantes do app ficam registradas aqui. Ao lançar uma nova
    atualizar o app instalado
 3. Adicione uma entrada aqui, nesse formato
 
-## [Não lançado]
+## [3.2.1] - 2026-10-07
 
 - Atualização: o app procura versão nova toda vez que é aberto ou volta à tela (antes, uma vez por dia e só ao abrir do zero); a oferta não interrompe um treino em andamento.
 - Aparência: tema claro e escuro (fundo preto), ou seguindo o sistema, em Perfil → Aparência; a barra de status do Android acompanha.

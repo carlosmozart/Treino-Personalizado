@@ -3,6 +3,15 @@ export interface ReleaseNote { version: string; date: string; items: string[] }
 
 export const RELEASE_NOTES: readonly ReleaseNote[] = [
   {
+    version: '3.2.1',
+    date: '2026-10',
+    items: [
+      'Tema claro e escuro (fundo preto), ou seguindo o celular: Perfil → Aparência.',
+      'Depois de concluir o treino do dia, a aba Treino mostra "Feito hoje" no lugar de "Começar".',
+      'O app procura versão nova sempre que é aberto, sem interromper um treino.'
+    ]
+  },
+  {
     version: '3.2.0',
     date: '2026-10',
     items: [
