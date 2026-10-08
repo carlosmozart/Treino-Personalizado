@@ -3,6 +3,15 @@ export interface ReleaseNote { version: string; date: string; items: string[] }
 
 export const RELEASE_NOTES: readonly ReleaseNote[] = [
   {
+    version: '3.3.1',
+    date: '2026-10',
+    items: [
+      'Rotação: com os lembretes ligados, o aviso diário diz qual é o próximo treino.',
+      'Modelos de plano: "Usar em rotação A/B/C" já cria o plano em rotação.',
+      'Perfil → Treino: escolha a carga ao abrir o treino (sugerida, a da última vez ou a do plano).'
+    ]
+  },
+  {
     version: '3.3.0',
     date: '2026-10',
     items: [

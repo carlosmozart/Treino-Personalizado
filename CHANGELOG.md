@@ -6,7 +6,7 @@ Todas as mudanças relevantes do app ficam registradas aqui. Ao lançar uma nova
    atualizar o app instalado
 3. Adicione uma entrada aqui, nesse formato
 
-## [Não lançado]
+## [3.3.1] - 2026-10-07
 
 - Rotação: com os lembretes ligados, o aviso diário diz qual é o próximo treino (antes, a rotação desligava os lembretes).
 - Rotação: o nome do treino aparece sem o dia da semana que os modelos colocam ("A: Peito, ombro e tríceps").
