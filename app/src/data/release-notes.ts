@@ -3,6 +3,16 @@ export interface ReleaseNote { version: string; date: string; items: string[] }
 
 export const RELEASE_NOTES: readonly ReleaseNote[] = [
   {
+    version: '3.3.2',
+    date: '2026-10',
+    items: [
+      'Deslize a série para a esquerda para apagar (com Desfazer) ou para a direita para copiar. No plano, o mesmo vale para os exercícios.',
+      'Botão de ajustes no treino: descanso, som, vibração e carga sem sair da sessão.',
+      'Perfil → Sobre → Créditos e licenças.',
+      'Rotação: o treino aparece com o nome certo, sem o dia da semana.'
+    ]
+  },
+  {
     version: '3.3.1',
     date: '2026-10',
     items: [

@@ -6,7 +6,7 @@ Todas as mudanças relevantes do app ficam registradas aqui. Ao lançar uma nova
    atualizar o app instalado
 3. Adicione uma entrada aqui, nesse formato
 
-## [Não lançado]
+## [3.3.2] - 2026-10-07
 
 - Treino: deslize a série para a esquerda para apagar (com "Desfazer" por alguns segundos) ou para a direita para copiar logo abaixo. A última série fica. Dá para desligar em Perfil → Treino.
 - Plano: o mesmo gesto nos exercícios: esquerda remove (com "Desfazer"), direita duplica logo abaixo.
