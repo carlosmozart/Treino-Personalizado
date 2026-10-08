@@ -53,9 +53,8 @@ A letra de cada treino é a posição na ordem efetiva (A, B, C…).
 - **Sequência:** na rotação não há dia de descanso fixo. Um intervalo sem treino conta como descanso
   se tiver no máximo `ceil((7 − perWeek) / perWeek)` dias (3×/semana: até 2 dias; 4× ou mais: 1).
   Hoje sem treino não quebra (o dia não acabou), como na semana fixa.
-- **Lembretes:** são por dia da semana, então ficam desligados na rotação (avisado na tela).
+- **Lembretes:** um por dia, no horário do treino, com o nome do próximo treino; refeitos a cada treino concluído.
 
 ## Fora desta entrega
 
-- Lembrete diário com o nome do próximo treino.
 - Mover um treino feito fora de ordem para outro lugar da volta.

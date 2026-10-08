@@ -6,7 +6,7 @@ import { useAppStore } from '../../store';
 import { askRestAlarmPermission } from './rest-alarm-instance';
 import { dayTitle, plural } from '../../ui/format';
 import { toDateKey } from '../../domain/dates';
-import { rotationLetter, rotationState } from '../../domain/rotation';
+import { rotationLetter, rotationState, rotationTitle } from '../../domain/rotation';
 
 /** Escolha do treino: hoje em destaque e os demais dias logo abaixo. */
 export function DayPicker() {
@@ -60,7 +60,10 @@ export function DayPicker() {
 
 function DayCard({ plan, dayKey, today, done, onStart, tag }: { plan: Plan; dayKey: DayKey; today: boolean; done: boolean; onStart: () => void; tag?: string }) {
   const day = plan.days[dayKey];
-  const { title, optional } = dayTitle(day, dayKey);
+  const named = dayTitle(day, dayKey);
+  const optional = named.optional;
+  // rotação: sem o dia da semana no nome ("Segunda: A: Peito" vira "A: Peito"; sem nome, "Treino B")
+  const title = tag ? rotationTitle(plan, dayKey) : named.title;
   const rest = day.exercises.length === 0;
   const tags = tag ?? [today ? 'Hoje' : '', optional ? 'Opcional' : ''].filter(Boolean).join(' · ');
   return (

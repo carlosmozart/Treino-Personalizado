@@ -12,7 +12,7 @@ export function startRemindersSync() {
   let last: string | null = null;
   const sync = (data: AppData | null) => {
     if (!data) return;
-    const reminders = remindersFor(plan(data));
+    const reminders = remindersFor(plan(data), data.workouts);
     const enabled = !!data.settings.trainingReminders;
     const k = remindersKey(enabled, reminders);
     if (k === last) return;
@@ -27,6 +27,6 @@ export function startRemindersSync() {
 export function resyncReminders() {
   const data = useAppStore.getState().data;
   if (!data) return;
-  syncTrainingReminders(REMINDER_IDS, remindersFor(plan(data)), !!data.settings.trainingReminders)
+  syncTrainingReminders(REMINDER_IDS, remindersFor(plan(data), data.workouts), !!data.settings.trainingReminders)
     .catch(e => useErrorLog.getState().report(e, 'Lembretes de treino'));
 }

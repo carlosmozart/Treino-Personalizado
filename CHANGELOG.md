@@ -6,6 +6,14 @@ Todas as mudanças relevantes do app ficam registradas aqui. Ao lançar uma nova
    atualizar o app instalado
 3. Adicione uma entrada aqui, nesse formato
 
+## [Não lançado]
+
+- Rotação: com os lembretes ligados, o aviso diário diz qual é o próximo treino (antes, a rotação desligava os lembretes).
+- Rotação: o nome do treino aparece sem o dia da semana que os modelos colocam ("A: Peito, ombro e tríceps").
+- Modelos de plano: "Usar em rotação A/B/C" cria o plano já em rotação.
+- Treino: "Carga ao abrir o treino" em Perfil → Treino: sugerida pela progressão, a da última vez ou a do plano (M13).
+- Treino: aviso único explicando a carga sugerida no primeiro treino em que ela aparece, com a opção de voltar a repetir a última carga.
+
 ## [3.3.0] - 2026-10-07
 
 - Plano: rotação A/B/C ao lado da semana fixa. O próximo treino é o seguinte ao último feito, em qualquer dia; faltar um dia não bagunça o plano. Dá para reordenar, definir a meta de treinos por semana e recomeçar do A; o Início mostra o próximo e quanto da volta já foi feito.

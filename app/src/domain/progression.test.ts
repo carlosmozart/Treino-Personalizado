@@ -104,6 +104,20 @@ describe('treino abre com a sugestão', () => {
     expect(ex.progression?.reason).toBe('+2,5 kg: 10 reps nas 3 séries.');
   });
 
+  it('do plano (M13): carga e topo da faixa como estão no plano', () => {
+    const d = data();
+    d.settings.loadSource = 'plan';
+    const ex = startSession(d, 'p1', 'QUA', now, 's1')!.exercises[0]!;
+    expect(ex.sets.map(s => [s.weight, s.reps])).toEqual([[20, 10], [20, 10], [20, 10]]);
+    expect(ex.progression).toBeUndefined();
+  });
+
+  it('última vez (M13) vale como a progressão desligada', () => {
+    const d = data();
+    d.settings.loadSource = 'last';
+    expect(startSession(d, 'p1', 'QUA', now, 's1')!.exercises[0]!.sets[0]).toMatchObject({ weight: 40, reps: 10 });
+  });
+
   it('desligada: carga da última sessão e reps do plano, sem aviso', () => {
     const ex = startSession(data(false), 'p1', 'QUA', now, 's1')!.exercises[0]!;
     expect(ex.sets.map(s => [s.weight, s.reps])).toEqual([[40, 10], [40, 10], [40, 10]]);

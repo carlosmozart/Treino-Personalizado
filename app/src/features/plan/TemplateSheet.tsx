@@ -5,6 +5,7 @@ import { newId } from '../../domain/ids';
 import { trainingDaysPerWeek } from '../../domain/model';
 import { PLAN_TEMPLATES } from '../../data/plan-templates';
 import { useAppStore } from '../../store';
+import { enableRotation } from '../../domain/rotation';
 import { Sheet } from '../../ui/Sheet';
 import { dayTitle, plural } from '../../ui/format';
 
@@ -14,15 +15,18 @@ const PREVIEWS = PLAN_TEMPLATES.map(t => ({ template: t, plan: t.build('2000-01-
 /** Escolha de um plano pronto (M45): vira um plano novo, ativo e editável. */
 export function TemplateSheet({ open, onClose }: { open: boolean; onClose: () => void }) {
   const run = useAppStore(s => s.run);
-  const use = (id: string) => {
+  const use = (id: string, rotation = false) => {
     const t = PLAN_TEMPLATES.find(x => x.id === id);
     if (!t) return;
-    run((d, now) => addPlan(d, t.build(toDateKey(now), newId('plano')), now));
+    run((d, now) => {
+      const plan = t.build(toDateKey(now), newId('plano'));
+      return addPlan(d, rotation ? enableRotation(plan) : plan, now);
+    });
     onClose();
   };
   return (
     <Sheet title="Modelos de plano" open={open} onClose={onClose}>
-      <p className="px-1 pb-3 text-sm text-muted">O modelo vira um plano seu: dá para trocar exercícios, dias e séries depois. As cargas começam em zero; anote as suas no primeiro treino.</p>
+      <p className="px-1 pb-3 text-sm text-muted">O modelo vira um plano seu: dá para trocar exercícios, dias e séries depois. As cargas começam em zero; anote as suas no primeiro treino. Em rotação, o próximo treino é o seguinte ao último feito, em qualquer dia.</p>
       <ul className="space-y-3 pb-3">
         {PREVIEWS.map(({ template: t, plan }) => {
           const days = DAY_KEYS.filter(k => plan.days[k].exercises.length > 0);
@@ -49,6 +53,12 @@ export function TemplateSheet({ open, onClose }: { open: boolean; onClose: () =>
                 className="mt-3 h-11 w-full rounded-xl bg-primary font-bold text-white">
                 Usar este modelo
               </button>
+              {days.length > 1 && (
+                <button type="button" onClick={() => use(t.id, true)} aria-label={`Rotação A/B/C com ${t.name}`}
+                  className="mt-2 h-11 w-full rounded-xl bg-surface font-semibold">
+                  Usar em rotação A/B/C
+                </button>
+              )}
             </li>
           );
         })}

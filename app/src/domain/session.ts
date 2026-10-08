@@ -4,10 +4,10 @@ import type { DayKey } from './ai-plan';
 import type { DateKey } from './dates';
 import { toDateKey } from './dates';
 import { normalizeExerciseName } from './text';
-import { dayKeyOf, type AppData, type ExerciseMode, type PlanExercise, type SetKind, type Workout, type WorkoutEntry } from './model';
+import { dayKeyOf, loadSourceOf, type AppData, type ExerciseMode, type PlanExercise, type SetKind, type Workout, type WorkoutEntry } from './model';
 import { lastSessionBefore, workSets } from './workouts';
 import { isCardioName } from '../data/exercise-library';
-import { suggestProgression, type Progression } from './progression';
+import { repRange, suggestProgression, type Progression } from './progression';
 
 export interface SessionSet {
   reps: number;
@@ -53,9 +53,11 @@ const clamp = (n: number, min: number, max: number) => Math.min(max, Math.max(mi
 type PlanTarget = Pick<PlanExercise, 'sets' | 'reps' | 'weight' | 'seconds' | 'repMin' | 'repMax' | 'increment'>;
 
 /**
- * Séries iniciais de um exercício. Com a progressão automática ligada (M10–M12), carga e
- * repetições vêm da sugestão (docs/dev/progressao.md). Sem ela: repetições do plano, carga da
- * última sessão (última série válida) ou, sem histórico, a carga do plano.
+ * Séries iniciais de um exercício, conforme a fonte escolhida (M13):
+ * - 'auto': sugestão da progressão (M10–M12, docs/dev/progressao.md);
+ * - 'last': repetições do plano e carga da última sessão (última série válida);
+ * - 'plan': repetições e carga do plano, como estão escritas.
+ * Sem histórico, a carga é a do plano em todos os casos.
  */
 function initialSets(data: AppData, name: string, mode: ExerciseMode, plan: PlanTarget | null, date: DateKey): { sets: SessionSet[]; progression?: Progression } {
   if (mode === 'cardio') return { sets: [] };
@@ -65,7 +67,12 @@ function initialSets(data: AppData, name: string, mode: ExerciseMode, plan: Plan
   const count = plan?.sets || lastSets.length || 3;
   let reps = mode === 'time' ? (plan?.seconds ?? lastSets[0]?.reps ?? 30) : (plan?.reps || lastSets[0]?.reps || 10);
   let weight = lastSets.length ? lastSets[lastSets.length - 1]!.weight : (plan?.weight ?? 0);
-  const progression = mode === 'reps' && plan && (data.settings.autoProgression ?? true)
+  const source = loadSourceOf(data.settings);
+  if (source === 'plan' && plan) {
+    weight = plan.weight;
+    if (mode === 'reps') reps = repRange(plan).max;
+  }
+  const progression = mode === 'reps' && plan && source === 'auto'
     ? suggestProgression(data.workouts, key, plan, date) ?? undefined
     : undefined;
   if (progression) ({ reps, weight } = progression);

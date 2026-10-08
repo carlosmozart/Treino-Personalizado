@@ -4,7 +4,7 @@ import { addDays, mondayOf, toDateKey, type DateKey } from './dates';
 import { goalProgress } from './body-goal';
 import { levelInfo, freeMealThreshold, type LevelInfo } from './gamification';
 import { dayKeyOf, type AppData, type PlanDay } from './model';
-import { rotationLetter, rotationState } from './rotation';
+import { rotationLetter, rotationState, rotationTitle } from './rotation';
 import { daysPerWeekOf, streakOf, weekCheckins } from './rewards';
 import { waterTargetMl } from './health';
 
@@ -65,7 +65,7 @@ export function todayCard(data: AppData, now: Date, session: { dayName: string; 
   if (rot) {
     const day = plan.days[rot.next];
     return {
-      kind: 'workout', dayKey: rot.next, title: day.name.replace(/\s*\(opcional\)\s*$/i, '') || `Treino ${rotationLetter(plan, rot.next)}`, focus: day.focus,
+      kind: 'workout', dayKey: rot.next, title: rotationTitle(plan, rot.next), focus: day.focus,
       exercises: day.exercises.length, optional: false, doneToday: !!data.checkins[toDateKey(now)],
       rotation: { letter: rotationLetter(plan, rot.next), done: rot.done, total: rot.order.length }
     };

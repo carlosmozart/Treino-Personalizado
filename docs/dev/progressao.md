@@ -48,11 +48,11 @@ sugerida nunca fica abaixo de 0 e é arredondada para o incremento (deload) ou p
 ## Fora desta primeira entrega
 
 - Progressão linear por plano (M10, opção).
-- Abrir pelos números do plano em vez da última sessão (M13).
-- Calculadora de anilhas (M14).
 - Progressão por repetições em exercícios de peso do corpo (M30).
 
-## Desligar
+## Carga ao abrir o treino (M13)
 
-Configuração `autoProgression` (ausente = ligada). Desligada, o treino volta a abrir com a carga da
-última sessão e as repetições do plano, sem aviso.
+Configuração `loadSource`: `auto` (esta progressão), `last` (carga da última sessão e repetições do
+plano, sem aviso) ou `plan` (carga e topo da faixa como estão no plano). Ausente, vale a antiga
+`autoProgression` (falsa = `last`). Um aviso único (`hintsSeen.progressao`) explica a sugestão no
+primeiro treino em que ela aparece.

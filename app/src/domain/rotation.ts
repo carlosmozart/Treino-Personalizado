@@ -1,6 +1,6 @@
 // Rotação de treinos A/B/C (R1). Regras em docs/dev/rotacao.md.
 import { DAY_KEYS, type DayKey } from './ai-plan';
-import type { Plan, Workout } from './model';
+import { DAY_FULL_NAMES, type Plan, type Workout } from './model';
 
 const LETTERS = 'ABCDEFG';
 
@@ -10,6 +10,18 @@ const hasExercises = (plan: Plan, k: DayKey) => plan.days[k].exercises.length > 
 export function rotationOrder(plan: Plan): DayKey[] {
   const saved = (plan.rotation?.order ?? []).filter((k, i, all) => DAY_KEYS.includes(k) && all.indexOf(k) === i && hasExercises(plan, k));
   return [...saved, ...DAY_KEYS.filter(k => hasExercises(plan, k) && !saved.includes(k))];
+}
+
+/**
+ * Nome do treino na rotação: sem o "Segunda:" que os modelos põem nem o "(opcional)";
+ * sem nome, "Treino B".
+ */
+export function rotationTitle(plan: Plan, k: DayKey): string {
+  const name = plan.days[k].name
+    .replace(new RegExp(`^${DAY_FULL_NAMES[k]}:\\s*`, 'i'), '')
+    .replace(/\s*\(opcional\)\s*$/i, '')
+    .trim();
+  return name || `Treino ${rotationLetter(plan, k)}`;
 }
 
 export function rotationLetter(plan: Plan, k: DayKey): string {

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
-  disableRotation, enableRotation, maxRestGap, moveInRotation, restartRotation, rotationLetter, rotationOrder, rotationState, setRotationPerWeek
+  disableRotation, enableRotation, maxRestGap, moveInRotation, restartRotation, rotationLetter, rotationOrder, rotationState, rotationTitle, setRotationPerWeek
 } from './rotation';
 import { planExercise, sampleData, samplePlan } from './testing';
 import { daysPerWeekOf, streakOf } from './rewards';
@@ -116,9 +116,21 @@ describe('rotação no resto do app', () => {
     expect(streakOf(withRotation([], ['2026-10-03', '2026-10-07', '2026-10-09']), now)).toBe(2);
   });
 
-  it('sem lembretes por dia da semana na rotação', () => {
+  it('lembrete todo dia com o próximo treino, que muda depois de treinar', () => {
     const p = { ...abc(), trainingTime: '18:00' };
-    expect(remindersFor(p)).toEqual([]);
+    p.days.SEG = { ...p.days.SEG, name: '' };
+    p.days.QUA = { ...p.days.QUA, name: 'Quarta: B: Costas' };
+    expect(remindersFor(p)).toHaveLength(7);
+    expect(remindersFor(p)[0]!.body).toBe('Próximo treino: Treino A');
+    expect(remindersFor(p, [done('2026-10-05', 'SEG')])[3]!.body).toBe('Próximo treino: B: Costas');
     expect(remindersFor(disableRotation(p))).toHaveLength(3);
+  });
+
+  it('título sem o dia da semana dos modelos', () => {
+    const p = abc();
+    p.days.SEG = { ...p.days.SEG, name: 'Segunda: A: Peito (Opcional)' };
+    p.days.QUA = { ...p.days.QUA, name: '' };
+    expect(rotationTitle(p, 'SEG')).toBe('A: Peito');
+    expect(rotationTitle(p, 'QUA')).toBe('Treino B');
   });
 });

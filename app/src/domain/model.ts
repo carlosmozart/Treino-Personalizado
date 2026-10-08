@@ -164,11 +164,20 @@ export interface Settings {
   plates?: number[];
   /** Progressão automática de carga (M10–M12). Ausente = ligada. */
   autoProgression?: boolean;
+  /** De onde vêm carga e reps ao abrir o treino (M13): sugestão da progressão, última vez ou o plano. Ausente = pela autoProgression. */
+  loadSource?: LoadSource;
   /** Tema da interface. Ausente = acompanha o sistema. */
   theme?: ThemePref;
 }
 
 export type ThemePref = 'system' | 'light' | 'dark';
+
+export type LoadSource = 'auto' | 'last' | 'plan';
+
+/** Fonte efetiva da carga: dados de antes do M13 só tinham a chave da progressão. */
+export function loadSourceOf(settings: Settings): LoadSource {
+  return settings.loadSource ?? (settings.autoProgression === false ? 'last' : 'auto');
+}
 
 export const DEFAULT_SETTINGS: Settings = {
   restSeconds: 90,

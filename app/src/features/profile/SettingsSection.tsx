@@ -4,7 +4,7 @@ import { buildBackup, readBackup } from '../../domain/backup';
 import { canAutoBackup, saveBackupFile } from '../../platform/backup-file';
 import { errorReport, useErrorLog } from '../../platform/error-log';
 import { toDateKey } from '../../domain/dates';
-import type { AppData, Settings, ThemePref } from '../../domain/model';
+import { loadSourceOf, type AppData, type LoadSource, type Settings, type ThemePref } from '../../domain/model';
 import { restoreBackup } from '../../domain/profile-view';
 import { useAppStore } from '../../store';
 import { NumberField } from '../../ui/NumberField';
@@ -38,7 +38,7 @@ export function SettingsSection() {
         {toggle('restVibrate', 'Vibrar no fim do descanso')}
         <AlarmSettings />
         {notificationsAvailable() && <ReminderToggle on={!!settings.trainingReminders} set={set} />}
-        <Toggle label="Progressão automática de carga" checked={settings.autoProgression ?? true} onChange={v => set({ autoProgression: v })} />
+        <LoadSourceChoice value={loadSourceOf(settings)} onChange={v => set({ loadSource: v, autoProgression: v === 'auto' })} />
         <Toggle label="Botões de ajuste de carga no treino" checked={settings.weightButtons ?? true} onChange={v => set({ weightButtons: v })} />
         <Toggle label="Manter a tela ligada no treino" checked={settings.keepScreenOn ?? true} onChange={v => set({ keepScreenOn: v })} />
         <Toggle label="Mostrar ilustrações dos exercícios" checked={settings.showIllustrations ?? true} onChange={v => set({ showIllustrations: v })} />
@@ -196,6 +196,30 @@ function ThemeChoice({ value, onChange }: { value: ThemePref; onChange: (v: Them
           {t.label}
         </button>
       ))}
+    </div>
+  );
+}
+
+const LOAD_SOURCES: { id: LoadSource; label: string; hint: string }[] = [
+  { id: 'auto', label: 'Sugerida', hint: 'A progressão automática sugere a carga pelo histórico e diz o porquê.' },
+  { id: 'last', label: 'Última vez', hint: 'Repete a carga da última vez, com as repetições do plano.' },
+  { id: 'plan', label: 'Do plano', hint: 'Usa a carga e as repetições escritas no plano.' }
+];
+
+/** M13: de onde vêm carga e repetições ao abrir o treino. */
+function LoadSourceChoice({ value, onChange }: { value: LoadSource; onChange: (v: LoadSource) => void }) {
+  return (
+    <div className="py-2">
+      <p className="text-sm font-semibold text-muted">Carga ao abrir o treino</p>
+      <div role="radiogroup" aria-label="Carga ao abrir o treino" className="mt-1 grid grid-cols-3 gap-1 rounded-xl bg-surface-2 p-1">
+        {LOAD_SOURCES.map(o => (
+          <button key={o.id} type="button" role="radio" aria-checked={value === o.id} onClick={() => onChange(o.id)}
+            className={`min-h-11 rounded-lg text-sm font-semibold ${value === o.id ? 'bg-primary text-white' : 'text-muted'}`}>
+            {o.label}
+          </button>
+        ))}
+      </div>
+      <p className="mt-1 text-xs text-faint">{LOAD_SOURCES.find(o => o.id === value)?.hint}</p>
     </div>
   );
 }

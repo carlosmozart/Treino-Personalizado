@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { DAY_KEYS } from '../../domain/ai-plan';
 import { isExerciseDone, sessionProgress, type ActiveSession } from '../../domain/session';
-import { updateSettings } from '../../domain/actions';
+import { updateMeta, updateSettings } from '../../domain/actions';
 import { Icon } from '../../ui/Icon';
 import { useNow } from '../../hooks/use-now';
 import { useWakeLock } from '../../hooks/use-wake-lock';
@@ -56,6 +56,8 @@ export function ActiveWorkout({ session }: { session: ActiveSession }) {
           Trocar ou cancelar treino
         </button>
       </header>
+
+      <ProgressionNotice session={session} />
 
       {focus && total > 0 ? (
         // N5: um exercício por vez, com navegação; o próximo pendente fica a um toque
@@ -183,5 +185,29 @@ function FinishSheet({ open, onClose, session }: { open: boolean; onClose: () =>
         <button type="button" onClick={() => setConfirmDiscard(true)} className="mt-2 h-12 w-full text-base font-semibold text-danger">Descartar treino</button>
       )}
     </Sheet>
+  );
+}
+
+/** Explica uma vez a progressão automática (3.3), no primeiro treino em que ela sugere algo. */
+function ProgressionNotice({ session }: { session: ActiveSession }) {
+  const seen = useAppStore(s => !s.data || !!s.data.meta.hintsSeen.progressao);
+  const run = useAppStore(s => s.run);
+  if (seen || !session.exercises.some(e => e.progression)) return null;
+  const dismiss = (off: boolean) => run((d, now) => {
+    const seenNow = updateMeta(d, { hintsSeen: { progressao: true } });
+    return off ? updateSettings(seenNow.data, { loadSource: 'last', autoProgression: false }, now) : seenNow;
+  });
+  return (
+    <section role="note" className="mt-3 rounded-2xl border border-primary bg-surface p-4">
+      <h2 className="font-bold">Novidade: carga sugerida</h2>
+      <p className="mt-1 text-sm text-muted">
+        O treino agora abre com a carga sugerida pelo seu histórico. A linha embaixo de cada exercício diz o porquê:
+        sobe quando você fez todas as repetições, mantém quando faltou alguma. Dá para mudar em Perfil → Treino.
+      </p>
+      <div className="mt-3 flex flex-wrap gap-2">
+        <button type="button" onClick={() => dismiss(false)} className="h-11 rounded-xl bg-primary px-4 font-bold text-white">Entendi</button>
+        <button type="button" onClick={() => dismiss(true)} className="h-11 rounded-xl bg-surface-2 px-4 font-semibold">Prefiro repetir a última carga</button>
+      </div>
+    </section>
   );
 }

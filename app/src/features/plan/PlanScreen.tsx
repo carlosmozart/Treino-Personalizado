@@ -17,7 +17,7 @@ import { TemplateSheet } from './TemplateSheet';
 import { NumberField } from '../../ui/NumberField';
 import { DEFAULT_INCREMENT, INCREMENTS, repRange } from '../../domain/progression';
 import { Sheet, SheetAction } from '../../ui/Sheet';
-import { disableRotation, enableRotation, moveInRotation, restartRotation, rotationLetter, rotationOrder, rotationState, setRotationPerWeek } from '../../domain/rotation';
+import { disableRotation, enableRotation, moveInRotation, restartRotation, rotationLetter, rotationOrder, rotationState, rotationTitle, setRotationPerWeek } from '../../domain/rotation';
 import { dayTitle, formatNumber, plural } from '../../ui/format';
 
 const ALL_NAMES = [...new Set(Object.values(EXERCISE_LIBRARY).flat())];
@@ -177,7 +177,7 @@ function RotationPanel({ plan, edit }: { plan: Plan; edit: Edit }) {
           Recomeçar do A
         </button>
       </div>
-      <p className="mt-2 text-xs text-faint">A meta vale para a semana, o XP e a sequência. Na rotação, os lembretes por dia da semana ficam desligados.</p>
+      <p className="mt-2 text-xs text-faint">A meta vale para a semana, o XP e a sequência. Com os lembretes ligados (Perfil → Treino), o aviso diário diz qual é o próximo treino.</p>
     </section>
   );
 }
@@ -201,8 +201,8 @@ function DayCard({ plan, dayKey, today, edit, rotation }: { plan: Plan; dayKey: 
           <p className="text-xs font-semibold text-muted">{tags}</p>
           <h2 className="text-lg font-bold leading-snug">
             {rest ? (rotation ? 'Vazio: adicione exercícios para incluir na rotação' : 'Descanso')
-              : rotation && !day.name.trim() ? slotName
-              : title.replace(new RegExp(`^${DAY_FULL_NAMES[dayKey]}:\s*`, 'i'), '') || title}
+              : rotation ? rotationTitle(plan, dayKey)
+              : title.replace(new RegExp(`^${DAY_FULL_NAMES[dayKey]}:\\s*`, 'i'), '') || title}
           </h2>
           {!rest && day.focus && <p className="text-sm text-muted">{day.focus}</p>}
         </div>
