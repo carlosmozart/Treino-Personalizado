@@ -2,6 +2,7 @@
 // Função pura: a sugestão sai do histórico a cada treino, nada é gravado.
 import type { PlanExercise, Workout, WorkoutEntry } from './model';
 import { sessionsOf, workSets } from './workouts';
+import { normalizeExerciseName } from './text';
 
 export const DEFAULT_INCREMENT = 2.5;
 export const INCREMENTS = [1, 1.25, 2.5, 5] as const;
@@ -24,6 +25,28 @@ export function repRange(t: Pick<PlanExercise, 'reps' | 'repMin' | 'repMax'>): {
   const min = t.repMin && t.repMin > 0 ? t.repMin : t.reps;
   const max = t.repMax && t.repMax >= min ? t.repMax : Math.max(min, t.reps);
   return { min, max };
+}
+
+/**
+ * M30: exercício feito só com o peso do corpo, pelo nome. Máquinas e polias de mesmo nome ficam de
+ * fora ("Abdominal Crunch (Máquina)", "Mesa Flexora"), e carga zero sozinha não basta: um exercício
+ * de máquina sem a carga anotada não deve ganhar repetições.
+ */
+export function isBodyweight(name: string): boolean {
+  const n = normalizeExerciseName(name);
+  if (/maquina|polia|cabo|halter|barra\)|anilha|mesa|cadeira|leg press|smith/.test(n) && !/barra fixa/.test(n)) return false;
+  return /flexao de braco|barra fixa|pull-?up|chin-?up|paralela|mergulho|dips|abdominal|prancha|burpee|polichinelo|afundo|agachamento (livre )?sem peso|peso do corpo|elevacao pelvica|roda abdominal|ponte/.test(n);
+}
+
+/** M30: sem carga, a progressão anda nas repetições: todas as séries no alvo pedem uma rep a mais. */
+function bodyweightProgression(name: string, ref: ReturnType<typeof reference>, max: number, planned: number): Progression | null {
+  if (!isBodyweight(name)) return null;
+  const reps = ref.atWeight.map(s => s.reps);
+  const target = Math.max(max, Math.min(...reps));
+  if (ref.atWeight.length >= planned && reps.every(r => r >= target) && !ref.atWeight.some(s => s.failure)) {
+    return { kind: 'up', weight: 0, reps: target + 1, reason: `+1 rep: ${target} nas ${planned} séries; agora ${target + 1}.` };
+  }
+  return { kind: 'keep', weight: 0, reps: target, reason: `Busque ${target} reps em todas (última: ${reps.join(' · ')}).` };
 }
 
 const kg = (n: number) => `${String(Math.round(n * 10) / 10).replace('.', ',')} kg`;
@@ -55,7 +78,7 @@ export function suggestProgression(workouts: readonly Workout[], key: string, ta
   if (!last) return target.weight > 0 ? { kind: 'first', weight: target.weight, reps: max, reason: '' } : null;
 
   const ref = reference(last);
-  if (ref.weight <= 0) return null;
+  if (ref.weight <= 0) return bodyweightProgression(key, ref, max, Math.max(1, target.sets));
   const inc = target.increment && target.increment > 0 ? target.increment : DEFAULT_INCREMENT;
   const planned = Math.max(1, target.sets);
 

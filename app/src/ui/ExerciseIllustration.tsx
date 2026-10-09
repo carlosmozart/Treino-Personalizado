@@ -37,7 +37,9 @@ function Frame({ svg, className }: { svg: string; className: string }) {
  * Ilustração do exercício (Q2): alterna posição inicial e final; com "reduzir movimento" fica
  * parada na inicial. Tocar abre as duas posições grandes, com o crédito exigido pela licença.
  */
-export function ExerciseIllustration({ name }: { name: string }) {
+const SIZE = { small: 'size-16', medium: 'size-22', large: 'size-32' } as const;
+
+export function ExerciseIllustration({ name, size = 'medium' }: { name: string; size?: keyof typeof SIZE }) {
   const frames = useFrames(name);
   const reduced = useReducedMotion();
   const [phase, setPhase] = useState(0);
@@ -53,7 +55,7 @@ export function ExerciseIllustration({ name }: { name: string }) {
   return (
     <>
       <button type="button" onClick={() => setOpen(true)} aria-label={`Ver ilustração de ${name}`}
-        className="size-22 shrink-0 rounded-xl bg-surface-2 p-1.5 text-ink">
+        className={`${SIZE[size]} shrink-0 rounded-xl bg-surface-2 p-1.5 text-ink`}>
         <Frame svg={phase === 0 || reduced ? frames.start : frames.end} className="size-full" />
       </button>
       <Sheet title={name} open={open} onClose={() => setOpen(false)}>

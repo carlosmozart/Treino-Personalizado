@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { repRange, suggestProgression } from './progression';
+import { isBodyweight, repRange, suggestProgression } from './progression';
 import { planExercise, sampleData, workout } from './testing';
 import { startSession } from './session';
 import type { Workout } from './model';
@@ -132,5 +132,28 @@ describe('série até a falha (S5)', () => {
     const p = suggest([w]);
     expect(p).toMatchObject({ kind: 'keep', weight: 40 });
     expect(p?.reason).toContain('falha');
+  });
+});
+
+describe('peso do corpo (M30)', () => {
+  const bw = (sets: number[]) => [workout('2026-10-01', 'Flexão de Braço (Solo)', sets.map(r => [r, 0] as [number, number]))];
+  const sug = (ws: Workout[], extra = {}) => suggestProgression(ws, 'flexão de braço (solo)', planExercise('e1', 'Flexão de Braço (Solo)', { weight: 0, ...extra }), '2026-10-10');
+
+  it('todas as séries no alvo: uma rep a mais', () => {
+    expect(sug(bw([10, 10, 10]))).toMatchObject({ kind: 'up', weight: 0, reps: 11 });
+  });
+  it('acima do plano, segue a partir do que já faz', () => {
+    expect(sug(bw([14, 14, 14]))).toMatchObject({ kind: 'up', reps: 15 });
+  });
+  it('faltou rep: mantém o alvo', () => {
+    expect(sug(bw([10, 9, 8]))).toMatchObject({ kind: 'keep', reps: 10 });
+  });
+  it('máquina sem carga anotada não ganha reps', () => {
+    const ws = [workout('2026-10-01', 'Abdominal Crunch (Máquina)', [[10, 0], [10, 0], [10, 0]])];
+    expect(suggestProgression(ws, 'abdominal crunch (máquina)', planExercise('e1', 'Abdominal Crunch (Máquina)', { weight: 0 }), '2026-10-10')).toBeNull();
+  });
+  it('reconhece peso do corpo pelo nome', () => {
+    expect(['Barra Fixa (Pull-up)', 'Paralelas / Mergulho (Dips)', 'Prancha'].every(isBodyweight)).toBe(true);
+    expect(['Mesa Flexora', 'Supino Reto (Barra)', 'Abdominal na Polia'].some(isBodyweight)).toBe(false);
   });
 });

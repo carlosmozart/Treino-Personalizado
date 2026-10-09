@@ -165,6 +165,8 @@ export interface Settings {
   keepScreenOn?: boolean;
   /** Ilustrações dos exercícios no treino (Q2). Ausente = ligado. */
   showIllustrations?: boolean;
+  /** Tamanho da ilustração no cartão do treino (Q2). Ausente = média. */
+  illustrationSize?: 'small' | 'medium' | 'large';
   /** Treino um exercício por vez (N5). Ausente = lista completa. */
   focusMode?: boolean;
   /** Deslizar a série para apagar ou copiar (R2). Ausente = ligado. */

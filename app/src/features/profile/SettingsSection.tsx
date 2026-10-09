@@ -8,6 +8,7 @@ import { loadSourceOf, type AppData, type LoadSource, type Settings, type ThemeP
 import { restoreBackup } from '../../domain/profile-view';
 import { useAppStore } from '../../store';
 import { NumberField } from '../../ui/NumberField';
+import { DurationWheel } from '../../ui/DurationWheel';
 import { plural } from '../../ui/format';
 import { Card, INPUT } from './ProfileScreen';
 import { AlarmSettings } from './AlarmSettings';
@@ -64,9 +65,11 @@ export function WorkoutSettingsFields() {
     <Toggle label={label} checked={settings[k]} onChange={v => set({ [k]: v })} />;
   return (
     <>
-      <label className="block text-sm font-semibold text-muted">Descanso padrão (segundos)
-        <NumberField label="Descanso padrão em segundos" value={settings.restSeconds} onChange={n => { if (n >= 15) set({ restSeconds: n }); }} className="mt-1" />
-      </label>
+      <div>
+        <p className="text-sm font-semibold text-muted">Descanso padrão</p>
+        {/* R3: roda de minutos e segundos; o domínio mantém o descanso entre 15 s e 10 min */}
+        <DurationWheel label="Descanso padrão" seconds={settings.restSeconds} min={15} max={600} onChange={n => set({ restSeconds: n })} />
+      </div>
       {toggle('restAutoStart', 'Iniciar o descanso ao marcar a série')}
       {toggle('restSound', 'Som no fim do descanso')}
       {toggle('restVibrate', 'Vibrar no fim do descanso')}
@@ -75,6 +78,20 @@ export function WorkoutSettingsFields() {
       <Toggle label="Botões de ajuste de carga no treino" checked={settings.weightButtons ?? true} onChange={v => set({ weightButtons: v })} />
       <Toggle label="Manter a tela ligada no treino" checked={settings.keepScreenOn ?? true} onChange={v => set({ keepScreenOn: v })} />
       <Toggle label="Mostrar ilustrações dos exercícios" checked={settings.showIllustrations ?? true} onChange={v => set({ showIllustrations: v })} />
+      {(settings.showIllustrations ?? true) && (
+        <div className="py-2">
+          <p className="text-sm font-semibold text-muted">Tamanho da ilustração</p>
+          <div role="radiogroup" aria-label="Tamanho da ilustração" className="mt-1 grid grid-cols-3 gap-1 rounded-xl bg-surface-2 p-1">
+            {([['small', 'Pequena'], ['medium', 'Média'], ['large', 'Grande']] as const).map(([id, label]) => {
+              const on = (settings.illustrationSize ?? 'medium') === id;
+              return (
+                <button key={id} type="button" role="radio" aria-checked={on} onClick={() => set({ illustrationSize: id })}
+                  className={`min-h-11 rounded-lg text-sm font-semibold ${on ? 'bg-primary text-white' : 'text-muted'}`}>{label}</button>
+              );
+            })}
+          </div>
+        </div>
+      )}
     </>
   );
 }

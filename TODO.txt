@@ -142,7 +142,7 @@ M27	Ampliar testes no estilo do openGym: casos-limite de cada regra de progress�
 Funções adicionais do openGym aproveitáveis
 M28	Equilíbrio muscular: mapear exercícios → grupos musculares e mostrar séries por grupo na semana/30 dias/90 dias, destacando grupos não treinados (começar com barras/lista; figura do corpo depois, com arte própria)	Média
 M29	Recuperação/fadiga por grupo muscular, decaindo com o tempo desde o último treino (depende de M28)	Baixa
-M30	Exercícios de peso corporal: sem coluna de carga, progressão por reps; carga extra (cinto) somada quando houver	Média
+M30	✅ (09/10/2026, por repetições, só em nomes de peso do corpo) Exercícios de peso corporal: sem coluna de carga, progressão por reps; carga extra (cinto) somada quando houver	Média
 M31	Reps por lado (afundo, remada unilateral): registra o total, mostra "8 por lado" e progride de 2 em 2	Baixa
 M32	Marcar um plano/semana como deload: entra no histórico mas não vira base da progressão	Baixa
 M33	Copiar treino como texto e salvar um treino feito como novo dia do plano	Baixa
@@ -239,7 +239,7 @@ Fonte escolhida: Everkinetic (github.com/everkinetic/data), CC-BY-SA 4.0 — 293
 Descartadas: imagens do openGym/ExerciseDB (autoria em disputa; o próprio openGym não as distribui) e free-exercise-db (origem das imagens desconhecida, com indícios de serem do ExRx.net — github.com/yuhonas/free-exercise-db/issues/13).
 #	Etapa	Prioridade
 Q1	✅ (04/10/2026: 56 ilustrações para 70 nomes da biblioteca e do plano de exemplo, conferidas numa folha de contato; app/scripts/import-illustrations.ts; ~8 KB cada, carregadas sob demanda e guardadas para uso offline) Script de importação: tabela de correspondência nome da nossa biblioteca (77 exercícios) → id Everkinetic, conferida exercício a exercício; copia só os SVGs usados, troca o traço preto por currentColor e otimiza; tudo empacotado no app (offline, sem rede)	Alta
-Q2	🟡 (cartão do treino feito: miniatura animada, parada com 'reduzir movimento', tocar abre início/fim; esconder pelo menu ⋯. Falta: na troca de exercício, na biblioteca e opção de tamanho) Exibir no cartão do exercício, na troca de exercício e na biblioteca; animação alternando posição inicial/final, com opção de tamanho ou ocultar e respeitando "reduzir movimento"	Alta
+Q2	✅ (cartão do treino, troca de exercício e biblioteca com miniaturas; tamanho pequeno, médio ou grande, 09/10/2026) Exibir no cartão do exercício, na troca de exercício e na biblioteca; animação alternando posição inicial/final, com opção de tamanho ou ocultar e respeitando "reduzir movimento"	Alta
 Q3	✅ (crédito ao abrir a ilustração, LICENSE.txt junto das imagens, docs/creditos.md e tela Créditos e licenças em Perfil → Sobre, 07/10/2026) Tela de créditos com a atribuição exigida e arquivo de licença ao lado das imagens	Alta
 Q4	Lacunas (aparelhos de cardio, prancha frontal): ícones próprios; e foto/vídeo do próprio usuário para qualquer exercício (exercícios personalizados)	Média
 Q5	Exercícios criados pela IA ou pelo usuário recebem ilustração pela correspondência de nome, quando houver	Média
@@ -250,7 +250,7 @@ Só a ideia; o código do openGym é AGPL e não é copiado.
 #	Sugestão	Prioridade
 R1	✅ (07/10/2026; regras em docs/dev/rotacao.md) Rotação de treinos A/B/C ao lado da semana fixa: o próximo treino é o próximo ainda não feito, faltar um dia não desloca o plano; Início mostra o próximo e quanto da volta já foi feito	Média
 R2	✅ (07/10/2026, nas séries do treino e nos exercícios do plano) Deslizar na série e no plano: esquerda apaga com Desfazer, direita copia/duplica; mantém ao menos uma série; chave única para ligar/desligar	Média
-R3	Roda de tempo de descanso (estilo iPhone, 0:00 a 15:00) nas configurações, por exercício e durante o treino	Baixa
+R3	✅ (09/10/2026, no descanso padrão) Roda de tempo de descanso (estilo iPhone, 0:00 a 15:00) nas configurações, por exercício e durante o treino	Baixa
 R4	✅ (07/10/2026) Repetir hoje: abrir um treino do histórico e começar de novo no mesmo dia	Média
 R5	✅ (07/10/2026, botão de ajustes no cabeçalho do treino) Configurações durante o treino: folha com descanso, som, vibração e tela acesa sem sair da sessão	Baixa
 R6	✅ (07/10/2026) "Última vez há X dias" no lugar da data; data completa ao tocar	Baixa

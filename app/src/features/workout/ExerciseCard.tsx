@@ -137,7 +137,7 @@ export function ExerciseCard({ session, index, alwaysOpen = false }: Props) {
         </button>
       </header>
       <div className="mt-2 flex gap-3">
-        {showIllustrations && <ExerciseIllustration name={ex.name} />}
+        {showIllustrations && <ExerciseIllustration name={ex.name} size={data?.settings.illustrationSize ?? 'medium'} />}
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap gap-1.5 text-xs font-semibold">
             {group && <span className="rounded-full bg-surface-2 px-2 py-0.5 text-muted">{group}</span>}
