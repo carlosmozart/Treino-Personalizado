@@ -6,7 +6,7 @@ Todas as mudanças relevantes do app ficam registradas aqui. Ao lançar uma nova
    atualizar o app instalado
 3. Adicione uma entrada aqui, nesse formato
 
-## [Não lançado]
+## [3.4.0] - 2026-10-09
 
 - Treino: um número por exercício no topo, preenchido conforme você avança; tocar leva até ele.
 - Treino: a troca de exercício sugere primeiro o mesmo grupo muscular, com o mesmo equipamento no topo.

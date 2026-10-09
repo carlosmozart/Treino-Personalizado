@@ -3,6 +3,17 @@ export interface ReleaseNote { version: string; date: string; items: string[] }
 
 export const RELEASE_NOTES: readonly ReleaseNote[] = [
   {
+    version: '3.4.0',
+    date: '2026-10',
+    items: [
+      'Treino: um número por exercício no topo; toque para ir até ele.',
+      'Fim do treino: subiu, manteve ou caiu em relação à última vez, e qual é o próximo treino.',
+      'Trocar exercício sugere o mesmo grupo muscular, e a busca entende erro de digitação e falta de acento.',
+      'Toque no número da série para marcá-la como até a falha (F).',
+      'Início: toque num dia sem treino para anotar o motivo (doente, viajando…); o dia não quebra a sequência.'
+    ]
+  },
+  {
     version: '3.3.2',
     date: '2026-10',
     items: [
