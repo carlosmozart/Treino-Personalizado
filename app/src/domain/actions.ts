@@ -4,7 +4,7 @@
 import { toDateKey, type DateKey } from './dates';
 import type { DayKey } from './ai-plan';
 import { recordGoalCheckpoints } from './body-goal';
-import type { AppData, DayNote, Plan, Settings, UserProfile, Workout, WorkoutEntry } from './model';
+import type { AppData, DayNote, Measurements, Plan, Settings, UserProfile, Workout, WorkoutEntry } from './model';
 import { checkBirthday, checkWaterGoal, grantCheckin, revokeCheckin, type RewardEvent } from './rewards';
 import { sessionProgress, sessionToWorkout, type ActiveSession } from './session';
 import { bestSet } from './workouts';
@@ -54,6 +54,35 @@ export function finishWorkout(data: AppData, session: ActiveSession, now: Date):
   touch(draft, key.checkin(workout.date), now);
   grantCheckin(draft, workout.date, complete, now, events);
   return { kind: 'saved', data: draft, events, workout, full: complete };
+}
+
+/**
+ * S7: grava as medidas de um dia (substitui as daquele dia). Valores fora da faixa são ignorados;
+ * sem nenhum valor, o dia é apagado. A % de gordura também atualiza o perfil.
+ */
+export function saveMeasurements(data: AppData, date: DateKey, values: Measurements, now: Date): ActionResult {
+  const clean: Measurements = {};
+  for (const [k, v] of Object.entries(values) as [keyof Measurements, number | undefined][]) {
+    const max = k === 'gordura' ? 70 : 300;
+    if (typeof v === 'number' && Number.isFinite(v) && v > 0 && v <= max) clean[k] = Math.round(v * 10) / 10;
+  }
+  const measurements = { ...(data.measurements ?? {}) };
+  const draft: AppData = { ...data, sync: cloneSync(data) };
+  if (Object.keys(clean).length) {
+    measurements[date] = clean;
+    touch(draft, key.measure(date), now);
+  } else if (measurements[date]) {
+    delete measurements[date];
+    tombstone(draft, key.measure(date), now);
+  } else return unchanged(data);
+  draft.measurements = measurements;
+  // a medida mais recente de gordura vira a do perfil (usada nos cálculos de saúde)
+  const latestFat = Object.keys(measurements).sort().reverse().map(d => measurements[d]!.gordura).find(v => v !== undefined);
+  if (latestFat !== undefined && latestFat !== data.profile.bodyFatPercent) {
+    draft.profile = { ...data.profile, bodyFatPercent: latestFat };
+    touch(draft, key.profile, now);
+  }
+  return { data: draft, events: [] };
 }
 
 /** S8: anota (ou, com `null`, apaga) o motivo de um dia sem treino. Dia com treino não leva nota. */

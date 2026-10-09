@@ -10,6 +10,7 @@ export const key = {
   checkin: (date: string): SyncKey => `checkin:${date}`,
   water: (date: string): SyncKey => `water:${date}`,
   dayNote: (date: string): SyncKey => `daynote:${date}`,
+  measure: (date: string): SyncKey => `measure:${date}`,
   profile: 'profile' as SyncKey,
   settings: 'settings' as SyncKey,
   activePlan: 'activePlan' as SyncKey
@@ -38,6 +39,7 @@ export function stampAll(data: AppData, now: Date): AppData {
   Object.keys(data.checkins).forEach(d => add(key.checkin(d)));
   Object.keys(data.water).forEach(d => add(key.water(d)));
   Object.keys(data.dayNotes ?? {}).forEach(d => add(key.dayNote(d)));
+  Object.keys(data.measurements ?? {}).forEach(d => add(key.measure(d)));
   [key.profile, key.settings, key.activePlan].forEach(add);
   return { ...data, sync: { changed, deleted: { ...data.sync.deleted } } };
 }
@@ -119,6 +121,7 @@ export function mergeAppData(local: AppData, remote: AppData): AppData {
   const checkins = mergeRecords(key.checkin, local.checkins, remote.checkins, a, b, deleted);
   const water = mergeRecords(key.water, local.water, remote.water, a, b, deleted);
   const dayNotes = mergeRecords(key.dayNote, local.dayNotes ?? {}, remote.dayNotes ?? {}, a, b, deleted);
+  const measurements = mergeRecords(key.measure, local.measurements ?? {}, remote.measurements ?? {}, a, b, deleted);
 
   const whole = <K extends 'profile' | 'settings'>(k: SyncKey, field: K): AppData[K] =>
     (newer(a.stamp(k), b.stamp(k)) ? local[field] : remote[field]);
@@ -141,6 +144,7 @@ export function mergeAppData(local: AppData, remote: AppData): AppData {
     checkins,
     water,
     ...(Object.keys(dayNotes).length ? { dayNotes } : {}),
+    ...(Object.keys(measurements).length ? { measurements } : {}),
     gamification: mergeGamification(local.gamification, remote.gamification, new Set(Object.keys(checkins))),
     settings: whole(key.settings, 'settings'),
     sync: { changed, deleted },

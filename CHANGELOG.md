@@ -6,6 +6,10 @@ Todas as mudanças relevantes do app ficam registradas aqui. Ao lançar uma nova
    atualizar o app instalado
 3. Adicione uma entrada aqui, nesse formato
 
+## [Não lançado]
+
+- Progresso → Metas: medidas do corpo (cintura, quadril, peito, braço, coxa, panturrilha e % de gordura), com a variação desde a primeira medição e um gráfico por medida. A % de gordura mais recente também atualiza o perfil.
+
 ## [3.4.0] - 2026-10-09
 
 - Treino: um número por exercício no topo, preenchido conforme você avança; tocar leva até ele.

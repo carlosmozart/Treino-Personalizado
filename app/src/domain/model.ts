@@ -102,6 +102,9 @@ export interface PlanRotation {
   restartAt?: string;
 }
 
+export type MeasureKey = 'cintura' | 'quadril' | 'peito' | 'braco' | 'coxa' | 'panturrilha' | 'gordura';
+export type Measurements = Partial<Record<MeasureKey, number>>;
+
 export type DayNoteReason = 'doente' | 'viajando' | 'lesao' | 'outro';
 
 export interface DayNote {
@@ -209,6 +212,8 @@ export interface AppData {
   workouts: Workout[];
   checkins: Record<DateKey, { dayKey: DayKey | null }>;
   water: Record<DateKey, number>;
+  /** S7: medidas do corpo por data (cm, e % de gordura). Ausente em dados antigos. */
+  measurements?: Record<DateKey, Measurements>;
   /** S8: motivo de um dia sem treino; o dia não quebra a sequência. Ausente em dados antigos. */
   dayNotes?: Record<DateKey, DayNote>;
   gamification: Gamification;

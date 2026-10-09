@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { MeasurementsCard } from './MeasurementsCard';
 import { achievementList, startWeightGoal } from '../../domain/achievements';
 import { removeWeighIn } from '../../domain/actions';
 import { LineChart } from '../../ui/LineChart';
@@ -21,6 +22,7 @@ export function GoalsView() {
     <div className="mt-4 space-y-4">
       <WeightGoalCard />
       <WeighInsCard />
+      <MeasurementsCard />
       <section className="rounded-2xl border border-line bg-surface p-4">
         <div className="flex items-baseline justify-between">
           <h2 className="font-bold">Conquistas</h2>

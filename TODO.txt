@@ -264,7 +264,7 @@ S3	✅ (09/10/2026) Troca de exercício sugere primeiro o mesmo grupo muscular	M
 S4	✅ (09/10/2026) Resumo do fim do treino com última vez (subiu, manteve, caiu) e o próximo treino	Média
 S5	✅ (09/10/2026) Série até a falha: marca no menu da série	Baixa
 S6	✅ (09/10/2026) Busca tolerante a erros de digitação, abreviações e plurais	Média
-S7	Medidas do corpo (cintura, braço, % de gordura) com gráfico	Média
+S7	✅ (09/10/2026, Progresso → Metas) Medidas do corpo (cintura, braço, % de gordura) com gráfico	Média
 S8	✅ (09/10/2026) Nota para um dia sem treino (doente, viajando) que não quebra a sequência	Baixa
 S9	Compartilhar o treino como imagem	Baixa
 S10	Escolher o som do fim do descanso	Baixa
