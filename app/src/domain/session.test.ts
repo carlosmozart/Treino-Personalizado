@@ -1,7 +1,7 @@
 import { describe, expect, it, test } from 'vitest';
 import type { Workout } from './model';
 import {
-  addSet, completeExercise, duplicateSet, insertSet, removeSet, repeatSession, sessionProgress, sessionToWorkout, startSession, swapExercise,
+  addSet, completeExercise, duplicateSet, toggleFailure, insertSet, removeSet, repeatSession, sessionProgress, sessionToWorkout, startSession, swapExercise,
   toggleSet, updateCardio, updateSet
 } from './session';
 import { planExercise, sampleData, samplePlan, workout } from './testing';
@@ -128,5 +128,18 @@ describe('deslizar a série (R2)', () => {
     let s = start();
     s = removeSet(removeSet(s, 0, 0), 0, 0);
     expect(removeSet(s, 0, 0).exercises[0]!.sets).toHaveLength(1);
+  });
+});
+
+describe('até a falha (S5)', () => {
+  it('marca, vai para o histórico e a cópia não herda', () => {
+    const d = sampleData({ workouts: [] });
+    let s = startSession(d, 'p1', 'QUA', new Date(2026, 9, 7, 10), 's1')!;
+    s = toggleSet(toggleFailure(s, 0, 0), 0, 0);
+    expect(s.exercises[0]!.sets[0]!.failure).toBe(true);
+    expect(duplicateSet(s, 0, 0).exercises[0]!.sets[1]!.failure).toBeUndefined();
+    const w = sessionToWorkout(s, new Date(2026, 9, 7, 11));
+    expect(w?.entries[0]!.sets[0]).toMatchObject({ failure: true });
+    expect(toggleFailure(s, 0, 0).exercises[0]!.sets[0]!.failure).toBeUndefined();
   });
 });

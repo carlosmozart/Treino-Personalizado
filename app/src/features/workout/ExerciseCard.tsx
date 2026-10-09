@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
 import { EXERCISE_LIBRARY, groupOf, guessGroup, sameGroupSuggestions } from '../../data/exercise-library';
 import {
-  addSet, addWarmupSet, adjustWeights, removeWarmupSet, completeExercise, isExerciseDone, duplicateSet, insertSet, removeSet, setNote, swapExercise, toggleSet, updateCardio, updateSet,
+  addSet, addWarmupSet, adjustWeights, removeWarmupSet, completeExercise, isExerciseDone, duplicateSet, insertSet, removeSet, setNote, swapExercise, toggleFailure, toggleSet, updateCardio, updateSet,
   type ActiveSession, type SessionExercise, type SessionSet
 } from '../../domain/session';
 import { bestSet, lastSessionBefore, sessionsOf, suspiciousWeight, workSets } from '../../domain/workouts';
@@ -15,6 +15,7 @@ import { formatNumber, relativeDate, shortDate } from '../../ui/format';
 import { useRestStore } from './rest-store';
 import { PlateSheet } from './PlateSheet';
 import { SwipeRow } from '../../ui/SwipeRow';
+import { searchNames } from '../../domain/search';
 import { isBarbell } from '../../domain/plates';
 
 const ALL_NAMES = [...new Set(Object.values(EXERCISE_LIBRARY).flat())];
@@ -178,9 +179,16 @@ export function ExerciseCard({ session, index, alwaysOpen = false }: Props) {
               <SwipeRow key={i} enabled={swipe} onCopy={() => update(s => duplicateSet(s, index, i))}
                 {...(ex.sets.length > 1 ? { onDelete: () => removeWithUndo(i) } : {})}
                 className={`grid grid-cols-[2rem_1fr_1fr_2.75rem] items-center gap-2 rounded-xl ${set.done ? 'bg-success/10' : ''}`}>
-                <span className={`text-center text-base font-bold ${set.kind === 'warmup' ? 'text-warning' : 'text-muted'}`} title={set.kind === 'warmup' ? 'Aquecimento' : undefined}>
-                  {set.kind === 'warmup' ? 'A' : i + 1 - ex.sets.slice(0, i).filter(s => s.kind === 'warmup').length}
-                </span>
+                {set.kind === 'warmup' ? (
+                  <span className="text-center text-base font-bold text-warning" title="Aquecimento">A</span>
+                ) : (
+                  // S5: tocar no número marca a série como até a falha ("F")
+                  <button type="button" onClick={() => update(s => toggleFailure(s, index, i))} aria-pressed={!!set.failure}
+                    aria-label={`Série ${i + 1}: ${set.failure ? 'até a falha (tocar desmarca)' : 'marcar como até a falha'}`}
+                    className={`flex h-11 items-center justify-center rounded-lg text-base font-bold ${set.failure ? 'bg-danger/15 text-danger' : 'text-muted'}`}>
+                    {set.failure ? 'F' : i + 1 - ex.sets.slice(0, i).filter(s => s.kind === 'warmup').length}
+                  </button>
+                )}
                 <NumberField label={`Carga da série ${i + 1}`} decimal value={set.weight} onChange={v => update(s => updateSet(s, index, i, { weight: v }))} />
                 <NumberField label={`${unit} da série ${i + 1}`} value={set.reps} onChange={v => update(s => updateSet(s, index, i, { reps: v }))} />
                 <DoneButton done={set.done} label={`Série ${i + 1} feita`} onClick={() => toggle(i)} />
@@ -274,9 +282,10 @@ export function ExerciseCard({ session, index, alwaysOpen = false }: Props) {
             );
           }
           const group = guessGroup(base);
-          const matches = ALL_NAMES.filter(n => n.toLowerCase().includes(q) && n !== ex.name)
-            .sort((a, b) => Number(groupOf(b) === group) - Number(groupOf(a) === group))
-            .slice(0, 6);
+          // S6: tolerante a erro, acento, plural e abreviação; o mesmo grupo sobe entre os achados
+          const matches = searchNames(q, ALL_NAMES.filter(n => n !== ex.name), 12)
+            .map((n, i) => ({ n, i: i - (groupOf(n) === group ? 0.5 : 0) }))
+            .sort((a, b) => a.i - b.i).slice(0, 6).map(x => x.n);
           return (
             <>
               {matches.map(n => <SheetAction key={n} onClick={() => pick(n)}><ExerciseThumb name={n} />{n}</SheetAction>)}

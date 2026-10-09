@@ -4,7 +4,7 @@
 import { toDateKey, type DateKey } from './dates';
 import type { DayKey } from './ai-plan';
 import { recordGoalCheckpoints } from './body-goal';
-import type { AppData, Plan, Settings, UserProfile, Workout, WorkoutEntry } from './model';
+import type { AppData, DayNote, Plan, Settings, UserProfile, Workout, WorkoutEntry } from './model';
 import { checkBirthday, checkWaterGoal, grantCheckin, revokeCheckin, type RewardEvent } from './rewards';
 import { sessionProgress, sessionToWorkout, type ActiveSession } from './session';
 import { bestSet } from './workouts';
@@ -54,6 +54,24 @@ export function finishWorkout(data: AppData, session: ActiveSession, now: Date):
   touch(draft, key.checkin(workout.date), now);
   grantCheckin(draft, workout.date, complete, now, events);
   return { kind: 'saved', data: draft, events, workout, full: complete };
+}
+
+/** S8: anota (ou, com `null`, apaga) o motivo de um dia sem treino. Dia com treino não leva nota. */
+export function setDayNote(data: AppData, date: DateKey, note: DayNote | null, now: Date): ActionResult {
+  if (note && data.checkins[date]) return unchanged(data);
+  const dayNotes = { ...(data.dayNotes ?? {}) };
+  if (!note && !dayNotes[date]) return unchanged(data);
+  const draft: AppData = { ...data, sync: cloneSync(data) };
+  if (note) {
+    const text = note.text?.trim().slice(0, 120);
+    dayNotes[date] = { reason: note.reason, ...(text ? { text } : {}) };
+    touch(draft, key.dayNote(date), now);
+  } else {
+    delete dayNotes[date];
+    tombstone(draft, key.dayNote(date), now);
+  }
+  draft.dayNotes = dayNotes;
+  return { data: draft, events: [] };
 }
 
 /** Check-in manual: só hoje. Marcar sem treino registrado vale meio XP; desmarcar devolve o XP. */

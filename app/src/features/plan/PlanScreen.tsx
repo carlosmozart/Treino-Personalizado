@@ -18,6 +18,7 @@ import { NumberField } from '../../ui/NumberField';
 import { DEFAULT_INCREMENT, INCREMENTS, repRange } from '../../domain/progression';
 import { Sheet, SheetAction } from '../../ui/Sheet';
 import { SwipeRow } from '../../ui/SwipeRow';
+import { searchNames } from '../../domain/search';
 import { disableRotation, enableRotation, moveInRotation, restartRotation, rotationLetter, rotationOrder, rotationState, rotationTitle, setRotationPerWeek } from '../../domain/rotation';
 import { dayTitle, formatNumber, plural } from '../../ui/format';
 
@@ -408,7 +409,7 @@ function AddExerciseSheet({ open, dayName, onClose, onAdd }: { open: boolean; da
   const [query, setQuery] = useState('');
   const listId = useId();
   const q = query.trim().toLowerCase();
-  const matches = q ? ALL_NAMES.filter(n => n.toLowerCase().includes(q)).slice(0, 6) : [];
+  const matches = q ? searchNames(q, ALL_NAMES) : [];
   const add = (name: string) => { onAdd(name); setQuery(''); };
   return (
     <Sheet title={`Adicionar em ${dayName}`} open={open} onClose={onClose}>

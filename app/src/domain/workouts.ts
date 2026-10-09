@@ -43,7 +43,8 @@ export function describeEntry(entry: WorkoutEntry): string {
   const repsPart = sameReps ? `${sets.length}x${reps[0]}` : reps.join('/');
   const kg = (n: number) => String(n).replace('.', ',');
   const weightPart = sameWeight ? `${kg(weights[0]!)}kg` : `${kg(Math.max(...weights))}-${kg(Math.min(...weights))}kg`;
-  return `${repsPart} · ${weightPart}${entry.aggregated ? ' (registro antigo)' : ''}`;
+  const failure = sets.some(x => x.failure) ? ' · até a falha' : '';
+  return `${repsPart} · ${weightPart}${failure}${entry.aggregated ? ' (registro antigo)' : ''}`;
 }
 
 /** Sessões de um exercício (pela identidade do nome), em ordem de data. */

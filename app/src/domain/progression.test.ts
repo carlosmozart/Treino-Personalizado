@@ -124,3 +124,13 @@ describe('treino abre com a sugestão', () => {
     expect(ex.progression).toBeUndefined();
   });
 });
+
+describe('série até a falha (S5)', () => {
+  it('chegou ao topo, mas na falha: mantém a carga', () => {
+    const w = workout('2026-10-01', 'Supino', [[10, 40], [10, 40], [10, 40]]);
+    w.entries[0]!.sets[2]!.failure = true;
+    const p = suggest([w]);
+    expect(p).toMatchObject({ kind: 'keep', weight: 40 });
+    expect(p?.reason).toContain('falha');
+  });
+});

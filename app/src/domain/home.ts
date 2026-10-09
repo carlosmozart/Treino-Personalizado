@@ -3,7 +3,7 @@ import { DAY_KEYS, type DayKey } from './ai-plan';
 import { addDays, mondayOf, toDateKey, type DateKey } from './dates';
 import { goalProgress } from './body-goal';
 import { levelInfo, freeMealThreshold, type LevelInfo } from './gamification';
-import { DAY_FULL_NAMES, dayKeyOf, type AppData, type PlanDay } from './model';
+import { DAY_FULL_NAMES, dayKeyOf, type AppData, type DayNote, type PlanDay } from './model';
 import { rotationLetter, rotationState, rotationTitle } from './rotation';
 import { daysPerWeekOf, streakOf, weekCheckins } from './rewards';
 import { waterTargetMl } from './health';
@@ -21,6 +21,8 @@ export interface WeekDay {
   future: boolean;
   /** Dia com treino obrigatório no plano ativo. */
   planned: boolean;
+  /** S8: motivo anotado para o dia sem treino. */
+  note: DayNote | null;
 }
 
 function activePlan(data: AppData) {
@@ -40,7 +42,8 @@ export function weekStrip(data: AppData, now: Date): WeekDay[] {
     return {
       date, dayKey, letter: SHORT[dayKey], dayOfMonth: Number(date.slice(8, 10)),
       trained: !!data.checkins[date], today: date === today, future: date > today,
-      planned: !plan?.rotation && isTrainingDay(day) && !day!.optional
+      planned: !plan?.rotation && isTrainingDay(day) && !day!.optional,
+      note: data.dayNotes?.[date] ?? null
     };
   });
 }

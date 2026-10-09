@@ -15,6 +15,8 @@ export interface SessionSet {
   weight: number;
   kind: SetKind;
   done: boolean;
+  /** Até a falha (S5). */
+  failure?: true;
 }
 
 export interface SessionExercise {
@@ -211,13 +213,23 @@ export function removeSet(s: ActiveSession, exIndex: number, setIndex: number): 
   return mapExercise(s, exIndex, ex => (ex.sets.length > 1 ? { ...ex, sets: ex.sets.filter((_, i) => i !== setIndex) } : ex));
 }
 
+/** S5: marca ou desmarca a série como levada até a falha (só séries de trabalho). */
+export function toggleFailure(s: ActiveSession, exIndex: number, setIndex: number): ActiveSession {
+  return mapSet(s, exIndex, setIndex, set => {
+    if (set.kind !== 'work') return set;
+    if (set.failure) { const { failure: _f, ...rest } = set; return rest; }
+    return { ...set, failure: true };
+  });
+}
+
 /** Deslizar para a direita (R2): copia a série logo abaixo, ainda não feita. */
 export function duplicateSet(s: ActiveSession, exIndex: number, setIndex: number): ActiveSession {
   return mapExercise(s, exIndex, ex => {
     const set = ex.sets[setIndex];
     if (!set || ex.mode === 'cardio' || ex.sets.length >= 20) return ex;
     const sets = [...ex.sets];
-    sets.splice(setIndex + 1, 0, { ...set, done: false });
+    const { failure: _f, ...copy } = set;
+    sets.splice(setIndex + 1, 0, { ...copy, done: false });
     return { ...ex, sets };
   });
 }
@@ -335,7 +347,7 @@ export function sessionToWorkout(s: ActiveSession, now: Date): Workout | null {
       entries.push({ key: ex.key, name: ex.name, mode: 'cardio', sets: [], cardio: { minutes: ex.cardio.minutes, ...(ex.cardio.km ? { km: ex.cardio.km } : {}) }, ...(note ? { note } : {}) });
       continue;
     }
-    const sets = ex.sets.filter(set => set.done).map(({ reps, weight, kind }) => ({ reps, weight, kind }));
+    const sets = ex.sets.filter(set => set.done).map(({ reps, weight, kind, failure }) => ({ reps, weight, kind, ...(failure ? { failure } : {}) }));
     if (sets.length) entries.push({ key: ex.key, name: ex.name, mode: ex.mode, sets, ...(note ? { note } : {}) });
   }
   if (!entries.length) return null;

@@ -14,6 +14,8 @@ export interface WorkoutSet {
   reps: number;
   weight: number;
   kind: SetKind;
+  /** Série levada até a falha (S5). Conta como série de trabalho normal em volume e recordes. */
+  failure?: true;
 }
 
 export interface WorkoutEntry {
@@ -98,6 +100,13 @@ export interface PlanRotation {
   perWeek: number;
   /** "Recomeçar do A": treinos antes deste instante não contam para achar o próximo. */
   restartAt?: string;
+}
+
+export type DayNoteReason = 'doente' | 'viajando' | 'lesao' | 'outro';
+
+export interface DayNote {
+  reason: DayNoteReason;
+  text?: string;
 }
 
 export interface WeighIn {
@@ -200,6 +209,8 @@ export interface AppData {
   workouts: Workout[];
   checkins: Record<DateKey, { dayKey: DayKey | null }>;
   water: Record<DateKey, number>;
+  /** S8: motivo de um dia sem treino; o dia não quebra a sequência. Ausente em dados antigos. */
+  dayNotes?: Record<DateKey, DayNote>;
   gamification: Gamification;
   settings: Settings;
   /** Carimbos para juntar dados de dois aparelhos (ver sync.ts). */

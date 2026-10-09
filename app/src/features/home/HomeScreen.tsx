@@ -7,6 +7,7 @@ import { askRestAlarmPermission } from '../workout/rest-alarm-instance';
 import { HomeNotices } from './HomeNotices';
 import { IosInstallNotice } from './IosInstallNotice';
 import { WeightLogSheet } from './WeightLogSheet';
+import { DayNoteSheet, reasonLabel } from './DayNoteSheet';
 import { PlanChooser, type ChooserMode } from '../plan/PlanChooser';
 import { formatNumber, plural, shortDate } from '../../ui/format';
 import { DAY_FULL_NAMES, trainingDaysPerWeek } from '../../domain/model';
@@ -67,18 +68,39 @@ function PlanSection({ onChoose }: { onChoose: (m: ChooserMode) => void }) {
 function WeekStrip() {
   const data = useAppStore(s => s.data)!;
   const days = weekStrip(data, new Date());
+  const [noteDay, setNoteDay] = useState<(typeof days)[number] | null>(null);
   return (
     <section aria-label="Esta semana" className="rounded-2xl border border-line bg-surface p-3">
       <ol className="grid grid-cols-7 gap-1 text-center">
-        {days.map(d => (
-          <li key={d.date} aria-label={`${DAY_FULL_NAMES[d.dayKey]} ${d.dayOfMonth}${d.trained ? ', treinou' : d.planned && !d.future ? ', não treinou' : ''}${d.today ? ', hoje' : ''}`}
-            className={`flex flex-col items-center gap-1 rounded-xl py-2 ${d.today ? 'bg-surface-2' : ''}`}>
-            <span className={`text-xs font-semibold ${d.today ? 'text-ink' : 'text-faint'}`}>{d.letter}</span>
-            <span className={`text-base font-bold tabular-nums ${d.today ? 'text-ink' : 'text-muted'}`}>{d.dayOfMonth}</span>
-            <span aria-hidden="true" className={`size-2 rounded-full ${d.trained ? 'bg-success' : d.planned ? 'border border-line' : 'bg-transparent'}`} />
-          </li>
-        ))}
+        {days.map(d => {
+          // S8: dia passado (ou hoje) sem treino aceita uma nota com o motivo
+          const canNote = !d.trained && !d.future;
+          const label = `${DAY_FULL_NAMES[d.dayKey]} ${d.dayOfMonth}${d.trained ? ', treinou' : d.note ? `, ${reasonLabel(d.note.reason).toLowerCase()}` : d.planned && !d.future ? ', não treinou' : ''}${d.today ? ', hoje' : ''}`;
+          const body = (
+            <>
+              <span className={`text-xs font-semibold ${d.today ? 'text-ink' : 'text-faint'}`}>{d.letter}</span>
+              <span className={`text-base font-bold tabular-nums ${d.today ? 'text-ink' : 'text-muted'}`}>{d.dayOfMonth}</span>
+              <span aria-hidden="true" className={`size-2 rounded-full ${d.trained ? 'bg-success' : d.note ? 'bg-info' : d.planned ? 'border border-line' : 'bg-transparent'}`} />
+            </>
+          );
+          return (
+            <li key={d.date} aria-label={label}>
+              {canNote ? (
+                <button type="button" onClick={() => setNoteDay(d)} aria-label={`Anotar o motivo de ${DAY_FULL_NAMES[d.dayKey]} ${d.dayOfMonth}`}
+                  className={`flex w-full flex-col items-center gap-1 rounded-xl py-2 ${d.today ? 'bg-surface-2' : ''}`}>{body}</button>
+              ) : (
+                <div className={`flex flex-col items-center gap-1 rounded-xl py-2 ${d.today ? 'bg-surface-2' : ''}`}>{body}</div>
+              )}
+            </li>
+          );
+        })}
       </ol>
+      {days.some(d => d.note) && (
+        <p className="mt-2 px-1 text-xs text-muted">
+          {days.filter(d => d.note).map(d => `${DAY_FULL_NAMES[d.dayKey]}: ${reasonLabel(d.note!.reason).toLowerCase()}${d.note!.text ? ` (${d.note!.text})` : ''}`).join(' · ')}
+        </p>
+      )}
+      <DayNoteSheet date={noteDay?.date ?? null} title={noteDay ? `${DAY_FULL_NAMES[noteDay.dayKey]}, ${noteDay.dayOfMonth}` : ''} onClose={() => setNoteDay(null)} />
     </section>
   );
 }

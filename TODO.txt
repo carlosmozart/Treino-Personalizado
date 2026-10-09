@@ -262,10 +262,10 @@ S1	✅ (09/10/2026) Bolinhas numeradas dos exercícios no topo do treino: progre
 S2	✅ (já existia desde a P5: cartão concluído recolhe) Exercício concluído vira uma linha no treino (toque reabre)	Alta
 S3	✅ (09/10/2026) Troca de exercício sugere primeiro o mesmo grupo muscular	Média
 S4	✅ (09/10/2026) Resumo do fim do treino com última vez (subiu, manteve, caiu) e o próximo treino	Média
-S5	Série até a falha: marca no menu da série	Baixa
-S6	Busca tolerante a erros de digitação, abreviações e plurais	Média
+S5	✅ (09/10/2026) Série até a falha: marca no menu da série	Baixa
+S6	✅ (09/10/2026) Busca tolerante a erros de digitação, abreviações e plurais	Média
 S7	Medidas do corpo (cintura, braço, % de gordura) com gráfico	Média
-S8	Nota para um dia sem treino (doente, viajando) que não quebra a sequência	Baixa
+S8	✅ (09/10/2026) Nota para um dia sem treino (doente, viajando) que não quebra a sequência	Baixa
 S9	Compartilhar o treino como imagem	Baixa
 S10	Escolher o som do fim do descanso	Baixa
 S11	Para depois: progressão tripla, halteres disponíveis, mapa de fadiga, exportar para Garmin	Baixa

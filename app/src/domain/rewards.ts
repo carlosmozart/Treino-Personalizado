@@ -42,6 +42,8 @@ export function fullXPOf(data: AppData): number {
 export function streakOf(data: AppData, now: Date): number {
   const plan = data.activePlanId ? data.plans[data.activePlanId] : undefined;
   const isCheckedIn = (key: string) => !!data.checkins[key];
+  // S8: dia com nota (doente, viajando...) conta como descanso
+  const noted = (date: Date) => !!data.dayNotes?.[toDateKey(date)];
   if (plan?.rotation) {
     const gap = maxRestGap(plan.rotation.perWeek);
     const today = toDateKey(now);
@@ -53,7 +55,7 @@ export function streakOf(data: AppData, now: Date): number {
         let run = 0;
         for (let k = key; !isCheckedIn(k) && run <= gap; k = addDays(k, -1)) run++;
         for (let k = addDays(key, 1); k < today && !isCheckedIn(k) && run <= gap; k = addDays(k, 1)) run++;
-        return run <= gap;
+        return noted(date) || run <= gap;
       },
       now
     });
@@ -61,6 +63,7 @@ export function streakOf(data: AppData, now: Date): number {
   return calculateStreak({
     isCheckedIn,
     isRestDay: date => {
+      if (noted(date)) return true;
       const day = plan?.days[dayKeyOf(date)];
       return !!day && (day.optional || day.exercises.length === 0);
     },

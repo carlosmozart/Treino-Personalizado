@@ -11,6 +11,9 @@ Todas as mudanças relevantes do app ficam registradas aqui. Ao lançar uma nova
 - Treino: um número por exercício no topo, preenchido conforme você avança; tocar leva até ele.
 - Treino: a troca de exercício sugere primeiro o mesmo grupo muscular, com o mesmo equipamento no topo.
 - Fim do treino: cada exercício diz se subiu, manteve ou caiu em relação à última vez, e o resumo mostra qual é o próximo treino.
+- Treino: toque no número da série para marcá-la como até a falha ("F"). Se o topo da faixa só veio na falha, a progressão mantém a carga.
+- Início: toque num dia sem treino da semana para anotar o motivo (doente, viajando, lesão ou outro). O dia com nota não quebra a sequência.
+- Busca de exercícios tolerante: sem acento, com erro de digitação ("suplino"), plural e abreviações ("db" = halteres), na troca e no plano.
 
 ## [3.3.2] - 2026-10-07
 

@@ -62,6 +62,9 @@ export function suggestProgression(workouts: readonly Workout[], key: string, ta
   if (last.aggregated) {
     return { kind: 'keep', weight: ref.weight, reps: max, reason: `Mantém ${kg(ref.weight)}: a última vez é um registro antigo, sem as séries.` };
   }
+  if (ref.atWeight.length >= planned && ref.atWeight.every(s => s.reps >= max) && ref.atWeight.some(s => s.failure)) {
+    return { kind: 'keep', weight: ref.weight, reps: max, reason: `Mantém ${kg(ref.weight)}: chegou a ${max} reps, mas indo até a falha.` };
+  }
   if (ref.atWeight.length >= planned && ref.atWeight.every(s => s.reps >= max)) {
     return { kind: 'up', weight: round1(ref.weight + inc), reps: min, reason: `+${kg(inc)}: ${max} reps nas ${planned} séries.` };
   }
