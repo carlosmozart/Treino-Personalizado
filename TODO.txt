@@ -254,3 +254,18 @@ R3	Roda de tempo de descanso (estilo iPhone, 0:00 a 15:00) nas configurações, 
 R4	✅ (07/10/2026) Repetir hoje: abrir um treino do histórico e começar de novo no mesmo dia	Média
 R5	✅ (07/10/2026, botão de ajustes no cabeçalho do treino) Configurações durante o treino: folha com descanso, som, vibração e tela acesa sem sair da sessão	Baixa
 R6	✅ (07/10/2026) "Última vez há X dias" no lugar da data; data completa ao tocar	Baixa
+
+S. Ideias do openGym v1.4.0 (09/10/2026)
+Só a ideia; o código do openGym é AGPL e as animações dele são licenciadas (Gym visual): nada é copiado.
+#	Sugestão	Prioridade
+S1	Bolinhas numeradas dos exercícios no topo do treino: progresso de relance e toque para pular	Alta
+S2	Exercício concluído vira uma linha no treino (toque reabre)	Alta
+S3	Troca de exercício sugere primeiro o mesmo grupo muscular	Média
+S4	Resumo do fim do treino com última vez (subiu, manteve, caiu) e o próximo treino	Média
+S5	Série até a falha: marca no menu da série	Baixa
+S6	Busca tolerante a erros de digitação, abreviações e plurais	Média
+S7	Medidas do corpo (cintura, braço, % de gordura) com gráfico	Média
+S8	Nota para um dia sem treino (doente, viajando) que não quebra a sequência	Baixa
+S9	Compartilhar o treino como imagem	Baixa
+S10	Escolher o som do fim do descanso	Baixa
+S11	Para depois: progressão tripla, halteres disponíveis, mapa de fadiga, exportar para Garmin	Baixa
