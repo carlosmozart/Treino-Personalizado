@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { EXERCISE_LIBRARY, groupOf } from '../../data/exercise-library';
+import { EXERCISE_LIBRARY, groupOf, guessGroup, sameGroupSuggestions } from '../../data/exercise-library';
 import {
   addSet, addWarmupSet, adjustWeights, removeWarmupSet, completeExercise, isExerciseDone, duplicateSet, insertSet, removeSet, setNote, swapExercise, toggleSet, updateCardio, updateSet,
   type ActiveSession, type SessionExercise, type SessionSet
@@ -260,9 +260,23 @@ export function ExerciseCard({ session, index, alwaysOpen = false }: Props) {
           className="mt-2 h-12 w-full rounded-xl border border-line bg-surface-2 px-3 text-base text-ink" />
         {(() => {
           const q = query.trim().toLowerCase();
-          if (!q) return null;
-          const matches = ALL_NAMES.filter(n => n.toLowerCase().includes(q) && n !== ex.name).slice(0, 6);
           const pick = (name: string) => { if (data) update(s => swapExercise(s, data, index, name)); setSwapOpen(false); setQuery(''); };
+          // S3: sem busca, o mesmo grupo muscular do exercício original
+          const base = ex.swappedFrom ?? ex.name;
+          if (!q) {
+            const same = sameGroupSuggestions(base, [ex.name, ...ex.alternatives.map(a => a.name)]);
+            if (!same.length) return null;
+            return (
+              <>
+                <p className="mt-3 px-3 text-xs font-semibold text-faint">Mesmo grupo ({guessGroup(base)}):</p>
+                {same.map(n => <SheetAction key={n} onClick={() => pick(n)}><ExerciseThumb name={n} />{n}</SheetAction>)}
+              </>
+            );
+          }
+          const group = guessGroup(base);
+          const matches = ALL_NAMES.filter(n => n.toLowerCase().includes(q) && n !== ex.name)
+            .sort((a, b) => Number(groupOf(b) === group) - Number(groupOf(a) === group))
+            .slice(0, 6);
           return (
             <>
               {matches.map(n => <SheetAction key={n} onClick={() => pick(n)}><ExerciseThumb name={n} />{n}</SheetAction>)}

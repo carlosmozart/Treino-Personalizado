@@ -1,8 +1,9 @@
-import { expect, test } from 'vitest';
+import { describe, expect, it, test } from 'vitest';
 import type { Workout, WorkoutEntry } from './model';
 import {
-  bestSet, describeEntry, entryVolume, isPersonalRecord, lastSessionBefore, workoutCalories, workoutVolume
+  bestSet, compareWithLast, describeEntry, entryVolume, isPersonalRecord, lastSessionBefore, workoutCalories, workoutVolume
 } from './workouts';
+import { workout as sampleWorkout } from './testing';
 
 const s = (reps: number, weight: number, kind: 'work' | 'warmup' = 'work') => ({ reps, weight, kind });
 const entry = (sets: ReturnType<typeof s>[], extra: Partial<WorkoutEntry> = {}): WorkoutEntry =>
@@ -65,4 +66,14 @@ test('calorias usam a duração medida, ou a estimada quando o cronômetro falho
 test('descrição usa vírgula decimal', () => {
   const entry = { key: 'x', name: 'X', mode: 'reps' as const, sets: [{ reps: 12, weight: 42.5, kind: 'work' as const }, { reps: 12, weight: 15, kind: 'work' as const }] };
   expect(describeEntry(entry)).toBe('2x12 · 42,5-15kg');
+});
+
+describe('comparação com a última vez (S4)', () => {
+  const at = (date: string, sets: [number, number][]) => sampleWorkout(date, 'Supino', sets);
+  const cmp = (ws: Workout[]) => compareWithLast(ws, ws.at(-1)!, ws.at(-1)!.entries[0]!);
+  it('primeira vez', () => expect(cmp([at('2026-10-01', [[10, 40]])])?.trend).toBe('first'));
+  it('carga maior sobe', () => expect(cmp([at('2026-10-01', [[10, 40]]), at('2026-10-03', [[8, 42.5]])])).toMatchObject({ trend: 'up', before: { weight: 40, reps: 10 } }));
+  it('mesma carga, mais reps sobe', () => expect(cmp([at('2026-10-01', [[8, 40]]), at('2026-10-03', [[10, 40]])])?.trend).toBe('up'));
+  it('igual', () => expect(cmp([at('2026-10-01', [[10, 40]]), at('2026-10-03', [[10, 40]])])?.trend).toBe('same'));
+  it('caiu', () => expect(cmp([at('2026-10-01', [[10, 40]]), at('2026-10-03', [[10, 35]])])?.trend).toBe('down'));
 });

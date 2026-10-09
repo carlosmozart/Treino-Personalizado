@@ -163,3 +163,19 @@ export function suspiciousWeight(workouts: readonly Workout[], key: string, weig
   }
   return weight > 500 ? { max: 0, suggestion: divided } : null;
 }
+
+export type Trend = 'up' | 'same' | 'down' | 'first';
+
+/**
+ * S4: melhor série deste treino contra a da última vez (antes da data): carga primeiro, depois
+ * repetições. Cardio e registros sem séries ficam de fora.
+ */
+export function compareWithLast(workouts: readonly Workout[], workout: Workout, entry: WorkoutEntry): { trend: Trend; before: WorkoutSet | null } | null {
+  const now = bestSet(entry);
+  if (!now) return null;
+  const last = lastSessionBefore(workouts, entry.key, workout.date);
+  const before = last ? bestSet(last.entry) : null;
+  if (!before) return { trend: 'first', before: null };
+  const diff = now.weight !== before.weight ? now.weight - before.weight : now.reps - before.reps;
+  return { trend: diff > 0 ? 'up' : diff < 0 ? 'down' : 'same', before };
+}

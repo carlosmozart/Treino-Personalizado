@@ -6,6 +6,12 @@ Todas as mudanças relevantes do app ficam registradas aqui. Ao lançar uma nova
    atualizar o app instalado
 3. Adicione uma entrada aqui, nesse formato
 
+## [Não lançado]
+
+- Treino: um número por exercício no topo, preenchido conforme você avança; tocar leva até ele.
+- Treino: a troca de exercício sugere primeiro o mesmo grupo muscular, com o mesmo equipamento no topo.
+- Fim do treino: cada exercício diz se subiu, manteve ou caiu em relação à última vez, e o resumo mostra qual é o próximo treino.
+
 ## [3.3.2] - 2026-10-07
 
 - Treino: deslize a série para a esquerda para apagar (com "Desfazer" por alguns segundos) ou para a direita para copiar logo abaixo. A última série fica. Dá para desligar em Perfil → Treino.

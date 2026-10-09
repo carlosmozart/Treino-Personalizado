@@ -114,3 +114,41 @@ export function groupOf(name: string): string | null {
 export function isCardioName(name: string): boolean {
   return groupOf(name) === 'Cardio';
 }
+
+/** Equipamento entre parênteses no nome ("Supino Reto (Halteres)" → "halteres"). */
+function equipmentOf(name: string): string {
+  return normalizeExerciseName(/\(([^)]*)\)\s*$/.exec(name)?.[1] ?? '');
+}
+
+/**
+ * S3: na troca, o mesmo grupo muscular primeiro, com o mesmo equipamento no topo.
+ * Fora da biblioteca (nome digitado), nada a sugerir.
+ */
+/**
+ * Grupo de um nome fora da biblioteca ("Remada Cavalinho ou Máquina"): o grupo mais comum entre os
+ * exercícios da biblioteca que começam com a mesma palavra ("Remada…" → Costas).
+ */
+export function guessGroup(name: string): string | null {
+  const exact = groupOf(name);
+  if (exact) return exact;
+  const first = normalizeExerciseName(name).split(' ')[0];
+  if (!first || first.length < 4) return null;
+  const count = new Map<string, number>();
+  for (const [group, names] of Object.entries(EXERCISE_LIBRARY)) {
+    for (const n of names) if (normalizeExerciseName(n).split(' ')[0] === first) count.set(group, (count.get(group) ?? 0) + 1);
+  }
+  return [...count].sort((a, b) => b[1] - a[1])[0]?.[0] ?? null;
+}
+
+export function sameGroupSuggestions(name: string, exclude: readonly string[] = [], limit = 6): string[] {
+  const group = guessGroup(name);
+  if (!group || group === 'Cardio') return [];
+  const skip = new Set([name, ...exclude].map(normalizeExerciseName));
+  const equipment = equipmentOf(name);
+  return (EXERCISE_LIBRARY[group] ?? [])
+    .filter(n => !skip.has(normalizeExerciseName(n)))
+    .map((n, i) => ({ n, rank: (equipment && equipmentOf(n) === equipment ? 0 : 1) * 1000 + i }))
+    .sort((a, b) => a.rank - b.rank)
+    .slice(0, limit)
+    .map(x => x.n);
+}

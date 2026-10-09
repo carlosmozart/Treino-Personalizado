@@ -4,7 +4,7 @@ import {
 } from './rotation';
 import { planExercise, sampleData, samplePlan } from './testing';
 import { daysPerWeekOf, streakOf } from './rewards';
-import { todayCard, weekStrip } from './home';
+import { nextWorkoutAfterToday, todayCard, weekStrip } from './home';
 import { remindersFor } from './reminders';
 import { startSession } from './session';
 import type { DayKey } from './ai-plan';
@@ -143,5 +143,16 @@ describe('treino da rotação', () => {
     p.days.QUA = { ...p.days.QUA, name: 'Quarta: B: Costas' };
     d.plans.p1 = p;
     expect(startSession(d, 'p1', 'QUA', new Date(2026, 9, 5, 10), 's1')!.dayName).toBe('B: Costas');
+  });
+});
+
+describe('próximo treino no resumo (S4)', () => {
+  it('rotação: o próximo da volta; semana fixa: o próximo dia com treino', () => {
+    const d = sampleData();
+    d.plans.p1 = abc();
+    d.workouts = [done('2026-10-05', 'SEG')];
+    expect(nextWorkoutAfterToday(d, new Date(2026, 9, 5, 20))).toMatchObject({ when: 'treino B da rotação' });
+    d.plans.p1 = disableRotation(d.plans.p1);
+    expect(nextWorkoutAfterToday(d, new Date(2026, 9, 5, 20))).toMatchObject({ when: 'em 2 dias' });
   });
 });

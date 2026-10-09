@@ -258,10 +258,10 @@ R6	✅ (07/10/2026) "Última vez há X dias" no lugar da data; data completa ao 
 S. Ideias do openGym v1.4.0 (09/10/2026)
 Só a ideia; o código do openGym é AGPL e as animações dele são licenciadas (Gym visual): nada é copiado.
 #	Sugestão	Prioridade
-S1	Bolinhas numeradas dos exercícios no topo do treino: progresso de relance e toque para pular	Alta
-S2	Exercício concluído vira uma linha no treino (toque reabre)	Alta
-S3	Troca de exercício sugere primeiro o mesmo grupo muscular	Média
-S4	Resumo do fim do treino com última vez (subiu, manteve, caiu) e o próximo treino	Média
+S1	✅ (09/10/2026) Bolinhas numeradas dos exercícios no topo do treino: progresso de relance e toque para pular	Alta
+S2	✅ (já existia desde a P5: cartão concluído recolhe) Exercício concluído vira uma linha no treino (toque reabre)	Alta
+S3	✅ (09/10/2026) Troca de exercício sugere primeiro o mesmo grupo muscular	Média
+S4	✅ (09/10/2026) Resumo do fim do treino com última vez (subiu, manteve, caiu) e o próximo treino	Média
 S5	Série até a falha: marca no menu da série	Baixa
 S6	Busca tolerante a erros de digitação, abreviações e plurais	Média
 S7	Medidas do corpo (cintura, braço, % de gordura) com gráfico	Média

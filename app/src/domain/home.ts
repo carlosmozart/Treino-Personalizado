@@ -3,7 +3,7 @@ import { DAY_KEYS, type DayKey } from './ai-plan';
 import { addDays, mondayOf, toDateKey, type DateKey } from './dates';
 import { goalProgress } from './body-goal';
 import { levelInfo, freeMealThreshold, type LevelInfo } from './gamification';
-import { dayKeyOf, type AppData, type PlanDay } from './model';
+import { DAY_FULL_NAMES, dayKeyOf, type AppData, type PlanDay } from './model';
 import { rotationLetter, rotationState, rotationTitle } from './rotation';
 import { daysPerWeekOf, streakOf, weekCheckins } from './rewards';
 import { waterTargetMl } from './health';
@@ -163,4 +163,24 @@ export function waterCard(data: AppData, now: Date): WaterCard | null {
   if (!target) return null;
   const ml = data.water[toDateKey(now)] ?? 0;
   return { ml, target, percent: Math.min(100, Math.round((ml / target) * 100)) };
+}
+
+/**
+ * S4: o próximo treino depois do de hoje. Na rotação, o próximo da volta; na semana fixa, o
+ * próximo dia com treino a partir de amanhã.
+ */
+export function nextWorkoutAfterToday(data: AppData, now: Date): { title: string; when: string } | null {
+  const plan = activePlan(data);
+  if (!plan) return null;
+  const rot = rotationState(plan, data.workouts);
+  if (rot) return { title: rotationTitle(plan, rot.next), when: `treino ${rotationLetter(plan, rot.next)} da rotação` };
+  for (let inDays = 1; inDays <= 7; inDays++) {
+    const date = new Date(now);
+    date.setDate(date.getDate() + inDays);
+    const day = plan.days[dayKeyOf(date)];
+    if (isTrainingDay(day)) {
+      return { title: day!.name.replace(/\s*\(opcional\)\s*$/i, '') || DAY_FULL_NAMES[dayKeyOf(date)], when: inDays === 1 ? 'amanhã' : `em ${inDays} dias` };
+    }
+  }
+  return null;
 }

@@ -1,4 +1,5 @@
-import { describeEntry, workoutCalories, workoutVolume } from '../../domain/workouts';
+import { compareWithLast, describeEntry, workoutCalories, workoutVolume, type Trend } from '../../domain/workouts';
+import { nextWorkoutAfterToday } from '../../domain/home';
 import { RECORD_LABEL, recordKinds } from '../../domain/strength';
 import { useAppStore } from '../../store';
 import { Icon } from '../../ui/Icon';
@@ -32,6 +33,7 @@ export function WorkoutSummary({ id }: { id: string }) {
             <div className="min-w-0 flex-1">
               <p className="font-semibold">{entry.name}</p>
               <p className="text-sm text-muted">{describeEntry(entry)}</p>
+              <LastTime cmp={compareWithLast(data.workouts, workout, entry)} />
             </div>
             {(() => {
               const records = recordKinds(data.workouts, workout, entry);
@@ -44,6 +46,15 @@ export function WorkoutSummary({ id }: { id: string }) {
           </li>
         ))}
       </ul>
+      {(() => {
+        const next = nextWorkoutAfterToday(data, new Date());
+        return next && (
+          <p className="mt-5 rounded-2xl border border-line bg-surface px-4 py-3">
+            <span className="block text-xs font-semibold text-muted">Próximo treino · {next.when}</span>
+            <span className="font-semibold">{next.title}</span>
+          </p>
+        );
+      })()}
       <button type="button" onClick={close} className="mt-6 h-12 w-full rounded-xl bg-surface-2 text-base font-bold">Fechar</button>
     </section>
   );
@@ -56,4 +67,19 @@ function Stat({ label, value }: { label: string; value: string }) {
       <dd className="mt-1 text-xl font-black tabular-nums">{value}</dd>
     </div>
   );
+}
+
+const TREND: Record<Exclude<Trend, 'first'>, { text: string; tone: string }> = {
+  up: { text: 'Subiu', tone: 'text-success' },
+  same: { text: 'Igual à última vez', tone: 'text-muted' },
+  down: { text: 'Caiu', tone: 'text-warning' }
+};
+
+/** S4: a melhor série contra a da última vez. */
+function LastTime({ cmp }: { cmp: ReturnType<typeof compareWithLast> }) {
+  if (!cmp) return null;
+  if (cmp.trend === 'first') return <p className="text-xs font-semibold text-info">Primeira vez</p>;
+  const t = TREND[cmp.trend];
+  const before = cmp.before ? `${formatNumber(cmp.before.weight)} kg × ${cmp.before.reps}` : '';
+  return <p className={`text-xs font-semibold ${t.tone}`}>{t.text}{cmp.trend !== 'same' && before ? ` (antes: ${before})` : ''}</p>;
 }

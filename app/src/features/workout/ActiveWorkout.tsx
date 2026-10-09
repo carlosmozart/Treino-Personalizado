@@ -27,6 +27,11 @@ export function ActiveWorkout({ session }: { session: ActiveSession }) {
   const firstOpen = Math.max(0, session.exercises.findIndex(ex => !isExerciseDone(ex)));
   const [current, setCurrent] = useState(firstOpen);
   const at = Math.min(current, total - 1);
+  // S1: no modo foco troca o exercício; na lista, rola até o cartão (o cabeçalho fixo fica por cima)
+  const goTo = (i: number) => {
+    if (focus) { setCurrent(i); return; }
+    document.getElementById(`exercicio-${i}`)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  };
   const elapsed = (now - Date.parse(session.startedAt)) / 1000;
   const pct = progress.setsTotal ? (progress.setsDone / progress.setsTotal) * 100 : 0;
 
@@ -58,6 +63,25 @@ export function ActiveWorkout({ session }: { session: ActiveSession }) {
         <div className="mt-2 h-1.5 rounded-full bg-surface-2" aria-hidden="true">
           <div className="h-1.5 rounded-full bg-success transition-[width]" style={{ width: `${pct}%` }} />
         </div>
+        {/* S1: um número por exercício, preenchido conforme avança; toque leva até ele */}
+        <ol aria-label="Exercícios do treino" className="-mx-1 mt-2 flex gap-1.5 overflow-x-auto px-1 pb-1">
+          {session.exercises.map((ex, i) => {
+            const isDone = isExerciseDone(ex);
+            const started = !isDone && ex.sets.some(x => x.done);
+            const here = focus && i === at;
+            return (
+              <li key={`${ex.slotId}-${i}`} className="shrink-0">
+                <button type="button" onClick={() => goTo(i)} aria-label={`Ir para ${ex.name}${isDone ? ', concluído' : started ? ', em andamento' : ''}`}
+                  aria-current={here ? 'step' : undefined}
+                  className={`flex size-9 items-center justify-center rounded-full text-sm font-bold tabular-nums ${
+                    isDone ? 'bg-success text-white' : started ? 'border-2 border-primary text-ink' : 'bg-surface-2 text-muted'
+                  } ${here ? 'ring-2 ring-primary ring-offset-2 ring-offset-page' : ''}`}>
+                  {i + 1}
+                </button>
+              </li>
+            );
+          })}
+        </ol>
         <button type="button" onClick={() => setSwitching(true)} className="mt-1 h-9 text-sm font-semibold text-muted">
           Trocar ou cancelar treino
         </button>
@@ -82,20 +106,12 @@ export function ActiveWorkout({ session }: { session: ActiveSession }) {
             </button>
           </nav>
           <ExerciseCard key={`${session.exercises[at]!.slotId}-${at}`} session={session} index={at} alwaysOpen />
-          <ol className="flex flex-wrap justify-center" aria-label="Situação dos exercícios">
-            {session.exercises.map((ex, i) => (
-              <li key={`${ex.slotId}-${i}`}>
-                <button type="button" onClick={() => setCurrent(i)} aria-label={`Ir para ${ex.name}${isExerciseDone(ex) ? ', concluído' : ''}`} aria-current={i === at ? 'step' : undefined}
-                  className="flex size-11 items-center justify-center">
-                  <span className={`size-3 rounded-full ${isExerciseDone(ex) ? 'bg-success' : 'bg-surface-2'} ${i === at ? 'ring-2 ring-primary ring-offset-2 ring-offset-page' : ''}`} />
-                </button>
-              </li>
-            ))}
-          </ol>
         </div>
       ) : (
         <div className="mt-4 space-y-3">
-          {session.exercises.map((ex, i) => <ExerciseCard key={`${ex.slotId}-${i}`} session={session} index={i} />)}
+          {session.exercises.map((ex, i) => (
+            <div key={`${ex.slotId}-${i}`} id={`exercicio-${i}`} className="scroll-mt-48"><ExerciseCard session={session} index={i} /></div>
+          ))}
         </div>
       )}
 
