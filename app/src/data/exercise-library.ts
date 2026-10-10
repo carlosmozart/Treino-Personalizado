@@ -121,10 +121,6 @@ function equipmentOf(name: string): string {
 }
 
 /**
- * S3: na troca, o mesmo grupo muscular primeiro, com o mesmo equipamento no topo.
- * Fora da biblioteca (nome digitado), nada a sugerir.
- */
-/**
  * Grupo de um nome fora da biblioteca ("Remada Cavalinho ou Máquina"): o grupo mais comum entre os
  * exercícios da biblioteca que começam com a mesma palavra ("Remada…" → Costas).
  */
@@ -140,15 +136,29 @@ export function guessGroup(name: string): string | null {
   return [...count].sort((a, b) => b[1] - a[1])[0]?.[0] ?? null;
 }
 
-export function sameGroupSuggestions(name: string, exclude: readonly string[] = [], limit = 6): string[] {
-  const group = guessGroup(name);
-  if (!group || group === 'Cardio') return [];
-  const skip = new Set([name, ...exclude].map(normalizeExerciseName));
-  const equipment = equipmentOf(name);
-  return (EXERCISE_LIBRARY[group] ?? [])
+/** Primeira palavra do nome: a família do movimento ("supino", "remada", "rosca"). */
+const movementOf = (name: string) => normalizeExerciseName(name).split(' ')[0] ?? '';
+
+/**
+ * Troca que faz sentido no treino do dia: mesmo grupo muscular, sem repetir o que já está no treino,
+ * o mesmo movimento primeiro (outro supino para um supino), depois o mesmo equipamento. Sem grupo
+ * conhecido, usa o grupo que mais aparece no treino de hoje.
+ */
+export function swapSuggestions(name: string, todayNames: readonly string[], exclude: readonly string[] = [], limit = 6): { group: string | null; names: string[] } {
+  let group = guessGroup(name);
+  if (!group) {
+    const count = new Map<string, number>();
+    for (const n of todayNames) { const g = guessGroup(n); if (g && g !== 'Cardio') count.set(g, (count.get(g) ?? 0) + 1); }
+    group = [...count].sort((a, b) => b[1] - a[1])[0]?.[0] ?? null;
+  }
+  if (!group || group === 'Cardio') return { group, names: [] };
+  const skip = new Set([name, ...todayNames, ...exclude].map(normalizeExerciseName));
+  const movement = movementOf(name), equipment = equipmentOf(name);
+  const names = (EXERCISE_LIBRARY[group] ?? [])
     .filter(n => !skip.has(normalizeExerciseName(n)))
-    .map((n, i) => ({ n, rank: (equipment && equipmentOf(n) === equipment ? 0 : 1) * 1000 + i }))
-    .sort((a, b) => a.rank - b.rank)
+    .map((n, i) => ({ n, rank: (movementOf(n) === movement ? 0 : 2) + (equipment && equipmentOf(n) === equipment ? 0 : 1), i }))
+    .sort((a, b) => a.rank - b.rank || a.i - b.i)
     .slice(0, limit)
     .map(x => x.n);
+  return { group, names };
 }

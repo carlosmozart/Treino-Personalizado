@@ -1,18 +1,24 @@
 import { expect, test } from 'vitest';
-import { groupOf, guessGroup, sameGroupSuggestions } from './exercise-library';
-
-test('troca sugere o mesmo grupo, com o mesmo equipamento primeiro (S3)', () => {
-  const s = sameGroupSuggestions('Supino Reto (Halteres)');
-  expect(s.length).toBeGreaterThan(0);
-  expect(s.every(n => groupOf(n) === 'Peito')).toBe(true);
-  expect(s).not.toContain('Supino Reto (Halteres)');
-  expect(s[0]).toMatch(/Halteres/);
-  expect(sameGroupSuggestions('Supino Reto (Halteres)', ['Supino Inclinado (Halteres)'])).not.toContain('Supino Inclinado (Halteres)');
-  expect(sameGroupSuggestions('Nome que não existe')).toEqual([]);
-});
+import { groupOf, guessGroup, swapSuggestions } from './exercise-library';
 
 test('nome fora da biblioteca: grupo pela primeira palavra', () => {
   expect(guessGroup('Remada Cavalinho ou Máquina')).toBe('Costas');
-  expect(sameGroupSuggestions('Remada Cavalinho ou Máquina').every(n => groupOf(n) === 'Costas')).toBe(true);
+  expect(swapSuggestions('Remada Cavalinho ou Máquina', []).names.every(n => groupOf(n) === 'Costas')).toBe(true);
   expect(guessGroup('Xyz qualquer')).toBeNull();
+});
+
+test('troca no treino do dia: mesmo movimento primeiro e nada que já está no treino', () => {
+  const today = ['Supino Inclinado (Halteres)', 'Crossover (Polia Alta)'];
+  const { group, names } = swapSuggestions('Supino Reto (Barra)', today);
+  expect(group).toBe('Peito');
+  expect(names[0]).toMatch(/^Supino/);
+  expect(names).not.toContain('Supino Inclinado (Halteres)');
+  expect(names).not.toContain('Crossover (Polia Alta)');
+  expect(names.every(n => groupOf(n) === 'Peito')).toBe(true);
+});
+
+test('sem grupo conhecido, usa o grupo que mais aparece no treino de hoje', () => {
+  const r = swapSuggestions('Xyz inventado', ['Remada Curvada (Barra)', 'Puxada Frontal (Polia)', 'Rosca Direta (Barra)']);
+  expect(r.group).toBe('Costas');
+  expect(r.names.length).toBeGreaterThan(0);
 });

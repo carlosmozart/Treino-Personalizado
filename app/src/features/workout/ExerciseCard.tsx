@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { EXERCISE_LIBRARY, groupOf, guessGroup, sameGroupSuggestions } from '../../data/exercise-library';
+import { EXERCISE_LIBRARY, groupOf, guessGroup, swapSuggestions } from '../../data/exercise-library';
 import {
   addSet, addWarmupSet, adjustWeights, removeWarmupSet, completeExercise, isExerciseDone, duplicateSet, insertSet, removeSet, setNote, swapExercise, toggleFailure, toggleSet, updateCardio, updateSet,
   type ActiveSession, type SessionExercise, type SessionSet
@@ -269,14 +269,16 @@ export function ExerciseCard({ session, index, alwaysOpen = false }: Props) {
         {(() => {
           const q = query.trim().toLowerCase();
           const pick = (name: string) => { if (data) update(s => swapExercise(s, data, index, name)); setSwapOpen(false); setQuery(''); };
-          // S3: sem busca, o mesmo grupo muscular do exercício original
+          // S3: sem busca, o que faz sentido no treino de hoje: mesmo grupo, sem repetir exercício do
+          // treino, o mesmo movimento primeiro
           const base = ex.swappedFrom ?? ex.name;
           if (!q) {
-            const same = sameGroupSuggestions(base, [ex.name, ...ex.alternatives.map(a => a.name)]);
+            const today = session.exercises.filter((_, i) => i !== index).map(e => e.name);
+            const { group: g, names: same } = swapSuggestions(base, today, [ex.name, ...ex.alternatives.map(a => a.name)]);
             if (!same.length) return null;
             return (
               <>
-                <p className="mt-3 px-3 text-xs font-semibold text-faint">Mesmo grupo ({guessGroup(base)}):</p>
+                <p className="mt-3 px-3 text-xs font-semibold text-faint">Para o treino de hoje ({g}), sem repetir exercício:</p>
                 {same.map(n => <SheetAction key={n} onClick={() => pick(n)}><ExerciseThumb name={n} />{n}</SheetAction>)}
               </>
             );

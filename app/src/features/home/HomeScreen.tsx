@@ -25,6 +25,10 @@ export function HomeScreen() {
   if (!data) return null;
   const now = new Date();
   const name = data.profile.name.trim().split(/\s+/)[0];
+  const card = todayCard(data, now, session);
+  // sem plano (primeira abertura), montar o plano vem antes de qualquer aviso
+  const planFirst = card.kind === 'no-plan';
+  const today = <TodayCard card={card} onChoose={setChooser} />;
 
   return (
     <div className="space-y-4 pt-6">
@@ -32,10 +36,11 @@ export function HomeScreen() {
         <p className="text-muted">{greeting(now)}{name ? `, ${name}` : ''}</p>
         <h1 className="text-3xl font-black tracking-tight">Início</h1>
       </header>
+      {planFirst && today}
       <IosInstallNotice />
       <HomeNotices />
       <WeekStrip />
-      <TodayCard card={todayCard(data, now, session)} onChoose={setChooser} />
+      {!planFirst && today}
       <PlanSection onChoose={setChooser} />
       <ProgressSection />
       <WeightSection card={weightCard(data)} />
