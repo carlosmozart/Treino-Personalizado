@@ -12,13 +12,18 @@ import { startRemindersSync } from './features/plan/reminders-sync';
 import { startDayWatcher } from './hooks/use-today';
 import { dailyCheck } from './domain/actions';
 import { autoSaveBackupFile, canAutoBackup } from './platform/backup-file';
-import { applyTheme, watchSystemTheme } from './ui/theme';
+import { applyAccent, applyTheme, watchSystemTheme } from './ui/theme';
 import './index.css';
 
 installGlobalErrorHandlers();
 watchSystemTheme();
 // aplica o tema salvo sempre que a escolha muda (inclusive ao carregar e ao restaurar um backup)
-useAppStore.subscribe((s, p) => { const t = s.data?.settings.theme; if (!p.data || t !== p.data.settings.theme) applyTheme(t); });
+useAppStore.subscribe((s, p) => {
+  const t = s.data?.settings.theme;
+  if (!p.data || t !== p.data.settings.theme) applyTheme(t);
+  const a = s.data?.settings.accent;
+  if (!p.data || a !== p.data.settings.accent) applyAccent(a);
+});
 void useAppStore.getState().init().then(() => {
   syncController.start();
   startRemindersSync();

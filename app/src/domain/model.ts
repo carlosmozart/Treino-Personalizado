@@ -62,6 +62,8 @@ export interface PlanExercise {
   minutes: number;
   km: number;
   restSeconds?: number;
+  /** M17: exercícios seguidos com a mesma marca formam um superset (um descanso só no fim da rodada). */
+  superset?: string;
   /** Dica de execução ou substituição mostrada no treino (o "alt" do app antigo). */
   tip?: string;
   optional: boolean;
@@ -184,11 +186,15 @@ export interface Settings {
   autoProgression?: boolean;
   /** De onde vêm carga e reps ao abrir o treino (M13): sugestão da progressão, última vez ou o plano. Ausente = pela autoProgression. */
   loadSource?: LoadSource;
+  /** M25: cor de destaque (botões, seleção). Ausente = azul. */
+  accent?: AccentId;
   /** Tema da interface. Ausente = acompanha o sistema. */
   theme?: ThemePref;
 }
 
 export type ThemePref = 'system' | 'light' | 'dark';
+
+export type AccentId = 'azul' | 'roxo' | 'rosa' | 'laranja' | 'ciano';
 
 export type LoadSource = 'auto' | 'last' | 'plan';
 

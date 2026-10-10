@@ -19,6 +19,7 @@ import { DEFAULT_INCREMENT, INCREMENTS, repRange } from '../../domain/progressio
 import { Sheet, SheetAction } from '../../ui/Sheet';
 import { SwipeRow } from '../../ui/SwipeRow';
 import { searchNames } from '../../domain/search';
+import { supersetBlock, toggleSupersetWithNext } from '../../domain/session';
 import { useSearchPool } from '../../hooks/use-search-pool';
 import { disableRotation, enableRotation, moveInRotation, restartRotation, rotationLetter, rotationOrder, rotationState, rotationTitle, setRotationPerWeek } from '../../domain/rotation';
 import { dayTitle, formatNumber, plural } from '../../ui/format';
@@ -268,6 +269,9 @@ function DayCard({ plan, dayKey, today, edit, rotation }: { plan: Plan; dayKey: 
           {day.exercises.map((ex, i) => (
             <ExerciseRow key={ex.id} ex={ex} open={openId === ex.id} first={i === 0} last={i === day.exercises.length - 1} swipe={swipe}
               onSwipeRemove={() => removeWithUndo(i)}
+              superset={(() => { const b = supersetBlock(day.exercises, i); return b ? { pos: i - b.start + 1, size: b.end - b.start + 1 } : null; })()}
+              linkedToNext={!!ex.superset && ex.superset === day.exercises[i + 1]?.superset}
+              onToggleSuperset={() => edit(p => ({ ...p, days: { ...p.days, [dayKey]: { ...p.days[dayKey], exercises: toggleSupersetWithNext(p.days[dayKey].exercises, i, () => newId('ss')) } } }))}
               onDuplicate={() => edit(p => duplicateExercise(p, dayKey, ex.id, newId('ex')))}
               onToggle={() => setOpenId(openId === ex.id ? null : ex.id)}
               onChange={patch => edit(p => updateExercise(p, dayKey, ex.id, patch))}
@@ -331,13 +335,14 @@ function summary(ex: PlanExercise): string {
 
 interface RowProps {
   ex: PlanExercise; open: boolean; first: boolean; last: boolean; swipe: boolean;
+  superset: { pos: number; size: number } | null; linkedToNext: boolean; onToggleSuperset: () => void;
   onSwipeRemove: () => void; onDuplicate: () => void;
   onToggle: () => void; onChange: (patch: Partial<PlanExercise>) => void; onMove: (delta: -1 | 1) => void; onRemove: () => void;
   onAddAlt: (name: string) => void; onRemoveAlt: (index: number) => void;
 }
 
 /** Exercício recolhido; ao tocar abre os campos (O25). */
-function ExerciseRow({ ex, open, first, last, swipe, onSwipeRemove, onDuplicate, onToggle, onChange, onMove, onRemove, onAddAlt, onRemoveAlt }: RowProps) {
+function ExerciseRow({ ex, open, first, last, swipe, superset, linkedToNext, onToggleSuperset, onSwipeRemove, onDuplicate, onToggle, onChange, onMove, onRemove, onAddAlt, onRemoveAlt }: RowProps) {
   const [alt, setAlt] = useState('');
   const listId = useId();
   const field = (label: string, value: number, set: (n: number) => void, decimal = false) => (
@@ -350,7 +355,7 @@ function ExerciseRow({ ex, open, first, last, swipe, onSwipeRemove, onDuplicate,
       <button type="button" onClick={onToggle} aria-expanded={open} className="flex min-h-12 w-full items-center gap-2 text-left">
         <span className="min-w-0 flex-1">
           <span className="block truncate font-semibold">{ex.name}</span>
-          <span className="block text-sm text-muted">{summary(ex)}</span>
+          <span className="block text-sm text-muted">{summary(ex)}{superset ? ` · superset ${superset.pos}/${superset.size}` : ''}</span>
         </span>
         <Icon name={open ? 'subir' : 'descer'} className="size-5 shrink-0 text-faint" />
       </button>
@@ -390,6 +395,12 @@ function ExerciseRow({ ex, open, first, last, swipe, onSwipeRemove, onDuplicate,
             <input value={ex.tip ?? ''} placeholder="Execução ou substituição" onChange={e => onChange({ tip: e.target.value })}
               className="mt-1 h-11 w-full rounded-xl border border-line bg-surface-2 px-3 text-base text-ink" />
           </label>
+          {!last && (
+            <button type="button" onClick={onToggleSuperset}
+              className="mt-3 h-11 w-full rounded-xl bg-surface-2 text-sm font-semibold">
+              {linkedToNext ? 'Separar do próximo (superset)' : 'Superset com o próximo exercício'}
+            </button>
+          )}
           <label className="mt-3 flex min-h-11 items-center gap-3">
             <input type="checkbox" checked={ex.optional} onChange={e => onChange({ optional: e.target.checked })} className="size-5 accent-[var(--color-primary)]" />
             <span className="text-sm font-semibold">Exercício opcional</span>

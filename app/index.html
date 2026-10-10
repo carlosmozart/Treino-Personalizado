@@ -11,6 +11,8 @@
         var light = t === 'light' || (t !== 'dark' && matchMedia('(prefers-color-scheme: light)').matches);
         document.documentElement.dataset.theme = light ? 'light' : 'dark';
         if (light) document.querySelector('meta[name="theme-color"]').setAttribute('content', '#f4f4f5');
+        var accent = localStorage.getItem('tp-accent');
+        if (accent && /^#[0-9a-f]{6}$/i.test(accent)) document.documentElement.style.setProperty('--color-primary', accent);
       } catch (e) {}
     </script>
     <link rel="icon" href="./icon-192.png" />

@@ -36,6 +36,8 @@ export interface SessionExercise {
   alternatives: { name: string; mode: ExerciseMode }[];
   /** Nome original do plano quando trocado por uma reserva. */
   swappedFrom?: string;
+  /** M17: mesma marca nos vizinhos = superset. */
+  superset?: string;
   /** Sugestão da progressão automática que preencheu as séries (M12), com o porquê. */
   progression?: Progression;
 }
@@ -102,6 +104,7 @@ function fromPlanExercise(data: AppData, ex: PlanExercise, date: DateKey, linear
   if (ex.mode === 'time' && ex.seconds) out.seconds = ex.seconds;
   if (ex.restSeconds) out.restSeconds = ex.restSeconds;
   if (ex.tip) out.tip = ex.tip;
+  if (ex.superset) out.superset = ex.superset;
   if (ex.mode === 'cardio') out.cardio = { minutes: ex.minutes, km: ex.km, done: false };
   return out;
 }
@@ -329,7 +332,9 @@ export function swapExercise(s: ActiveSession, data: AppData, exIndex: number, n
         ?? { name: name.trim(), mode: isCardioName(name) ? 'cardio' as const : ex.mode === 'cardio' ? 'reps' as const : ex.mode };
     if (backToOriginal && planEx) {
       const restored = fromPlanExercise(data, planEx, s.date, data.plans[s.planId]?.progression === 'linear');
-      return { ...restored, note: ex.note };
+      // a marca do superset é a do treino (pode ter sido juntado ou separado na hora)
+      const { superset: _planMark, ...rest } = restored;
+      return { ...rest, note: ex.note, ...(ex.superset ? { superset: ex.superset } : {}) };
     }
     const mode = option?.mode ?? ex.mode;
     const swapped: SessionExercise = {
@@ -341,6 +346,7 @@ export function swapExercise(s: ActiveSession, data: AppData, exIndex: number, n
     if (start.progression) swapped.progression = start.progression;
     if (ex.restSeconds) swapped.restSeconds = ex.restSeconds;
     if (ex.tip) swapped.tip = ex.tip;
+    if (ex.superset) swapped.superset = ex.superset;
     if (mode === 'cardio') swapped.cardio = { minutes: planEx?.minutes || 20, km: 0, done: false };
     return swapped;
   });
@@ -394,4 +400,47 @@ export function sessionToWorkout(s: ActiveSession, now: Date): Workout | null {
     ...(durationMin > 0 && durationMin <= 300 ? { durationMin } : {}),
     planId: s.planId, dayKey: s.dayKey, dayName: s.dayName, source: 'app', entries
   };
+}
+
+/** M17: o bloco de exercícios seguidos com a mesma marca de superset em volta de `index`. */
+export function supersetBlock(exercises: readonly { superset?: string | undefined }[], index: number): { start: number; end: number } | null {
+  const mark = exercises[index]?.superset;
+  if (!mark) return null;
+  let start = index, end = index;
+  while (start > 0 && exercises[start - 1]?.superset === mark) start--;
+  while (end < exercises.length - 1 && exercises[end + 1]?.superset === mark) end++;
+  return end > start ? { start, end } : null;
+}
+
+/**
+ * M17: depois de marcar uma série, descansa? Num superset, só no fim da rodada (último exercício do
+ * bloco); antes disso, `next` é o exercício seguinte do bloco.
+ */
+export function afterSet(s: ActiveSession, index: number): { rest: boolean; next: number | null } {
+  const block = supersetBlock(s.exercises, index);
+  if (!block || index === block.end) return { rest: true, next: block ? block.start : null };
+  return { rest: false, next: index + 1 };
+}
+
+/** M17: junta o exercício ao próximo (os dois passam a ter a mesma marca) ou separa do bloco. */
+export function toggleSupersetWithNext<T extends { superset?: string }>(list: readonly T[], index: number, makeId: () => string): T[] {
+  const cur = list[index], next = list[index + 1];
+  if (!cur || !next) return [...list];
+  const out = [...list];
+  if (cur.superset && cur.superset === next.superset) {
+    // separa: o próximo e os seguintes do bloco ficam com uma marca nova (ou nenhuma, se sobrar um só)
+    const mark = cur.superset, fresh = makeId();
+    for (let i = index + 1; i < out.length && list[i]!.superset === mark; i++) out[i] = { ...out[i]!, superset: fresh };
+    const clean = (i: number) => {
+      const b = supersetBlock(out, i);
+      if (!b && out[i]?.superset) { const { superset: _m, ...rest } = out[i]!; out[i] = rest as T; }
+    };
+    clean(index); clean(index + 1);
+    return out;
+  }
+  const mark = cur.superset ?? next.superset ?? makeId();
+  const oldNext = next.superset;
+  out[index] = { ...cur, superset: mark };
+  for (let i = index + 1; i < out.length && (i === index + 1 || (oldNext && list[i]!.superset === oldNext)); i++) out[i] = { ...out[i]!, superset: mark };
+  return out;
 }

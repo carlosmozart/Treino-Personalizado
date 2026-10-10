@@ -125,7 +125,7 @@ M14	✅ (07/10/2026, menu ⋯ dos exercícios com barra) Calculadora de anilhas 
 Fase 4 — funções destravadas pelo novo modelo
 M15	✅ (10/10/2026, Progresso → Histórico; sem recorde retroativo. Corrigir data de treino salvo fica para depois) Registrar treino passado (data, início, duração) e corrigir data/hora de um treino salvo, sem gerar recordes retroativos	Média
 M16	✅ (revisão de 10/10/2026: feito no app 3.x, mapa de calor de 6 meses; P5) Mapa de calor anual de treinos (estilo GitHub) no histórico	Média
-M17	Bi-set/superset: agrupar dois exercícios com um único descanso ao fim da rodada	Média
+M17	✅ (10/10/2026, no plano e na hora pelo menu ⋯) Bi-set/superset: agrupar dois exercícios com um único descanso ao fim da rodada	Média
 M18	✅ (10/10/2026, adicionar e tirar exercício no treino; treino livre fica para depois) Adicionar/remover exercício no meio do treino sem finalizar; treino livre com valores pré-preenchidos da última vez	Média
 M19	Remarcar o treino do dia para outro dia sem alterar o plano semanal; escolher início da semana (seg/dom)	Baixa
 M20	✅ (10/10/2026, menu ⋯ do exercício) Histórico do exercício acessível de dentro do treino (últimas sessões + linha de evolução)	Média
@@ -135,7 +135,7 @@ M21	Descanso no APK como serviço em primeiro plano: contagem na barra de notifi
 M22	Esforço por série opcional (RIR ou RPE), sem afetar progressão	Baixa
 M23	Compartilhar plano (arquivo só com rotinas, sem dados pessoais) e importar mesclando; imprimir plano em PDF	Baixa
 M24	Importar histórico de Strong/Hevy/FitNotes (CSV), casando nomes com a biblioteca (depende de M5)	Baixa
-M25	🟡 (tema claro e escuro feitos em 07/10/2026, c7e3046; falta a cor de destaque) Tema claro e cor de destaque configurável (exige revisar tokens de cor do guia de interface)	Baixa
+M25	✅ (tema claro e escuro em 07/10/2026; cor de destaque com cinco opções em 10/10/2026) Tema claro e cor de destaque configurável (exige revisar tokens de cor do guia de interface)	Baixa
 M26	Favoritar exercícios para aparecerem primeiro na troca/biblioteca	Baixa
 M27	Ampliar testes no estilo do openGym: casos-limite de cada regra de progressão, 1RM, recordes e migração	Alta
 

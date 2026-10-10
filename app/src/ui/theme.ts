@@ -1,9 +1,31 @@
 // Tema claro/escuro. A escolha fica nas configurações; uma cópia vai para o localStorage para o
 // index.html aplicar o tema antes do React carregar (sem piscar o escuro ao abrir no claro).
-import type { ThemePref } from '../domain/model';
+import type { AccentId, ThemePref } from '../domain/model';
 import { isNative } from '../platform/platform';
 
 export const THEME_KEY = 'tp-theme';
+export const ACCENT_KEY = 'tp-accent';
+
+/**
+ * M25: cores de destaque. Todas com contraste de pelo menos 4,5:1 com o texto branco dos botões,
+ * no claro e no escuro; verde e vermelho ficam de fora (já querem dizer "feito" e "apagar").
+ */
+export const ACCENTS: { id: AccentId; label: string; hex: string }[] = [
+  { id: 'azul', label: 'Azul', hex: '#2563eb' },
+  { id: 'roxo', label: 'Roxo', hex: '#7c3aed' },
+  { id: 'rosa', label: 'Rosa', hex: '#db2777' },
+  { id: 'laranja', label: 'Laranja', hex: '#c2410c' },
+  { id: 'ciano', label: 'Ciano', hex: '#0e7490' }
+];
+
+/** Aplica a cor de destaque (e guarda para o index.html aplicar antes do app carregar). */
+export function applyAccent(id: AccentId | undefined) {
+  const accent = ACCENTS.find(a => a.id === id) ?? ACCENTS[0]!;
+  const root = document.documentElement;
+  if (accent.id === 'azul') root.style.removeProperty('--color-primary');
+  else root.style.setProperty('--color-primary', accent.hex);
+  try { localStorage.setItem(ACCENT_KEY, accent.hex); } catch { /* sem armazenamento: só não evita o piscar */ }
+}
 const BG = { dark: '#000000', light: '#f4f4f5' } as const;
 
 // SystemBars vem no próprio Capacitor 8: LIGHT = ícones escuros sobre fundo claro

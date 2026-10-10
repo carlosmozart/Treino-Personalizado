@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
 import { groupOf, guessGroup, swapSuggestions } from '../../data/exercise-library';
 import {
-  addSet, addWarmupSet, adjustWeights, removeWarmupSet, completeExercise, isExerciseDone, duplicateSet, insertSet, removeExerciseFromSession, removeSet, setNote, swapExercise, toggleFailure, toggleSet, updateCardio, updateSet,
+  addSet, afterSet, supersetBlock, toggleSupersetWithNext, addWarmupSet, adjustWeights, removeWarmupSet, completeExercise, isExerciseDone, duplicateSet, insertSet, removeExerciseFromSession, removeSet, setNote, swapExercise, toggleFailure, toggleSet, updateCardio, updateSet,
   type ActiveSession, type SessionExercise, type SessionSet
 } from '../../domain/session';
 import { bestSet, lastSessionBefore, sessionsOf, suspiciousWeight, workSets } from '../../domain/workouts';
@@ -63,6 +63,7 @@ export function ExerciseCard({ session, index, alwaysOpen = false }: Props) {
   const [tipOpen, setTipOpen] = useState(false);
   const [platesOpen, setPlatesOpen] = useState(false);
   const [historyOpen, setHistoryOpen] = useState(false);
+  const block = supersetBlock(session.exercises, index);
   // S6 + openGym 1.4.1: a busca põe primeiro o que você já fez (e acha nomes digitados à mão)
   const pool = useSearchPool();
   // R2: série apagada fica alguns segundos para desfazer
@@ -99,7 +100,14 @@ export function ExerciseCard({ session, index, alwaysOpen = false }: Props) {
     if (suspicious) { setCheck({ set: setIndex, weight, ...suspicious }); return; }
     update(s => toggleSet(s, index, setIndex));
     const settings = data?.settings;
-    if (!wasDone && settings?.restAutoStart) useRestStore.getState().start(ex.restSeconds ?? settings.restSeconds);
+    if (wasDone) return;
+    // M17: no meio de um superset não há descanso: vai direto para o parceiro
+    const next = afterSet(session, index);
+    if (!next.rest && next.next !== null) {
+      document.getElementById(`exercicio-${next.next}`)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      return;
+    }
+    if (settings?.restAutoStart) useRestStore.getState().start(ex.restSeconds ?? settings.restSeconds);
   }
 
   const close = () => setMenu(false);
@@ -146,6 +154,11 @@ export function ExerciseCard({ session, index, alwaysOpen = false }: Props) {
           <div className="flex flex-wrap gap-1.5 text-xs font-semibold">
             {group && <span className="rounded-full bg-surface-2 px-2 py-0.5 text-muted">{group}</span>}
             {ex.optional && <span className="rounded-full bg-surface-2 px-2 py-0.5 text-muted">Opcional</span>}
+            {block && (
+              <span className="rounded-full bg-primary/15 px-2 py-0.5 text-info">
+                Superset {index - block.start + 1}/{block.end - block.start + 1} · com {session.exercises.slice(block.start, block.end + 1).filter((_, i) => i + block.start !== index).map(e => e.name).join(', ')}
+              </span>
+            )}
             {best && <span className="rounded-full bg-surface-2 px-2 py-0.5 text-muted">Melhor: {formatNumber(best.weight)} kg × {best.reps}</span>}
           </div>
           {last && (
@@ -245,6 +258,12 @@ export function ExerciseCard({ session, index, alwaysOpen = false }: Props) {
           <SheetAction onClick={() => { close(); setPlatesOpen(true); }}><Icon name="treino" />Anilhas na barra</SheetAction>
         )}
         <SheetAction onClick={() => { close(); setSwapOpen(true); }}><Icon name="trocar" />Trocar exercício</SheetAction>
+        {/* M17: superset na hora, só neste treino */}
+        {index < session.exercises.length - 1 && (
+          <SheetAction onClick={() => { close(); update(s => ({ ...s, exercises: toggleSupersetWithNext(s.exercises, index, () => `ss-${Date.now()}`) })); }}>
+            <Icon name="treino" />{ex.superset && ex.superset === session.exercises[index + 1]?.superset ? 'Separar do próximo (superset)' : 'Juntar com o próximo em superset'}
+          </SheetAction>
+        )}
         {/* M20: evolução e últimas sessões sem sair do treino */}
         {ex.mode !== 'cardio' && (
           <SheetAction onClick={() => { close(); setHistoryOpen(true); }}><Icon name="progresso" />Histórico do exercício</SheetAction>

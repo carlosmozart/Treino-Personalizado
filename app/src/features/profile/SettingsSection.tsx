@@ -9,6 +9,7 @@ import { restoreBackup } from '../../domain/profile-view';
 import { useAppStore } from '../../store';
 import { NumberField } from '../../ui/NumberField';
 import { DurationWheel } from '../../ui/DurationWheel';
+import { ACCENTS } from '../../ui/theme';
 import { plural } from '../../ui/format';
 import { Card, INPUT } from './ProfileScreen';
 import { AlarmSettings } from './AlarmSettings';
@@ -36,6 +37,19 @@ export function SettingsSection() {
       </Card>
       <Card title="Aparência">
         <ThemeChoice value={settings.theme ?? 'system'} onChange={v => set({ theme: v })} />
+        {/* M25: cor de destaque */}
+        <p className="mt-3 text-sm font-semibold text-muted">Cor de destaque</p>
+        <div role="radiogroup" aria-label="Cor de destaque" className="mt-1 flex flex-wrap gap-2">
+          {ACCENTS.map(a => {
+            const on = (settings.accent ?? 'azul') === a.id;
+            return (
+              <button key={a.id} type="button" role="radio" aria-checked={on} aria-label={a.label} onClick={() => set({ accent: a.id })}
+                className={`flex h-11 items-center gap-2 rounded-xl px-3 text-sm font-semibold ${on ? 'bg-surface-2 ring-2 ring-[var(--color-ink)]' : 'bg-surface-2 text-muted'}`}>
+                <span aria-hidden="true" className="size-5 rounded-full" style={{ background: a.hex }} />{a.label}
+              </button>
+            );
+          })}
+        </div>
       </Card>
       <BackupCard />
       <Card title="Conta e nuvem">
