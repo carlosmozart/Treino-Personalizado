@@ -23,7 +23,7 @@ export function AddToWorkoutSheet({ open, session, onClose, onAdded }: { open: b
   };
   const q = query.trim();
   const pool = useSearchPool();
-  const suggestions = q ? searchNames(q, pool.names.filter(n => !today.includes(n)), 6, pool.done) : swapSuggestions('', today).names;
+  const suggestions = q ? searchNames(q, pool.names.filter(n => !today.includes(n)), 6, pool.done, pool.favorites) : swapSuggestions('', today, [], 6, pool.favorites).names;
   const group = q ? null : swapSuggestions('', today).group;
   return (
     <Sheet title="Adicionar exercício" open={open} onClose={() => { setQuery(''); onClose(); }}>

@@ -12,6 +12,9 @@ Todas as mudanças relevantes do app ficam registradas aqui. Ao lançar uma nova
 - Gráficos de peso, medidas e evolução: período de 1 ano, além de 30 dias, 90 dias e tudo.
 - Superset: no plano, "Superset com o próximo exercício" junta dois (ou mais) exercícios seguidos; no treino, a série do primeiro leva direto ao parceiro, e o descanso só começa no fim da rodada. Dá para juntar ou separar na hora pelo menu ⋯.
 - Perfil → Aparência: cor de destaque (azul, roxo, rosa, laranja ou ciano), sempre com texto legível nos botões.
+- Superset no modo foco (um exercício por vez): a série do primeiro também leva direto ao parceiro.
+- Evolução do exercício: "Mais reps" (numa série) e "Volume" da sessão, além de 1RM e melhor carga; com o peso do corpo, abre nas repetições.
+- Exercícios favoritos: "Favoritar" no menu ⋯; os favoritos aparecem primeiro na troca e nas buscas.
 
 ## [3.6.0] - 2026-10-10
 

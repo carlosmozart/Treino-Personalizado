@@ -441,7 +441,7 @@ function AddExerciseSheet({ open, dayName, onClose, onAdd }: { open: boolean; da
   const listId = useId();
   const q = query.trim().toLowerCase();
   const pool = useSearchPool();
-  const matches = q ? searchNames(q, pool.names, 6, pool.done) : [];
+  const matches = q ? searchNames(q, pool.names, 6, pool.done, pool.favorites) : [];
   const add = (name: string) => { onAdd(name); setQuery(''); };
   return (
     <Sheet title={`Adicionar em ${dayName}`} open={open} onClose={onClose}>

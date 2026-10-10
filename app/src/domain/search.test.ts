@@ -27,3 +27,11 @@ test('nomes digitados à mão no histórico entram na busca', () => {
   expect(pool.names).toEqual(['Supino Reto (Barra)', 'Remada do João']);
   expect(searchNames('remada', pool.names, 6, pool.done)).toEqual(['Remada do João']);
 });
+
+test('favoritos na frente dos já feitos (M26)', () => {
+  const names = ['Rosca Direta (Barra)', 'Rosca Martelo (Halteres)', 'Rosca Scott (Máquina)'];
+  const done = new Set(['rosca direta (barra)']);
+  const fav = new Set(['rosca martelo (halteres)']);
+  expect(searchNames('rosca', names, 6, done, fav)[0]).toBe('Rosca Martelo (Halteres)');
+  expect(searchNames('rosca', names, 6, done, fav)[1]).toBe('Rosca Direta (Barra)');
+});

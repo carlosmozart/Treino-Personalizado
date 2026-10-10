@@ -107,7 +107,7 @@ export function ActiveWorkout({ session }: { session: ActiveSession }) {
               <Icon name="subir" className="size-6 rotate-90" />
             </button>
           </nav>
-          <ExerciseCard key={`${session.exercises[at]!.slotId}-${at}`} session={session} index={at} alwaysOpen />
+          <ExerciseCard key={`${session.exercises[at]!.slotId}-${at}`} session={session} index={at} alwaysOpen onGoTo={setCurrent} />
         </div>
       ) : (
         <div className="mt-4 space-y-3">

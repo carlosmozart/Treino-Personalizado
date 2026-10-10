@@ -36,7 +36,7 @@ function wordScore(q: string, w: string): number | null {
  * `done`: chaves dos exercícios que a pessoa já fez; sobem na frente dos parecidos, mas um erro de
  * digitação não passa um acerto.
  */
-export function searchNames(query: string, names: readonly string[], limit = 6, done?: ReadonlySet<string>): string[] {
+export function searchNames(query: string, names: readonly string[], limit = 6, done?: ReadonlySet<string>, favorites?: ReadonlySet<string>): string[] {
   const qs = words(query);
   if (!qs.length) return [];
   const scored: { n: string; score: number }[] = [];
@@ -51,6 +51,8 @@ export function searchNames(query: string, names: readonly string[], limit = 6, 
     // nome que começa com a busca e nomes curtos sobem; empate fica na ordem da biblioteca
     if (!normalizeExerciseName(n).startsWith(normalizeExerciseName(query))) score += 0.5;
     if (done?.has(normalizeExerciseName(n))) score -= 0.75;
+    // M26: favoritos na frente dos já feitos (ainda sem passar um acerto por um erro de digitação)
+    if (favorites?.has(normalizeExerciseName(n))) score -= 0.9;
     scored.push({ n, score: score * 100 + ws.length + i / 1e4 });
   });
   return scored.sort((a, b) => a.score - b.score).slice(0, limit).map(x => x.n);

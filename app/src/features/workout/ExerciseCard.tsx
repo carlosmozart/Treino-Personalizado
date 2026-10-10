@@ -9,7 +9,7 @@ import { useAppStore } from '../../store';
 import { Icon } from '../../ui/Icon';
 import { NumberField } from '../../ui/NumberField';
 import { ExerciseIllustration, ExerciseThumb, hasIllustration } from '../../ui/ExerciseIllustration';
-import { markBigWeightJump, updateSettings } from '../../domain/actions';
+import { markBigWeightJump, toggleFavorite, updateSettings } from '../../domain/actions';
 import { Sheet, SheetAction } from '../../ui/Sheet';
 import { formatNumber, relativeDate, shortDate } from '../../ui/format';
 import { useRestStore } from './rest-store';
@@ -27,6 +27,8 @@ interface Props {
   index: number;
   /** Modo foco: o cartão não recolhe ao concluir (é o único na tela). */
   alwaysOpen?: boolean;
+  /** Modo foco: troca o exercício na tela (superset leva ao parceiro). */
+  onGoTo?: (index: number) => void;
 }
 
 /** Contexto do exercício (N4): última vez e melhor série, pelo histórico do nome. */
@@ -51,7 +53,7 @@ function useExerciseContext(ex: SessionExercise, date: string) {
   }, [workouts, ex.key, ex.mode, date]);
 }
 
-export function ExerciseCard({ session, index, alwaysOpen = false }: Props) {
+export function ExerciseCard({ session, index, alwaysOpen = false, onGoTo }: Props) {
   const ex = session.exercises[index]!;
   const update = useAppStore(s => s.updateSession);
   const data = useAppStore(s => s.data);
@@ -66,6 +68,7 @@ export function ExerciseCard({ session, index, alwaysOpen = false }: Props) {
   const block = supersetBlock(session.exercises, index);
   // S6 + openGym 1.4.1: a busca põe primeiro o que você já fez (e acha nomes digitados à mão)
   const pool = useSearchPool();
+  const favorite = pool.favorites.has(ex.key);
   // R2: série apagada fica alguns segundos para desfazer
   const [removed, setRemoved] = useState<{ at: number; set: SessionSet; timer: number } | null>(null);
   const swipe = data?.settings.swipeSets ?? true;
@@ -104,7 +107,8 @@ export function ExerciseCard({ session, index, alwaysOpen = false }: Props) {
     // M17: no meio de um superset não há descanso: vai direto para o parceiro
     const next = afterSet(session, index);
     if (!next.rest && next.next !== null) {
-      document.getElementById(`exercicio-${next.next}`)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      if (onGoTo) onGoTo(next.next);
+      else document.getElementById(`exercicio-${next.next}`)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
       return;
     }
     if (settings?.restAutoStart) useRestStore.getState().start(ex.restSeconds ?? settings.restSeconds);
@@ -154,6 +158,7 @@ export function ExerciseCard({ session, index, alwaysOpen = false }: Props) {
           <div className="flex flex-wrap gap-1.5 text-xs font-semibold">
             {group && <span className="rounded-full bg-surface-2 px-2 py-0.5 text-muted">{group}</span>}
             {ex.optional && <span className="rounded-full bg-surface-2 px-2 py-0.5 text-muted">Opcional</span>}
+            {favorite && <span className="rounded-full bg-warning/15 px-2 py-0.5 text-warning">★ Favorito</span>}
             {block && (
               <span className="rounded-full bg-primary/15 px-2 py-0.5 text-info">
                 Superset {index - block.start + 1}/{block.end - block.start + 1} · com {session.exercises.slice(block.start, block.end + 1).filter((_, i) => i + block.start !== index).map(e => e.name).join(', ')}
@@ -258,6 +263,10 @@ export function ExerciseCard({ session, index, alwaysOpen = false }: Props) {
           <SheetAction onClick={() => { close(); setPlatesOpen(true); }}><Icon name="treino" />Anilhas na barra</SheetAction>
         )}
         <SheetAction onClick={() => { close(); setSwapOpen(true); }}><Icon name="trocar" />Trocar exercício</SheetAction>
+        {/* M26: favoritos aparecem primeiro na troca e nas buscas */}
+        <SheetAction onClick={() => { close(); run((d, now) => toggleFavorite(d, ex.name, now)); }}>
+          <Icon name="trofeu" />{favorite ? 'Tirar dos favoritos' : 'Favoritar'}
+        </SheetAction>
         {/* M17: superset na hora, só neste treino */}
         {index < session.exercises.length - 1 && (
           <SheetAction onClick={() => { close(); update(s => ({ ...s, exercises: toggleSupersetWithNext(s.exercises, index, () => `ss-${Date.now()}`) })); }}>
@@ -313,7 +322,7 @@ export function ExerciseCard({ session, index, alwaysOpen = false }: Props) {
           const base = ex.swappedFrom ?? ex.name;
           if (!q) {
             const today = session.exercises.filter((_, i) => i !== index).map(e => e.name);
-            const { group: g, names: same } = swapSuggestions(base, today, [ex.name, ...ex.alternatives.map(a => a.name)]);
+            const { group: g, names: same } = swapSuggestions(base, today, [ex.name, ...ex.alternatives.map(a => a.name)], 6, pool.favorites);
             if (!same.length) return null;
             return (
               <>
@@ -324,7 +333,7 @@ export function ExerciseCard({ session, index, alwaysOpen = false }: Props) {
           }
           const group = guessGroup(base);
           // S6: tolerante a erro, acento, plural e abreviação; o mesmo grupo sobe entre os achados
-          const matches = searchNames(q, pool.names.filter(n => n !== ex.name), 12, pool.done)
+          const matches = searchNames(q, pool.names.filter(n => n !== ex.name), 12, pool.done, pool.favorites)
             .map((n, i) => ({ n, i: i - (groupOf(n) === group ? 0.5 : 0) }))
             .sort((a, b) => a.i - b.i).slice(0, 6).map(x => x.n);
           return (

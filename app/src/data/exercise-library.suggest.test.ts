@@ -22,3 +22,8 @@ test('sem grupo conhecido, usa o grupo que mais aparece no treino de hoje', () =
   expect(r.group).toBe('Costas');
   expect(r.names.length).toBeGreaterThan(0);
 });
+
+test('na troca, o favorito do grupo vem primeiro', () => {
+  const r = swapSuggestions('Supino Reto (Barra)', [], [], 6, new Set(['peck deck (voador)']));
+  expect(r.names[0]).toBe('Peck Deck (Voador)');
+});

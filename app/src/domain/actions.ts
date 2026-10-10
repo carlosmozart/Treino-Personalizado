@@ -10,6 +10,7 @@ import { sessionProgress, sessionToWorkout, type ActiveSession } from './session
 import { bestSet } from './workouts';
 import { bestE1rm, recordKinds } from './strength';
 import { key, tombstone, touch } from './sync';
+import { normalizeExerciseName } from './text';
 
 export interface ActionResult {
   data: AppData;
@@ -55,6 +56,15 @@ export function finishWorkout(data: AppData, session: ActiveSession, now: Date):
   touch(draft, key.checkin(workout.date), now);
   grantCheckin(draft, workout.date, complete, now, events);
   return { kind: 'saved', data: draft, events, workout, full: complete };
+}
+
+/** M26: põe ou tira um exercício dos favoritos (pelo nome normalizado). */
+export function toggleFavorite(data: AppData, name: string, now: Date): ActionResult {
+  const k = normalizeExerciseName(name);
+  if (!k) return unchanged(data);
+  const list = data.settings.favorites ?? [];
+  const favorites = list.includes(k) ? list.filter(x => x !== k) : [...list, k];
+  return updateSettings(data, { favorites }, now);
 }
 
 /**

@@ -33,3 +33,13 @@ describe('nota de dia sem treino (S8)', () => {
     expect(mergeAppData(merged, removed).dayNotes?.['2026-10-08']).toBeUndefined();
   });
 });
+
+describe('favoritos (M26)', () => {
+  it('põe e tira pelo nome normalizado', async () => {
+    const { toggleFavorite } = await import('./actions');
+    let d = toggleFavorite(sampleData(), 'Rosca Direta (Barra)', T).data;
+    expect(d.settings.favorites).toEqual(['rosca direta (barra)']);
+    d = toggleFavorite(d, 'rosca direta (barra)', T).data;
+    expect(d.settings.favorites).toEqual([]);
+  });
+});

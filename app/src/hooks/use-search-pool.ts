@@ -5,8 +5,9 @@ import { useAppStore } from '../store';
 
 const LIBRARY = [...new Set(Object.values(EXERCISE_LIBRARY).flat())];
 
-/** Biblioteca + nomes do histórico, e o que já foi feito (a busca dá prioridade a isso). */
+/** Biblioteca + nomes do histórico, o que já foi feito e os favoritos (a busca dá prioridade a eles). */
 export function useSearchPool() {
   const workouts = useAppStore(s => s.data?.workouts);
-  return useMemo(() => searchPool(LIBRARY, workouts ?? []), [workouts]);
+  const favs = useAppStore(s => s.data?.settings.favorites);
+  return useMemo(() => ({ ...searchPool(LIBRARY, workouts ?? []), favorites: new Set(favs ?? []) }), [workouts, favs]);
 }

@@ -186,6 +186,8 @@ export interface Settings {
   autoProgression?: boolean;
   /** De onde vêm carga e reps ao abrir o treino (M13): sugestão da progressão, última vez ou o plano. Ausente = pela autoProgression. */
   loadSource?: LoadSource;
+  /** M26: exercícios favoritos (nome normalizado): aparecem primeiro na troca e nas buscas. */
+  favorites?: string[];
   /** M25: cor de destaque (botões, seleção). Ausente = azul. */
   accent?: AccentId;
   /** Tema da interface. Ausente = acompanha o sistema. */

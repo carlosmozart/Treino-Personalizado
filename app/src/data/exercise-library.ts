@@ -144,7 +144,7 @@ const movementOf = (name: string) => normalizeExerciseName(name).split(' ')[0] ?
  * o mesmo movimento primeiro (outro supino para um supino), depois o mesmo equipamento. Sem grupo
  * conhecido, usa o grupo que mais aparece no treino de hoje.
  */
-export function swapSuggestions(name: string, todayNames: readonly string[], exclude: readonly string[] = [], limit = 6): { group: string | null; names: string[] } {
+export function swapSuggestions(name: string, todayNames: readonly string[], exclude: readonly string[] = [], limit = 6, favorites?: ReadonlySet<string>): { group: string | null; names: string[] } {
   let group = guessGroup(name);
   if (!group) {
     const count = new Map<string, number>();
@@ -156,7 +156,7 @@ export function swapSuggestions(name: string, todayNames: readonly string[], exc
   const movement = movementOf(name), equipment = equipmentOf(name);
   const names = (EXERCISE_LIBRARY[group] ?? [])
     .filter(n => !skip.has(normalizeExerciseName(n)))
-    .map((n, i) => ({ n, rank: (movementOf(n) === movement ? 0 : 2) + (equipment && equipmentOf(n) === equipment ? 0 : 1), i }))
+    .map((n, i) => ({ n, rank: (favorites?.has(normalizeExerciseName(n)) ? -4 : 0) + (movementOf(n) === movement ? 0 : 2) + (equipment && equipmentOf(n) === equipment ? 0 : 1), i }))
     .sort((a, b) => a.rank - b.rank || a.i - b.i)
     .slice(0, limit)
     .map(x => x.n);
