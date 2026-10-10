@@ -12,6 +12,7 @@ Todas as mudanças relevantes do app ficam registradas aqui. Ao lançar uma nova
 - Progressão nos exercícios com o peso do corpo (flexão, barra fixa, mergulho, abdominal…): fez o alvo em todas as séries, o próximo treino pede uma repetição a mais.
 - Descanso padrão escolhido numa roda de minutos e segundos, no estilo do iPhone.
 - Tamanho da ilustração do exercício no treino: pequena, média ou grande.
+- Plano: progressão de carga "Linear" (no painel Planos) ao lado da "Dupla": completou todas as séries nas repetições do plano, a carga sobe no próximo treino.
 
 ## [3.4.0] - 2026-10-09
 

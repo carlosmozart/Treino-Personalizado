@@ -45,10 +45,19 @@ já usava para pré-preencher), e contam as séries feitas com essa carga.
 `increment` do exercício; sem ele, 2,5 kg. Opções no editor: 1, 1,25, 2,5 e 5 kg. A carga
 sugerida nunca fica abaixo de 0 e é arredondada para o incremento (deload) ou para 0,1 kg.
 
-## Fora desta primeira entrega
+## Progressão linear (M10)
 
-- Progressão linear por plano (M10, opção).
-- Progressão por repetições em exercícios de peso do corpo (M30).
+Opção por plano (`plan.progression = 'linear'`, no painel Planos). A faixa some: as repetições do
+plano (o topo da faixa, ou `reps`) valem para subir e continuam as mesmas depois da subida. Todas as
+séries planejadas nessas repetições pedem o incremento no treino seguinte; faltou repetição, mantém.
+Falha, registro antigo e estagnação seguem as mesmas regras da dupla. Ausente = dupla.
+
+## Peso do corpo (M30)
+
+Exercícios reconhecidos pelo nome como peso do corpo (flexão, barra fixa, mergulho, abdominal,
+prancha…; máquinas e polias de mesmo nome ficam de fora) e feitos com carga 0 progridem nas
+repetições: todas as séries no alvo pedem uma repetição a mais; chegar lá na falha mantém. O alvo
+é o topo da faixa ou, se já faz mais, o menor número de repetições da última vez.
 
 ## Carga ao abrir o treino (M13)
 

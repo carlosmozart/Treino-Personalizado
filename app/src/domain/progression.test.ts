@@ -157,3 +157,19 @@ describe('peso do corpo (M30)', () => {
     expect(['Mesa Flexora', 'Supino Reto (Barra)', 'Abdominal na Polia'].some(isBodyweight)).toBe(false);
   });
 });
+
+describe('progressão linear (M10)', () => {
+  const lin = (sets: [number, number][], extra = {}) =>
+    suggestProgression([workout('2026-10-01', 'Supino', sets)], 'supino', { ...target({ repMin: 8, repMax: 10, ...extra }), linear: true }, '2026-10-10');
+  it('todas as séries nas reps do plano: sobe e mantém as reps', () => {
+    expect(lin([[10, 40], [10, 40], [10, 40]])).toMatchObject({ kind: 'up', weight: 42.5, reps: 10 });
+  });
+  it('faltou rep: mantém', () => expect(lin([[10, 40], [10, 40], [9, 40]])).toMatchObject({ kind: 'keep', weight: 40, reps: 10 }));
+  it('o plano em linear chega ao treino', () => {
+    const d = sampleData();
+    d.plans.p1!.progression = 'linear';
+    d.plans.p1!.days.QUA.exercises = [planExercise('e1', 'Supino', { repMin: 8, repMax: 10 })];
+    d.workouts = [workout('2026-10-01', 'Supino', [[10, 40], [10, 40], [10, 40]])];
+    expect(startSession(d, 'p1', 'QUA', new Date(2026, 9, 7, 10), 's1')!.exercises[0]!.sets[0]).toMatchObject({ weight: 42.5, reps: 10 });
+  });
+});

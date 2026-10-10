@@ -115,6 +115,25 @@ export function PlanScreen() {
               className="mt-1 h-12 w-full rounded-xl border border-line bg-surface-2 px-3 text-base text-ink" />
             <span className="mt-1 block text-xs font-normal text-faint">Usado nos lembretes dos dias de treino (Perfil → Treino).</span>
           </label>
+          {/* M10: como a carga sugerida sobe neste plano */}
+          <div>
+            <p className="text-sm font-semibold text-muted">Progressão de carga</p>
+            <div role="radiogroup" aria-label="Progressão de carga" className="mt-1 grid grid-cols-2 gap-1 rounded-xl bg-surface-2 p-1">
+              {([['double', 'Dupla'], ['linear', 'Linear']] as const).map(([id, label]) => {
+                const on = (plan.progression ?? 'double') === id;
+                return (
+                  <button key={id} type="button" role="radio" aria-checked={on}
+                    onClick={() => edit(p => (id === 'double' ? (({ progression: _p, ...rest }) => rest)(p) : { ...p, progression: 'linear' }))}
+                    className={`min-h-11 rounded-lg text-sm font-semibold ${on ? 'bg-primary text-white' : 'text-muted'}`}>{label}</button>
+                );
+              })}
+            </div>
+            <span className="mt-1 block text-xs text-faint">
+              {plan.progression === 'linear'
+                ? 'Linear: completou todas as séries nas reps do plano, a carga sobe no próximo treino. Boa para iniciantes.'
+                : 'Dupla: primeiro as repetições sobem até o topo da faixa (ex.: 8–12), depois a carga.'}
+            </span>
+          </div>
         </div>
         {others.length > 0 && <p className="px-3 pb-1 pt-2 text-sm font-semibold text-muted">Outros planos</p>}
         {others.map(p => (

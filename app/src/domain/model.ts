@@ -89,6 +89,8 @@ export interface Plan {
   createdAt: DateKey;
   updatedAt: DateKey;
   days: Record<DayKey, PlanDay>;
+  /** M10: 'linear' sobe a carga a cada treino completo nas reps do plano; ausente = dupla (faixa de reps). */
+  progression?: 'double' | 'linear';
   /** Rotação A/B/C (R1, docs/dev/rotacao.md). Ausente = semana fixa. */
   rotation?: PlanRotation;
 }

@@ -53,7 +53,7 @@ export interface ActiveSession {
 const round1 = (n: number) => Math.round(n * 10) / 10;
 const clamp = (n: number, min: number, max: number) => Math.min(max, Math.max(min, n));
 
-type PlanTarget = Pick<PlanExercise, 'sets' | 'reps' | 'weight' | 'seconds' | 'repMin' | 'repMax' | 'increment'>;
+type PlanTarget = Pick<PlanExercise, 'sets' | 'reps' | 'weight' | 'seconds' | 'repMin' | 'repMax' | 'increment'> & { linear?: boolean };
 
 /**
  * Séries iniciais de um exercício, conforme a fonte escolhida (M13):
@@ -83,7 +83,7 @@ function initialSets(data: AppData, name: string, mode: ExerciseMode, plan: Plan
   return progression?.reason ? { sets, progression } : { sets };
 }
 
-function fromPlanExercise(data: AppData, ex: PlanExercise, date: DateKey): SessionExercise {
+function fromPlanExercise(data: AppData, ex: PlanExercise, date: DateKey, linear = false): SessionExercise {
   const out: SessionExercise = {
     slotId: ex.id,
     name: ex.name,
@@ -94,7 +94,7 @@ function fromPlanExercise(data: AppData, ex: PlanExercise, date: DateKey): Sessi
     note: '',
     alternatives: ex.alternatives
   };
-  const start = initialSets(data, ex.name, ex.mode, ex, date);
+  const start = initialSets(data, ex.name, ex.mode, { ...ex, linear }, date);
   out.sets = start.sets;
   if (start.progression) out.progression = start.progression;
   if (ex.mode === 'time' && ex.seconds) out.seconds = ex.seconds;
@@ -112,7 +112,7 @@ export function startSession(data: AppData, planId: string, dayKey: DayKey, now:
   return {
     // na rotação, sem o "Segunda:" que os modelos põem no nome (o treino não é da segunda)
     id, date, startedAt: now.toISOString(), planId, dayKey, dayName: plan.rotation ? rotationTitle(plan, dayKey) : day.name,
-    exercises: day.exercises.map(ex => fromPlanExercise(data, ex, date))
+    exercises: day.exercises.map(ex => fromPlanExercise(data, ex, date, plan.progression === 'linear'))
   };
 }
 
@@ -294,7 +294,7 @@ export function swapExercise(s: ActiveSession, data: AppData, exIndex: number, n
       : ex.alternatives.find(a => normalizeExerciseName(a.name) === normalizeExerciseName(name))
         ?? { name: name.trim(), mode: isCardioName(name) ? 'cardio' as const : ex.mode === 'cardio' ? 'reps' as const : ex.mode };
     if (backToOriginal && planEx) {
-      const restored = fromPlanExercise(data, planEx, s.date);
+      const restored = fromPlanExercise(data, planEx, s.date, data.plans[s.planId]?.progression === 'linear');
       return { ...restored, note: ex.note };
     }
     const mode = option?.mode ?? ex.mode;
@@ -302,7 +302,7 @@ export function swapExercise(s: ActiveSession, data: AppData, exIndex: number, n
       slotId: ex.slotId, name: name.trim(), key: normalizeExerciseName(name), mode, optional: ex.optional,
       sets: [], note: ex.note, alternatives: ex.alternatives, swappedFrom: original
     };
-    const start = initialSets(data, name, mode, planEx && mode === planEx.mode ? { ...planEx, weight: 0 } : null, s.date);
+    const start = initialSets(data, name, mode, planEx && mode === planEx.mode ? { ...planEx, weight: 0, linear: data.plans[s.planId]?.progression === 'linear' } : null, s.date);
     swapped.sets = start.sets;
     if (start.progression) swapped.progression = start.progression;
     if (ex.restSeconds) swapped.restSeconds = ex.restSeconds;

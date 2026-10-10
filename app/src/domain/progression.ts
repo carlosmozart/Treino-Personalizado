@@ -19,7 +19,10 @@ export interface Progression {
   reason: string;
 }
 
-type Target = Pick<PlanExercise, 'sets' | 'reps' | 'weight' | 'repMin' | 'repMax' | 'increment'>;
+type Target = Pick<PlanExercise, 'sets' | 'reps' | 'weight' | 'repMin' | 'repMax' | 'increment'> & {
+  /** M10: progressão linear do plano: reps fixas no topo, a carga sobe a cada treino completo. */
+  linear?: boolean;
+};
 
 export function repRange(t: Pick<PlanExercise, 'reps' | 'repMin' | 'repMax'>): { min: number; max: number } {
   const min = t.repMin && t.repMin > 0 ? t.repMin : t.reps;
@@ -72,7 +75,9 @@ function stalled(history: WorkoutEntry[], weight: number, max: number, planned: 
  * `null` quando não há o que sugerir (cardio, tempo, peso do corpo).
  */
 export function suggestProgression(workouts: readonly Workout[], key: string, target: Target, date: string): Progression | null {
-  const { min, max } = repRange(target);
+  const range = repRange(target);
+  // linear: sem faixa; as reps do plano (o topo) valem para subir e continuam as mesmas depois
+  const { min, max } = target.linear ? { min: range.max, max: range.max } : range;
   const history = sessionsOf(workouts, key).filter(s => s.workout.date < date).map(s => s.entry).filter(e => workSets(e).length);
   const last = history[history.length - 1];
   if (!last) return target.weight > 0 ? { kind: 'first', weight: target.weight, reps: max, reason: '' } : null;
