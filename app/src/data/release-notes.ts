@@ -3,6 +3,15 @@ export interface ReleaseNote { version: string; date: string; items: string[] }
 
 export const RELEASE_NOTES: readonly ReleaseNote[] = [
   {
+    version: '3.6.0',
+    date: '2026-10',
+    items: [
+      'Treino: "Adicionar exercício" no fim da lista, e "Tirar do treino de hoje" no menu ⋯.',
+      'Treino: "Histórico do exercício" no menu ⋯, com as últimas sessões e a evolução.',
+      'Esqueceu de anotar? Progresso → Histórico → "Registrar treino passado".'
+    ]
+  },
+  {
     version: '3.5.0',
     date: '2026-10',
     items: [

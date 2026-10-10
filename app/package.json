@@ -1,6 +1,6 @@
 {
   "name": "treino-personalizado-app",
-  "version": "3.5.0",
+  "version": "3.6.0",
   "private": true,
   "type": "module",
   "description": "Reescrita do Treino Personalizado em React + TypeScript (ver docs/arquitetura.md).",

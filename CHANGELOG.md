@@ -6,7 +6,7 @@ Todas as mudanças relevantes do app ficam registradas aqui. Ao lançar uma nova
    atualizar o app instalado
 3. Adicione uma entrada aqui, nesse formato
 
-## [Não lançado]
+## [3.6.0] - 2026-10-10
 
 - Treino: "Adicionar exercício" no fim da lista, com sugestões que combinam com o treino do dia; e "Tirar do treino de hoje" no menu ⋯. O plano continua igual.
 - Treino: "Histórico do exercício" no menu ⋯ mostra as últimas sessões e a evolução sem sair do treino.
