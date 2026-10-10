@@ -6,6 +6,12 @@ Todas as mudanças relevantes do app ficam registradas aqui. Ao lançar uma nova
    atualizar o app instalado
 3. Adicione uma entrada aqui, nesse formato
 
+## [Não lançado]
+
+- Treino: "Adicionar exercício" no fim da lista, com sugestões que combinam com o treino do dia; e "Tirar do treino de hoje" no menu ⋯. O plano continua igual.
+- Treino: "Histórico do exercício" no menu ⋯ mostra as últimas sessões e a evolução sem sair do treino.
+- Progresso → Histórico: "Registrar treino passado" para quem esqueceu de anotar: escolha a data, o treino, o início e a duração e marque as séries. Entra no histórico com essa data, sem virar recorde retroativo.
+
 ## [3.5.0] - 2026-10-10
 
 - Progresso → Metas: medidas do corpo (cintura, quadril, peito, braço, coxa, panturrilha e % de gordura), com a variação desde a primeira medição e um gráfico por medida. A % de gordura mais recente também atualiza o perfil.

@@ -39,7 +39,8 @@ export function finishWorkout(data: AppData, session: ActiveSession, now: Date):
   draft.workouts = [...draft.workouts.filter(w => w.id !== workout.id), workout].sort(byDateThenStart);
   touch(draft, key.workout(workout.id), now);
 
-  for (const entry of workout.entries) {
+  // M15: um treino registrado depois, com data passada, não gera recorde retroativo
+  for (const entry of session.backdated ? [] : workout.entries) {
     const records = recordKinds(draft.workouts, workout, entry);
     if (!records.length) continue;
     // a série que conta: a do 1RM estimado quando ele é recorde; senão a mais pesada

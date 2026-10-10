@@ -12,6 +12,7 @@ import { Icon } from '../../ui/Icon';
 import { GoalsView } from './GoalsView';
 import { EntryEditor } from './EntryEditor';
 import { ExerciseProgressCard } from './ExerciseProgressCard';
+import { PastWorkoutButton } from './PastWorkoutSheet';
 import { formatNumber, plural, shortDate } from '../../ui/format';
 
 const MONTH_NAMES = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
@@ -120,10 +121,16 @@ function History() {
   const [open, setOpen] = useState<string | null>(null);
   const groups = historyByMonth(workouts);
   if (!groups.length) {
-    return <p className="mt-6 rounded-2xl border border-line bg-surface p-4 text-muted">Nenhum treino registrado ainda. Os treinos concluídos aparecem aqui.</p>;
+    return (
+      <div className="mt-6 space-y-3">
+        <p className="rounded-2xl border border-line bg-surface p-4 text-muted">Nenhum treino registrado ainda. Os treinos concluídos aparecem aqui.</p>
+        <PastWorkoutButton />
+      </div>
+    );
   }
   return (
     <div className="mt-4 space-y-5">
+      <PastWorkoutButton />
       {groups.map(g => (
         <section key={g.month}>
           <h2 className="text-sm font-bold text-muted">{monthTitle(g.month)} · {plural(g.workouts.length, 'treino', 'treinos')}</h2>

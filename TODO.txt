@@ -123,12 +123,12 @@ M13	✅ (07/10/2026: incremento por exercício e "Carga ao abrir o treino": suge
 M14	✅ (07/10/2026, menu ⋯ dos exercícios com barra) Calculadora de anilhas para barra ("Barra 20 kg · 30 kg por lado"), com anilhas disponíveis configuráveis	Média
 
 Fase 4 — funções destravadas pelo novo modelo
-M15	Registrar treino passado (data, início, duração) e corrigir data/hora de um treino salvo, sem gerar recordes retroativos	Média
+M15	✅ (10/10/2026, Progresso → Histórico; sem recorde retroativo. Corrigir data de treino salvo fica para depois) Registrar treino passado (data, início, duração) e corrigir data/hora de um treino salvo, sem gerar recordes retroativos	Média
 M16	✅ (revisão de 10/10/2026: feito no app 3.x, mapa de calor de 6 meses; P5) Mapa de calor anual de treinos (estilo GitHub) no histórico	Média
 M17	Bi-set/superset: agrupar dois exercícios com um único descanso ao fim da rodada	Média
-M18	Adicionar/remover exercício no meio do treino sem finalizar; treino livre com valores pré-preenchidos da última vez	Média
+M18	✅ (10/10/2026, adicionar e tirar exercício no treino; treino livre fica para depois) Adicionar/remover exercício no meio do treino sem finalizar; treino livre com valores pré-preenchidos da última vez	Média
 M19	Remarcar o treino do dia para outro dia sem alterar o plano semanal; escolher início da semana (seg/dom)	Baixa
-M20	Histórico do exercício acessível de dentro do treino (últimas sessões + linha de evolução)	Média
+M20	✅ (10/10/2026, menu ⋯ do exercício) Histórico do exercício acessível de dentro do treino (últimas sessões + linha de evolução)	Média
 
 Fase 5 — descanso, conforto e extras
 M21	Descanso no APK como serviço em primeiro plano: contagem na barra de notificações com −15s/+15s/pausar/pular, sem desbloquear o celular (código nativo; validar no aparelho)	Média

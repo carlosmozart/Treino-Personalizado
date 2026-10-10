@@ -48,6 +48,8 @@ export interface ActiveSession {
   dayKey: DayKey;
   dayName: string;
   exercises: SessionExercise[];
+  /** M15: treino de um dia passado, registrado depois; a duração é a informada, não o relógio. */
+  backdated?: { durationMin: number };
 }
 
 const round1 = (n: number) => Math.round(n * 10) / 10;
@@ -114,6 +116,38 @@ export function startSession(data: AppData, planId: string, dayKey: DayKey, now:
     id, date, startedAt: now.toISOString(), planId, dayKey, dayName: plan.rotation ? rotationTitle(plan, dayKey) : day.name,
     exercises: day.exercises.map(ex => fromPlanExercise(data, ex, date, plan.progression === 'linear'))
   };
+}
+
+/**
+ * M15: registrar um treino de um dia passado. Abre como um treino normal (com a carga sugerida
+ * pelo histórico até aquela data); ao finalizar, entra com a data, o início e a duração informados.
+ */
+export function startPastSession(data: AppData, planId: string, dayKey: DayKey, date: DateKey, time: string, durationMin: number, id: string): ActiveSession | null {
+  const match = /^(\d{1,2}):(\d{2})$/.exec(time);
+  const started = new Date(`${date}T00:00:00`);
+  started.setHours(Math.min(23, match ? Number(match[1]) : 18), Math.min(59, match ? Number(match[2]) : 0));
+  const s = startSession(data, planId, dayKey, started, id);
+  if (!s) return null;
+  return { ...s, date, backdated: { durationMin: Math.min(300, Math.max(1, Math.round(durationMin))) } };
+}
+
+/** M18: põe um exercício no fim do treino em andamento, com a carga da última vez (ou 3×10). */
+export function addExerciseToSession(s: ActiveSession, data: AppData, name: string): ActiveSession {
+  const clean = name.trim();
+  if (!clean || s.exercises.length >= 30) return s;
+  const mode: ExerciseMode = isCardioName(clean) ? 'cardio' : 'reps';
+  const ex: SessionExercise = {
+    slotId: `extra-${s.exercises.length}-${normalizeExerciseName(clean)}`, name: clean, key: normalizeExerciseName(clean), mode,
+    optional: false, sets: initialSets(data, clean, mode, null, s.date).sets, note: '', alternatives: []
+  };
+  if (mode === 'cardio') ex.cardio = { minutes: 20, km: 0, done: false };
+  return { ...s, exercises: [...s.exercises, ex] };
+}
+
+/** M18: tira um exercício do treino em andamento (sempre fica pelo menos um). */
+export function removeExerciseFromSession(s: ActiveSession, index: number): ActiveSession {
+  if (s.exercises.length <= 1 || !s.exercises[index]) return s;
+  return { ...s, exercises: s.exercises.filter((_, i) => i !== index) };
 }
 
 /**
@@ -351,9 +385,11 @@ export function sessionToWorkout(s: ActiveSession, now: Date): Workout | null {
     if (sets.length) entries.push({ key: ex.key, name: ex.name, mode: ex.mode, sets, ...(note ? { note } : {}) });
   }
   if (!entries.length) return null;
-  const durationMin = Math.max(0, Math.round((now.getTime() - Date.parse(s.startedAt)) / 60000));
+  // M15: treino passado usa a duração informada; senão, o relógio do início até agora
+  const durationMin = s.backdated ? s.backdated.durationMin : Math.max(0, Math.round((now.getTime() - Date.parse(s.startedAt)) / 60000));
+  const endedAt = s.backdated ? new Date(Date.parse(s.startedAt) + durationMin * 60000).toISOString() : now.toISOString();
   return {
-    id: s.id, date: s.date, startedAt: s.startedAt, endedAt: now.toISOString(),
+    id: s.id, date: s.date, startedAt: s.startedAt, endedAt,
     // sessões esquecidas abertas (mais de 5 h) não registram uma duração absurda
     ...(durationMin > 0 && durationMin <= 300 ? { durationMin } : {}),
     planId: s.planId, dayKey: s.dayKey, dayName: s.dayName, source: 'app', entries

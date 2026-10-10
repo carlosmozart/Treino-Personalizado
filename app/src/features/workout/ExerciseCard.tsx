@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
 import { EXERCISE_LIBRARY, groupOf, guessGroup, swapSuggestions } from '../../data/exercise-library';
 import {
-  addSet, addWarmupSet, adjustWeights, removeWarmupSet, completeExercise, isExerciseDone, duplicateSet, insertSet, removeSet, setNote, swapExercise, toggleFailure, toggleSet, updateCardio, updateSet,
+  addSet, addWarmupSet, adjustWeights, removeWarmupSet, completeExercise, isExerciseDone, duplicateSet, insertSet, removeExerciseFromSession, removeSet, setNote, swapExercise, toggleFailure, toggleSet, updateCardio, updateSet,
   type ActiveSession, type SessionExercise, type SessionSet
 } from '../../domain/session';
 import { bestSet, lastSessionBefore, sessionsOf, suspiciousWeight, workSets } from '../../domain/workouts';
@@ -14,6 +14,7 @@ import { Sheet, SheetAction } from '../../ui/Sheet';
 import { formatNumber, relativeDate, shortDate } from '../../ui/format';
 import { useRestStore } from './rest-store';
 import { PlateSheet } from './PlateSheet';
+import { ExerciseProgressCard } from '../progress/ExerciseProgressCard';
 import { SwipeRow } from '../../ui/SwipeRow';
 import { searchNames } from '../../domain/search';
 import { isBarbell } from '../../domain/plates';
@@ -61,6 +62,7 @@ export function ExerciseCard({ session, index, alwaysOpen = false }: Props) {
   const [noteOpen, setNoteOpen] = useState(ex.note !== '');
   const [tipOpen, setTipOpen] = useState(false);
   const [platesOpen, setPlatesOpen] = useState(false);
+  const [historyOpen, setHistoryOpen] = useState(false);
   // R2: série apagada fica alguns segundos para desfazer
   const [removed, setRemoved] = useState<{ at: number; set: SessionSet; timer: number } | null>(null);
   const swipe = data?.settings.swipeSets ?? true;
@@ -241,6 +243,17 @@ export function ExerciseCard({ session, index, alwaysOpen = false }: Props) {
           <SheetAction onClick={() => { close(); setPlatesOpen(true); }}><Icon name="treino" />Anilhas na barra</SheetAction>
         )}
         <SheetAction onClick={() => { close(); setSwapOpen(true); }}><Icon name="trocar" />Trocar exercício</SheetAction>
+        {/* M20: evolução e últimas sessões sem sair do treino */}
+        {ex.mode !== 'cardio' && (
+          <SheetAction onClick={() => { close(); setHistoryOpen(true); }}><Icon name="progresso" />Histórico do exercício</SheetAction>
+        )}
+        {/* M18: tirar do treino de hoje (o plano continua igual) */}
+        {session.exercises.length > 1 && (
+          <SheetAction tone="danger" onClick={() => {
+            if (ex.sets.some(x => x.done) && !confirm(`Tirar ${ex.name} do treino? As séries marcadas dele não serão salvas.`)) return;
+            close(); update(s => removeExerciseFromSession(s, index));
+          }}><Icon name="lixo" />Tirar do treino de hoje</SheetAction>
+        )}
         <SheetAction onClick={() => { setNoteOpen(o => !o); close(); }}><Icon name="nota" />{noteOpen ? 'Esconder observação' : 'Observação'}</SheetAction>
         {hasIllustration(ex.name) && (
           <SheetAction onClick={() => { run((d, now) => updateSettings(d, { showIllustrations: !showIllustrations }, now)); close(); }}>
@@ -254,6 +267,11 @@ export function ExerciseCard({ session, index, alwaysOpen = false }: Props) {
         <PlateSheet open onClose={() => setPlatesOpen(false)}
           weight={(ex.sets.find(x => !x.done && x.kind === 'work') ?? ex.sets.find(x => x.kind === 'work') ?? ex.sets[0])?.weight ?? 0} />
       )}
+
+      <Sheet title={`Histórico: ${ex.name}`} open={historyOpen} onClose={() => setHistoryOpen(false)}>
+        {historyOpen && <LastSessions exerciseKey={ex.key} date={session.date} />}
+        {historyOpen && <ExerciseProgressCard initialKey={ex.key} />}
+      </Sheet>
 
       <Sheet title="Trocar por" open={swapOpen} onClose={() => setSwapOpen(false)}>
         {[...(ex.swappedFrom ? [{ name: ex.swappedFrom, mode: 'reps' as const }] : []), ...ex.alternatives]
@@ -335,5 +353,25 @@ function DoneButton({ done, label, onClick }: { done: boolean; label: string; on
         done ? 'border-success bg-success text-white' : 'border-line bg-page text-faint'}`}>
       <Icon name="check" />
     </button>
+  );
+}
+
+/** M20: as últimas sessões do exercício, da mais recente para a mais antiga. */
+function LastSessions({ exerciseKey, date }: { exerciseKey: string; date: string }) {
+  const workouts = useAppStore(s => s.data?.workouts);
+  const sessions = useMemo(
+    () => (workouts ? sessionsOf(workouts, exerciseKey).filter(x => x.workout.date < date).slice(-5).reverse() : []),
+    [workouts, exerciseKey, date]
+  );
+  if (!sessions.length) return <p className="px-1 pb-3 text-sm text-muted">Primeira vez neste exercício.</p>;
+  return (
+    <ul className="mb-3 divide-y divide-line rounded-xl bg-surface-2 px-3">
+      {sessions.map(({ workout, entry }) => (
+        <li key={workout.id} className="flex items-center justify-between gap-3 py-2 text-sm">
+          <span className="text-muted">{relativeDate(workout.date, date)}</span>
+          <span className="text-right tabular-nums">{workSets(entry).map(s => `${formatNumber(s.weight)}×${s.reps}`).join(', ')}</span>
+        </li>
+      ))}
+    </ul>
   );
 }

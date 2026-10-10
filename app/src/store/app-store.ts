@@ -39,6 +39,8 @@ export interface AppState {
   startWorkout(planId: string, dayKey: DayKey): boolean;
   /** Repetir hoje (R4) um treino do histórico. Não substitui um treino em andamento. */
   repeatWorkout(workoutId: string): boolean;
+  /** M15: abre uma sessão montada fora (treino passado). Não substitui um treino em andamento. */
+  openSession(session: ActiveSession): boolean;
   updateSession(change: (session: ActiveSession) => ActiveSession): void;
   discardWorkout(): void;
   finishWorkout(): 'saved' | 'empty' | 'no-session';
@@ -125,6 +127,13 @@ export function createAppStore(deps: AppStoreDeps) {
         if (!data || !workout || running) return false;
         const session = repeatSession(data, workout, now(), makeId());
         if (!session) return false;
+        set({ session });
+        sessionPersister.schedule(session);
+        return true;
+      },
+
+      openSession(session) {
+        if (get().session) return false;
         set({ session });
         sessionPersister.schedule(session);
         return true;

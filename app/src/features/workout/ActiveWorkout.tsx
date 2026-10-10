@@ -7,16 +7,18 @@ import { useNow } from '../../hooks/use-now';
 import { useWakeLock } from '../../hooks/use-wake-lock';
 import { useAppStore } from '../../store';
 import { Sheet } from '../../ui/Sheet';
-import { dayTitle, formatClock, plural } from '../../ui/format';
+import { dayTitle, formatClock, plural, shortDate } from '../../ui/format';
 import { ExerciseCard } from './ExerciseCard';
 import { useRestStore } from './rest-store';
 import { useWorkoutUi } from './workout-ui';
 import { WorkoutSettingsFields } from '../profile/SettingsSection';
+import { AddToWorkoutSheet } from './AddToWorkoutSheet';
 
 export function ActiveWorkout({ session }: { session: ActiveSession }) {
   const now = useNow(1000);
   const [finishing, setFinishing] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [adding, setAdding] = useState(false);
   const [switching, setSwitching] = useState(false);
   const keepScreenOn = useAppStore(s => s.data?.settings.keepScreenOn ?? true);
   useWakeLock(keepScreenOn);
@@ -43,7 +45,7 @@ export function ActiveWorkout({ session }: { session: ActiveSession }) {
           <div className="min-w-0 flex-1">
             <h1 className="truncate text-xl font-black">{session.dayName || 'Treino'}</h1>
             <p className="text-sm text-muted tabular-nums">
-              {formatClock(elapsed)} · {progress.setsDone}/{progress.setsTotal} séries
+              {session.backdated ? `Treino de ${shortDate(session.date)} · ${session.backdated.durationMin} min` : formatClock(elapsed)} · {progress.setsDone}/{progress.setsTotal} séries
             </p>
           </div>
           <button type="button" onClick={() => setSettingsOpen(true)} aria-label="Ajustes do treino"
@@ -114,6 +116,13 @@ export function ActiveWorkout({ session }: { session: ActiveSession }) {
           ))}
         </div>
       )}
+      {/* M18: mais um exercício sem sair do treino */}
+      <button type="button" onClick={() => setAdding(true)}
+        className="mt-3 flex h-12 w-full items-center justify-center gap-2 rounded-xl border border-dashed border-line font-semibold text-muted">
+        <Icon name="mais" className="size-5" /> Adicionar exercício
+      </button>
+      <AddToWorkoutSheet open={adding} session={session} onClose={() => setAdding(false)}
+        onAdded={() => { if (focus) setCurrent(session.exercises.length); }} />
 
       <FinishSheet open={finishing} onClose={() => setFinishing(false)} session={session} />
       <SwitchSheet open={switching} onClose={() => setSwitching(false)} session={session} />
