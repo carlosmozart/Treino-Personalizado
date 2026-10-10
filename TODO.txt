@@ -269,3 +269,6 @@ S8	✅ (09/10/2026) Nota para um dia sem treino (doente, viajando) que não queb
 S9	Compartilhar o treino como imagem	Baixa
 S10	Escolher o som do fim do descanso	Baixa
 S11	Para depois: progressão tripla, halteres disponíveis, mapa de fadiga, exportar para Garmin	Baixa
+S12	✅ (10/10/2026, openGym 1.4.1) Busca: exercícios já feitos primeiro, e nomes do histórico entram na busca	Média
+S13	✅ (10/10/2026, openGym 1.4.1) Período de 1 ano nos gráficos	Baixa
+S14	Som do fim do descanso por cima da música com o app aberto (nativo no Android; junto com S10)	Média

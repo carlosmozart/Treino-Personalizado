@@ -2,7 +2,11 @@ import { useState, type PointerEvent } from 'react';
 
 interface Point { label: string; value: number; date?: string }
 
-const RANGES = [{ id: '30', label: '30 dias', days: 30 }, { id: '90', label: '90 dias', days: 90 }, { id: 'all', label: 'Tudo', days: 0 }] as const;
+// períodos do gráfico; 1 ano deixa peso, medidas e evolução úteis por mais tempo (ideia do openGym 1.4.1)
+const RANGES = [
+  { id: '30', label: '30 dias', days: 30 }, { id: '90', label: '90 dias', days: 90 },
+  { id: '365', label: '1 ano', days: 365 }, { id: 'all', label: 'Tudo', days: 0 }
+] as const;
 type RangeId = (typeof RANGES)[number]['id'];
 
 /** Pontos dentro do período (pelos últimos `days` dias até o ponto mais recente). */

@@ -19,6 +19,7 @@ import { DEFAULT_INCREMENT, INCREMENTS, repRange } from '../../domain/progressio
 import { Sheet, SheetAction } from '../../ui/Sheet';
 import { SwipeRow } from '../../ui/SwipeRow';
 import { searchNames } from '../../domain/search';
+import { useSearchPool } from '../../hooks/use-search-pool';
 import { disableRotation, enableRotation, moveInRotation, restartRotation, rotationLetter, rotationOrder, rotationState, rotationTitle, setRotationPerWeek } from '../../domain/rotation';
 import { dayTitle, formatNumber, plural } from '../../ui/format';
 
@@ -428,7 +429,8 @@ function AddExerciseSheet({ open, dayName, onClose, onAdd }: { open: boolean; da
   const [query, setQuery] = useState('');
   const listId = useId();
   const q = query.trim().toLowerCase();
-  const matches = q ? searchNames(q, ALL_NAMES) : [];
+  const pool = useSearchPool();
+  const matches = q ? searchNames(q, pool.names, 6, pool.done) : [];
   const add = (name: string) => { onAdd(name); setQuery(''); };
   return (
     <Sheet title={`Adicionar em ${dayName}`} open={open} onClose={onClose}>

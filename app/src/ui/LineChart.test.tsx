@@ -20,3 +20,8 @@ test('tocar mostra o valor; trocar o período redesenha', () => {
   fireEvent.click(screen.getByRole('button', { name: '30 dias' }));
   expect(document.querySelectorAll('circle')).toHaveLength(3);
 });
+
+test('período de 1 ano deixa de fora o que tem mais de um ano', () => {
+  const pts = [{ date: '2025-09-01' }, { date: '2025-11-01' }, { date: '2026-10-01' }];
+  expect(inRange(pts, 365).map(p => p.date)).toEqual(['2025-11-01', '2026-10-01']);
+});

@@ -31,8 +31,12 @@ function wordScore(q: string, w: string): number | null {
   return d <= (a.length >= 7 ? 2 : 1) ? 2 + d : null;
 }
 
-/** Nomes que casam com a busca, os melhores primeiro (todas as palavras digitadas precisam casar). */
-export function searchNames(query: string, names: readonly string[], limit = 6): string[] {
+/**
+ * Nomes que casam com a busca, os melhores primeiro (todas as palavras digitadas precisam casar).
+ * `done`: chaves dos exercícios que a pessoa já fez; sobem na frente dos parecidos, mas um erro de
+ * digitação não passa um acerto.
+ */
+export function searchNames(query: string, names: readonly string[], limit = 6, done?: ReadonlySet<string>): string[] {
   const qs = words(query);
   if (!qs.length) return [];
   const scored: { n: string; score: number }[] = [];
@@ -46,7 +50,23 @@ export function searchNames(query: string, names: readonly string[], limit = 6):
     }
     // nome que começa com a busca e nomes curtos sobem; empate fica na ordem da biblioteca
     if (!normalizeExerciseName(n).startsWith(normalizeExerciseName(query))) score += 0.5;
+    if (done?.has(normalizeExerciseName(n))) score -= 0.75;
     scored.push({ n, score: score * 100 + ws.length + i / 1e4 });
   });
   return scored.sort((a, b) => a.score - b.score).slice(0, limit).map(x => x.n);
+}
+
+/**
+ * Nomes para buscar: a biblioteca e, no fim, os nomes do histórico que não estão nela (exercícios
+ * digitados à mão), mais as chaves do que já foi feito, para a busca dar prioridade.
+ */
+export function searchPool(library: readonly string[], history: readonly { entries: readonly { key: string; name: string }[] }[]) {
+  const done = new Set<string>();
+  const extra = new Map<string, string>();
+  const inLibrary = new Set(library.map(normalizeExerciseName));
+  for (const w of history) for (const e of w.entries) {
+    done.add(e.key);
+    if (!inLibrary.has(e.key) && !extra.has(e.key)) extra.set(e.key, e.name);
+  }
+  return { names: [...library, ...extra.values()], done };
 }

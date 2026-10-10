@@ -1,13 +1,12 @@
 import { useState } from 'react';
-import { EXERCISE_LIBRARY, swapSuggestions } from '../../data/exercise-library';
+import { swapSuggestions } from '../../data/exercise-library';
 import { addExerciseToSession, type ActiveSession } from '../../domain/session';
 import { searchNames } from '../../domain/search';
+import { useSearchPool } from '../../hooks/use-search-pool';
 import { useAppStore } from '../../store';
 import { ExerciseThumb } from '../../ui/ExerciseIllustration';
 import { Icon } from '../../ui/Icon';
 import { Sheet, SheetAction } from '../../ui/Sheet';
-
-const ALL_NAMES = [...new Set(Object.values(EXERCISE_LIBRARY).flat())];
 
 /** M18: adicionar um exercício ao treino em andamento; sugere o grupo que mais aparece no treino. */
 export function AddToWorkoutSheet({ open, session, onClose, onAdded }: { open: boolean; session: ActiveSession; onClose: () => void; onAdded: () => void }) {
@@ -23,7 +22,8 @@ export function AddToWorkoutSheet({ open, session, onClose, onAdded }: { open: b
     onAdded();
   };
   const q = query.trim();
-  const suggestions = q ? searchNames(q, ALL_NAMES.filter(n => !today.includes(n))) : swapSuggestions('', today).names;
+  const pool = useSearchPool();
+  const suggestions = q ? searchNames(q, pool.names.filter(n => !today.includes(n)), 6, pool.done) : swapSuggestions('', today).names;
   const group = q ? null : swapSuggestions('', today).group;
   return (
     <Sheet title="Adicionar exercício" open={open} onClose={() => { setQuery(''); onClose(); }}>

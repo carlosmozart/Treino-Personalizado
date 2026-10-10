@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { EXERCISE_LIBRARY, groupOf, guessGroup, swapSuggestions } from '../../data/exercise-library';
+import { groupOf, guessGroup, swapSuggestions } from '../../data/exercise-library';
 import {
   addSet, addWarmupSet, adjustWeights, removeWarmupSet, completeExercise, isExerciseDone, duplicateSet, insertSet, removeExerciseFromSession, removeSet, setNote, swapExercise, toggleFailure, toggleSet, updateCardio, updateSet,
   type ActiveSession, type SessionExercise, type SessionSet
@@ -17,9 +17,9 @@ import { PlateSheet } from './PlateSheet';
 import { ExerciseProgressCard } from '../progress/ExerciseProgressCard';
 import { SwipeRow } from '../../ui/SwipeRow';
 import { searchNames } from '../../domain/search';
+import { useSearchPool } from '../../hooks/use-search-pool';
 import { isBarbell } from '../../domain/plates';
 
-const ALL_NAMES = [...new Set(Object.values(EXERCISE_LIBRARY).flat())];
 const ADJUSTS = [-5, -0.5, 0.5, 5, 10] as const;
 
 interface Props {
@@ -63,6 +63,8 @@ export function ExerciseCard({ session, index, alwaysOpen = false }: Props) {
   const [tipOpen, setTipOpen] = useState(false);
   const [platesOpen, setPlatesOpen] = useState(false);
   const [historyOpen, setHistoryOpen] = useState(false);
+  // S6 + openGym 1.4.1: a busca põe primeiro o que você já fez (e acha nomes digitados à mão)
+  const pool = useSearchPool();
   // R2: série apagada fica alguns segundos para desfazer
   const [removed, setRemoved] = useState<{ at: number; set: SessionSet; timer: number } | null>(null);
   const swipe = data?.settings.swipeSets ?? true;
@@ -303,7 +305,7 @@ export function ExerciseCard({ session, index, alwaysOpen = false }: Props) {
           }
           const group = guessGroup(base);
           // S6: tolerante a erro, acento, plural e abreviação; o mesmo grupo sobe entre os achados
-          const matches = searchNames(q, ALL_NAMES.filter(n => n !== ex.name), 12)
+          const matches = searchNames(q, pool.names.filter(n => n !== ex.name), 12, pool.done)
             .map((n, i) => ({ n, i: i - (groupOf(n) === group ? 0.5 : 0) }))
             .sort((a, b) => a.i - b.i).slice(0, 6).map(x => x.n);
           return (
