@@ -104,16 +104,16 @@ Cada fase vira uma versão própria; a Fase 2 é a refatoração de maior risco 
 M1	✅ Atualização do APK pelo próprio app (2.21.0): consulta diária da release no GitHub, download nativo restrito ao repositório, SHA-256 obrigatório e instalador do Android; o workflow publica a Release vX.Y.Z. Validar no aparelho a primeira atualização real (2.21.0 → próxima)	Alta
 
 Fase 1 — ganhos rápidos, sem refatorar (2.22)
-M2	Manter a tela ligada durante o treino (Wake Lock com nova tentativa a cada visibilitychange, ou plugin keep-awake no APK); liberar ao finalizar; opção no Perfil	Alta
-M3	1RM estimado por exercício (Epley/Brzycki, só até 12 reps), mostrando a série que o gerou, curva de evolução e calculadora para outras reps	Alta
-M4	Melhorar recordes: hoje recorde = maior carga (100 kg × 1 "vence" 95 kg × 8). Passar a usar 1RM estimado e também recordes de reps e de volume, com selo no histórico	Alta
+M2	✅ (revisão de 10/10/2026: feito no app 3.x, tela ligada no treino; P5) Manter a tela ligada durante o treino (Wake Lock com nova tentativa a cada visibilitychange, ou plugin keep-awake no APK); liberar ao finalizar; opção no Perfil	Alta
+M3	✅ (revisão de 10/10/2026: feito no app 3.x, 1RM com série de origem, curva e calculadora; P5) 1RM estimado por exercício (Epley/Brzycki, só até 12 reps), mostrando a série que o gerou, curva de evolução e calculadora para outras reps	Alta
+M4	✅ (revisão de 10/10/2026: feito no app 3.x, recordes por 1RM, carga e volume; P5) Melhorar recordes: hoje recorde = maior carga (100 kg × 1 "vence" 95 kg × 8). Passar a usar 1RM estimado e também recordes de reps e de volume, com selo no histórico	Alta
 
 Fase 2 — refatorar o histórico para "por treino" (2.23)
-M5	Novo modelo no IndexedDB: workouts = {id, data, início, duração, dia/plano, exercícios: [{chave, séries: [{reps, carga, tipo, modo}]}]}. Hoje o log é por exercício (sessionLog[chave], 1 registro/dia, teto de 200), o que impede várias funções abaixo	Alta
-M6	Derivar o formato atual por exercício a partir dos treinos, para as telas existentes seguirem funcionando durante a transição	Alta
-M7	Migração automática com cópia de segurança prévia; backups antigos continuam importáveis; testes de migração com históricos reais (formatos pré e pós 2.11). Validar no APK junto com A9	Alta
-M8	Tipo de série: aquecimento/trabalho (aquecimento fora de volume, 1RM, recordes e progressão) e, depois, drop-set	Média
-M9	Modo do exercício: reps, tempo (prancha/isometria com cronômetro de execução separado do descanso) ou cardio	Média
+M5	✅ (revisão de 10/10/2026: feito no app 3.x, modelo por treino; P3) Novo modelo no IndexedDB: workouts = {id, data, início, duração, dia/plano, exercícios: [{chave, séries: [{reps, carga, tipo, modo}]}]}. Hoje o log é por exercício (sessionLog[chave], 1 registro/dia, teto de 200), o que impede várias funções abaixo	Alta
+M6	✅ (não foi necessário: a reescrita usa o modelo novo direto; P3) Derivar o formato atual por exercício a partir dos treinos, para as telas existentes seguirem funcionando durante a transição	Alta
+M7	✅ (revisão de 10/10/2026: feito no app 3.x, migração com cópia bruta e backups antigos legíveis; P3) Migração automática com cópia de segurança prévia; backups antigos continuam importáveis; testes de migração com históricos reais (formatos pré e pós 2.11). Validar no APK junto com A9	Alta
+M8	✅ (revisão de 10/10/2026: feito no app 3.x, aquecimento fora de volume, recordes e progressão; drop-set fica no M49) Tipo de série: aquecimento/trabalho (aquecimento fora de volume, 1RM, recordes e progressão) e, depois, drop-set	Média
+M9	✅ (revisão de 10/10/2026: feito no app 3.x, modos reps, tempo e cardio) Modo do exercício: reps, tempo (prancha/isometria com cronômetro de execução separado do descanso) ou cardio	Média
 
 Fase 3 — progressão automática (2.24)
 M10	✅ (faixa de reps e progressão dupla em 07/10/2026; opção linear por plano em 10/10/2026) Faixa de reps por exercício no plano (ex.: 8–12) e progressão dupla como padrão; linear como opção por plano, com ajuste por exercício	Alta
@@ -124,7 +124,7 @@ M14	✅ (07/10/2026, menu ⋯ dos exercícios com barra) Calculadora de anilhas 
 
 Fase 4 — funções destravadas pelo novo modelo
 M15	Registrar treino passado (data, início, duração) e corrigir data/hora de um treino salvo, sem gerar recordes retroativos	Média
-M16	Mapa de calor anual de treinos (estilo GitHub) no histórico	Média
+M16	✅ (revisão de 10/10/2026: feito no app 3.x, mapa de calor de 6 meses; P5) Mapa de calor anual de treinos (estilo GitHub) no histórico	Média
 M17	Bi-set/superset: agrupar dois exercícios com um único descanso ao fim da rodada	Média
 M18	Adicionar/remover exercício no meio do treino sem finalizar; treino livre com valores pré-preenchidos da última vez	Média
 M19	Remarcar o treino do dia para outro dia sem alterar o plano semanal; escolher início da semana (seg/dom)	Baixa
@@ -140,27 +140,27 @@ M26	Favoritar exercícios para aparecerem primeiro na troca/biblioteca	Baixa
 M27	Ampliar testes no estilo do openGym: casos-limite de cada regra de progressão, 1RM, recordes e migração	Alta
 
 Funções adicionais do openGym aproveitáveis
-M28	Equilíbrio muscular: mapear exercícios → grupos musculares e mostrar séries por grupo na semana/30 dias/90 dias, destacando grupos não treinados (começar com barras/lista; figura do corpo depois, com arte própria)	Média
+M28	✅ (revisão de 10/10/2026: feito no app 3.x, séries por grupo em 30 dias e volume planejado; P5) Equilíbrio muscular: mapear exercícios → grupos musculares e mostrar séries por grupo na semana/30 dias/90 dias, destacando grupos não treinados (começar com barras/lista; figura do corpo depois, com arte própria)	Média
 M29	Recuperação/fadiga por grupo muscular, decaindo com o tempo desde o último treino (depende de M28)	Baixa
 M30	✅ (09/10/2026, por repetições, só em nomes de peso do corpo) Exercícios de peso corporal: sem coluna de carga, progressão por reps; carga extra (cinto) somada quando houver	Média
 M31	Reps por lado (afundo, remada unilateral): registra o total, mostra "8 por lado" e progride de 2 em 2	Baixa
 M32	Marcar um plano/semana como deload: entra no histórico mas não vira base da progressão	Baixa
 M33	Copiar treino como texto e salvar um treino feito como novo dia do plano	Baixa
 M34	Revisão do treino pela IA: gerar prompt com o histórico recente para a IA propor ajustes com justificativa, e importar a resposta pelo fluxo de importação que já existe (cada mudança aprovada pelo usuário)	Média
-M35	No dia de descanso, informar quando é o próximo treino e qual é	Baixa
+M35	✅ (revisão de 10/10/2026: feito no app 3.x, Início mostra o próximo treino no descanso) No dia de descanso, informar quando é o próximo treino e qual é	Baixa
 M36	Filtro por equipamento na troca de exercício (só mostrar o que a academia/casa tem)	Baixa
 M37	Unidade kg/lb com conversão opcional dos dados salvos	Baixa
 M38	Peso por semana: agrupar pesagens por semana com média, nº de pesagens e variação da média em relação à semana anterior (o peso diário oscila mais com água/sal/refeição do que em um mês); complementa a média móvel atual	Média
-M39	Colorir variações de peso pela direção da meta: verde quando aproxima do alvo, vermelho quando afasta (quem quer ganhar vê +0,5 kg em verde)	Média
+M39	✅ (revisão de 10/10/2026: feito no app 3.x, variação colorida pela meta; P5) Colorir variações de peso pela direção da meta: verde quando aproxima do alvo, vermelho quando afasta (quem quer ganhar vê +0,5 kg em verde)	Média
 M40	Pesagem opcional ao começar o treino (desligável nas configurações), para o histórico de peso se manter sem depender de abrir o Perfil
 Saúde: comparado em 04/10/2026 — o openGym só acompanha peso corporal (sem IMC, TMB/TDEE, água ou gordura corporal); nossas funções de saúde são mais completas e seguem como estão, com M38–M40 trazendo o que o acompanhamento de peso dele faz melhor
-M41	Corrigir a evolução por exercício: o gráfico usa o campo legado weight (carga da 1ª série); em pirâmide 40→45→50 kg mostra 40. Usar a melhor série da sessão (no app atual é ajuste simples; na reescrita já nasce certo)	Média
-M42	Componente de gráfico na reescrita: eixos com valores e datas, linha da meta, legenda do ponto que se reposiciona para não ser cortada nem cobrir o valor, arrastar o dedo para percorrer os pontos, acessível (resumo em texto para leitor de tela)	Alta
-M43	Métrica escolhível na evolução do exercício: melhor série, 1RM estimado (M3), mais repetições numa série, volume da sessão; tempo segurado (M9) e velocidade no cardio quando aplicável	Média
+M41	✅ (revisão de 10/10/2026: feito no app 3.x, evolução pela melhor série) Corrigir a evolução por exercício: o gráfico usa o campo legado weight (carga da 1ª série); em pirâmide 40→45→50 kg mostra 40. Usar a melhor série da sessão (no app atual é ajuste simples; na reescrita já nasce certo)	Média
+M42	✅ (revisão de 10/10/2026: feito no app 3.x, LineChart com eixos, meta e períodos) Componente de gráfico na reescrita: eixos com valores e datas, linha da meta, legenda do ponto que se reposiciona para não ser cortada nem cobrir o valor, arrastar o dedo para percorrer os pontos, acessível (resumo em texto para leitor de tela)	Alta
+M43	🟡 (1RM estimado e melhor carga; faltam mais reps e volume) Métrica escolhível na evolução do exercício: melhor série, 1RM estimado (M3), mais repetições numa série, volume da sessão; tempo segurado (M9) e velocidade no cardio quando aplicável	Média
 M44	Equilíbrio entre exercícios: comparar levantamentos entre si (ex.: supino × remada, agachamento × terra) e apontar o elo mais fraco	Baixa
 Gráficos: comparados em 04/10/2026 — o openGym é melhor no componente (eixos, legenda, interação) e nas métricas; já previstos M3, M16, M22, M28–M29, M38 e N9, completados por M41–M44
 M45	✅ Planos prontos para carregar e editar (ex.: Push/Pull/Legs, Superior/Inferior, Corpo inteiro, 5×5), além do plano padrão e do gerado pela IA	Média
-M46	Tela Biblioteca de exercícios: busca, filtros por grupo muscular e equipamento, criar exercício próprio (nome + grupo, foto opcional — Q4) e adicionar ao plano em um toque; usa as ilustrações da seção Q	Alta
+M46	🟡 (busca tolerante e troca pelo mesmo músculo feitas; falta a tela própria com filtros e exercício próprio) Tela Biblioteca de exercícios: busca, filtros por grupo muscular e equipamento, criar exercício próprio (nome + grupo, foto opcional — Q4) e adicionar ao plano em um toque; usa as ilustrações da seção Q	Alta
 M47	Lembretes por data em vez de semanais fixos: agendar só dias planejados ainda sem treino e cancelar ao finalizar ou remarcar. Hoje o lembrete repete toda semana e dispara mesmo se você já treinou naquele dia	Média
 M48	Combinar dois dias/planos num mesmo treino (ex.: treino do dia + abdômen), mantendo cada exercício ligado ao seu plano	Baixa
 M49	Drop-set e rest-pause como tipos de série (complementa M8)	Baixa
@@ -169,55 +169,55 @@ Varredura final de 04/10/2026: README, módulos e telas do openGym (commit 13504
 N. Interface inspirada no openGym (comparação das telas em 04/10/2026)
 Aplicar respeitando docs/guia-interface.md (atualizar o guia quando um padrão novo for adotado).
 #	Sugestão	Prioridade
-N1	Linhas de série com cabeçalho de colunas (CARGA (KG) · REPS) acima, em vez de "reps"/"kg" repetidos em cada linha — sobra largura para o número (resolve o aperto visto em 375 px) e carga vem antes de reps	Alta
-N2	Menu "⋯" por exercício reunindo ações secundárias (observação, evolução, trocar, dica, descanso próprio, remover) no lugar das fileiras de botões; manter visível só o essencial	Alta
-N3	Cabeçalho fixo do treino: nome do dia, tempo decorrido · séries feitas/total, barra de progresso e botão de concluir sempre à mão	Alta
-N4	Contexto por exercício logo abaixo do nome: "Última vez (7 set): 75×8, 75×8, 75×8" e chips (grupo muscular, equipamento, Melhor: 75 kg) — junto com M12 e M14, a linha da progressão e das anilhas	Alta
-N5	Modo foco opcional: um exercício por vez ("Exercício 1/6") com navegação, alternando com a lista completa atual	Média
-N6	Tela inicial com faixa da semana (dias com ponto nos treinados, hoje destacado) e cartão "Hoje: <treino> · Começar"; substituir o seletor de dia como entrada principal	Alta
-N7	Cartão de peso no início: número grande, variação desde o último registro, meta e quanto falta, gráfico com linha da meta e "+ Registrar" direto	Média
-N8	Cartão de sequência ("12 semanas seguidas · 3/3 nesta semana · 35 treinos") no lugar de contadores pequenos em chips	Média
-N9	Aba de estatísticas com blocos de números grandes (treinos, este mês, sequência, peso 30 dias), mapa de calor (M16) e equilíbrio muscular (M28)	Média
-N10	Plano em cartões por dia da semana com "Descanso" explícito e "+ Adicionar" no próprio cartão	Média
-N11	Botão central de destaque na barra inferior para começar/retomar o treino	Média
-N12	Tipografia: menos rótulos em CAIXA ALTA espaçada e minúsculos; títulos maiores e números de destaque grandes (o openGym usa 14–16 px no corpo). Revisar após N1–N4	Média
-N13	Conjunto de ícones próprio (SVG em linha) no lugar de emojis na interface, para aparência igual em todo celular	Baixa
-N14	Linha de status de dados (onde estão salvos, último backup) visível nas configurações, no espírito do "sempre diz onde estão seus dados"	Baixa
-N15	Gestos: deslizar entre exercícios no modo foco (N5) e deslizar para apagar em listas (pesagens, histórico), sempre com alternativa por botão e confirmação/desfazer	Baixa
+N1	✅ (revisão de 10/10/2026: feito no app 3.x; P5) Linhas de série com cabeçalho de colunas (CARGA (KG) · REPS) acima, em vez de "reps"/"kg" repetidos em cada linha — sobra largura para o número (resolve o aperto visto em 375 px) e carga vem antes de reps	Alta
+N2	✅ (revisão de 10/10/2026: feito no app 3.x; P5) Menu "⋯" por exercício reunindo ações secundárias (observação, evolução, trocar, dica, descanso próprio, remover) no lugar das fileiras de botões; manter visível só o essencial	Alta
+N3	✅ (revisão de 10/10/2026: feito no app 3.x; P5) Cabeçalho fixo do treino: nome do dia, tempo decorrido · séries feitas/total, barra de progresso e botão de concluir sempre à mão	Alta
+N4	✅ (revisão de 10/10/2026: feito no app 3.x; P5) Contexto por exercício logo abaixo do nome: "Última vez (7 set): 75×8, 75×8, 75×8" e chips (grupo muscular, equipamento, Melhor: 75 kg) — junto com M12 e M14, a linha da progressão e das anilhas	Alta
+N5	✅ (revisão de 10/10/2026: feito no app 3.x; P5) Modo foco opcional: um exercício por vez ("Exercício 1/6") com navegação, alternando com a lista completa atual	Média
+N6	✅ (revisão de 10/10/2026: feito no app 3.x; P5) Tela inicial com faixa da semana (dias com ponto nos treinados, hoje destacado) e cartão "Hoje: <treino> · Começar"; substituir o seletor de dia como entrada principal	Alta
+N7	✅ (revisão de 10/10/2026: feito no app 3.x; P5) Cartão de peso no início: número grande, variação desde o último registro, meta e quanto falta, gráfico com linha da meta e "+ Registrar" direto	Média
+N8	✅ (revisão de 10/10/2026: feito no app 3.x; P5) Cartão de sequência ("12 semanas seguidas · 3/3 nesta semana · 35 treinos") no lugar de contadores pequenos em chips	Média
+N9	✅ (revisão de 10/10/2026: feito no app 3.x; P5) Aba de estatísticas com blocos de números grandes (treinos, este mês, sequência, peso 30 dias), mapa de calor (M16) e equilíbrio muscular (M28)	Média
+N10	✅ (revisão de 10/10/2026: feito no app 3.x; P5) Plano em cartões por dia da semana com "Descanso" explícito e "+ Adicionar" no próprio cartão	Média
+N11	✅ (revisão de 10/10/2026: feito no app 3.x; P5) Botão central de destaque na barra inferior para começar/retomar o treino	Média
+N12	✅ (revisão de 10/10/2026: feito no app 3.x; P5) Tipografia: menos rótulos em CAIXA ALTA espaçada e minúsculos; títulos maiores e números de destaque grandes (o openGym usa 14–16 px no corpo). Revisar após N1–N4	Média
+N13	✅ (revisão de 10/10/2026: feito no app 3.x; P5) Conjunto de ícones próprio (SVG em linha) no lugar de emojis na interface, para aparência igual em todo celular	Baixa
+N14	🟡 (último backup em Perfil → Dados e backup; falta dizer onde os dados ficam) Linha de status de dados (onde estão salvos, último backup) visível nas configurações, no espírito do "sempre diz onde estão seus dados"	Baixa
+N15	🟡 (deslizar séries e exercícios do plano feito; falta deslizar entre exercícios no modo foco) Gestos: deslizar entre exercícios no modo foco (N5) e deslizar para apagar em listas (pesagens, histórico), sempre com alternativa por botão e confirmação/desfazer	Baixa
 
 O. Revisão de 04/10/2026 — robustez (vinda do openGym) e problemas encontrados no nosso app
 Rodada 1 leu os módulos de robustez e as telas do openGym; rodada 2 percorreu nosso app em 375 px (cadastro, treino, finalizar, histórico, planos, perfil, metas).
 #	Sugestão	Prioridade
 Erros encontrados
 O1	✅ Corrigido na 2.21.1 — Finalizar treino gravava TODAS as séries exibidas como feitas, inclusive as nunca marcadas, e marca todos os exercícios como concluídos (workout-recording.js: finalizeWorkout chama recordWorkoutSessions sem apenasConcluidos e sem olhar sr.done). Teste: 1 série feita de 12 → histórico com 4 exercícios 3x completos, volume 4.428 kg, e "🔥 Força sobrando — hora de subir a carga!" num exercício não feito. Gravar só séries marcadas; exercício sem série feita não entra no histórico. Corrigir antes da Fase 3	Alta
-O2	Seletor de dia mostra "Domingo: Extra (Opcional) (Opcional)": o nome do plano padrão já tem o sufixo e workout-summary.js:12 acrescenta de novo	Média
-O3	O plano padrão já abre o editor com o aviso "marcou 6 dias/semana, mas montou exercícios em 7" — o aviso conta o dia opcional. Melhor: calcular dias/semana automaticamente pelos dias obrigatórios com exercícios e remover o campo manual	Média
-O4	Resumo do dia mostra "Duração 1min" ao lado de calorias calculadas com duração estimada (~30 min); quando a duração é substituída pela estimativa, mostrar "~30 min (estimado)"	Baixa
-O5	Mensagem de treino incompleto conta só exercícios inteiros ("0 de 4 exercícios") mesmo com séries feitas; mostrar também séries feitas/total	Baixa
+O2	✅ (revisão de 10/10/2026: feito no app 3.x; P5) Seletor de dia mostra "Domingo: Extra (Opcional) (Opcional)": o nome do plano padrão já tem o sufixo e workout-summary.js:12 acrescenta de novo	Média
+O3	✅ (revisão de 10/10/2026: feito no app 3.x; P5) O plano padrão já abre o editor com o aviso "marcou 6 dias/semana, mas montou exercícios em 7" — o aviso conta o dia opcional. Melhor: calcular dias/semana automaticamente pelos dias obrigatórios com exercícios e remover o campo manual	Média
+O4	✅ (revisão de 10/10/2026: feito no app 3.x; P5) Resumo do dia mostra "Duração 1min" ao lado de calorias calculadas com duração estimada (~30 min); quando a duração é substituída pela estimativa, mostrar "~30 min (estimado)"	Baixa
+O5	✅ (revisão de 10/10/2026: feito no app 3.x; P5) Mensagem de treino incompleto conta só exercícios inteiros ("0 de 4 exercícios") mesmo com séries feitas; mostrar também séries feitas/total	Baixa
 O6	"Rumo ao objetivo" pede "peso atual e peso alvo" quando só falta o alvo; dizer exatamente o que falta	Baixa
-O7	Concordância: "1 TREINO SEGUIDOS" → singular/plural	Baixa
-O8	Editor de plano: o texto do "Dia opcional" diz "Se você não treinar neste dia, sua sequência será zerada" mesmo com o dia marcado como opcional; o texto deve descrever o estado atual	Baixa
+O7	✅ (revisão de 10/10/2026: feito no app 3.x; P5) Concordância: "1 TREINO SEGUIDOS" → singular/plural	Baixa
+O8	✅ (revisão de 10/10/2026: feito no app 3.x; P5) Editor de plano: o texto do "Dia opcional" diz "Se você não treinar neste dia, sua sequência será zerada" mesmo com o dia marcado como opcional; o texto deve descrever o estado atual	Baixa
 
 Robustez no Android (comparação com o openGym)
-O9	Botão/gesto voltar do Android não é tratado: sem listener, o Capacitor fecha o app de qualquer tela, inclusive com modal aberto. Voltar deve fechar modal → voltar de aba → "toque de novo para sair" (plugin @capacitor/app)	Alta
-O10	targetSdk 36 obriga tela de ponta a ponta no Android 15+: validar no aparelho barra de status, barra de navegação, safe areas e teclado cobrindo campos (cadastro, editor de plano, observação); corrigir com insets/visualViewport se necessário (junto com A9)	Alta
-O11	Backup automático no APK: após finalizar treino/salvar peso, gravar cópia datada em Documentos/TreinoPersonalizado (mantendo as N mais recentes), opcional nas configurações — protege contra desinstalação/troca de celular, hoje só há backup manual	Alta
-O12	Registro global de erros (window error/unhandledrejection) com aviso discreto e opção de copiar o erro para relatar; hoje uma falha só aparece no console	Média
-O13	Som do descanso: retomar o AudioContext a partir do toque que inicia o descanso e suspender após o aviso, para não falhar após tela bloqueada/troca de app	Média
+O9	✅ (revisão de 10/10/2026: feito no app 3.x; P6, falta validar no aparelho) Botão/gesto voltar do Android não é tratado: sem listener, o Capacitor fecha o app de qualquer tela, inclusive com modal aberto. Voltar deve fechar modal → voltar de aba → "toque de novo para sair" (plugin @capacitor/app)	Alta
+O10	🟡 (feito no código na P6; validar no aparelho) targetSdk 36 obriga tela de ponta a ponta no Android 15+: validar no aparelho barra de status, barra de navegação, safe areas e teclado cobrindo campos (cadastro, editor de plano, observação); corrigir com insets/visualViewport se necessário (junto com A9)	Alta
+O11	✅ (revisão de 10/10/2026: feito no app 3.x; P6, falta validar no aparelho) Backup automático no APK: após finalizar treino/salvar peso, gravar cópia datada em Documentos/TreinoPersonalizado (mantendo as N mais recentes), opcional nas configurações — protege contra desinstalação/troca de celular, hoje só há backup manual	Alta
+O12	✅ (revisão de 10/10/2026: feito no app 3.x; P6, falta validar no aparelho) Registro global de erros (window error/unhandledrejection) com aviso discreto e opção de copiar o erro para relatar; hoje uma falha só aparece no console	Média
+O13	✅ (revisão de 10/10/2026: feito no app 3.x; P6, falta validar no aparelho) Som do descanso: retomar o AudioContext a partir do toque que inicia o descanso e suspender após o aviso, para não falhar após tela bloqueada/troca de app	Média
 
 Interface e experiência (nosso app)
-O14	Nome do exercício no cartão fica com ~100 px e corta cedo ("Crossover ...") por causa de três botões redondos ao lado; com N2 (menu ⋯) o nome ganha a linha inteira	Alta
-O15	Botão de trocar exercício aparece mesmo sem reservas ("Sem reservas cadastradas"); esconder ou levar para o menu ⋯	Média
-O16	Círculo vazio "Marcar como concluído" no cabeçalho do cartão se confunde com os círculos das séries; concluir o exercício deve ser consequência de marcar as séries (ou ação explícita no menu)	Média
-O17	Botões de ajuste de carga (−10…+10) têm 30×30 px e o × de apagar peso tem 24 px, abaixo dos 44 px do guia; rever junto com N1	Média
-O18	Cronômetro de descanso + barra inferior ocupam ~1/4 da tela; versão compacta (uma linha) com toque para expandir	Média
-O19	Configurações espalhadas em Perfil > Dados (descanso, lembretes, backup junto do cadastro); criar tela/seção Configurações agrupada (Treino, Descanso, Lembretes, Dados e backup, Aparência), como no openGym	Média
-O20	Opção "botões − / + nas séries" liga/desliga (desligado: tocar no número e digitar), liberando largura	Baixa
-O21	Textos longos em Saúde (IMC, TMB) e Perfil: resumo curto + "Saiba mais" expansível; parágrafo justificado do cadastro vira alinhado à esquerda	Baixa
-O22	Água: além de ±100 ml, atalhos de copo/garrafa (250/500 ml)	Baixa
-O23	Nomenclatura: "Perfil de Treino", "Plano" e "Editar Perfil" se referem à mesma coisa; padronizar como "Plano" (Criar plano, Editar plano)	Baixa
-O24	Toast de sucesso cobre o título do app logo após o cadastro; posicionar abaixo do cabeçalho ou em baixo, acima da barra de abas	Baixa
-O25	Editor de plano muito denso (todos os campos e reservas de cada exercício abertos); cartões recolhidos por exercício, expandindo ao tocar, e reordenar arrastando	Média
+O14	✅ (revisão de 10/10/2026: feito no app 3.x; P5) Nome do exercício no cartão fica com ~100 px e corta cedo ("Crossover ...") por causa de três botões redondos ao lado; com N2 (menu ⋯) o nome ganha a linha inteira	Alta
+O15	✅ (revisão de 10/10/2026: feito no app 3.x; P5) Botão de trocar exercício aparece mesmo sem reservas ("Sem reservas cadastradas"); esconder ou levar para o menu ⋯	Média
+O16	✅ (revisão de 10/10/2026: feito no app 3.x; P5) Círculo vazio "Marcar como concluído" no cabeçalho do cartão se confunde com os círculos das séries; concluir o exercício deve ser consequência de marcar as séries (ou ação explícita no menu)	Média
+O17	✅ (revisão de 10/10/2026: feito no app 3.x; P5) Botões de ajuste de carga (−10…+10) têm 30×30 px e o × de apagar peso tem 24 px, abaixo dos 44 px do guia; rever junto com N1	Média
+O18	✅ (revisão de 10/10/2026: feito no app 3.x; P5) Cronômetro de descanso + barra inferior ocupam ~1/4 da tela; versão compacta (uma linha) com toque para expandir	Média
+O19	✅ (revisão de 10/10/2026: feito no app 3.x; P5) Configurações espalhadas em Perfil > Dados (descanso, lembretes, backup junto do cadastro); criar tela/seção Configurações agrupada (Treino, Descanso, Lembretes, Dados e backup, Aparência), como no openGym	Média
+O20	✅ (revisão de 10/10/2026: feito no app 3.x; P5) Opção "botões − / + nas séries" liga/desliga (desligado: tocar no número e digitar), liberando largura	Baixa
+O21	✅ (revisão de 10/10/2026: feito no app 3.x; P5) Textos longos em Saúde (IMC, TMB) e Perfil: resumo curto + "Saiba mais" expansível; parágrafo justificado do cadastro vira alinhado à esquerda	Baixa
+O22	✅ (revisão de 10/10/2026: feito no app 3.x; P5) Água: além de ±100 ml, atalhos de copo/garrafa (250/500 ml)	Baixa
+O23	✅ (revisão de 10/10/2026: feito no app 3.x; P5) Nomenclatura: "Perfil de Treino", "Plano" e "Editar Perfil" se referem à mesma coisa; padronizar como "Plano" (Criar plano, Editar plano)	Baixa
+O24	✅ (revisão de 10/10/2026: feito no app 3.x; P5) Toast de sucesso cobre o título do app logo após o cadastro; posicionar abaixo do cabeçalho ou em baixo, acima da barra de abas	Baixa
+O25	✅ (revisão de 10/10/2026: feito no app 3.x; P5) Editor de plano muito denso (todos os campos e reservas de cada exercício abertos); cartões recolhidos por exercício, expandindo ao tocar, e reordenar arrastando	Média
 
 P. Reescrita em React + TypeScript (decisão de 04/10/2026)
 Motivo: a estrutura atual (70 scripts globais em ordem fixa, Tailwind congelado, 75 handlers onclick globais, telas por innerHTML, estado em variáveis soltas) não comporta bem as fases M, N e O; o histórico precisa mudar de formato de qualquer jeito e a interface será refeita. Com 3 usuários e sem problema em pausar, reescrever sai mais barato que migrar por partes. Detalhes em docs/arquitetura.md ("Reescrita").
