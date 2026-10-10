@@ -19,16 +19,18 @@ offline, não tem anúncios nem cadastro, e os dados ficam no seu aparelho.
   calculadora de anilhas.
 - **Progressão automática de carga:** o treino abre com a carga sugerida pelo histórico e uma
   linha dizendo o porquê ("+2,5 kg: 12 reps nas 3 séries"). Dá para preferir a carga da última vez
-  ou a do plano.
+  ou a do plano. Nos exercícios com o peso do corpo, quem sobe são as repetições.
 - **Evolução:** recordes por 1RM estimado, gráfico por exercício, volume semanal, séries por
   grupo muscular e mapa de calor dos últimos meses.
-- **Peso e saúde:** pesagens com meta, IMC, metabolismo basal, gasto diário e água.
+- **Peso, medidas e saúde:** pesagens com meta, medidas do corpo (cintura, braço, % de gordura…) com
+  gráfico, IMC, metabolismo basal, gasto diário e água.
 - **Motivação:** sequência de treinos, níveis, XP e conquistas.
 - **Seus dados:** backup em arquivo (com senha opcional) e backup automático no Android.
 - Tema claro e escuro, e gestos para apagar ou copiar séries.
 
 <p align="center">
   <img src="docs/screenshots/progresso.png" alt="Progresso: estatísticas, mapa de calor e volume semanal" width="220">
+  <img src="docs/screenshots/medidas.png" alt="Medidas do corpo com a variação e o gráfico da cintura" width="220">
   <img src="docs/screenshots/inicio-claro.png" alt="Tela de Início no tema claro" width="220">
 </p>
 

@@ -61,6 +61,11 @@ function demoData(): AppData {
     weighIns: Array.from({ length: 8 }, (_, i) => ({ date: addDays(today, -49 + i * 7), weight: Math.round((69 - i * 0.4) * 10) / 10 }))
   };
   for (let d = -6; d <= 0; d++) data.water[addDays(today, d)] = d === 0 ? 1250 : 2200;
+  data.measurements = {
+    [addDays(today, -42)]: { cintura: 78, quadril: 99, braco: 27.5, coxa: 56, gordura: 27 },
+    [addDays(today, -21)]: { cintura: 76.5, quadril: 98, braco: 28, coxa: 56.5, gordura: 25.5 },
+    [addDays(today, -1)]: { cintura: 75, quadril: 97, braco: 28.5, coxa: 57, gordura: 24 }
+  };
   data.settings = { ...data.settings, trainingReminders: false };
   data.meta = { ...data.meta, lastSeenVersion: pkg.version, lastBackupAt: NOW.toISOString(), hintsSeen: { welcome: true, progressao: true, iosInstall: true } };
   return data;
@@ -105,6 +110,12 @@ test('capturas do README', async ({ page }) => {
   await page.getByRole('button', { name: 'Progresso', exact: true }).click();
   await page.evaluate(() => window.scrollTo(0, 0));
   await shot(page, 'progresso');
+
+  // medidas do corpo, na aba Metas, com o gráfico da cintura aberto
+  await page.getByRole('tab', { name: 'Metas' }).click();
+  await page.getByRole('button', { name: /^Cintura/ }).click();
+  await page.getByLabel('Medidas do corpo').scrollIntoViewIfNeeded();
+  await shot(page, 'medidas');
 });
 
 test('tema claro', async ({ page }) => {
