@@ -3,6 +3,16 @@ export interface ReleaseNote { version: string; date: string; items: string[] }
 
 export const RELEASE_NOTES: readonly ReleaseNote[] = [
   {
+    version: '3.7.0',
+    date: '2026-10',
+    items: [
+      'Superset: no plano, "Superset com o próximo exercício"; no treino, o descanso só começa no fim da rodada.',
+      'Favoritos: "Favoritar" no menu ⋯; eles aparecem primeiro na troca e nas buscas, seguidos dos que você já fez.',
+      'Perfil → Aparência: escolha a cor de destaque.',
+      'Gráficos com período de 1 ano, e a evolução do exercício mostra também mais reps e volume.'
+    ]
+  },
+  {
     version: '3.6.0',
     date: '2026-10',
     items: [

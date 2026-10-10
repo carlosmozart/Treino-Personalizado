@@ -6,7 +6,7 @@ Todas as mudanças relevantes do app ficam registradas aqui. Ao lançar uma nova
    atualizar o app instalado
 3. Adicione uma entrada aqui, nesse formato
 
-## [Não lançado]
+## [3.7.0] - 2026-10-10
 
 - Busca de exercícios: os que você já fez aparecem primeiro, e os nomes digitados à mão no seu histórico também são encontrados (troca, adicionar no treino e no plano).
 - Gráficos de peso, medidas e evolução: período de 1 ano, além de 30 dias, 90 dias e tudo.
