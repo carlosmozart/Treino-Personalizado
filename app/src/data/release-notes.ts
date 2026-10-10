@@ -3,6 +3,17 @@ export interface ReleaseNote { version: string; date: string; items: string[] }
 
 export const RELEASE_NOTES: readonly ReleaseNote[] = [
   {
+    version: '3.5.0',
+    date: '2026-10',
+    items: [
+      '"Montar meu plano": cinco perguntas e o app escolhe o modelo certo para você.',
+      'Medidas do corpo (cintura, braço, % de gordura…) com gráfico, em Progresso → Metas.',
+      'Progressão linear por plano, e exercícios com o peso do corpo sobem as repetições.',
+      'Trocar exercício sugere o que faz sentido no treino do dia, sem repetir exercício.',
+      'Descanso padrão numa roda de minutos e segundos, e tamanho da ilustração do exercício.'
+    ]
+  },
+  {
     version: '3.4.0',
     date: '2026-10',
     items: [
