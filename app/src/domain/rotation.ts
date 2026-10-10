@@ -55,6 +55,22 @@ export function rotationState(plan: Plan, workouts: readonly Workout[]): Rotatio
   return { order, next, done: order.indexOf(next), last: lastKey };
 }
 
+/**
+ * Para usar um modelo em rotação: dias que repetem o treino de um dia anterior (A, B, A na semana)
+ * saem, senão a volta teria o mesmo treino duas vezes seguidas (…A, A, B…).
+ */
+export function dedupeForRotation(plan: Plan): Plan {
+  const seen = new Set<string>();
+  const days = { ...plan.days };
+  for (const k of DAY_KEYS) {
+    const sig = days[k].exercises.map(e => e.name.trim().toLowerCase()).join('|');
+    if (!sig) continue;
+    if (seen.has(sig)) days[k] = { name: '', focus: '', optional: false, exercises: [] };
+    else seen.add(sig);
+  }
+  return { ...plan, days };
+}
+
 /** Liga a rotação, começando pela ordem da semana e a meta igual ao número de treinos. */
 export function enableRotation(plan: Plan): Plan {
   if (plan.rotation) return plan;

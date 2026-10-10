@@ -13,6 +13,8 @@ Todas as mudanças relevantes do app ficam registradas aqui. Ao lançar uma nova
 - Descanso padrão escolhido numa roda de minutos e segundos, no estilo do iPhone.
 - Tamanho da ilustração do exercício no treino: pequena, média ou grande.
 - Plano: progressão de carga "Linear" (no painel Planos) ao lado da "Dupla": completou todas as séries nas repetições do plano, a carga sobe no próximo treino.
+- Primeira abertura guiada: "Montar meu plano" faz cinco perguntas (objetivo, onde treina, dias por semana, experiência e se os dias são fixos) e cria o plano a partir de um modelo pronto, já em rotação para quem treina quando dá e com progressão linear para quem está começando.
+- Modelos em rotação: dias que repetem o mesmo treino (A, B, A) viram uma volta A, B, sem o mesmo treino duas vezes seguidas.
 
 ## [3.4.0] - 2026-10-09
 

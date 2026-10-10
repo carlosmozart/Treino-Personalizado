@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
-  disableRotation, enableRotation, maxRestGap, moveInRotation, restartRotation, rotationLetter, rotationOrder, rotationState, rotationTitle, setRotationPerWeek
+  dedupeForRotation, disableRotation, enableRotation, maxRestGap, moveInRotation, restartRotation, rotationLetter, rotationOrder, rotationState, rotationTitle, setRotationPerWeek
 } from './rotation';
 import { planExercise, sampleData, samplePlan } from './testing';
 import { daysPerWeekOf, streakOf } from './rewards';
@@ -154,5 +154,12 @@ describe('próximo treino no resumo (S4)', () => {
     expect(nextWorkoutAfterToday(d, new Date(2026, 9, 5, 20))).toMatchObject({ when: 'treino B da rotação' });
     d.plans.p1 = disableRotation(d.plans.p1);
     expect(nextWorkoutAfterToday(d, new Date(2026, 9, 5, 20))).toMatchObject({ when: 'em 2 dias' });
+  });
+});
+
+describe('modelo em rotação', () => {
+  it('dias repetidos (A, B, A) saem: a volta fica A, B', () => {
+    const p = samplePlan(k => (k === 'SEG' || k === 'SEX' ? [planExercise('a', 'Supino')] : k === 'QUA' ? [planExercise('b', 'Remada')] : []));
+    expect(rotationOrder(enableRotation(dedupeForRotation(p)))).toEqual(['SEG', 'QUA']);
   });
 });

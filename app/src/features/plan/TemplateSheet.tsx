@@ -5,7 +5,7 @@ import { newId } from '../../domain/ids';
 import { trainingDaysPerWeek } from '../../domain/model';
 import { PLAN_TEMPLATES } from '../../data/plan-templates';
 import { useAppStore } from '../../store';
-import { enableRotation } from '../../domain/rotation';
+import { dedupeForRotation, enableRotation } from '../../domain/rotation';
 import { Sheet } from '../../ui/Sheet';
 import { dayTitle, plural } from '../../ui/format';
 
@@ -20,7 +20,7 @@ export function TemplateSheet({ open, onClose }: { open: boolean; onClose: () =>
     if (!t) return;
     run((d, now) => {
       const plan = t.build(toDateKey(now), newId('plano'));
-      return addPlan(d, rotation ? enableRotation(plan) : plan, now);
+      return addPlan(d, rotation ? enableRotation(dedupeForRotation(plan)) : plan, now);
     });
     onClose();
   };

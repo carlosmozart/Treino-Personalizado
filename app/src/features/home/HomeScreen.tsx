@@ -115,9 +115,10 @@ function TodayCard({ card, onChoose }: { card: ReturnType<typeof todayCard>; onC
     return (
       <section className="rounded-2xl border border-primary bg-surface p-4">
         <h2 className="text-lg font-bold">Comece pelo seu plano</h2>
-        <p className="mt-1 text-muted">Escolha um modelo pronto para o app montar o seu dia; dá para ajustar tudo depois.</p>
-        <button type="button" onClick={() => onChoose('templates')} className="mt-4 h-12 w-full rounded-xl bg-primary text-base font-bold text-white">Escolher um modelo</button>
-        <button type="button" onClick={() => onChoose('menu')} className="mt-2 h-12 w-full rounded-xl bg-surface-2 text-base font-bold">Criar do zero ou com IA</button>
+        <p className="mt-1 text-muted">Responda cinco perguntas e o app monta o seu plano em menos de um minuto; dá para ajustar tudo depois.</p>
+        <button type="button" onClick={() => onChoose('guided')} className="mt-4 h-12 w-full rounded-xl bg-primary text-base font-bold text-white">Montar meu plano</button>
+        <button type="button" onClick={() => onChoose('templates')} className="mt-2 h-12 w-full rounded-xl bg-surface-2 text-base font-bold">Escolher um modelo</button>
+        <button type="button" onClick={() => onChoose('menu')} className="mt-1 h-11 w-full rounded-xl text-sm font-semibold text-muted">Criar do zero ou com IA</button>
       </section>
     );
   }

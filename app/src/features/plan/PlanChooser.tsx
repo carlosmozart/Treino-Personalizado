@@ -8,8 +8,9 @@ import { Icon } from '../../ui/Icon';
 import { Sheet, SheetAction } from '../../ui/Sheet';
 import { AiPlanSheet } from './AiPlanSheet';
 import { TemplateSheet } from './TemplateSheet';
+import { GuidedSetup } from './GuidedSetup';
 
-export type ChooserMode = 'menu' | 'templates' | 'ai' | null;
+export type ChooserMode = 'menu' | 'templates' | 'ai' | 'guided' | null;
 
 /** Novo plano a partir do Início: modelo pronto, do zero, com IA ou outro plano já salvo. */
 export function PlanChooser({ mode, setMode }: { mode: ChooserMode; setMode: (m: ChooserMode) => void }) {
@@ -26,6 +27,7 @@ export function PlanChooser({ mode, setMode }: { mode: ChooserMode; setMode: (m:
   return (
     <>
       <Sheet title="Novo plano de treino" open={mode === 'menu'} onClose={close}>
+        <SheetAction onClick={() => setMode('guided')}><Icon name="check" /> Montar meu plano (5 perguntas)</SheetAction>
         <SheetAction onClick={() => setMode('templates')}><Icon name="mais" /> Usar um modelo pronto</SheetAction>
         <SheetAction onClick={fromScratch}><Icon name="editar" /> Criar do zero</SheetAction>
         <SheetAction onClick={() => setMode('ai')}><Icon name="dica" /> Montar treino com IA</SheetAction>
@@ -36,6 +38,7 @@ export function PlanChooser({ mode, setMode }: { mode: ChooserMode; setMode: (m:
           </SheetAction>
         ))}
       </Sheet>
+      <GuidedSetup open={mode === 'guided'} onClose={close} onOther={() => setMode('templates')} />
       <TemplateSheet open={mode === 'templates'} onClose={close} />
       <AiPlanSheet open={mode === 'ai'} onClose={close} />
     </>
