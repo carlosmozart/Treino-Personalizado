@@ -187,3 +187,18 @@ export function nextWorkoutAfterToday(data: AppData, now: Date): { title: string
   }
   return null;
 }
+
+export interface WeekWeight { monday: DateKey; average: number; count: number; change: number | null }
+
+/** M38: pesagens agrupadas por semana (de segunda), com a média e a variação da média anterior. */
+export function weeklyWeights(weighIns: readonly { date: DateKey; weight: number }[]): WeekWeight[] {
+  const byWeek = new Map<DateKey, number[]>();
+  for (const w of weighIns) {
+    const k = mondayOf(w.date);
+    byWeek.set(k, [...(byWeek.get(k) ?? []), w.weight]);
+  }
+  const weeks = [...byWeek].sort(([a], [b]) => a.localeCompare(b)).map(([monday, ws]) => ({
+    monday, count: ws.length, average: Math.round((ws.reduce((t, x) => t + x, 0) / ws.length) * 10) / 10
+  }));
+  return weeks.map((w, i) => ({ ...w, change: i ? Math.round((w.average - weeks[i - 1]!.average) * 10) / 10 : null }));
+}

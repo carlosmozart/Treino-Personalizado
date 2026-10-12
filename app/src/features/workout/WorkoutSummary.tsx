@@ -5,6 +5,7 @@ import { useAppStore } from '../../store';
 import { Icon } from '../../ui/Icon';
 import { formatNumber } from '../../ui/format';
 import { useWorkoutUi } from './workout-ui';
+import { CopyTextButton } from '../progress/CopyTextButton';
 
 /** Resumo logo após finalizar: o que entrou no histórico, com números grandes. */
 export function WorkoutSummary({ id }: { id: string }) {
@@ -55,7 +56,8 @@ export function WorkoutSummary({ id }: { id: string }) {
           </p>
         );
       })()}
-      <button type="button" onClick={close} className="mt-6 h-12 w-full rounded-xl bg-surface-2 text-base font-bold">Fechar</button>
+      <div className="mt-6 flex justify-center"><CopyTextButton w={workout} /></div>
+      <button type="button" onClick={close} className="mt-3 h-12 w-full rounded-xl bg-surface-2 text-base font-bold">Fechar</button>
     </section>
   );
 }

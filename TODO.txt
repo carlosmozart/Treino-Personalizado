@@ -133,7 +133,7 @@ M20	✅ (10/10/2026, menu ⋯ do exercício) Histórico do exercício acessível
 Fase 5 — descanso, conforto e extras
 M21	Descanso no APK como serviço em primeiro plano: contagem na barra de notificações com −15s/+15s/pausar/pular, sem desbloquear o celular (código nativo; validar no aparelho)	Média
 M22	Esforço por série opcional (RIR ou RPE), sem afetar progressão	Baixa
-M23	Compartilhar plano (arquivo só com rotinas, sem dados pessoais) e importar mesclando; imprimir plano em PDF	Baixa
+M23	🟡 (arquivo do plano para compartilhar e importar, 12/10/2026; faltam importar mesclando e imprimir em PDF) Compartilhar plano (arquivo só com rotinas, sem dados pessoais) e importar mesclando; imprimir plano em PDF	Baixa
 M24	Importar histórico de Strong/Hevy/FitNotes (CSV), casando nomes com a biblioteca (depende de M5)	Baixa
 M25	✅ (tema claro e escuro em 07/10/2026; cor de destaque com cinco opções em 10/10/2026) Tema claro e cor de destaque configurável (exige revisar tokens de cor do guia de interface)	Baixa
 M26	✅ (10/10/2026, menu ⋯ do exercício; primeiro na troca e nas buscas) Favoritar exercícios para aparecerem primeiro na troca/biblioteca	Baixa
@@ -145,12 +145,12 @@ M29	Recuperação/fadiga por grupo muscular, decaindo com o tempo desde o últim
 M30	✅ (09/10/2026, por repetições, só em nomes de peso do corpo) Exercícios de peso corporal: sem coluna de carga, progressão por reps; carga extra (cinto) somada quando houver	Média
 M31	Reps por lado (afundo, remada unilateral): registra o total, mostra "8 por lado" e progride de 2 em 2	Baixa
 M32	Marcar um plano/semana como deload: entra no histórico mas não vira base da progressão	Baixa
-M33	Copiar treino como texto e salvar um treino feito como novo dia do plano	Baixa
+M33	🟡 (copiar treino como texto, 12/10/2026; falta salvar um treino feito como dia do plano) Copiar treino como texto e salvar um treino feito como novo dia do plano	Baixa
 M34	Revisão do treino pela IA: gerar prompt com o histórico recente para a IA propor ajustes com justificativa, e importar a resposta pelo fluxo de importação que já existe (cada mudança aprovada pelo usuário)	Média
 M35	✅ (revisão de 10/10/2026: feito no app 3.x, Início mostra o próximo treino no descanso) No dia de descanso, informar quando é o próximo treino e qual é	Baixa
 M36	Filtro por equipamento na troca de exercício (só mostrar o que a academia/casa tem)	Baixa
 M37	Unidade kg/lb com conversão opcional dos dados salvos	Baixa
-M38	Peso por semana: agrupar pesagens por semana com média, nº de pesagens e variação da média em relação à semana anterior (o peso diário oscila mais com água/sal/refeição do que em um mês); complementa a média móvel atual	Média
+M38	✅ (12/10/2026, média semanal em Pesagens) Peso por semana: agrupar pesagens por semana com média, nº de pesagens e variação da média em relação à semana anterior (o peso diário oscila mais com água/sal/refeição do que em um mês); complementa a média móvel atual	Média
 M39	✅ (revisão de 10/10/2026: feito no app 3.x, variação colorida pela meta; P5) Colorir variações de peso pela direção da meta: verde quando aproxima do alvo, vermelho quando afasta (quem quer ganhar vê +0,5 kg em verde)	Média
 M40	Pesagem opcional ao começar o treino (desligável nas configurações), para o histórico de peso se manter sem depender de abrir o Perfil
 Saúde: comparado em 04/10/2026 — o openGym só acompanha peso corporal (sem IMC, TMB/TDEE, água ou gordura corporal); nossas funções de saúde são mais completas e seguem como estão, com M38–M40 trazendo o que o acompanhamento de peso dele faz melhor

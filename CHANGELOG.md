@@ -6,6 +6,12 @@ Todas as mudanças relevantes do app ficam registradas aqui. Ao lançar uma nova
    atualizar o app instalado
 3. Adicione uma entrada aqui, nesse formato
 
+## [Não lançado]
+
+- Plano → Planos: "Compartilhar este plano" salva um arquivo só com as rotinas (sem histórico, peso ou perfil; as cargas vão só se você quiser), e "Importar plano de um arquivo" traz o plano de outra pessoa.
+- Histórico e resumo do treino: "Copiar como texto", pronto para colar no WhatsApp.
+- Progresso → Metas → Pesagens: média por semana e quanto mudou da semana anterior.
+
 ## [3.7.0] - 2026-10-10
 
 - Busca de exercícios: os que você já fez aparecem primeiro, e os nomes digitados à mão no seu histórico também são encontrados (troca, adicionar no treino e no plano).

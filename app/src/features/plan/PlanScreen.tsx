@@ -14,6 +14,7 @@ import { Icon } from '../../ui/Icon';
 import { ExerciseThumb } from '../../ui/ExerciseIllustration';
 import { AiPlanSheet } from './AiPlanSheet';
 import { TemplateSheet } from './TemplateSheet';
+import { PlanFileActions } from './PlanFileActions';
 import { NumberField } from '../../ui/NumberField';
 import { DEFAULT_INCREMENT, INCREMENTS, repRange } from '../../domain/progression';
 import { Sheet, SheetAction } from '../../ui/Sheet';
@@ -155,6 +156,7 @@ export function PlanScreen() {
         <SheetAction onClick={() => { run((d, now) => addPlan(d, duplicatePlan(plan, newId('plano'), toDateKey(now)), now)); setPlansOpen(false); }}>
           <Icon name="mais" /> Duplicar este plano
         </SheetAction>
+        <PlanFileActions plan={plan} onDone={() => {}} />
         <SheetAction onClick={() => { run((d, now) => addPlan(d, blankPlan(newId('plano'), toDateKey(now)), now)); setPlansOpen(false); }}>
           <Icon name="mais" /> Novo plano em branco
         </SheetAction>

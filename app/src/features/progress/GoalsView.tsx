@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { weeklyWeights } from '../../domain/home';
 import { MeasurementsCard } from './MeasurementsCard';
 import { achievementList, startWeightGoal } from '../../domain/achievements';
 import { removeWeighIn } from '../../domain/actions';
@@ -117,6 +118,7 @@ function WeighInsCard() {
   const list = [...profile.weighIns].reverse();
   const shown = all ? list : list.slice(0, 5);
   const target = profile.weightGoal?.targetWeight ?? profile.targetWeightKg ?? undefined;
+  const weeks = weeklyWeights(profile.weighIns);
   return (
     <section className="rounded-2xl border border-line bg-surface p-4">
       <h2 className="font-bold">Pesagens</h2>
@@ -140,6 +142,23 @@ function WeighInsCard() {
       </ul>
       {list.length > 5 && (
         <button type="button" onClick={() => setAll(!all)} className="mt-1 h-11 font-semibold text-primary">{all ? 'Mostrar menos' : `Ver todas (${list.length})`}</button>
+      )}
+      {/* M38: o peso do dia oscila; a média da semana mostra a tendência */}
+      {weeks.length > 1 && (
+        <>
+          <h3 className="mt-3 text-sm font-bold">Por semana</h3>
+          <ul className="mt-1 divide-y divide-line text-sm">
+            {weeks.slice(-6).reverse().map(w => (
+              <li key={w.monday} className="flex min-h-11 items-center justify-between gap-3">
+                <span className="text-muted">Semana de {shortDate(w.monday)} · {w.count === 1 ? '1 pesagem' : `${w.count} pesagens`}</span>
+                <span className="text-right tabular-nums">
+                  <span className="font-semibold">{formatNumber(w.average)} kg</span>
+                  {w.change !== null && w.change !== 0 && <span className="ml-2 text-muted">{w.change > 0 ? '+' : '−'}{formatNumber(Math.abs(w.change))}</span>}
+                </span>
+              </li>
+            ))}
+          </ul>
+        </>
       )}
     </section>
   );
