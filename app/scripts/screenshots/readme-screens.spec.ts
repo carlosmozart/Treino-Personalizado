@@ -24,6 +24,9 @@ function demoData(): AppData {
   for (const day of Object.values(plan.days)) {
     day.exercises.forEach((e, i) => { if (e.mode === 'reps') e.weight = Math.max(10, 40 - i * 6); });
   }
+  // superset nos dois supinos do treino A (aparece na captura do treino)
+  const a = plan.rotation ? plan.days[plan.rotation.order[0]!] : undefined;
+  if (a && a.exercises.length > 1) { a.exercises[0]!.superset = 'demo'; a.exercises[1]!.superset = 'demo'; }
   data.plans[plan.id] = plan;
   data.activePlanId = plan.id;
 
@@ -66,7 +69,7 @@ function demoData(): AppData {
     [addDays(today, -21)]: { cintura: 76.5, quadril: 98, braco: 28, coxa: 56.5, gordura: 25.5 },
     [addDays(today, -1)]: { cintura: 75, quadril: 97, braco: 28.5, coxa: 57, gordura: 24 }
   };
-  data.settings = { ...data.settings, trainingReminders: false };
+  data.settings = { ...data.settings, trainingReminders: false, favorites: ['supino reto (barra)'] };
   data.meta = { ...data.meta, lastSeenVersion: pkg.version, lastBackupAt: NOW.toISOString(), hintsSeen: { welcome: true, progressao: true, iosInstall: true } };
   return data;
 }
@@ -100,7 +103,10 @@ test('capturas do README', async ({ page }) => {
   await expect(page.getByText(/kg:|Mantém/).first()).toBeVisible();
   const first = page.getByRole('article').first();
   await first.getByRole('button', { name: 'Série 1 feita' }).click();
-  await page.getByRole('button', { name: 'Pular' }).click();
+  // no superset a série não abre o descanso; se abrir, pula
+  const skip = page.getByRole('button', { name: 'Pular' });
+  if (await skip.isVisible()) await skip.click();
+  await page.evaluate(() => window.scrollTo(0, 0));
   await shot(page, 'treino');
 
   await page.getByRole('button', { name: 'Plano', exact: true }).click();

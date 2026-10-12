@@ -13,10 +13,12 @@ offline, não tem anúncios nem cadastro, e os dados ficam no seu aparelho.
 
 - **Plano de treino** por dia da semana ou em **rotação A/B/C**: na rotação, o próximo treino é o
   seguinte ao último feito, em qualquer dia. Modelos prontos (corpo inteiro, em casa, ABC,
-  superior/inferior, Push/Pull/Legs, força 5×5) ou montado com ajuda de uma IA.
+  superior/inferior, Push/Pull/Legs, força 5×5), "Montar meu plano" em cinco perguntas ou com
+  ajuda de uma IA. Compartilhe o plano por arquivo, sem levar nenhum dado pessoal.
 - **Treino guiado:** séries com carga e repetições, descanso com alarme (inclusive com a tela
-  bloqueada no Android), aquecimento, troca de exercício, ilustração de cada exercício e
-  calculadora de anilhas.
+  bloqueada no Android), aquecimento, superset, série até a falha, troca que sugere o que combina
+  com o treino do dia, ilustração de cada exercício e calculadora de anilhas. Dá para adicionar
+  exercícios no meio do treino ou começar um treino livre.
 - **Progressão automática de carga:** o treino abre com a carga sugerida pelo histórico e uma
   linha dizendo o porquê ("+2,5 kg: 12 reps nas 3 séries"). Dá para preferir a carga da última vez
   ou a do plano. Nos exercícios com o peso do corpo, quem sobe são as repetições.
@@ -25,8 +27,10 @@ offline, não tem anúncios nem cadastro, e os dados ficam no seu aparelho.
 - **Peso, medidas e saúde:** pesagens com meta, medidas do corpo (cintura, braço, % de gordura…) com
   gráfico, IMC, metabolismo basal, gasto diário e água.
 - **Motivação:** sequência de treinos, níveis, XP e conquistas.
-- **Seus dados:** backup em arquivo (com senha opcional) e backup automático no Android.
-- Tema claro e escuro, e gestos para apagar ou copiar séries.
+- **Seus dados:** backup em arquivo (com senha opcional), backup automático no Android, treino
+  passado registrado depois e "Copiar como texto" para mandar o treino no WhatsApp.
+- Tema claro e escuro com cor de destaque à escolha, exercícios favoritos e gestos para apagar ou
+  copiar séries e exercícios.
 
 <p align="center">
   <img src="docs/screenshots/progresso.png" alt="Progresso: estatísticas, mapa de calor e volume semanal" width="220">
