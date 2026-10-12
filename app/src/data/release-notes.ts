@@ -3,6 +3,15 @@ export interface ReleaseNote { version: string; date: string; items: string[] }
 
 export const RELEASE_NOTES: readonly ReleaseNote[] = [
   {
+    version: '3.9.0',
+    date: '2026-10',
+    items: [
+      'Treino livre: na aba Treino, comece sem seguir o plano e vá adicionando os exercícios.',
+      'Histórico: "Salvar no plano" transforma um treino feito em um dia do plano, e "Mudar a data" corrige a data de um treino.',
+      'Perfil → Treino: o app pode pedir o peso do dia ao começar o treino.'
+    ]
+  },
+  {
     version: '3.8.0',
     date: '2026-10',
     items: [

@@ -6,7 +6,7 @@ Todas as mudanças relevantes do app ficam registradas aqui. Ao lançar uma nova
    atualizar o app instalado
 3. Adicione uma entrada aqui, nesse formato
 
-## [Não lançado]
+## [3.9.0] - 2026-10-12
 
 - Aba Treino: "Treino livre, sem seguir o plano" começa um treino vazio; os exercícios entram por "Adicionar exercício".
 - Histórico: "Salvar no plano" transforma um treino feito em um dia do plano, e "Mudar a data" corrige a data de um treino salvo (a presença do dia vai junto).
