@@ -6,6 +6,12 @@ Todas as mudanças relevantes do app ficam registradas aqui. Ao lançar uma nova
    atualizar o app instalado
 3. Adicione uma entrada aqui, nesse formato
 
+## [Não lançado]
+
+- Aba Treino: "Treino livre, sem seguir o plano" começa um treino vazio; os exercícios entram por "Adicionar exercício".
+- Histórico: "Salvar no plano" transforma um treino feito em um dia do plano, e "Mudar a data" corrige a data de um treino salvo (a presença do dia vai junto).
+- Perfil → Treino: "Pedir o peso do dia ao começar o treino" (desligado por padrão).
+
 ## [3.8.0] - 2026-10-12
 
 - Plano → Planos: "Compartilhar este plano" salva um arquivo só com as rotinas (sem histórico, peso ou perfil; as cargas vão só se você quiser), e "Importar plano de um arquivo" traz o plano de outra pessoa.

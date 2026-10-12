@@ -2,7 +2,7 @@
 import { DAY_KEYS, type DayKey } from './ai-plan';
 import { toDateKey } from './dates';
 import { newId } from './ids';
-import { MAX_EXERCISES_PER_DAY, type AppData, type Plan, type PlanDay, type PlanExercise } from './model';
+import { MAX_EXERCISES_PER_DAY, type AppData, type Plan, type PlanDay, type PlanExercise, type Workout } from './model';
 import { key, tombstone, touch } from './sync';
 import { isCardioName } from '../data/exercise-library';
 import type { ActionResult } from './actions';
@@ -50,6 +50,22 @@ export function insertExercise(plan: Plan, dayKey: DayKey, index: number, exerci
     exercises.splice(Math.min(Math.max(0, index), exercises.length), 0, exercise);
     return { ...day, exercises };
   });
+}
+
+/**
+ * M33: um treino feito vira um dia do plano: os mesmos exercícios, o número de séries de trabalho,
+ * as repetições e a carga da melhor série. Cardio leva os minutos.
+ */
+export function workoutToPlanDay(w: Workout, makeId: () => string = () => newId('ex')): PlanDay {
+  const exercises: PlanExercise[] = w.entries.slice(0, MAX_EXERCISES_PER_DAY).map(e => {
+    const ex = newPlanExercise(e.name, makeId());
+    const sets = e.sets.filter(s => s.kind === 'work');
+    if (e.mode === 'cardio') return { ...ex, mode: 'cardio', sets: 1, reps: 0, minutes: e.cardio?.minutes ?? 20, km: e.cardio?.km ?? 0 };
+    const top = sets.reduce((b, s) => (!b || s.weight > b.weight || (s.weight === b.weight && s.reps > b.reps) ? s : b), sets[0]);
+    if (e.mode === 'time') return { ...ex, mode: 'time', sets: Math.max(1, sets.length), reps: 0, seconds: top?.reps ?? 30, weight: top?.weight ?? 0 };
+    return { ...ex, mode: 'reps', sets: Math.max(1, sets.length), reps: top?.reps ?? 10, weight: top?.weight ?? 0 };
+  });
+  return { name: w.dayName?.trim() || 'Treino', focus: '', optional: false, exercises };
 }
 
 export function updateExercise(plan: Plan, dayKey: DayKey, id: string, patch: Partial<Omit<PlanExercise, 'id'>>): Plan {

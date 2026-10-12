@@ -184,6 +184,40 @@ export function deleteWorkout(data: AppData, id: string, now: Date): ActionResul
   return { data: draft, events: [] };
 }
 
+/**
+ * M15: muda a data de um treino salvo (nunca para o futuro). O horário fica o mesmo. A presença
+ * e o XP daquele dia vão junto quando nenhum outro treino ficou na data antiga e a nova ainda não
+ * tem presença; o total de XP não muda. Não gera recorde (o resumo não é refeito).
+ */
+export function moveWorkoutDate(data: AppData, id: string, date: DateKey, now: Date): ActionResult {
+  const w = data.workouts.find(x => x.id === id);
+  if (!w || w.date === date || date > toDateKey(now) || !/^\d{4}-\d{2}-\d{2}$/.test(date)) return unchanged(data);
+  const draft = structuredClone(data);
+  const target = draft.workouts.find(x => x.id === id)!;
+  const old = target.date;
+  const shift = (iso: string | undefined) => (iso ? new Date(Date.parse(iso) + (Date.parse(`${date}T12:00:00`) - Date.parse(`${old}T12:00:00`))).toISOString() : undefined);
+  target.date = date;
+  const startedAt = shift(target.startedAt), endedAt = shift(target.endedAt);
+  if (startedAt) target.startedAt = startedAt;
+  if (endedAt) target.endedAt = endedAt;
+  draft.workouts.sort((a, b) => (a.date !== b.date ? (a.date < b.date ? -1 : 1) : (a.startedAt ?? '').localeCompare(b.startedAt ?? '')));
+  touch(draft, key.workout(id), now);
+
+  const othersOnOld = draft.workouts.some(x => x.id !== id && x.date === old);
+  const g = draft.gamification;
+  if (!othersOnOld && draft.checkins[old] && !draft.checkins[date]) {
+    draft.checkins[date] = draft.checkins[old]!;
+    delete draft.checkins[old];
+    if (g.checkinXP[old]) { g.checkinXP[date] = g.checkinXP[old]!; delete g.checkinXP[old]; }
+    touch(draft, key.checkin(date), now);
+    tombstone(draft, key.checkin(old), now);
+  } else if (!draft.checkins[date]) {
+    draft.checkins[date] = { dayKey: target.dayKey ?? null };
+    touch(draft, key.checkin(date), now);
+  }
+  return { data: draft, events: [] };
+}
+
 /** Corrige um exercício registrado (registro antigo editado deixa de ser "reconstruído"). */
 export function updateWorkoutEntry(data: AppData, workoutId: string, index: number, entry: WorkoutEntry, now: Date): ActionResult {
   const w = data.workouts.find(x => x.id === workoutId);

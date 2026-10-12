@@ -13,12 +13,14 @@ import { useRestStore } from './rest-store';
 import { useWorkoutUi } from './workout-ui';
 import { WorkoutSettingsFields } from '../profile/SettingsSection';
 import { AddToWorkoutSheet } from './AddToWorkoutSheet';
+import { WeighInNotice } from './WeighInNotice';
 
 export function ActiveWorkout({ session }: { session: ActiveSession }) {
   const now = useNow(1000);
   const [finishing, setFinishing] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
-  const [adding, setAdding] = useState(false);
+  // treino livre começa vazio: já abre a busca
+  const [adding, setAdding] = useState(session.exercises.length === 0);
   const [switching, setSwitching] = useState(false);
   const keepScreenOn = useAppStore(s => s.data?.settings.keepScreenOn ?? true);
   useWakeLock(keepScreenOn);
@@ -90,6 +92,10 @@ export function ActiveWorkout({ session }: { session: ActiveSession }) {
       </header>
 
       <ProgressionNotice session={session} />
+      <WeighInNotice session={session} />
+      {session.exercises.length === 0 && (
+        <p className="mt-4 rounded-2xl border border-line bg-surface p-4 text-muted">Treino livre: adicione os exercícios que for fazer. Ele entra no histórico como qualquer treino.</p>
+      )}
       {/* R5: descanso, som, gesto e carga sem sair do treino */}
       <Sheet title="Ajustes do treino" open={settingsOpen} onClose={() => setSettingsOpen(false)}>
         <div className="px-1 pb-3"><WorkoutSettingsFields /></div>

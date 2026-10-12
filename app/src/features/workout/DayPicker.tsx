@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { DAY_KEYS, type DayKey } from '../../domain/ai-plan';
 import { dayKeyOf, type Plan } from '../../domain/model';
 import { TemplateSheet } from '../plan/TemplateSheet';
+import { FreeWorkoutButton } from './FreeWorkoutButton';
 import { useAppStore } from '../../store';
 import { askRestAlarmPermission } from './rest-alarm-instance';
 import { dayTitle, plural } from '../../ui/format';
@@ -25,6 +26,7 @@ export function DayPicker() {
           Escolher um modelo
         </button>
         <TemplateSheet open={templatesOpen} onClose={() => setTemplatesOpen(false)} />
+        <div className="mt-3"><FreeWorkoutButton /></div>
       </section>
     );
   }
@@ -46,6 +48,7 @@ export function DayPicker() {
           <DayCard key={key} plan={plan} dayKey={key} today={key === rot.next} done={false} onStart={() => startDay(key)}
             tag={`Treino ${rotationLetter(plan, key)}${key === rot.next ? ' · Próximo' : ''}`} />
         ))}
+        <FreeWorkoutButton />
       </div>
     );
   }
@@ -54,6 +57,7 @@ export function DayPicker() {
     <div className="mt-6 space-y-3">
       <p className="text-sm text-muted">{plan.name}</p>
       {order.map(key => <DayCard key={key} plan={plan} dayKey={key} today={key === today} done={key === today && doneToday} onStart={() => startDay(key)} />)}
+      <FreeWorkoutButton />
     </div>
   );
 }

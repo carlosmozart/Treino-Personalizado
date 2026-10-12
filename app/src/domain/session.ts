@@ -134,6 +134,14 @@ export function startPastSession(data: AppData, planId: string, dayKey: DayKey, 
   return { ...s, date, backdated: { durationMin: Math.min(300, Math.max(1, Math.round(durationMin))) } };
 }
 
+/**
+ * Treino livre: começa vazio, sem plano, e os exercícios entram por "Adicionar exercício". Sem
+ * plano, não conta como treino da rotação.
+ */
+export function startFreeSession(now: Date, id: string): ActiveSession {
+  return { id, date: toDateKey(now), startedAt: now.toISOString(), planId: '', dayKey: dayKeyOf(now), dayName: 'Treino livre', exercises: [] };
+}
+
 /** M18: põe um exercício no fim do treino em andamento, com a carga da última vez (ou 3×10). */
 export function addExerciseToSession(s: ActiveSession, data: AppData, name: string): ActiveSession {
   const clean = name.trim();

@@ -91,6 +91,7 @@ export function WorkoutSettingsFields() {
       <Toggle label="Deslizar para apagar (esquerda) ou copiar (direita) séries e exercícios do plano" checked={settings.swipeSets ?? true} onChange={v => set({ swipeSets: v })} />
       <Toggle label="Botões de ajuste de carga no treino" checked={settings.weightButtons ?? true} onChange={v => set({ weightButtons: v })} />
       <Toggle label="Manter a tela ligada no treino" checked={settings.keepScreenOn ?? true} onChange={v => set({ keepScreenOn: v })} />
+      <Toggle label="Pedir o peso do dia ao começar o treino" checked={settings.weighBeforeWorkout ?? false} onChange={v => set({ weighBeforeWorkout: v })} />
       <Toggle label="Mostrar ilustrações dos exercícios" checked={settings.showIllustrations ?? true} onChange={v => set({ showIllustrations: v })} />
       {(settings.showIllustrations ?? true) && (
         <div className="py-2">

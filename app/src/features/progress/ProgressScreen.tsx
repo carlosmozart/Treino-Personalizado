@@ -14,6 +14,7 @@ import { EntryEditor } from './EntryEditor';
 import { ExerciseProgressCard } from './ExerciseProgressCard';
 import { PastWorkoutButton } from './PastWorkoutSheet';
 import { CopyTextButton } from './CopyTextButton';
+import { WorkoutMoreActions } from './WorkoutMoreActions';
 import { formatNumber, plural, shortDate } from '../../ui/format';
 
 const MONTH_NAMES = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
@@ -180,6 +181,7 @@ function WorkoutItem({ w, open, onToggle, onDelete }: { w: Workout; open: boolea
           <div className="mt-3 flex flex-wrap items-center gap-2">
             <RepeatButton w={w} />
             <CopyTextButton w={w} />
+            <WorkoutMoreActions w={w} />
             <button type="button" onClick={onDelete} className="flex h-11 items-center gap-2 rounded-xl px-2 font-semibold text-danger">
               <Icon name="lixo" className="size-5" /> Apagar treino
             </button>

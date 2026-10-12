@@ -123,10 +123,10 @@ M13	✅ (07/10/2026: incremento por exercício e "Carga ao abrir o treino": suge
 M14	✅ (07/10/2026, menu ⋯ dos exercícios com barra) Calculadora de anilhas para barra ("Barra 20 kg · 30 kg por lado"), com anilhas disponíveis configuráveis	Média
 
 Fase 4 — funções destravadas pelo novo modelo
-M15	✅ (10/10/2026, Progresso → Histórico; sem recorde retroativo. Corrigir data de treino salvo fica para depois) Registrar treino passado (data, início, duração) e corrigir data/hora de um treino salvo, sem gerar recordes retroativos	Média
+M15	✅ (10/10/2026, Progresso → Histórico; sem recorde retroativo. Corrigir a data de um treino salvo em 12/10/2026) Registrar treino passado (data, início, duração) e corrigir data/hora de um treino salvo, sem gerar recordes retroativos	Média
 M16	✅ (revisão de 10/10/2026: feito no app 3.x, mapa de calor de 6 meses; P5) Mapa de calor anual de treinos (estilo GitHub) no histórico	Média
 M17	✅ (10/10/2026, no plano e na hora pelo menu ⋯) Bi-set/superset: agrupar dois exercícios com um único descanso ao fim da rodada	Média
-M18	✅ (10/10/2026, adicionar e tirar exercício no treino; treino livre fica para depois) Adicionar/remover exercício no meio do treino sem finalizar; treino livre com valores pré-preenchidos da última vez	Média
+M18	✅ (10/10/2026, adicionar e tirar exercício no treino; treino livre em 12/10/2026) Adicionar/remover exercício no meio do treino sem finalizar; treino livre com valores pré-preenchidos da última vez	Média
 M19	Remarcar o treino do dia para outro dia sem alterar o plano semanal; escolher início da semana (seg/dom)	Baixa
 M20	✅ (10/10/2026, menu ⋯ do exercício) Histórico do exercício acessível de dentro do treino (últimas sessões + linha de evolução)	Média
 
@@ -145,14 +145,14 @@ M29	Recuperação/fadiga por grupo muscular, decaindo com o tempo desde o últim
 M30	✅ (09/10/2026, por repetições, só em nomes de peso do corpo) Exercícios de peso corporal: sem coluna de carga, progressão por reps; carga extra (cinto) somada quando houver	Média
 M31	Reps por lado (afundo, remada unilateral): registra o total, mostra "8 por lado" e progride de 2 em 2	Baixa
 M32	Marcar um plano/semana como deload: entra no histórico mas não vira base da progressão	Baixa
-M33	🟡 (copiar treino como texto, 12/10/2026; falta salvar um treino feito como dia do plano) Copiar treino como texto e salvar um treino feito como novo dia do plano	Baixa
+M33	✅ (copiar treino como texto e salvar treino feito como dia do plano, 12/10/2026) Copiar treino como texto e salvar um treino feito como novo dia do plano	Baixa
 M34	Revisão do treino pela IA: gerar prompt com o histórico recente para a IA propor ajustes com justificativa, e importar a resposta pelo fluxo de importação que já existe (cada mudança aprovada pelo usuário)	Média
 M35	✅ (revisão de 10/10/2026: feito no app 3.x, Início mostra o próximo treino no descanso) No dia de descanso, informar quando é o próximo treino e qual é	Baixa
 M36	Filtro por equipamento na troca de exercício (só mostrar o que a academia/casa tem)	Baixa
 M37	Unidade kg/lb com conversão opcional dos dados salvos	Baixa
 M38	✅ (12/10/2026, média semanal em Pesagens) Peso por semana: agrupar pesagens por semana com média, nº de pesagens e variação da média em relação à semana anterior (o peso diário oscila mais com água/sal/refeição do que em um mês); complementa a média móvel atual	Média
 M39	✅ (revisão de 10/10/2026: feito no app 3.x, variação colorida pela meta; P5) Colorir variações de peso pela direção da meta: verde quando aproxima do alvo, vermelho quando afasta (quem quer ganhar vê +0,5 kg em verde)	Média
-M40	Pesagem opcional ao começar o treino (desligável nas configurações), para o histórico de peso se manter sem depender de abrir o Perfil
+M40	✅ (12/10/2026, desligado por padrão, em Perfil → Treino) Pesagem opcional ao começar o treino (desligável nas configurações), para o histórico de peso se manter sem depender de abrir o Perfil
 Saúde: comparado em 04/10/2026 — o openGym só acompanha peso corporal (sem IMC, TMB/TDEE, água ou gordura corporal); nossas funções de saúde são mais completas e seguem como estão, com M38–M40 trazendo o que o acompanhamento de peso dele faz melhor
 M41	✅ (revisão de 10/10/2026: feito no app 3.x, evolução pela melhor série) Corrigir a evolução por exercício: o gráfico usa o campo legado weight (carga da 1ª série); em pirâmide 40→45→50 kg mostra 40. Usar a melhor série da sessão (no app atual é ajuste simples; na reescrita já nasce certo)	Média
 M42	✅ (revisão de 10/10/2026: feito no app 3.x, LineChart com eixos, meta e períodos) Componente de gráfico na reescrita: eixos com valores e datas, linha da meta, legenda do ponto que se reposiciona para não ser cortada nem cobrir o valor, arrastar o dedo para percorrer os pontos, acessível (resumo em texto para leitor de tela)	Alta
