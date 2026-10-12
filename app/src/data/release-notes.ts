@@ -3,6 +3,15 @@ export interface ReleaseNote { version: string; date: string; items: string[] }
 
 export const RELEASE_NOTES: readonly ReleaseNote[] = [
   {
+    version: '3.8.0',
+    date: '2026-10',
+    items: [
+      'Compartilhe o seu plano: Plano → Planos → "Compartilhar este plano" salva um arquivo só com as rotinas; quem recebe importa no mesmo lugar.',
+      '"Copiar como texto" no histórico e no fim do treino, pronto para o WhatsApp.',
+      'Pesagens com a média de cada semana e quanto mudou.'
+    ]
+  },
+  {
     version: '3.7.0',
     date: '2026-10',
     items: [

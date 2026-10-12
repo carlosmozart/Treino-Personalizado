@@ -6,7 +6,7 @@ Todas as mudanças relevantes do app ficam registradas aqui. Ao lançar uma nova
    atualizar o app instalado
 3. Adicione uma entrada aqui, nesse formato
 
-## [Não lançado]
+## [3.8.0] - 2026-10-12
 
 - Plano → Planos: "Compartilhar este plano" salva um arquivo só com as rotinas (sem histórico, peso ou perfil; as cargas vão só se você quiser), e "Importar plano de um arquivo" traz o plano de outra pessoa.
 - Histórico e resumo do treino: "Copiar como texto", pronto para colar no WhatsApp.
