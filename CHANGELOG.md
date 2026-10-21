@@ -8,6 +8,7 @@ Todas as mudanças relevantes do app ficam registradas aqui. Ao lançar uma nova
 
 ## Não lançado
 
+- Plano → Planos → "Revisar este plano com IA": o pedido leva o plano atual e o que você fez de verdade nas últimas semanas (cargas, repetições e quantos treinos). A IA sugere ajustes com o motivo, e o app mostra cada mudança (alterar, trocar, incluir, tirar) para você aprovar uma a uma; o que não for marcado fica como está.
 - Treino → Trocar exercício: marque o equipamento que você tem aí (barra, halteres, polia, máquina, Smith, peso do corpo) e a troca mostra só o que dá para fazer. Fica salvo para as próximas trocas.
 - Perfil → Dados e backup: "Onde ficam seus dados" diz onde os dados estão, se há cópia automática e quando foi o último backup (em laranja depois de 2 semanas ou se nunca houve).
 - Meta de peso: com o peso já registrado e sem alvo, o app diz que falta só o peso que você quer atingir, no Início e em Progresso → Metas.

@@ -81,7 +81,7 @@ const BLOCK_EXAMPLE = [
   '[FIM]'
 ];
 
-const BLOCK_RULES = [
+export const BLOCK_RULES = [
   'Regras do bloco:',
   '- Coloque o bloco inteiro dentro de ``` para as quebras de linha não se perderem.',
   '- Uma linha DIA para cada dia de treino, seguida das linhas EX daquele dia.',

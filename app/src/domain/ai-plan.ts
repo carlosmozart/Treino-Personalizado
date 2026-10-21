@@ -21,6 +21,8 @@ export interface AiExercise {
   valorMin?: number;
   carga: number;
   alternativa: string;
+  /** M34: na revisão, o porquê da mudança (7º campo, opcional). */
+  motivo?: string;
 }
 
 export interface AiDay {
@@ -95,6 +97,7 @@ export function parsePlanBlock(block: string): AiPlan {
     const exercise: AiExercise = {
       nome, tipo, series: num(2, 3), valor: num(3, 10), carga: num(4, 0), alternativa: (fields[5] ?? '').trim()
     };
+    if (fields[6]?.trim()) exercise.motivo = fields[6].trim();
     // faixa "8-12", "8–12" ou "8 a 12" (o pedido de conversão aceita); sem isso o "8-12" viraria 812
     const range = tipo === 'forca' ? /^(\d+)\s*(?:-|–|a|até)\s*(\d+)/i.exec(fields[3] ?? '') : null;
     if (range) {

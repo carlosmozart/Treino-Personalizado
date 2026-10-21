@@ -14,6 +14,7 @@ import { Icon } from '../../ui/Icon';
 import { ExerciseThumb } from '../../ui/ExerciseIllustration';
 import { AiPlanSheet } from './AiPlanSheet';
 import { LibrarySheet } from './LibrarySheet';
+import { AiReviewSheet } from './AiReviewSheet';
 import { TemplateSheet } from './TemplateSheet';
 import { PlanFileActions } from './PlanFileActions';
 import { NumberField } from '../../ui/NumberField';
@@ -35,6 +36,7 @@ export function PlanScreen() {
   const [plansOpen, setPlansOpen] = useState(false);
   const [aiOpen, setAiOpen] = useState<false | 'new' | 'convert'>(false);
   const [libraryOpen, setLibraryOpen] = useState(false);
+  const [reviewOpen, setReviewOpen] = useState(false);
   const [templatesOpen, setTemplatesOpen] = useState(false);
   const plan = data?.activePlanId ? data.plans[data.activePlanId] : undefined;
 
@@ -85,6 +87,7 @@ export function PlanScreen() {
         </div>
       </div>
       <LibrarySheet open={libraryOpen} onClose={() => setLibraryOpen(false)} />
+      <AiReviewSheet open={reviewOpen} onClose={() => setReviewOpen(false)} />
       <div role="radiogroup" aria-label="Como o plano anda" className="mt-3 grid grid-cols-2 gap-1 rounded-xl bg-surface-2 p-1">
         {([['week', 'Semana fixa'], ['rotation', 'Rotação A/B/C']] as const).map(([mode, label]) => {
           const on = (mode === 'rotation') === !!plan.rotation;
@@ -166,6 +169,9 @@ export function PlanScreen() {
         </SheetAction>
         <SheetAction onClick={() => { setPlansOpen(false); setAiOpen('convert'); }}>
           <Icon name="dica" /> Importar treino feito em IA
+        </SheetAction>
+        <SheetAction onClick={() => { setPlansOpen(false); setReviewOpen(true); }}>
+          <Icon name="dica" /> Revisar este plano com IA
         </SheetAction>
         <SheetAction onClick={() => { run((d, now) => addPlan(d, duplicatePlan(plan, newId('plano'), toDateKey(now)), now)); setPlansOpen(false); }}>
           <Icon name="mais" /> Duplicar este plano

@@ -147,7 +147,7 @@ M30	✅ (09/10/2026, por repetições, só em nomes de peso do corpo) Exercício
 M31	Reps por lado (afundo, remada unilateral): registra o total, mostra "8 por lado" e progride de 2 em 2	Baixa
 M32	Marcar um plano/semana como deload: entra no histórico mas não vira base da progressão	Baixa
 M33	✅ (copiar treino como texto e salvar treino feito como dia do plano, 12/10/2026) Copiar treino como texto e salvar um treino feito como novo dia do plano	Baixa
-M34	Revisão do treino pela IA: gerar prompt com o histórico recente para a IA propor ajustes com justificativa, e importar a resposta pelo fluxo de importação que já existe (cada mudança aprovada pelo usuário)	Média
+M34	✅ (21/10/2026, Plano → Planos → Revisar este plano com IA; domain/ai-review.ts: pedido com plano e histórico, comparação e aplicação só do aprovado) Revisão do treino pela IA: gerar prompt com o histórico recente para a IA propor ajustes com justificativa, e importar a resposta pelo fluxo de importação que já existe (cada mudança aprovada pelo usuário)	Média
 M35	✅ (revisão de 10/10/2026: feito no app 3.x, Início mostra o próximo treino no descanso) No dia de descanso, informar quando é o próximo treino e qual é	Baixa
 M36	✅ (21/10/2026, botões de equipamento na troca, salvos em settings.availableEquipment) Filtro por equipamento na troca de exercício (só mostrar o que a academia/casa tem)	Baixa
 M37	Unidade kg/lb com conversão opcional dos dados salvos	Baixa
