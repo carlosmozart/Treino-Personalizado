@@ -3,6 +3,14 @@ export interface ReleaseNote { version: string; date: string; items: string[] }
 
 export const RELEASE_NOTES: readonly ReleaseNote[] = [
   {
+    version: '3.11.0',
+    date: '2026-10',
+    items: [
+      'Já tem um treino pronto no ChatGPT, no Gemini ou em outra IA? Plano → "Importar treino feito em IA": copie o pedido, cole na conversa da IA e traga a resposta de volta.',
+      'Plano: apagar e redigitar as repetições mínima e máxima não faz mais o número pular para o outro.'
+    ]
+  },
+  {
     version: '3.10.0',
     date: '2026-10',
     items: [
