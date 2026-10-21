@@ -8,6 +8,7 @@ Todas as mudanças relevantes do app ficam registradas aqui. Ao lançar uma nova
 
 ## Não lançado
 
+- Plano → Biblioteca: os 153 exercícios com busca, filtro por grupo muscular e por equipamento, ilustração, favoritar e "+" para adicionar a um dia do plano. "Criar exercício" guarda um exercício seu com o grupo muscular; ele entra nas buscas e nas séries por grupo do Progresso.
 - Voltar do Android: trocar de um painel para outro (por exemplo, de Planos para Montar treino com IA) gastava uma entrada do voltar, e depois de algumas trocas o voltar fechava o app em vez do painel.
 
 ## [3.11.0] - 2026-10-21

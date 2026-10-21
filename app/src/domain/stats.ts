@@ -55,7 +55,7 @@ export function muscleBalance(data: AppData, now: Date, days = 30): { group: str
   for (const w of data.workouts) {
     if (w.date < since) continue;
     for (const e of w.entries) {
-      const group = groupOf(e.name);
+      const group = groupOf(e.name, data.settings.customExercises);
       if (!group || group === 'Cardio') continue;
       totals.set(group, (totals.get(group) ?? 0) + workSets(e).length);
     }

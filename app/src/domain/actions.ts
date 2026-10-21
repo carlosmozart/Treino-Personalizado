@@ -4,7 +4,7 @@
 import { toDateKey, type DateKey } from './dates';
 import type { DayKey } from './ai-plan';
 import { recordGoalCheckpoints } from './body-goal';
-import type { AppData, DayNote, Measurements, Plan, Settings, UserProfile, Workout, WorkoutEntry } from './model';
+import type { AppData, CustomExercise, DayNote, Measurements, Plan, Settings, UserProfile, Workout, WorkoutEntry } from './model';
 import { checkBirthday, checkWaterGoal, grantCheckin, revokeCheckin, type RewardEvent } from './rewards';
 import { sessionProgress, sessionToWorkout, type ActiveSession } from './session';
 import { bestSet } from './workouts';
@@ -56,6 +56,25 @@ export function finishWorkout(data: AppData, session: ActiveSession, now: Date):
   touch(draft, key.checkin(workout.date), now);
   grantCheckin(draft, workout.date, complete, now, events);
   return { kind: 'saved', data: draft, events, workout, full: complete };
+}
+
+/**
+ * M46: cria um exercício próprio. Nome vazio, grupo desconhecido ou nome que já existe (na
+ * biblioteca ou entre os próprios) não muda nada: a tela avisa antes.
+ */
+export function addCustomExercise(data: AppData, ex: CustomExercise, now: Date, groups: readonly string[], existing: (name: string) => boolean): ActionResult {
+  const name = ex.name.trim().replace(/\s+/g, ' ');
+  if (!name || !groups.includes(ex.group) || existing(name)) return unchanged(data);
+  const customExercises = [...(data.settings.customExercises ?? []), { name, group: ex.group }];
+  return updateSettings(data, { customExercises }, now);
+}
+
+/** M46: apaga um exercício próprio da Biblioteca (o histórico e os planos continuam com o nome). */
+export function removeCustomExercise(data: AppData, name: string, now: Date): ActionResult {
+  const k = normalizeExerciseName(name);
+  const list = data.settings.customExercises ?? [];
+  if (!list.some(c => normalizeExerciseName(c.name) === k)) return unchanged(data);
+  return updateSettings(data, { customExercises: list.filter(c => normalizeExerciseName(c.name) !== k) }, now);
 }
 
 /** M26: põe ou tira um exercício dos favoritos (pelo nome normalizado). */

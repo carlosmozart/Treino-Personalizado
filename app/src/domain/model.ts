@@ -190,6 +190,8 @@ export interface Settings {
   weighBeforeWorkout?: boolean;
   /** M26: exercícios favoritos (nome normalizado): aparecem primeiro na troca e nas buscas. */
   favorites?: string[];
+  /** M46: exercícios criados pela pessoa na Biblioteca, com o grupo muscular. */
+  customExercises?: CustomExercise[];
   /** M25: cor de destaque (botões, seleção). Ausente = azul. */
   accent?: AccentId;
   /** Tema da interface. Ausente = acompanha o sistema. */
@@ -197,6 +199,9 @@ export interface Settings {
 }
 
 export type ThemePref = 'system' | 'light' | 'dark';
+
+/** M46: exercício que não está na biblioteca, criado pela pessoa. */
+export interface CustomExercise { name: string; group: string }
 
 export type AccentId = 'azul' | 'roxo' | 'rosa' | 'laranja' | 'ciano';
 

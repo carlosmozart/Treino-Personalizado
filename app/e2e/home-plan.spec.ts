@@ -93,3 +93,37 @@ test('plano: apagar e redigitar a faixa de reps, como no teclado do celular', as
   await expect(min).toHaveValue('6');
   await expect(page.getByText('3 × 6', { exact: true }).first()).toBeVisible();
 });
+
+test('biblioteca: filtrar, adicionar a um dia do plano e criar exercício próprio', async ({ page }) => {
+  const errors: string[] = [];
+  page.on('console', msg => { if (msg.type() === 'error') errors.push(msg.text()); });
+  page.on('pageerror', e => errors.push(String(e.stack ?? e)));
+  await page.goto('/');
+  await page.getByRole('button', { name: 'Plano', exact: true }).click();
+  await page.getByRole('button', { name: 'Escolher um modelo' }).click();
+  await page.getByRole('button', { name: 'Usar Corpo inteiro 3×' }).click();
+  await page.getByRole('button', { name: 'Biblioteca' }).click();
+  await expect(page.getByText('153 exercícios')).toBeVisible();
+
+  await page.getByRole('group', { name: 'Grupo muscular' }).getByRole('button', { name: 'Ombro' }).click();
+  await page.getByRole('group', { name: 'Equipamento' }).getByRole('button', { name: 'Halteres' }).click();
+  await expect(page.getByText('7 exercícios')).toBeVisible();
+  await page.getByRole('button', { name: /^Remada Alta \(Halteres\)/ }).click();
+  await page.getByRole('button', { name: 'Segunda · Corpo inteiro A' }).click();
+  await expect(page.getByText('Remada Alta (Halteres) adicionado em Segunda.')).toBeVisible();
+
+  await page.getByRole('button', { name: 'Criar exercício' }).click();
+  await page.getByRole('textbox', { name: 'Nome' }).fill('Remada no cabo unilateral');
+  await page.getByRole('combobox', { name: 'Grupo muscular' }).selectOption('Costas');
+  await page.getByRole('button', { name: 'Criar', exact: true }).click();
+  await expect(page.getByText('Costas · Polia · seu')).toBeVisible();
+  await page.getByRole('button', { name: 'Meus' }).click();
+  await expect(page.getByText('1 exercício', { exact: true })).toBeVisible();
+
+  // depois de várias trocas de painel, o voltar fecha a Biblioteca e continua no app (não sai da página)
+  await page.goBack();
+  await expect(page.getByRole('dialog')).toHaveCount(0);
+  await expect(page.getByRole('heading', { name: 'Plano', level: 1 })).toBeVisible();
+  await expect(page.getByRole('article', { name: 'Segunda' })).toContainText('Remada Alta (Halteres)');
+  expect(errors).toEqual([]);
+});

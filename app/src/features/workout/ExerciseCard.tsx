@@ -88,7 +88,7 @@ export function ExerciseCard({ session, index, alwaysOpen = false, onGoTo }: Pro
   // R6: "há 3 dias"; tocar mostra a data
   const [showDate, setShowDate] = useState(false);
   const { last, best } = useExerciseContext(ex, session.date);
-  const group = groupOf(ex.name);
+  const group = groupOf(ex.name, data?.settings.customExercises);
   const done = isExerciseDone(ex);
   const unit = ex.mode === 'time' ? 'Seg' : 'Reps';
 

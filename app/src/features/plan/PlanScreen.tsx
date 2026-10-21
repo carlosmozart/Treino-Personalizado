@@ -13,6 +13,7 @@ import { useAppStore } from '../../store';
 import { Icon } from '../../ui/Icon';
 import { ExerciseThumb } from '../../ui/ExerciseIllustration';
 import { AiPlanSheet } from './AiPlanSheet';
+import { LibrarySheet } from './LibrarySheet';
 import { TemplateSheet } from './TemplateSheet';
 import { PlanFileActions } from './PlanFileActions';
 import { NumberField } from '../../ui/NumberField';
@@ -33,6 +34,7 @@ export function PlanScreen() {
   const run = useAppStore(s => s.run);
   const [plansOpen, setPlansOpen] = useState(false);
   const [aiOpen, setAiOpen] = useState<false | 'new' | 'convert'>(false);
+  const [libraryOpen, setLibraryOpen] = useState(false);
   const [templatesOpen, setTemplatesOpen] = useState(false);
   const plan = data?.activePlanId ? data.plans[data.activePlanId] : undefined;
 
@@ -73,10 +75,16 @@ export function PlanScreen() {
           <h1 className="text-3xl font-black tracking-tight">Plano</h1>
           <p className="truncate text-muted">{plan.name}</p>
         </div>
-        <button type="button" onClick={() => setPlansOpen(true)} className="h-11 shrink-0 rounded-xl bg-surface-2 px-4 font-semibold">
-          Planos
-        </button>
+        <div className="flex shrink-0 gap-2">
+          <button type="button" onClick={() => setLibraryOpen(true)} className="h-11 rounded-xl bg-surface-2 px-4 font-semibold">
+            Biblioteca
+          </button>
+          <button type="button" onClick={() => setPlansOpen(true)} className="h-11 rounded-xl bg-surface-2 px-4 font-semibold">
+            Planos
+          </button>
+        </div>
       </div>
+      <LibrarySheet open={libraryOpen} onClose={() => setLibraryOpen(false)} />
       <div role="radiogroup" aria-label="Como o plano anda" className="mt-3 grid grid-cols-2 gap-1 rounded-xl bg-surface-2 p-1">
         {([['week', 'Semana fixa'], ['rotation', 'Rotação A/B/C']] as const).map(([mode, label]) => {
           const on = (mode === 'rotation') === !!plan.rotation;
