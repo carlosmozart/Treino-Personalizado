@@ -3,6 +3,15 @@ export interface ReleaseNote { version: string; date: string; items: string[] }
 
 export const RELEASE_NOTES: readonly ReleaseNote[] = [
   {
+    version: '3.13.0',
+    date: '2026-10',
+    items: [
+      'Plano → Planos → "Revisar este plano com IA": a IA olha o que você fez de verdade e sugere ajustes com o motivo; você aprova cada mudança.',
+      'Trocar exercício: marque o equipamento que você tem aí e veja só o que dá para fazer.',
+      'Perfil → Dados e backup: veja onde ficam seus dados e quando foi o último backup.'
+    ]
+  },
+  {
     version: '3.12.0',
     date: '2026-10',
     items: [

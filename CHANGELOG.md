@@ -6,7 +6,7 @@ Todas as mudanças relevantes do app ficam registradas aqui. Ao lançar uma nova
    atualizar o app instalado
 3. Adicione uma entrada aqui, nesse formato
 
-## Não lançado
+## [3.13.0] - 2026-10-21
 
 - Plano → Planos → "Revisar este plano com IA": o pedido leva o plano atual e o que você fez de verdade nas últimas semanas (cargas, repetições e quantos treinos). A IA sugere ajustes com o motivo, e o app mostra cada mudança (alterar, trocar, incluir, tirar) para você aprovar uma a uma; o que não for marcado fica como está.
 - Treino → Trocar exercício: marque o equipamento que você tem aí (barra, halteres, polia, máquina, Smith, peso do corpo) e a troca mostra só o que dá para fazer. Fica salvo para as próximas trocas.
