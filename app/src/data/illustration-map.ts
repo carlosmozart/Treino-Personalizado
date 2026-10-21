@@ -1,6 +1,7 @@
 // Nome do exercício → ilustração do Everkinetic (github.com/everkinetic/data, CC BY-SA 4.0).
 // Conferida exercício a exercício: sem imagem que mostre o mesmo movimento, fica de fora
-// (melhor nenhuma ilustração que uma errada). Sem importações: o script de importação
+// (melhor nenhuma ilustração que uma errada). 0003, 0012 e 0047 só existem em PNG no Everkinetic
+// e foram vetorizados (scripts/everkinetic-traced). Sem importações: o script de importação
 // (scripts/import-illustrations.ts) lê este arquivo direto no Node.
 
 /** Nomes da biblioteca (data/exercise-library.ts) e do plano de exemplo. */
@@ -18,6 +19,7 @@ export const ILLUSTRATION_BY_NAME: Record<string, string> = {
   'Flexão de Braço (Solo)': '0077',
   'Paralelas / Mergulho (Dips)': '0054',
   'Crucifixo com Halteres': '0056',
+  'Peck Deck (Voador)': '0047',
   // Costas
   'Puxada Triângulo': '0096',
   'Barra Fixa (Pull-up)': '0087',
@@ -31,6 +33,8 @@ export const ILLUSTRATION_BY_NAME: Record<string, string> = {
   'Extensão Lombar Leve (Banco Romano)': '0103',
   // Ombro
   'Desenvolvimento Militar (Barra)': '0004',
+  'Desenvolvimento com Halteres': '0012',
+  'Desenvolvimento Máquina': '0003',
   'Elevação Lateral (Halteres)': '0018',
   'Elevação Frontal': '0033',
   'Encolhimento (Trapézio)': '0030',
@@ -87,8 +91,8 @@ export const ILLUSTRATION_BY_NAME: Record<string, string> = {
 
 /*
  * Sem ilustração fiel no Everkinetic (ficam para ícones próprios ou foto do usuário, Q4):
- * Crossover (Polia Baixa), Peck Deck, Puxada Frontal (pegada aberta), Remada Unilateral,
- * Remada Máquina, Desenvolvimento com Halteres e Máquina, Elevação Lateral (Polia),
+ * Crossover (Polia Baixa), Puxada Frontal (pegada aberta: o 0097 só tem PNG e puxa atrás da nuca),
+ * Remada Unilateral, Remada Máquina, Elevação Lateral (Polia),
  * Crucifixo Invertido, Face Pull, Agachamento Búlgaro, Elevação Pélvica (Hip Thrust),
  * Abdominal Crunch (Máquina), Prancha, Rotação de Tronco e todo o cardio.
  */

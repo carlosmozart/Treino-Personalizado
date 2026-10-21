@@ -4,13 +4,16 @@
 // Para cada id em src/data/illustration-map.ts copia as duas posições (relaxation = inicial,
 // tension = final), tira o fundo branco e pinta o traço com currentColor, para a figura seguir
 // o tema. As imagens modificadas continuam sob CC BY-SA 4.0 (ver LICENSE.txt gerado).
-import { mkdirSync, readFileSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
+// Alguns exercícios só existem em PNG no Everkinetic: as versões vetorizadas ficam em
+// scripts/everkinetic-traced (ver o README de lá) e são usadas quando o dist/svg não tem o id.
+import { existsSync, mkdirSync, readFileSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { ILLUSTRATION_BY_NAME } from '../src/data/illustration-map.ts';
 
 const source = process.argv[2];
 if (!source) throw new Error('Informe a pasta do clone do everkinetic/data.');
 const out = join(import.meta.dirname, '../src/assets/illustrations');
+const traced = join(import.meta.dirname, 'everkinetic-traced');
 
 const ids = [...new Set(Object.values(ILLUSTRATION_BY_NAME))].sort();
 rmSync(out, { recursive: true, force: true });
@@ -33,7 +36,8 @@ function convert(svg: string, file: string): string {
 let bytes = 0;
 for (const id of ids) {
   for (const [phase, suffix] of [['relaxation', 'a'], ['tension', 'b']] as const) {
-    const file = join(source, 'dist/svg', `${id}-${phase}.svg`);
+    const name = `${id}-${phase}.svg`;
+    const file = existsSync(join(source, 'dist/svg', name)) ? join(source, 'dist/svg', name) : join(traced, name);
     const svg = convert(readFileSync(file, 'utf8'), file);
     bytes += svg.length;
     writeFileSync(join(out, `${id}-${suffix}.svg`), svg);
@@ -46,8 +50,9 @@ Licença: Creative Commons Attribution-ShareAlike 4.0 International (CC BY-SA 4.
 https://creativecommons.org/licenses/by-sa/4.0/
 
 Modificações feitas pelo Treino Personalizado: remoção do fundo branco, cor do traço
-trocada por currentColor e coordenadas arredondadas a uma casa decimal. Estas versões
-modificadas são distribuídas sob a mesma licença CC BY-SA 4.0.
+trocada por currentColor e coordenadas arredondadas a uma casa decimal. Os ids que o
+Everkinetic só publica em PNG (${ids.filter(id => !existsSync(join(source, 'dist/svg', `${id}-relaxation.svg`))).join(', ')}) foram vetorizados a partir
+dessas imagens. Estas versões modificadas são distribuídas sob a mesma licença CC BY-SA 4.0.
 
 Arquivos: <id>-a.svg (posição inicial) e <id>-b.svg (posição final).
 Ids usados: ${ids.join(', ')}

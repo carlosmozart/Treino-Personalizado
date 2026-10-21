@@ -18,7 +18,8 @@ export function CreditsButton() {
               sob a licença Creative Commons Atribuição-CompartilhaIgual 4.0 (<a className={LINK} href="https://creativecommons.org/licenses/by-sa/4.0/deed.pt-br" target="_blank" rel="noreferrer">CC BY-SA 4.0</a>).
             </p>
             <p className="mt-1 text-muted">
-              Modificações: fundo removido, traço na cor do tema e coordenadas arredondadas. As ilustrações
+              Modificações: fundo removido, traço na cor do tema, coordenadas arredondadas e alguns desenhos
+              vetorizados a partir das imagens PNG do projeto. As ilustrações
               modificadas seguem sob a mesma licença.
             </p>
           </section>

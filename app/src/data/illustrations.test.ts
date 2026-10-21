@@ -10,7 +10,8 @@ test('encontra pelo nome exato, sem acento/caixa e pelo nome sem o complemento',
   expect(illustrationIdFor('Leg Press 45º (Amplitude Total)')).toBe('0127');
   expect(illustrationIdFor('Supino Reto')).toBe('0042');
   expect(illustrationIdFor('Esteira')).toBeNull();
-  expect(illustrationIdFor('Peck Deck (Voador)')).toBeNull();
+  expect(illustrationIdFor('Peck Deck (Voador)')).toBe('0047');
+  expect(illustrationIdFor('Puxada Frontal (Polia)')).toBeNull();
 });
 
 test('toda entrada da tabela tem os dois arquivos, e cobre a maior parte da biblioteca e do plano de exemplo', async () => {
@@ -26,6 +27,6 @@ test('toda entrada da tabela tem os dois arquivos, e cobre a maior parte da bibl
   const seed = Object.values(seedPlan('2026-10-04').days).flatMap(d => d.exercises.map(e => e.name));
   // lacunas conhecidas (illustration-map.ts): sem imagem fiel no Everkinetic
   expect(new Set(seed.filter(n => !illustrationIdFor(n)))).toEqual(new Set([
-    'Desenvolvimento Máquina', 'Puxada Frontal (Polia)', 'Elevação Pélvica (Hip Thrust)', 'Abdominal (Prancha ou Máquina)'
+    'Puxada Frontal (Polia)', 'Elevação Pélvica (Hip Thrust)', 'Abdominal (Prancha ou Máquina)'
   ]));
 });

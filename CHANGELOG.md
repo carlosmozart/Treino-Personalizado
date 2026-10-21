@@ -6,6 +6,10 @@ Todas as mudanças relevantes do app ficam registradas aqui. Ao lançar uma nova
    atualizar o app instalado
 3. Adicione uma entrada aqui, nesse formato
 
+## Não lançado
+
+- Ilustrações novas para Desenvolvimento com Halteres, Desenvolvimento Máquina e Peck Deck (Voador).
+
 ## [3.9.0] - 2026-10-12
 
 - Aba Treino: "Treino livre, sem seguir o plano" começa um treino vazio; os exercícios entram por "Adicionar exercício".

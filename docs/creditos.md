@@ -9,7 +9,8 @@ projeto de dados abertos baseado em everkinetic.com, criado por Greg Priday, sob
 
 - Arquivos: `app/src/assets/illustrations/` (com `LICENSE.txt` ao lado).
 - Modificações: fundo branco removido, traço pintado com a cor do tema (`currentColor`) e
-  coordenadas arredondadas. As versões modificadas seguem sob CC BY-SA 4.0. O código do app não
+  coordenadas arredondadas. Os exercícios que o Everkinetic só publica em PNG foram vetorizados
+  (`app/scripts/everkinetic-traced/`). As versões modificadas seguem sob CC BY-SA 4.0. O código do app não
   é afetado pela licença das imagens.
 - O crédito aparece no app ao abrir a ilustração de um exercício e em Perfil → Sobre → Créditos e licenças.
 - Correspondência nome → ilustração: `app/src/data/illustration-map.ts`, conferida visualmente
