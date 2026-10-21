@@ -3,6 +3,14 @@ export interface ReleaseNote { version: string; date: string; items: string[] }
 
 export const RELEASE_NOTES: readonly ReleaseNote[] = [
   {
+    version: '3.10.0',
+    date: '2026-10',
+    items: [
+      'Biblioteca de exercícios com 76 exercícios novos, de 77 para 153, todos com ilustração: supino declinado e no Smith, remada alta, rosca Scott com halteres, agachamento frontal, afundo reverso, prancha lateral e muitos outros.',
+      'Desenvolvimento com Halteres, Desenvolvimento Máquina e Peck Deck ganharam ilustração.'
+    ]
+  },
+  {
     version: '3.9.0',
     date: '2026-10',
     items: [
