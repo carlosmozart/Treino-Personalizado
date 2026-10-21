@@ -3,6 +3,15 @@ export interface ReleaseNote { version: string; date: string; items: string[] }
 
 export const RELEASE_NOTES: readonly ReleaseNote[] = [
   {
+    version: '3.12.0',
+    date: '2026-10',
+    items: [
+      'Plano → Biblioteca: os 153 exercícios com filtro por grupo muscular e por equipamento, ilustração e "+" para adicionar a um dia do plano.',
+      'Biblioteca → "Criar exercício": guarde um exercício seu, com o grupo muscular; ele aparece nas buscas e no Progresso.',
+      'Voltar do Android: trocar de um painel para outro não faz mais o voltar fechar o app.'
+    ]
+  },
+  {
     version: '3.11.0',
     date: '2026-10',
     items: [
