@@ -38,7 +38,7 @@ export function repRange(t: Pick<PlanExercise, 'reps' | 'repMin' | 'repMax'>): {
 export function isBodyweight(name: string): boolean {
   const n = normalizeExerciseName(name);
   if (/maquina|polia|cabo|halter|barra\)|anilha|mesa|cadeira|leg press|smith/.test(n) && !/barra fixa/.test(n)) return false;
-  return /flexao de braco|barra fixa|pull-?up|chin-?up|paralela|mergulho|dips|abdominal|prancha|burpee|polichinelo|afundo|agachamento (livre )?sem peso|peso do corpo|elevacao pelvica|roda abdominal|ponte/.test(n);
+  return /flexao de braco|barra fixa|pull-?up|chin-?up|paralela|mergulho|dips|abdominal|prancha|burpee|polichinelo|afundo|agachamento (livre )?sem peso|peso do corpo|elevacao pelvica|roda abdominal|ponte|super-?homem|remada invertida/.test(n);
 }
 
 /** M30: sem carga, a progressão anda nas repetições: todas as séries no alvo pedem uma rep a mais. */

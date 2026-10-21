@@ -155,6 +155,8 @@ describe('peso do corpo (M30)', () => {
   it('reconhece peso do corpo pelo nome', () => {
     expect(['Barra Fixa (Pull-up)', 'Paralelas / Mergulho (Dips)', 'Prancha'].every(isBodyweight)).toBe(true);
     expect(['Mesa Flexora', 'Supino Reto (Barra)', 'Abdominal na Polia'].some(isBodyweight)).toBe(false);
+    expect(['Super-Homem (Lombar no Solo)', 'Remada Invertida (Peso do Corpo)', 'Flexão de Braço (Pés Elevados)', 'Prancha Lateral'].every(isBodyweight)).toBe(true);
+    expect(['Mergulho na Máquina', 'Afundo Reverso (Barra)', 'Flexão Lateral (Halter)', 'Barra Fixa Pegada Aberta'].map(isBodyweight)).toEqual([false, false, false, true]);
   });
 });
 

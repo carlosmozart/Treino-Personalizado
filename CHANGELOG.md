@@ -9,6 +9,7 @@ Todas as mudanças relevantes do app ficam registradas aqui. Ao lançar uma nova
 ## Não lançado
 
 - Ilustrações novas para Desenvolvimento com Halteres, Desenvolvimento Máquina e Peck Deck (Voador).
+- Biblioteca de exercícios com 76 exercícios novos, todos com ilustração (de 77 para 153): supino declinado e no Smith, crucifixo inclinado e na polia, remada alta, encolhimento com halteres, rosca Scott com halteres e na polia, rosca Zottman, tríceps francês com barra, agachamento frontal, subida no banco, afundo reverso, bom dia, ponte de glúteo, prancha lateral e outros.
 
 ## [3.9.0] - 2026-10-12
 

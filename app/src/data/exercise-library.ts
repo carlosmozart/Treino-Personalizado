@@ -1,4 +1,5 @@
-// Biblioteca de exercícios por grupo (a mesma do app antigo, data/static-config.js).
+// Biblioteca de exercícios por grupo: a do app antigo (data/static-config.js) e, no fim de cada grupo,
+// os que vieram do Everkinetic no Q9 (20/10/2026), todos com ilustração.
 import { normalizeExerciseName } from '../domain/text';
 
 export const EXERCISE_LIBRARY: Record<string, readonly string[]> = {
@@ -14,7 +15,18 @@ export const EXERCISE_LIBRARY: Record<string, readonly string[]> = {
     'Peck Deck (Voador)',
     'Flexão de Braço (Solo)',
     'Paralelas / Mergulho (Dips)',
-    'Crucifixo com Halteres'
+    'Crucifixo com Halteres',
+    'Supino Declinado (Barra)',
+    'Supino Declinado (Halteres)',
+    'Supino Reto (Smith)',
+    'Supino Inclinado (Smith)',
+    'Supino Inclinado Pegada Neutra (Halteres)',
+    'Supino Pegada Aberta (Barra)',
+    'Crucifixo Inclinado (Halteres)',
+    'Crucifixo Declinado (Halteres)',
+    'Crucifixo na Polia (Banco Reto)',
+    'Crucifixo na Polia (Banco Inclinado)',
+    'Flexão de Braço (Pés Elevados)'
   ],
   Costas: [
     'Puxada Frontal (Polia)',
@@ -27,7 +39,14 @@ export const EXERCISE_LIBRARY: Record<string, readonly string[]> = {
     'Remada Máquina',
     'Pulldown (Corda)',
     'Levantamento Terra',
-    'Pullover'
+    'Pullover',
+    'Barra Fixa Pegada Aberta',
+    'Barra Fixa Pegada Neutra',
+    'Puxada Supinada (Polia)',
+    'Remada Invertida (Peso do Corpo)',
+    'Levantamento Terra (Halteres)',
+    'Levantamento Terra (Smith)',
+    'Super-Homem (Lombar no Solo)'
   ],
   Ombro: [
     'Desenvolvimento Militar (Barra)',
@@ -38,7 +57,18 @@ export const EXERCISE_LIBRARY: Record<string, readonly string[]> = {
     'Elevação Frontal',
     'Crucifixo Invertido (Máquina)',
     'Face Pull',
-    'Encolhimento (Trapézio)'
+    'Encolhimento (Trapézio)',
+    'Remada Alta (Barra)',
+    'Remada Alta (Halteres)',
+    'Remada Alta (Polia)',
+    'Remada Alta (Smith)',
+    'Elevação Frontal (Polia)',
+    'Crucifixo Invertido (Halteres)',
+    'Crucifixo Invertido (Polia)',
+    'Desenvolvimento Unilateral (Halter)',
+    'Encolhimento (Halteres)',
+    'Encolhimento (Polia)',
+    'Encolhimento (Smith)'
   ],
   'Bíceps': [
     'Rosca Direta (Barra)',
@@ -48,7 +78,18 @@ export const EXERCISE_LIBRARY: Record<string, readonly string[]> = {
     'Rosca Scott (Barra W)',
     'Rosca Scott Máquina',
     'Rosca Concentrada',
-    'Rosca 21'
+    'Rosca 21',
+    'Rosca Direta (Barra W)',
+    'Rosca Direta (Halteres)',
+    'Rosca Inclinada (Halteres)',
+    'Rosca Martelo (Corda)',
+    'Rosca Scott (Polia)',
+    'Rosca Scott (Halteres)',
+    'Rosca Scott Unilateral (Halter)',
+    'Rosca Spider (Barra)',
+    'Rosca Zottman',
+    'Rosca Inversa (Halteres)',
+    'Rosca Arrastada (Barra)'
   ],
   'Tríceps': [
     'Tríceps Pulley (Corda)',
@@ -57,7 +98,17 @@ export const EXERCISE_LIBRARY: Record<string, readonly string[]> = {
     'Tríceps Francês',
     'Mergulho no Banco',
     'Tríceps Coice (Halter)',
-    'Supino Fechado'
+    'Supino Fechado',
+    'Tríceps Pulley (Barra V)',
+    'Tríceps Pulley Invertido',
+    'Tríceps Unilateral (Polia)',
+    'Tríceps Francês (Barra)',
+    'Tríceps Francês Unilateral (Halter)',
+    'Supino JM (Barra)',
+    'Tríceps na Máquina',
+    'Mergulho na Máquina',
+    'Flexão de Braço Fechada (Diamante)',
+    'Supino Fechado (Smith)'
   ],
   'Pernas (Quadríceps)': [
     'Agachamento Livre',
@@ -66,7 +117,20 @@ export const EXERCISE_LIBRARY: Record<string, readonly string[]> = {
     'Agachamento Smith',
     'Afundo (Passada)',
     'Agachamento Búlgaro',
-    'Hack Squat'
+    'Hack Squat',
+    'Agachamento Frontal (Barra)',
+    'Agachamento com Halteres',
+    'Agachamento Sumô (Halter)',
+    'Agachamento no Banco (Barra)',
+    'Agachamento Overhead (Barra)',
+    'Agachamento Sissy',
+    'Agachamento Lateral (Barra)',
+    'Subida no Banco (Halteres)',
+    'Subida no Banco (Barra)',
+    'Afundo (Barra)',
+    'Afundo Reverso (Halteres)',
+    'Afundo Reverso (Barra)',
+    'Afundo Andando (Halteres)'
   ],
   'Pernas (Posterior/Glúteo)': [
     'Stiff (Halteres/Barra)',
@@ -76,12 +140,19 @@ export const EXERCISE_LIBRARY: Record<string, readonly string[]> = {
     'Elevação Pélvica (Hip Thrust)',
     'Cadeira Abdutora',
     'Cadeira Adutora',
-    'Glúteo na Polia (Coice)'
+    'Glúteo na Polia (Coice)',
+    'Bom Dia (Barra)',
+    'Flexora em Pé (Máquina)',
+    'Ponte de Glúteo (Solo)',
+    'Adução na Polia'
   ],
   Panturrilha: [
     'Panturrilha em Pé',
     'Panturrilha Sentado',
-    'Panturrilha no Leg Press'
+    'Panturrilha no Leg Press',
+    'Panturrilha em Pé (Barra)',
+    'Panturrilha Burrinho',
+    'Panturrilha Sentado Unilateral (Halter)'
   ],
   'Abdômen / Core': [
     'Abdominal Crunch (Máquina)',
@@ -90,7 +161,13 @@ export const EXERCISE_LIBRARY: Record<string, readonly string[]> = {
     'Elevação de Pernas',
     'Abdominal Infra',
     'Rotação de Tronco (Máquina)',
-    'Roda Abdominal'
+    'Roda Abdominal',
+    'Abdominal Supra',
+    'Abdominal Declinado',
+    'Abdominal Cruzado',
+    'Abdominal Bicicleta',
+    'Flexão Lateral (Halter)',
+    'Prancha Lateral'
   ],
   Cardio: [
     'Esteira',
