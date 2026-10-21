@@ -38,3 +38,18 @@ test('limita exercícios por dia e avisa', () => {
   expect(plan.days.SEX.exercises).toHaveLength(10);
   expect(notes[0]).toContain('Os últimos 2 ficaram de fora');
 });
+
+test('faixa de reps do pedido de conversão vira repMin e repMax no plano', () => {
+  const ai = parseAiPlan(`[PLANO]
+    DIA|SEG|Treino A||
+    EX|Supino Reto|forca|4|8-12|40|
+    EX|Rosca|forca|3|10 a 15||
+    EX|Prancha|tempo|3|30-45||
+    [FIM]`)!;
+  const { plan } = aiPlanToPlan(ai, opts());
+  const [supino, rosca, prancha] = plan.days.SEG.exercises;
+  expect(supino).toMatchObject({ reps: 12, repMin: 8, repMax: 12, weight: 40 });
+  expect(rosca).toMatchObject({ reps: 15, repMin: 10, repMax: 15 });
+  expect(prancha).toMatchObject({ mode: 'time', seconds: 30 });
+  expect(prancha).not.toHaveProperty('repMin');
+});

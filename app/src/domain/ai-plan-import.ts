@@ -58,6 +58,7 @@ export function aiPlanToPlan(ai: AiPlan, opts: AiPlanImportOptions): AiPlanImpor
         alternatives: e.alternativa ? [{ name: e.alternativa, mode: opts.isCardioName(e.alternativa) ? 'cardio' : 'reps' }] : []
       };
       if (mode === 'time') exercise.seconds = e.valor;
+      if (mode === 'reps' && e.valorMin) { exercise.repMin = e.valorMin; exercise.repMax = e.valor; }
       return exercise;
     });
     exerciseCount += day.exercises.length;

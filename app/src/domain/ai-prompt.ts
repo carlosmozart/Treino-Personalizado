@@ -168,5 +168,47 @@ export function buildAiPrompt(data: AppData, o: AiPromptOptions, now: Date): str
   return L.join('\n');
 }
 
-/** Texto curto para pedir só o bloco de novo, quando a resposta veio sem ele. */
-export const AI_FORMAT_REMINDER = 'Repita apenas o plano neste formato:\n[PLANO]\nDIA|SEG|Nome do treino|Foco|\nEX|Nome do exercício|forca|3|10|20|Alternativa opcional|\n[FIM]';
+const CONVERT_EXAMPLE = [
+  '[PLANO]',
+  'DIA | SEG | Treino A | Peito e Tríceps',
+  'EX | Supino Reto com Barra | forca | 4 | 8-12 | 40 |',
+  'EX | Tríceps na Polia | forca | 3 | 12 | |',
+  'EX | Prancha Abdominal | tempo | 3 | 45 | |',
+  'EX | Esteira | cardio | 1 | 20 | |',
+  'DIA | QUA | Treino B | Costas e Bíceps',
+  'EX | Puxada Frontal na Polia | forca | 4 | 10 | |',
+  '[FIM]'
+];
+
+// As regras do pedido de plano novo, ajustadas para converter: faixa de reps vale (o app aceita
+// desde o M10), e carga e alternativa só entram se o treino já tiver.
+const CONVERT_RULES = BLOCK_RULES.flatMap(rule =>
+  rule.startsWith('- A alternativa') ? ['- A alternativa só entra se o treino já citar uma para aquele exercício; senão, deixe vazia.']
+  : rule.startsWith('- A carga') ? ['- A carga vai em kg, só quando o treino informar; senão, fica vazia.']
+  : rule.startsWith('- Nos tipos') ? [rule, '- Em "forca", as repetições podem ser um número (10) ou uma faixa com hífen (8-12), como estiver no treino.']
+  : [rule]
+);
+
+/**
+ * Pedido para quem já tem um treino pronto numa IA (ou em qualquer texto): a IA só reescreve o
+ * treino no formato do bloco, sem mudar nada, e a resposta entra pelo mesmo "Colar a resposta".
+ * `pasted` é o treino colado no app, para quem não está na conversa em que o treino foi feito.
+ */
+export function buildConvertPrompt(pasted = ''): string {
+  const workout = pasted.trim();
+  const L: string[] = [
+    workout ? 'Tenho o treino abaixo e quero importá-lo no meu app de treino.' : 'Quero importar no meu app de treino o treino que você montou para mim nesta conversa.',
+    ''
+  ];
+  if (workout) L.push('## MEU TREINO', workout, '');
+  L.push('## O QUE EU PRECISO QUE VOCÊ FAÇA',
+    'Reescreva esse treino no formato abaixo, DENTRO de um bloco de código (```). Não é para montar um treino novo nem para melhorar o que existe:',
+    '1. Mantenha os mesmos exercícios, na mesma ordem, com as mesmas séries, repetições e cargas.',
+    '2. Se o treino diz o dia da semana de cada treino, use esse dia.',
+    '3. Se ele não diz (Treino A, B, C ou Dia 1, 2, 3), distribua em dias alternados a partir de segunda (SEG, QUA, SEX…) e use o nome original, como "Treino A", no nome do treino.',
+    '4. Aquecimento, alongamento e dicas de execução ficam de fora; cardio entra como exercício do tipo "cardio".',
+    '5. Se faltar o número de séries ou de repetições de algum exercício, use 3 séries de 10 e me avise depois do bloco.', '');
+  L.push('Se você não encontrar nenhum treino para converter, responda exatamente "NÃO CONSEGUI GERAR BLOCO IMPORTÁVEL: " e explique o motivo em seguida.', '');
+  L.push(...CONVERT_EXAMPLE, '', ...CONVERT_RULES);
+  return L.join('\n');
+}

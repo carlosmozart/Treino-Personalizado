@@ -32,7 +32,7 @@ export function PlanScreen() {
   const data = useAppStore(s => s.data);
   const run = useAppStore(s => s.run);
   const [plansOpen, setPlansOpen] = useState(false);
-  const [aiOpen, setAiOpen] = useState(false);
+  const [aiOpen, setAiOpen] = useState<false | 'new' | 'convert'>(false);
   const [templatesOpen, setTemplatesOpen] = useState(false);
   const plan = data?.activePlanId ? data.plans[data.activePlanId] : undefined;
 
@@ -47,12 +47,15 @@ export function PlanScreen() {
           <button type="button" onClick={() => setTemplatesOpen(true)} className="mt-4 h-12 w-full rounded-xl bg-primary text-base font-bold text-white">
             Escolher um modelo
           </button>
-          <button type="button" onClick={() => setAiOpen(true)} className="mt-2 h-12 w-full rounded-xl bg-surface-2 text-base font-bold">
+          <button type="button" onClick={() => setAiOpen('new')} className="mt-2 h-12 w-full rounded-xl bg-surface-2 text-base font-bold">
             Montar treino com IA
+          </button>
+          <button type="button" onClick={() => setAiOpen('convert')} className="mt-2 h-12 w-full rounded-xl text-base font-semibold text-primary">
+            Já tenho um treino feito em IA
           </button>
         </section>
         {/* mesma chave nos dois retornos: o painel continua aberto quando o plano criado vira o ativo */}
-        <AiPlanSheet key="ai" open={aiOpen} onClose={() => setAiOpen(false)} />
+        <AiPlanSheet key="ai" open={!!aiOpen} initialKind={aiOpen || 'new'} onClose={() => setAiOpen(false)} />
         <TemplateSheet key="modelos" open={templatesOpen} onClose={() => setTemplatesOpen(false)} />
       </>
     );
@@ -150,8 +153,11 @@ export function PlanScreen() {
             </button>
           </div>
         ))}
-        <SheetAction onClick={() => { setPlansOpen(false); setAiOpen(true); }}>
+        <SheetAction onClick={() => { setPlansOpen(false); setAiOpen('new'); }}>
           <Icon name="dica" /> Montar treino com IA
+        </SheetAction>
+        <SheetAction onClick={() => { setPlansOpen(false); setAiOpen('convert'); }}>
+          <Icon name="dica" /> Importar treino feito em IA
         </SheetAction>
         <SheetAction onClick={() => { run((d, now) => addPlan(d, duplicatePlan(plan, newId('plano'), toDateKey(now)), now)); setPlansOpen(false); }}>
           <Icon name="mais" /> Duplicar este plano
@@ -164,7 +170,7 @@ export function PlanScreen() {
           <Icon name="mais" /> Novo plano a partir de um modelo
         </SheetAction>
       </Sheet>
-      <AiPlanSheet key="ai" open={aiOpen} onClose={() => setAiOpen(false)} />
+      <AiPlanSheet key="ai" open={!!aiOpen} initialKind={aiOpen || 'new'} onClose={() => setAiOpen(false)} />
       <TemplateSheet key="modelos" open={templatesOpen} onClose={() => setTemplatesOpen(false)} />
     </>
   );

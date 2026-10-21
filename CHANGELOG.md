@@ -8,6 +8,8 @@ Todas as mudanças relevantes do app ficam registradas aqui. Ao lançar uma nova
 
 ## Não lançado
 
+- Plano: "Importar treino feito em IA" para quem já tem um treino pronto no ChatGPT, no Gemini ou em outra IA. O app monta um pedido para colar na mesma conversa (ou leva junto o treino colado de outro lugar), a IA reescreve o treino no formato do app sem mudar nada, e a resposta entra em "2. Colar a resposta". Quando a leitura falha, o mesmo pedido aparece para copiar.
+- Importação por IA: faixas de repetição ("8-12") entram como faixa no plano, e "30-45" não vira mais 3045.
 - Plano: ao apagar e redigitar as repetições mínima ou máxima, o campo não pula mais para o outro número (o máximo virava 8, por exemplo); se a faixa ficar invertida, ela se acerta ao sair do campo.
 
 ## [3.10.0] - 2026-10-21

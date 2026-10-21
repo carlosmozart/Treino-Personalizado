@@ -25,7 +25,9 @@ test('montar com IA: gerar pedido, colar resposta e criar o plano', async ({ pag
   await page.getByRole('tab', { name: '2. Colar a resposta' }).click();
   await page.getByRole('textbox', { name: 'Resposta da IA' }).fill('sem bloco nenhum');
   await page.getByRole('button', { name: 'Ler plano' }).click();
-  await expect(page.getByText(/Não encontrei o bloco/)).toBeVisible();
+  await expect(page.getByText(/Não encontrei o plano no formato do app/)).toBeVisible();
+  await page.getByRole('button', { name: 'Copiar pedido de conversão' }).click();
+  await expect(page.getByText(/Pedido de conversão copiado/)).toBeVisible();
 
   await page.getByRole('textbox', { name: 'Resposta da IA' }).fill(ANSWER);
   await page.getByRole('button', { name: 'Ler plano' }).click();
@@ -36,4 +38,25 @@ test('montar com IA: gerar pedido, colar resposta e criar o plano', async ({ pag
   await page.getByRole('button', { name: 'Fechar' }).click();
   await expect(page.getByText('Plano do joelho')).toBeVisible();
   await expect(page.getByTestId('dias-semana')).toHaveText('2 dias de treino por semana');
+});
+
+test('importar treino feito em IA: pedido de conversão com o treino colado, resposta com faixa de reps', async ({ page, context }) => {
+  await context.grantPermissions(['clipboard-read', 'clipboard-write']);
+  await page.goto('/');
+  await page.getByRole('button', { name: 'Plano', exact: true }).click();
+  await page.getByRole('button', { name: 'Já tenho um treino feito em IA' }).click();
+  await expect(page.getByRole('radio', { name: 'Já tenho um treino' })).toHaveAttribute('aria-checked', 'true');
+  await page.getByRole('textbox', { name: /O treino está em outro lugar/ }).fill('Treino A – Peito\nSupino reto 4x8-12');
+  const prompt = page.getByRole('textbox', { name: 'Pedido de conversão para a IA' });
+  await expect(prompt).toHaveValue(/## MEU TREINO\nTreino A – Peito\nSupino reto 4x8-12/);
+  await page.getByRole('button', { name: 'Copiar pedido de conversão' }).click();
+  expect(await page.evaluate(() => navigator.clipboard.readText())).toContain('Não é para montar um treino novo');
+
+  await page.getByRole('tab', { name: '2. Colar a resposta' }).click();
+  await page.getByRole('textbox', { name: 'Resposta da IA' }).fill('```\n[PLANO]\nDIA | SEG | Treino A | Peito\nEX | Supino Reto (Barra) | forca | 4 | 8-12 | |\n[FIM]\n```');
+  await page.getByRole('button', { name: 'Ler plano' }).click();
+  await expect(page.getByText('1 dia de treino · 1 exercício')).toBeVisible();
+  await page.getByRole('button', { name: 'Criar plano' }).click();
+  await page.getByRole('button', { name: 'Fechar' }).click();
+  await expect(page.getByText('4 × 8–12', { exact: true })).toBeVisible();
 });

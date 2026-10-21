@@ -1,5 +1,5 @@
 import { expect, test } from 'vitest';
-import { buildAiPrompt, suggestedGoal } from './ai-prompt';
+import { buildAiPrompt, buildConvertPrompt, suggestedGoal } from './ai-prompt';
 import { parseAiPlan } from './ai-plan';
 import { weeklyVolume } from './stats';
 import { planExercise, sampleData, samplePlan, workout } from './testing';
@@ -48,4 +48,18 @@ test('objetivo sugerido e volume semanal', () => {
     { start: '2026-09-28', end: '2026-10-04', volume: 0, workouts: 0 },
     { start: '2026-10-05', end: '2026-10-11', volume: 640, workouts: 1 }
   ]);
+});
+
+test('pedido de conversão: sem treino colado fala da conversa; com treino, leva o texto; o exemplo é lido como plano', () => {
+  const plain = buildConvertPrompt();
+  expect(plain).toContain('o treino que você montou para mim nesta conversa');
+  expect(plain).not.toContain('## MEU TREINO');
+  expect(plain).toContain('Não é para montar um treino novo');
+  expect(plain).toContain('faixa com hífen (8-12)');
+  expect(plain).not.toContain('plano legível');
+  const pasted = buildConvertPrompt('  Treino A\nSupino 4x10  ');
+  expect(pasted).toContain('## MEU TREINO\nTreino A\nSupino 4x10\n');
+  const example = parseAiPlan(plain)!;
+  expect(example.dias.map(d => d.dia)).toEqual(['SEG', 'QUA']);
+  expect(example.dias[0]!.exercicios[0]).toMatchObject({ valor: 12, valorMin: 8, carga: 40 });
 });

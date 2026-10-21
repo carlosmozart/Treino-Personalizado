@@ -1,8 +1,8 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { addPlan } from '../../domain/actions';
 import { parseAiPlan, DAY_KEYS } from '../../domain/ai-plan';
 import { aiPlanToPlan, type AiPlanImport } from '../../domain/ai-plan-import';
-import { AI_FORMAT_REMINDER, AI_GOALS, buildAiPrompt, suggestedGoal, trainingDaysOfActive, type AiGoal } from '../../domain/ai-prompt';
+import { AI_GOALS, buildAiPrompt, buildConvertPrompt, suggestedGoal, trainingDaysOfActive, type AiGoal } from '../../domain/ai-prompt';
 import { toDateKey } from '../../domain/dates';
 import { newId } from '../../domain/ids';
 import { isCardioName } from '../../data/exercise-library';
@@ -18,13 +18,16 @@ async function copy(text: string): Promise<boolean> {
 }
 
 /**
- * Montar treino com IA: 1) o app monta o prompt para copiar e colar na IA preferida;
- * 2) a pessoa cola a resposta, confere o que foi entendido e cria o plano.
+ * Montar treino com IA: 1) o app monta o prompt para copiar e colar na IA preferida — um plano
+ * novo, ou a conversão de um treino que a pessoa já tem numa IA; 2) a pessoa cola a resposta,
+ * confere o que foi entendido e cria o plano.
  */
-export function AiPlanSheet({ open, onClose }: { open: boolean; onClose: () => void }) {
+export function AiPlanSheet({ open, onClose, initialKind = 'new' }: { open: boolean; onClose: () => void; initialKind?: 'new' | 'convert' }) {
   const data = useAppStore(s => s.data);
   const run = useAppStore(s => s.run);
   const [step, setStep] = useState<'prompt' | 'import'>('prompt');
+  const [kind, setKind] = useState<'new' | 'convert'>(initialKind);
+  const [pasted, setPasted] = useState('');
   const [goal, setGoal] = useState<AiGoal | null>(null);
   const [days, setDays] = useState<number | null>(null);
   const [minutes, setMinutes] = useState(60);
@@ -44,6 +47,9 @@ export function AiPlanSheet({ open, onClose }: { open: boolean; onClose: () => v
     () => (data ? buildAiPrompt(data, { goal: g, days: d, minutes, notes, includeHealth, includeCurrent }, new Date()) : ''),
     [data, g, d, minutes, notes, includeHealth, includeCurrent]
   );
+  const convertPrompt = useMemo(() => buildConvertPrompt(pasted), [pasted]);
+  // o mesmo painel abre pelos dois botões ("Montar" e "Importar treino feito em IA")
+  useEffect(() => { if (open) setKind(initialKind); }, [open, initialKind]);
   if (!data) return null;
 
   const close = () => { setStep('prompt'); setResult(null); setFailed(false); setMessage(''); onClose(); };
@@ -67,7 +73,7 @@ export function AiPlanSheet({ open, onClose }: { open: boolean; onClose: () => v
   };
 
   return (
-    <Sheet title="Montar treino com IA" open={open} onClose={close}>
+    <Sheet title={kind === 'convert' ? 'Importar treino feito em IA' : 'Montar treino com IA'} open={open} onClose={close}>
       <div role="tablist" className="grid grid-cols-2 gap-1 rounded-xl bg-surface-2 p-1">
         {(['prompt', 'import'] as const).map(s => (
           <button key={s} type="button" role="tab" aria-selected={step === s} onClick={() => setStep(s)}
@@ -77,7 +83,29 @@ export function AiPlanSheet({ open, onClose }: { open: boolean; onClose: () => v
         ))}
       </div>
 
-      {step === 'prompt' ? (
+      {step === 'prompt' && (
+        <div role="radiogroup" aria-label="O que você quer da IA" className="mt-3 grid grid-cols-2 gap-2">
+          {([['new', 'Montar um plano novo'], ['convert', 'Já tenho um treino']] as const).map(([k, label]) => (
+            <button key={k} type="button" role="radio" aria-checked={kind === k} onClick={() => setKind(k)}
+              className={`min-h-11 rounded-xl border px-2 text-sm font-semibold ${kind === k ? 'border-primary bg-primary/10 text-ink' : 'border-line text-muted'}`}>
+              {label}
+            </button>
+          ))}
+        </div>
+      )}
+
+      {step === 'prompt' && kind === 'convert' ? (
+        <div className="mt-3 space-y-3">
+          <p className="text-sm text-muted">Já tem um treino pronto no ChatGPT, no Gemini ou em outra IA? Copie o pedido abaixo e cole <strong>na mesma conversa</strong> em que o treino foi feito: a IA reescreve o treino no formato que o app lê, sem mudar nada. Depois traga a resposta em "2. Colar a resposta".</p>
+          <label className="block text-sm font-semibold text-muted">O treino está em outro lugar (WhatsApp, anotação)? Cole aqui para ir junto no pedido (opcional)
+            <textarea value={pasted} onChange={e => setPasted(e.target.value)} rows={4} maxLength={8000} placeholder="Treino A – Peito e tríceps&#10;Supino reto 4x10&#10;…" className={`${INPUT} py-2 text-sm`} />
+          </label>
+          <textarea readOnly value={convertPrompt} rows={6} aria-label="Pedido de conversão para a IA" className={`${INPUT} py-2 font-mono text-xs`} />
+          <button type="button" onClick={() => void copy(convertPrompt).then(ok => setMessage(ok ? 'Pedido copiado. Cole na conversa da IA e depois volte em "2. Colar a resposta".' : 'Não foi possível copiar.'))}
+            className="h-12 w-full rounded-xl bg-primary font-bold text-white">Copiar pedido de conversão</button>
+          {message && <p role="status" className="text-sm text-muted">{message}</p>}
+        </div>
+      ) : step === 'prompt' ? (
         <div className="mt-3 space-y-3">
           <p className="text-sm text-muted">O app não conversa com nenhuma IA: ele monta o pedido para você copiar e colar no ChatGPT, Gemini ou outra. Nenhum dado sai do aparelho sozinho.</p>
           <label className="block text-sm font-semibold text-muted">Objetivo
@@ -114,9 +142,9 @@ export function AiPlanSheet({ open, onClose }: { open: boolean; onClose: () => v
           <button type="button" disabled={!answer.trim()} onClick={read} className="h-12 w-full rounded-xl bg-primary font-bold text-white disabled:opacity-50">Ler plano</button>
           {failed && (
             <div className="space-y-2 rounded-xl border border-danger/40 p-3 text-sm">
-              <p>Não encontrei o bloco do plano nessa resposta. Peça à IA para repetir o plano entre [PLANO] e [FIM].</p>
-              <button type="button" onClick={() => void copy(AI_FORMAT_REMINDER).then(ok => setMessage(ok ? 'Pedido do formato copiado.' : 'Não foi possível copiar.'))}
-                className="h-11 rounded-xl bg-surface-2 px-3 font-semibold">Copiar pedido do formato</button>
+              <p>Não encontrei o plano no formato do app nessa resposta. Copie o pedido de conversão e cole na mesma conversa da IA: ela reescreve o treino entre [PLANO] e [FIM].</p>
+              <button type="button" onClick={() => void copy(buildConvertPrompt()).then(ok => setMessage(ok ? 'Pedido de conversão copiado. Cole na conversa da IA e traga a resposta aqui.' : 'Não foi possível copiar.'))}
+                className="h-11 rounded-xl bg-surface-2 px-3 font-semibold">Copiar pedido de conversão</button>
             </div>
           )}
           {result && (

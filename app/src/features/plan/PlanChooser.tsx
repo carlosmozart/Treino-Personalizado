@@ -11,7 +11,7 @@ import { TemplateSheet } from './TemplateSheet';
 import { GuidedSetup } from './GuidedSetup';
 import { PlanFileActions } from './PlanFileActions';
 
-export type ChooserMode = 'menu' | 'templates' | 'ai' | 'guided' | null;
+export type ChooserMode = 'menu' | 'templates' | 'ai' | 'ai-convert' | 'guided' | null;
 
 /** Novo plano a partir do Início: modelo pronto, do zero, com IA ou outro plano já salvo. */
 export function PlanChooser({ mode, setMode }: { mode: ChooserMode; setMode: (m: ChooserMode) => void }) {
@@ -32,6 +32,7 @@ export function PlanChooser({ mode, setMode }: { mode: ChooserMode; setMode: (m:
         <SheetAction onClick={() => setMode('templates')}><Icon name="mais" /> Usar um modelo pronto</SheetAction>
         <SheetAction onClick={fromScratch}><Icon name="editar" /> Criar do zero</SheetAction>
         <SheetAction onClick={() => setMode('ai')}><Icon name="dica" /> Montar treino com IA</SheetAction>
+        <SheetAction onClick={() => setMode('ai-convert')}><Icon name="dica" /> Importar treino feito em IA</SheetAction>
         <PlanFileActions onDone={close} />
         {others.length > 0 && <p className="px-3 pb-1 pt-3 text-sm font-semibold text-muted">Voltar a um plano salvo</p>}
         {others.map(p => (
@@ -43,6 +44,7 @@ export function PlanChooser({ mode, setMode }: { mode: ChooserMode; setMode: (m:
       <GuidedSetup open={mode === 'guided'} onClose={close} onOther={() => setMode('templates')} />
       <TemplateSheet open={mode === 'templates'} onClose={close} />
       <AiPlanSheet open={mode === 'ai'} onClose={close} />
+      <AiPlanSheet open={mode === 'ai-convert'} onClose={close} initialKind="convert" />
     </>
   );
 }

@@ -15,8 +15,10 @@ export interface AiExercise {
   nome: string;
   tipo: AiExerciseKind;
   series: number;
-  /** Repetições (força), segundos (tempo) ou minutos (cardio). */
+  /** Repetições (força), segundos (tempo) ou minutos (cardio). Numa faixa, o topo. */
   valor: number;
+  /** Força com faixa ("8-12"): o mínimo; o topo fica em `valor`. */
+  valorMin?: number;
   carga: number;
   alternativa: string;
 }
@@ -86,12 +88,20 @@ export function parsePlanBlock(block: string): AiPlan {
     }
     const num = (index: number, fallback: number) => {
       if (fields.length <= index) return fallback;
-      const n = Number.parseFloat(String(fields[index]).replace(/[^0-9.]/g, ''));
+      // o primeiro número do campo ("40kg", "30-45"): juntar todos os dígitos faria "30-45" virar 3045
+      const n = Number.parseFloat((/\d+(?:[.,]\d+)?/.exec(String(fields[index]))?.[0] ?? '').replace(',', '.'));
       return Number.isFinite(n) && n > 0 ? Math.round(n) : fallback;
     };
-    current.exercicios.push({
+    const exercise: AiExercise = {
       nome, tipo, series: num(2, 3), valor: num(3, 10), carga: num(4, 0), alternativa: (fields[5] ?? '').trim()
-    });
+    };
+    // faixa "8-12", "8–12" ou "8 a 12" (o pedido de conversão aceita); sem isso o "8-12" viraria 812
+    const range = tipo === 'forca' ? /^(\d+)\s*(?:-|–|a|até)\s*(\d+)/i.exec(fields[3] ?? '') : null;
+    if (range) {
+      const a = Number(range[1]), b = Number(range[2]);
+      if (a > 0 && b > 0) { exercise.valor = Math.max(a, b); if (a !== b) exercise.valorMin = Math.min(a, b); }
+    }
+    current.exercicios.push(exercise);
   }
 
   return { dias: days.filter((d): d is AiDay => !!d && d.exercicios.length > 0), avisos };
