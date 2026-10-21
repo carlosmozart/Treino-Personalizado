@@ -23,28 +23,40 @@ export interface BackNavigation {
 const HOME = 'inicio';
 const tabOf = (state: unknown) => (state && typeof state === 'object' && 'tab' in state ? String((state as { tab: unknown }).tab) : null);
 
-export function createBackNavigation(history: HistoryLike, getTab: () => string, setTab: (tab: string) => void): BackNavigation {
+/**
+ * `defer` adia o history.back() de um painel fechado pela interface para depois do render: se outro
+ * painel abrir logo em seguida (lista → detalhe), ele reaproveita a entrada em vez de empilhar uma
+ * nova. Sem isso, o back() assíncrono se cruza com o pushState do painel novo, cada troca come uma
+ * entrada e o voltar acaba saindo do app.
+ */
+export function createBackNavigation(history: HistoryLike, getTab: () => string, setTab: (tab: string) => void, defer: (fn: () => void) => void = queueMicrotask): BackNavigation {
   const layers: Layer[] = [];
   let nextId = 1;
   /** popstates provocados por nós mesmos (history.back() ao fechar pela interface). */
   let ignore = 0;
+  /** Entradas de painéis fechados pela interface que ainda não voltaram (ver `defer`). */
+  let pendingBacks = 0;
 
   const silentBack = () => { ignore++; history.back(); };
+  const flushBacks = () => { while (pendingBacks > 0) { pendingBacks--; silentBack(); } };
 
   return {
     pushLayer(close) {
       const layer = { id: nextId++, close };
       layers.push(layer);
-      history.pushState({ tab: getTab(), layer: layer.id }, '');
+      if (pendingBacks > 0) { pendingBacks--; history.replaceState({ tab: getTab(), layer: layer.id }, ''); }
+      else history.pushState({ tab: getTab(), layer: layer.id }, '');
       return () => {
         const i = layers.indexOf(layer);
         if (i < 0) return; // já fechado pelo voltar
         layers.splice(i, 1);
-        silentBack();
+        pendingBacks++;
+        defer(flushBacks);
       };
     },
 
     goTab(tab) {
+      flushBacks();
       const current = getTab();
       if (tab === current) return;
       setTab(tab);

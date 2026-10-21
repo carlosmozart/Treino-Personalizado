@@ -21,9 +21,11 @@ function fakeHistory() {
 function setup() {
   const h = fakeHistory();
   let tab = 'inicio';
-  const nav = createBackNavigation(h, () => tab, t => { tab = t; });
-  const drain = () => h.takePending().forEach(s => nav.onPopState(s));
-  const back = () => { const s = h.systemBack(); if (s === 'exit') return 'exit'; nav.onPopState(s); drain(); return tab; };
+  // o que o app adia para depois do render (ver `defer` em back.ts), rodado à mão
+  const deferred: (() => void)[] = [];
+  const nav = createBackNavigation(h, () => tab, t => { tab = t; }, fn => { deferred.push(fn); });
+  const drain = () => { deferred.splice(0).forEach(fn => fn()); h.takePending().forEach(s => nav.onPopState(s)); };
+  const back = () => { drain(); const s = h.systemBack(); if (s === 'exit') return 'exit'; nav.onPopState(s); drain(); return tab; };
   return { h, nav, drain, back, get tab() { return tab; } };
 }
 
@@ -64,4 +66,17 @@ test('painel fechado pela interface tira a própria entrada sem mudar de aba', (
   s.drain();
   expect(s.tab).toBe('plano');
   expect(s.back()).toBe('inicio');
+});
+
+test('trocar de painel (fecha um e abre outro no mesmo render) reaproveita a entrada e não come o histórico', () => {
+  const s = setup();
+  s.nav.goTab('plano');
+  let release = s.nav.pushLayer(() => undefined); // lista
+  for (let i = 0; i < 5; i++) { release(); release = s.nav.pushLayer(() => undefined); s.drain(); } // lista ⇄ detalhe
+  expect(s.h.length).toBe(3); // início, plano, um painel
+  release();
+  s.drain();
+  expect(s.h.length).toBe(2);
+  expect(s.back()).toBe('inicio');
+  expect(s.back()).toBe('exit');
 });
