@@ -192,6 +192,8 @@ export interface Settings {
   favorites?: string[];
   /** M46: exercícios criados pela pessoa na Biblioteca, com o grupo muscular. */
   customExercises?: CustomExercise[];
+  /** M36: equipamentos que a pessoa tem (filtro da troca de exercício). Ausente ou vazio = todos. */
+  availableEquipment?: string[];
   /** M25: cor de destaque (botões, seleção). Ausente = azul. */
   accent?: AccentId;
   /** Tema da interface. Ausente = acompanha o sistema. */

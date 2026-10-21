@@ -47,3 +47,16 @@ test('M46: exercício próprio entra com o grupo, aparece em "Meus", conta nas s
   d = removeCustomExercise(d, 'REMADA NO CABO UNILATERAL', NOW).data;
   expect(d.settings.customExercises).toEqual([]);
 });
+
+test('M36: troca só com o equipamento marcado; sem marcar nada, tudo passa; nome desconhecido sempre passa', async () => {
+  const { fitsEquipment, swapSuggestions } = await import('./exercise-library');
+  expect(fitsEquipment('Supino Reto (Barra)', [])).toBe(true);
+  expect(fitsEquipment('Supino Reto (Barra)', ['Halteres'])).toBe(false);
+  expect(fitsEquipment('Supino Reto (Halteres)', ['Halteres'])).toBe(true);
+  expect(fitsEquipment('Exercício que eu inventei', ['Halteres'])).toBe(true);
+  const home = (n: string) => fitsEquipment(n, ['Halteres', 'Peso do corpo']);
+  const { names } = swapSuggestions('Supino Reto (Barra)', [], [], 6, undefined, home);
+  expect(names.length).toBeGreaterThan(0);
+  expect(names.every(home)).toBe(true);
+  expect(names).toContain('Supino Reto (Halteres)');
+});

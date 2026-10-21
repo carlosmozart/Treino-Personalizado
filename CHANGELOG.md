@@ -6,6 +6,12 @@ Todas as mudanças relevantes do app ficam registradas aqui. Ao lançar uma nova
    atualizar o app instalado
 3. Adicione uma entrada aqui, nesse formato
 
+## Não lançado
+
+- Treino → Trocar exercício: marque o equipamento que você tem aí (barra, halteres, polia, máquina, Smith, peso do corpo) e a troca mostra só o que dá para fazer. Fica salvo para as próximas trocas.
+- Perfil → Dados e backup: "Onde ficam seus dados" diz onde os dados estão, se há cópia automática e quando foi o último backup (em laranja depois de 2 semanas ou se nunca houve).
+- Meta de peso: com o peso já registrado e sem alvo, o app diz que falta só o peso que você quer atingir, no Início e em Progresso → Metas.
+
 ## [3.12.0] - 2026-10-21
 
 - Plano → Biblioteca: os 153 exercícios com busca, filtro por grupo muscular e por equipamento, ilustração, favoritar e "+" para adicionar a um dia do plano. "Criar exercício" guarda um exercício seu com o grupo muscular; ele entra nas buscas e nas séries por grupo do Progresso.

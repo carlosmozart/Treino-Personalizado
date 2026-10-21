@@ -231,6 +231,8 @@ function WeightSection({ card }: { card: WeightData | null }) {
           Meta {formatNumber(card.target)} kg · faltam {formatNumber(card.remaining ?? 0)} kg{card.goalPercent !== null ? ` · ${card.goalPercent}% do caminho` : ''}
         </p>
       )}
+      {/* O6: diz exatamente o que falta (o peso já existe; falta o alvo) */}
+      {card && card.target === null && <p className="mt-2 text-sm text-muted">Sem meta: falta só o peso que você quer atingir, em Progresso → Metas.</p>}
       {card && card.points.length >= 2 && <WeightChart points={card.points} target={card.target} />}
       <WeightLogSheet open={open} onClose={() => setOpen(false)} initial={card?.current ?? null} />
     </section>

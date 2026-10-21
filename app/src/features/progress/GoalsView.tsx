@@ -78,7 +78,7 @@ function WeightGoalCard() {
         {current && <button type="button" onClick={openSheet} className="h-11 rounded-xl bg-surface-2 px-4 font-semibold">{goal ? 'Nova meta' : 'Definir meta'}</button>}
       </div>
       {!current ? <p className="mt-2 text-sm text-muted">Registre seu peso na tela de Início para criar uma meta.</p>
-        : !goal || !progress ? <p className="mt-2 text-sm text-muted">Sem meta definida.</p> : (
+        : !goal || !progress ? <p className="mt-2 text-sm text-muted">Seu peso já está registrado; falta só o peso que você quer atingir. Toque em “Definir meta”.</p> : (
           <>
             <p className="mt-2 text-sm text-muted">{formatNumber(goal.startWeight)} kg → {formatNumber(goal.targetWeight)} kg · desde {shortDate(goal.startedAt)}</p>
             <p className="mt-1 text-3xl font-black">{Math.round(progress.percent)}%</p>

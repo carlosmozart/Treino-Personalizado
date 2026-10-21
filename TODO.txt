@@ -149,7 +149,7 @@ M32	Marcar um plano/semana como deload: entra no histórico mas não vira base d
 M33	✅ (copiar treino como texto e salvar treino feito como dia do plano, 12/10/2026) Copiar treino como texto e salvar um treino feito como novo dia do plano	Baixa
 M34	Revisão do treino pela IA: gerar prompt com o histórico recente para a IA propor ajustes com justificativa, e importar a resposta pelo fluxo de importação que já existe (cada mudança aprovada pelo usuário)	Média
 M35	✅ (revisão de 10/10/2026: feito no app 3.x, Início mostra o próximo treino no descanso) No dia de descanso, informar quando é o próximo treino e qual é	Baixa
-M36	Filtro por equipamento na troca de exercício (só mostrar o que a academia/casa tem)	Baixa
+M36	✅ (21/10/2026, botões de equipamento na troca, salvos em settings.availableEquipment) Filtro por equipamento na troca de exercício (só mostrar o que a academia/casa tem)	Baixa
 M37	Unidade kg/lb com conversão opcional dos dados salvos	Baixa
 M38	✅ (12/10/2026, média semanal em Pesagens) Peso por semana: agrupar pesagens por semana com média, nº de pesagens e variação da média em relação à semana anterior (o peso diário oscila mais com água/sal/refeição do que em um mês); complementa a média móvel atual	Média
 M39	✅ (revisão de 10/10/2026: feito no app 3.x, variação colorida pela meta; P5) Colorir variações de peso pela direção da meta: verde quando aproxima do alvo, vermelho quando afasta (quem quer ganhar vê +0,5 kg em verde)	Média
@@ -183,7 +183,7 @@ N10	✅ (revisão de 10/10/2026: feito no app 3.x; P5) Plano em cartões por dia
 N11	✅ (revisão de 10/10/2026: feito no app 3.x; P5) Botão central de destaque na barra inferior para começar/retomar o treino	Média
 N12	✅ (revisão de 10/10/2026: feito no app 3.x; P5) Tipografia: menos rótulos em CAIXA ALTA espaçada e minúsculos; títulos maiores e números de destaque grandes (o openGym usa 14–16 px no corpo). Revisar após N1–N4	Média
 N13	✅ (revisão de 10/10/2026: feito no app 3.x; P5) Conjunto de ícones próprio (SVG em linha) no lugar de emojis na interface, para aparência igual em todo celular	Baixa
-N14	🟡 (último backup em Perfil → Dados e backup; falta dizer onde os dados ficam) Linha de status de dados (onde estão salvos, último backup) visível nas configurações, no espírito do "sempre diz onde estão seus dados"	Baixa
+N14	✅ (21/10/2026, "Onde ficam seus dados" em Perfil → Dados e backup: aparelho, cópia automática e último backup) Linha de status de dados (onde estão salvos, último backup) visível nas configurações, no espírito do "sempre diz onde estão seus dados"	Baixa
 N15	🟡 (deslizar séries e exercícios do plano feito; falta deslizar entre exercícios no modo foco) Gestos: deslizar entre exercícios no modo foco (N5) e deslizar para apagar em listas (pesagens, histórico), sempre com alternativa por botão e confirmação/desfazer	Baixa
 
 O. Revisão de 04/10/2026 — robustez (vinda do openGym) e problemas encontrados no nosso app
@@ -195,7 +195,7 @@ O2	✅ (revisão de 10/10/2026: feito no app 3.x; P5) Seletor de dia mostra "Dom
 O3	✅ (revisão de 10/10/2026: feito no app 3.x; P5) O plano padrão já abre o editor com o aviso "marcou 6 dias/semana, mas montou exercícios em 7" — o aviso conta o dia opcional. Melhor: calcular dias/semana automaticamente pelos dias obrigatórios com exercícios e remover o campo manual	Média
 O4	✅ (revisão de 10/10/2026: feito no app 3.x; P5) Resumo do dia mostra "Duração 1min" ao lado de calorias calculadas com duração estimada (~30 min); quando a duração é substituída pela estimativa, mostrar "~30 min (estimado)"	Baixa
 O5	✅ (revisão de 10/10/2026: feito no app 3.x; P5) Mensagem de treino incompleto conta só exercícios inteiros ("0 de 4 exercícios") mesmo com séries feitas; mostrar também séries feitas/total	Baixa
-O6	"Rumo ao objetivo" pede "peso atual e peso alvo" quando só falta o alvo; dizer exatamente o que falta	Baixa
+O6	✅ (21/10/2026, no app 3.x: Início e Metas dizem que falta só o peso alvo) "Rumo ao objetivo" pede "peso atual e peso alvo" quando só falta o alvo; dizer exatamente o que falta	Baixa
 O7	✅ (revisão de 10/10/2026: feito no app 3.x; P5) Concordância: "1 TREINO SEGUIDOS" → singular/plural	Baixa
 O8	✅ (revisão de 10/10/2026: feito no app 3.x; P5) Editor de plano: o texto do "Dia opcional" diz "Se você não treinar neste dia, sua sequência será zerada" mesmo com o dia marcado como opcional; o texto deve descrever o estado atual	Baixa
 

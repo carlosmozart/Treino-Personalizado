@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { groupOf, guessGroup, swapSuggestions } from '../../data/exercise-library';
+import { SWAP_EQUIPMENT, fitsEquipment, groupOf, guessGroup, swapSuggestions } from '../../data/exercise-library';
 import {
   addSet, afterSet, supersetBlock, toggleSupersetWithNext, addWarmupSet, adjustWeights, removeWarmupSet, completeExercise, isExerciseDone, duplicateSet, insertSet, removeExerciseFromSession, removeSet, setNote, swapExercise, toggleFailure, toggleSet, updateCardio, updateSet,
   type ActiveSession, type SessionExercise, type SessionSet
@@ -68,6 +68,7 @@ export function ExerciseCard({ session, index, alwaysOpen = false, onGoTo }: Pro
   const block = supersetBlock(session.exercises, index);
   // S6 + openGym 1.4.1: a busca põe primeiro o que você já fez (e acha nomes digitados à mão)
   const pool = useSearchPool();
+  const available = data?.settings.availableEquipment ?? [];
   const favorite = pool.favorites.has(ex.key);
   // R2: série apagada fica alguns segundos para desfazer
   const [removed, setRemoved] = useState<{ at: number; set: SessionSet; timer: number } | null>(null);
@@ -314,16 +315,35 @@ export function ExerciseCard({ session, index, alwaysOpen = false, onGoTo }: Pro
         {(ex.alternatives.length > 0 || ex.swappedFrom) && <p className="mt-3 px-3 text-xs font-semibold text-faint">Ou qualquer exercício:</p>}
         <input value={query} onChange={e => setQuery(e.target.value)} placeholder="Buscar ou digitar o nome" aria-label="Buscar exercício para trocar"
           className="mt-2 h-12 w-full rounded-xl border border-line bg-surface-2 px-3 text-base text-ink" />
+        {/* M36: só o que a academia (ou a casa) tem; fica salvo para as próximas trocas */}
+        <div role="group" aria-label="Equipamento que você tem" className="-mx-1 mt-2 flex gap-2 overflow-x-auto px-1 pb-1 [scrollbar-width:none]">
+          {SWAP_EQUIPMENT.map(eq => {
+            const on = available.includes(eq);
+            return (
+              <button key={eq} type="button" aria-pressed={on}
+                onClick={() => run((d, now) => {
+                  // lê o que está gravado agora: dois toques rápidos não se sobrescrevem
+                  const cur = d.settings.availableEquipment ?? [];
+                  return updateSettings(d, { availableEquipment: cur.includes(eq) ? cur.filter(x => x !== eq) : [...cur, eq] }, now);
+                })}
+                className={`h-9 shrink-0 rounded-full border px-3 text-sm font-semibold ${on ? 'border-primary bg-primary/10 text-ink' : 'border-line text-muted'}`}>
+                {eq}
+              </button>
+            );
+          })}
+        </div>
+        <p className="px-1 text-xs text-faint">{available.length ? 'Mostrando só o que usa o equipamento marcado.' : 'Marque o que você tem aqui para ver só o que dá para fazer.'}</p>
         {(() => {
           const q = query.trim().toLowerCase();
+          const fits = (n: string) => fitsEquipment(n, available, data?.settings.customExercises);
           const pick = (name: string) => { if (data) update(s => swapExercise(s, data, index, name)); setSwapOpen(false); setQuery(''); };
           // S3: sem busca, o que faz sentido no treino de hoje: mesmo grupo, sem repetir exercício do
           // treino, o mesmo movimento primeiro
           const base = ex.swappedFrom ?? ex.name;
           if (!q) {
             const today = session.exercises.filter((_, i) => i !== index).map(e => e.name);
-            const { group: g, names: same } = swapSuggestions(base, today, [ex.name, ...ex.alternatives.map(a => a.name)], 6, pool.favorites);
-            if (!same.length) return null;
+            const { group: g, names: same } = swapSuggestions(base, today, [ex.name, ...ex.alternatives.map(a => a.name)], 6, pool.favorites, fits);
+            if (!same.length) return available.length ? <p className="mt-3 px-3 text-sm text-muted">Nada do mesmo grupo com esse equipamento. Busque pelo nome ou desmarque um filtro.</p> : null;
             return (
               <>
                 <p className="mt-3 px-3 text-xs font-semibold text-faint">Para o treino de hoje ({g}), sem repetir exercício:</p>
@@ -333,7 +353,7 @@ export function ExerciseCard({ session, index, alwaysOpen = false, onGoTo }: Pro
           }
           const group = guessGroup(base);
           // S6: tolerante a erro, acento, plural e abreviação; o mesmo grupo sobe entre os achados
-          const matches = searchNames(q, pool.names.filter(n => n !== ex.name), 12, pool.done, pool.favorites)
+          const matches = searchNames(q, pool.names.filter(n => n !== ex.name && fits(n)), 12, pool.done, pool.favorites)
             .map((n, i) => ({ n, i: i - (groupOf(n) === group ? 0.5 : 0) }))
             .sort((a, b) => a.i - b.i).slice(0, 6).map(x => x.n);
           return (

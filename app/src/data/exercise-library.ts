@@ -221,6 +221,19 @@ export function equipmentTag(name: string, group = groupOf(name)): Equipment {
   return 'Outros';
 }
 
+/** Equipamentos que dá para escolher no filtro da troca (M36). */
+export const SWAP_EQUIPMENT: readonly Equipment[] = ['Barra', 'Halteres', 'Polia', 'Máquina', 'Smith', 'Peso do corpo'];
+
+/**
+ * M36: o exercício cabe no equipamento que a pessoa tem? Lista vazia = tudo; nome sem equipamento
+ * conhecido ("Outros", nomes digitados à mão) sempre passa, para o filtro não esconder o que não sabe.
+ */
+export function fitsEquipment(name: string, available: readonly string[] | undefined, custom?: readonly CustomExercise[]): boolean {
+  if (!available?.length) return true;
+  const tag = equipmentTag(name, groupOf(name, custom));
+  return tag === 'Outros' || tag === 'Cardio' || available.includes(tag);
+}
+
 export interface LibraryEntry { name: string; group: string; equipment: Equipment; custom: boolean }
 
 /** A biblioteca inteira mais os exercícios próprios, cada um com grupo e equipamento. */
@@ -283,7 +296,7 @@ const movementOf = (name: string) => normalizeExerciseName(name).split(' ')[0] ?
  * o mesmo movimento primeiro (outro supino para um supino), depois o mesmo equipamento. Sem grupo
  * conhecido, usa o grupo que mais aparece no treino de hoje.
  */
-export function swapSuggestions(name: string, todayNames: readonly string[], exclude: readonly string[] = [], limit = 6, favorites?: ReadonlySet<string>): { group: string | null; names: string[] } {
+export function swapSuggestions(name: string, todayNames: readonly string[], exclude: readonly string[] = [], limit = 6, favorites?: ReadonlySet<string>, allow: (name: string) => boolean = () => true): { group: string | null; names: string[] } {
   let group = guessGroup(name);
   if (!group) {
     const count = new Map<string, number>();
@@ -294,7 +307,7 @@ export function swapSuggestions(name: string, todayNames: readonly string[], exc
   const skip = new Set([name, ...todayNames, ...exclude].map(normalizeExerciseName));
   const movement = movementOf(name), equipment = equipmentOf(name);
   const names = (EXERCISE_LIBRARY[group] ?? [])
-    .filter(n => !skip.has(normalizeExerciseName(n)))
+    .filter(n => !skip.has(normalizeExerciseName(n)) && allow(n))
     .map((n, i) => ({ n, rank: (favorites?.has(normalizeExerciseName(n)) ? -4 : 0) + (movementOf(n) === movement ? 0 : 2) + (equipment && equipmentOf(n) === equipment ? 0 : 1), i }))
     .sort((a, b) => a.rank - b.rank || a.i - b.i)
     .slice(0, limit)

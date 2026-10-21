@@ -2,6 +2,8 @@ import { useRef, useState } from 'react';
 import { updateMeta, updateSettings } from '../../domain/actions';
 import { buildBackup, readBackup } from '../../domain/backup';
 import { canAutoBackup, saveBackupFile } from '../../platform/backup-file';
+import { isNative } from '../../platform/platform';
+import { dataStatus } from '../../domain/data-status';
 import { errorReport, useErrorLog } from '../../platform/error-log';
 import { toDateKey } from '../../domain/dates';
 import { loadSourceOf, type AppData, type LoadSource, type Settings, type ThemePref } from '../../domain/model';
@@ -167,8 +169,19 @@ function BackupCard() {
 
   return (
     <Card title="Dados e backup">
+      {/* N14: onde os dados estão, se há cópia automática e quando foi o último backup */}
+      {(() => {
+        const st = dataStatus({ native: isNative(), autoBackup: canAutoBackup() && (settings?.autoBackup ?? true), lastBackupAt, now: new Date() });
+        return (
+          <div aria-label="Onde ficam seus dados" role="group" className="space-y-1 rounded-xl bg-surface-2 p-3 text-sm">
+            <p className="font-semibold">Onde ficam seus dados</p>
+            <p className="text-muted">{st.where}</p>
+            <p className="text-muted">{st.copy}</p>
+            <p className={st.stale ? 'text-warning' : 'text-muted'}>{st.backup}</p>
+          </div>
+        );
+      })()}
       <p className="text-sm text-muted">Guarde um arquivo com tudo (treinos, planos, peso) fora do aparelho. Aceita backups do app atual.</p>
-      {lastBackupAt && <p className="text-xs text-faint">Último backup: {new Date(lastBackupAt).toLocaleDateString('pt-BR')}</p>}
       <Toggle label="Proteger o backup com senha" checked={protect} onChange={setProtect} />
       {protect && (
         <div className="grid grid-cols-2 gap-2">
