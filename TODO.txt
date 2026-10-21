@@ -243,6 +243,10 @@ Q2	✅ (cartão do treino, troca de exercício e biblioteca com miniaturas; tama
 Q3	✅ (crédito ao abrir a ilustração, LICENSE.txt junto das imagens, docs/creditos.md e tela Créditos e licenças em Perfil → Sobre, 07/10/2026) Tela de créditos com a atribuição exigida e arquivo de licença ao lado das imagens	Alta
 Q4	Lacunas (aparelhos de cardio, prancha frontal): ícones próprios; e foto/vídeo do próprio usuário para qualquer exercício (exercícios personalizados)	Média
 Q5	Exercícios criados pela IA ou pelo usuário recebem ilustração pela correspondência de nome, quando houver	Média
+Q6	Pendente (levantado em 20/10/2026): ligar 4 ilustrações que o Everkinetic já tem e que não estão no mapa: Puxada Frontal (Polia) → 0097 Wide Grip Lat Pull Down; Desenvolvimento com Halteres → 0012 Dumbbell Shoulder Press; Desenvolvimento Máquina → 0003 Seated Shoulder Press Machine; Peck Deck (Voador) → 0047 Butterfly Machine. Conferir na folha de contato antes	Alta
+Q7	Pendente: ícones próprios dos 5 aparelhos de cardio (esteira, bicicleta, elíptico, escada, remo), no mesmo traço das ilustrações, só o aparelho (parte do Q4)	Média
+Q8	Pendente, decisão: 11 exercícios sem desenho no Everkinetic (face pull, elevação pélvica, agachamento búlgaro, prancha, remada unilateral com halter, crossover polia baixa, elevação lateral na polia, crucifixo invertido máquina, remada máquina, abdominal máquina, rotação de tronco). Opções: (a) imagens do wger (CC BY-SA, crédito por imagem, estilo misto) ou (b) seguir sem ilustração	Média
+Q9	Pendente: expandir a biblioteca com 60–80 exercícios do Everkinetic (usamos 56 de 293), com nome em português, grupo e conferência visual; biblioteca de 77 para ~150 (meta do M46). Medição de 20/10/2026: 20 dos 77 da biblioteca e 15 dos 69 dos modelos sem ilustração	Alta
 Entra na reescrita junto com a tela de treino nova (P5).
 
 R. Ideias do openGym v1.3.10 (07/10/2026)
