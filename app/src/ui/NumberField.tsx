@@ -3,6 +3,8 @@ import { useEffect, useState } from 'react';
 interface Props {
   value: number;
   onChange: (value: number) => void;
+  /** Ao sair do campo, para acertos que não podem acontecer a cada tecla (ex.: faixa de reps invertida). */
+  onCommit?: (() => void) | undefined;
   label: string;
   decimal?: boolean;
   className?: string;
@@ -15,7 +17,7 @@ const show = (n: number) => String(n).replace('.', ',');
  * Campo numérico com teclado do celular. Guarda o texto enquanto se digita ("22," é válido no
  * meio do caminho) e só repassa números válidos.
  */
-export function NumberField({ value, onChange, label, decimal = false, className = '' }: Props) {
+export function NumberField({ value, onChange, onCommit, label, decimal = false, className = '' }: Props) {
   const [text, setText] = useState(show(value));
   useEffect(() => {
     // valor mudou por fora (ex.: troca de exercício): reflete, sem atrapalhar o que se digita
@@ -35,7 +37,7 @@ export function NumberField({ value, onChange, label, decimal = false, className
         const n = parse(next);
         if (next !== '' && Number.isFinite(n)) onChange(n);
       }}
-      onBlur={() => setText(show(value))}
+      onBlur={() => { setText(show(value)); onCommit?.(); }}
       className={`h-11 w-full min-w-0 rounded-xl border border-line bg-page text-center text-lg font-bold tabular-nums text-ink focus:border-primary focus:outline-none ${className}`}
     />
   );

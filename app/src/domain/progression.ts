@@ -30,6 +30,35 @@ export function repRange(t: Pick<PlanExercise, 'reps' | 'repMin' | 'repMax'>): {
   return { min, max };
 }
 
+type RangeTarget = Pick<PlanExercise, 'reps' | 'repMin' | 'repMax'>;
+type RangePatch = { reps: number; repMin: number; repMax: number };
+
+/** Os dois números como gravados, sem a correção do repRange: é o que os campos mostram enquanto se digita. */
+export function rangeFields(t: RangeTarget): { min: number; max: number } {
+  return { min: t.repMin && t.repMin > 0 ? t.repMin : t.reps, max: t.repMax && t.repMax > 0 ? t.repMax : t.reps };
+}
+
+const rangePatch = (min: number, max: number): RangePatch => {
+  const repMin = Math.max(1, Math.round(min)), repMax = Math.max(1, Math.round(max));
+  return { reps: Math.max(repMin, repMax), repMin, repMax };
+};
+
+/**
+ * Um dos limites da faixa a cada tecla. O outro limite não muda: apagar o "2" de "12" grava 1
+ * de passagem, e corrigir isso agora puxaria o campo para o mínimo enquanto se digita.
+ */
+export function editRange(t: RangeTarget, side: 'min' | 'max', value: number): RangePatch {
+  const f = rangeFields(t);
+  return side === 'min' ? rangePatch(value, f.max) : rangePatch(f.min, value);
+}
+
+/** Ao sair do campo: se os limites ficaram invertidos, o outro acompanha o que acabou de ser digitado. */
+export function settleRange(t: RangeTarget, side: 'min' | 'max'): RangePatch | null {
+  const { min, max } = rangeFields(t);
+  if (min <= max) return null;
+  return side === 'min' ? rangePatch(min, min) : rangePatch(max, max);
+}
+
 /**
  * M30: exercício feito só com o peso do corpo, pelo nome. Máquinas e polias de mesmo nome ficam de
  * fora ("Abdominal Crunch (Máquina)", "Mesa Flexora"), e carga zero sozinha não basta: um exercício

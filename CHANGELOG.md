@@ -6,6 +6,10 @@ Todas as mudanças relevantes do app ficam registradas aqui. Ao lançar uma nova
    atualizar o app instalado
 3. Adicione uma entrada aqui, nesse formato
 
+## Não lançado
+
+- Plano: ao apagar e redigitar as repetições mínima ou máxima, o campo não pula mais para o outro número (o máximo virava 8, por exemplo); se a faixa ficar invertida, ela se acerta ao sair do campo.
+
 ## [3.10.0] - 2026-10-21
 
 - Ilustrações novas para Desenvolvimento com Halteres, Desenvolvimento Máquina e Peck Deck (Voador).

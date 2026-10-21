@@ -67,3 +67,29 @@ test('treino: trocar pelo treino de outro dia e cancelar sem salvar', async ({ p
   await expect(page.getByText('Terça: Inferior A')).toHaveCount(0);
   expect(errors).toEqual([]);
 });
+
+test('plano: apagar e redigitar a faixa de reps, como no teclado do celular', async ({ page }) => {
+  await page.goto('/');
+  await page.getByRole('button', { name: 'Plano', exact: true }).click();
+  await page.getByRole('button', { name: 'Escolher um modelo' }).click();
+  await page.getByRole('button', { name: 'Usar Corpo inteiro 3×' }).click();
+  await page.getByRole('button', { name: /^Supino Reto \(Halteres\)/ }).first().click();
+  const min = page.getByRole('textbox', { name: 'Reps mín. de Supino Reto (Halteres)' });
+  const max = page.getByRole('textbox', { name: 'Reps máx. de Supino Reto (Halteres)' });
+  await min.fill('8');
+  await max.fill('12');
+  // sem selecionar o número: cursor no fim, apaga um dígito por vez e digita de novo
+  await max.click();
+  await max.press('End');
+  await max.press('Backspace');
+  await expect(max).toHaveValue('1');
+  await max.press('Backspace');
+  await max.pressSequentially('10');
+  await expect(max).toHaveValue('10');
+  await expect(min).toHaveValue('8');
+  // máximo abaixo do mínimo: ao sair do campo, o mínimo acompanha
+  await max.fill('6');
+  await min.focus();
+  await expect(min).toHaveValue('6');
+  await expect(page.getByText('3 × 6', { exact: true }).first()).toBeVisible();
+});

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { isBodyweight, repRange, suggestProgression } from './progression';
+import { editRange, isBodyweight, rangeFields, repRange, settleRange, suggestProgression } from './progression';
 import { planExercise, sampleData, workout } from './testing';
 import { startSession } from './session';
 import type { Workout } from './model';
@@ -12,6 +12,23 @@ describe('faixa de repetições', () => {
   it('sem faixa, vale só reps', () => expect(repRange({ reps: 10 })).toEqual({ min: 10, max: 10 }));
   it('com faixa', () => expect(repRange({ reps: 10, repMin: 8, repMax: 12 })).toEqual({ min: 8, max: 12 }));
   it('faixa invertida cai no mínimo', () => expect(repRange({ reps: 10, repMin: 12, repMax: 8 })).toEqual({ min: 12, max: 12 }));
+  it('apagar e redigitar o máximo não puxa o campo para o mínimo', () => {
+    let ex = { reps: 12, repMin: 8, repMax: 12 };
+    ex = { ...ex, ...editRange(ex, 'max', 1) }; // apagou o "2" de "12"
+    expect(rangeFields(ex)).toEqual({ min: 8, max: 1 });
+    ex = { ...ex, ...editRange(ex, 'max', 10) };
+    expect(rangeFields(ex)).toEqual({ min: 8, max: 10 });
+    expect(settleRange(ex, 'max')).toBeNull();
+    expect(repRange(ex)).toEqual({ min: 8, max: 10 });
+  });
+  it('sem faixa, os campos mostram as reps fixas e o primeiro número digitado vira faixa', () => {
+    expect(rangeFields({ reps: 10 })).toEqual({ min: 10, max: 10 });
+    expect(editRange({ reps: 10 }, 'max', 12)).toEqual({ reps: 12, repMin: 10, repMax: 12 });
+  });
+  it('ao sair do campo, a faixa invertida segue o número que acabou de ser digitado', () => {
+    expect(settleRange({ reps: 15, repMin: 15, repMax: 12 }, 'min')).toEqual({ reps: 15, repMin: 15, repMax: 15 });
+    expect(settleRange({ reps: 8, repMin: 8, repMax: 6 }, 'max')).toEqual({ reps: 6, repMin: 6, repMax: 6 });
+  });
 });
 
 describe('progressão dupla', () => {

@@ -16,7 +16,7 @@ import { AiPlanSheet } from './AiPlanSheet';
 import { TemplateSheet } from './TemplateSheet';
 import { PlanFileActions } from './PlanFileActions';
 import { NumberField } from '../../ui/NumberField';
-import { DEFAULT_INCREMENT, INCREMENTS, repRange } from '../../domain/progression';
+import { DEFAULT_INCREMENT, INCREMENTS, editRange, rangeFields, repRange, settleRange } from '../../domain/progression';
 import { Sheet, SheetAction } from '../../ui/Sheet';
 import { SwipeRow } from '../../ui/SwipeRow';
 import { searchNames } from '../../domain/search';
@@ -346,10 +346,12 @@ interface RowProps {
 /** Exercício recolhido; ao tocar abre os campos (O25). */
 function ExerciseRow({ ex, open, first, last, swipe, superset, linkedToNext, onToggleSuperset, onSwipeRemove, onDuplicate, onToggle, onChange, onMove, onRemove, onAddAlt, onRemoveAlt }: RowProps) {
   const [alt, setAlt] = useState('');
+  // faixa de reps (M10): cada campo grava o seu número a cada tecla; inversão só se acerta ao sair do campo
+  const settle = (side: 'min' | 'max') => { const patch = settleRange(ex, side); if (patch) onChange(patch); };
   const listId = useId();
-  const field = (label: string, value: number, set: (n: number) => void, decimal = false) => (
+  const field = (label: string, value: number, set: (n: number) => void, decimal = false, commit?: () => void) => (
     <label className="text-xs font-semibold text-muted">{label}
-      <NumberField label={`${label} de ${ex.name}`} decimal={decimal} value={value} onChange={set} className="mt-1" />
+      <NumberField label={`${label} de ${ex.name}`} decimal={decimal} value={value} onChange={set} onCommit={commit} className="mt-1" />
     </label>
   );
   return (
@@ -372,8 +374,8 @@ function ExerciseRow({ ex, open, first, last, swipe, superset, linkedToNext, onT
                 {ex.mode === 'time'
                   ? field('Segundos', ex.seconds ?? 30, seconds => onChange({ seconds }))
                   : <>
-                    {field('Reps mín.', repRange(ex).min, n => onChange(rangePatch(n, repRange(ex).max)))}
-                    {field('Reps máx.', repRange(ex).max, n => onChange(rangePatch(repRange(ex).min, n)))}
+                    {field('Reps mín.', rangeFields(ex).min, n => onChange(editRange(ex, 'min', n)), false, () => settle('min'))}
+                    {field('Reps máx.', rangeFields(ex).max, n => onChange(editRange(ex, 'max', n)), false, () => settle('max'))}
                   </>}
                 {ex.mode === 'time' && field('Carga (kg)', ex.weight, weight => onChange({ weight }), true)}
               </>
@@ -461,10 +463,3 @@ function AddExerciseSheet({ open, dayName, onClose, onAdd }: { open: boolean; da
   );
 }
 
-/** Faixa de reps (M10). Mínimo igual ao máximo = repetições fixas; `reps` fica sendo o topo. */
-function rangePatch(min: number, max: number): Partial<PlanExercise> {
-  // sem forçar máx ≥ mín aqui: o campo repassa a cada tecla ("12" passa por "1"); repRange corrige
-  const repMin = Math.max(1, Math.round(min));
-  const repMax = Math.max(1, Math.round(max));
-  return { reps: Math.max(repMin, repMax), repMin, repMax };
-}
