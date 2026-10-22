@@ -8,6 +8,7 @@ import { askRestAlarmPermission } from './rest-alarm-instance';
 import { dayTitle, plural } from '../../ui/format';
 import { toDateKey } from '../../domain/dates';
 import { rotationLetter, rotationState, rotationTitle } from '../../domain/rotation';
+import { scheduledDay } from '../../domain/reschedule';
 
 /** Escolha do treino: hoje em destaque e os demais dias logo abaixo. */
 export function DayPicker() {
@@ -32,7 +33,8 @@ export function DayPicker() {
   }
 
   const now = new Date();
-  const today = dayKeyOf(now);
+  // M19: o treino remarcado para hoje fica em destaque; remarcado para outro dia, nenhum fica
+  const today = scheduledDay(plan, toDateKey(now), data?.moves);
   // treino concluído (ou presença marcada) hoje: o cartão de hoje não oferece começar de novo
   const doneToday = !!data?.checkins[toDateKey(now)];
   const startDay = (key: DayKey) => { askRestAlarmPermission(); start(plan.id, key); };
@@ -52,7 +54,8 @@ export function DayPicker() {
       </div>
     );
   }
-  const order = [today, ...DAY_KEYS.filter(k => k !== today)];
+  const first = today ?? dayKeyOf(now);
+  const order = [first, ...DAY_KEYS.filter(k => k !== first)];
   return (
     <div className="mt-6 space-y-3">
       <p className="text-sm text-muted">{plan.name}</p>

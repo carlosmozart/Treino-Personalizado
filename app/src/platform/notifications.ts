@@ -80,15 +80,15 @@ export async function cancelRestAlarm(): Promise<void> {
   await p.cancel({ notifications: [{ id: REST_NOTIFICATION_ID }] }).catch(() => undefined);
 }
 
-// ---------- lembretes semanais ----------
+// ---------- lembretes de treino (por data, M47) ----------
 
 /** Canal dos lembretes (o mesmo do app atual; versionado porque o Android congela o canal criado). */
 const REMINDER_CHANNEL = 'treino-avisos-v2';
 
-export interface ReminderNotification { id: number; weekday: number; hour: number; minute: number; body: string }
+export interface ReminderNotification { id: number; at: Date; body: string }
 
 /**
- * Refaz os lembretes: cancela os 7 ids e agenda os de agora. Desligado ou sem permissão, só
+ * Refaz os lembretes: cancela todos os ids (inclusive os semanais antigos) e agenda os de agora. Desligado ou sem permissão, só
  * cancela. Devolve se ficaram agendados.
  */
 export async function syncTrainingReminders(ids: number[], reminders: ReminderNotification[], enabled: boolean): Promise<boolean> {
@@ -104,7 +104,7 @@ export async function syncTrainingReminders(ids: number[], reminders: ReminderNo
     notifications: reminders.map(r => ({
       id: r.id, title: 'Hora do treino', body: r.body, channelId: REMINDER_CHANNEL,
       extra: { type: 'training-reminder' },
-      schedule: { on: { weekday: r.weekday, hour: r.hour, minute: r.minute }, allowWhileIdle: true },
+      schedule: { at: r.at, allowWhileIdle: true },
       isExactNotification: false
     }))
   });

@@ -29,7 +29,7 @@ test('toda entrada da tabela tem os dois arquivos, e cobre a maior parte da bibl
   expect(new Set(seed.filter(n => !illustrationIdFor(n)))).toEqual(new Set([
     'Puxada Frontal (Polia)', 'Elevação Pélvica (Hip Thrust)', 'Abdominal (Prancha ou Máquina)'
   ]));
-});
+}, 20_000); // carrega os 270 arquivos (135 ilustrações): com a máquina ocupada, 5 s ficavam apertados
 
 test('biblioteca sem nomes repetidos, e os exercícios do Q9 (fim de cada grupo) todos com ilustração', () => {
   const all = Object.values(EXERCISE_LIBRARY).flat();

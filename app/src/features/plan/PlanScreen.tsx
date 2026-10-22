@@ -222,7 +222,7 @@ function RotationPanel({ plan, edit }: { plan: Plan; edit: Edit }) {
           Recomeçar do A
         </button>
       </div>
-      <p className="mt-2 text-xs text-faint">A meta vale para a semana, o XP e a sequência. Com os lembretes ligados (Perfil → Treino), o aviso diário diz qual é o próximo treino.</p>
+      <p className="mt-2 text-xs text-faint">A meta vale para a semana, o XP e a sequência. Com os lembretes ligados (Perfil → Treino), o aviso diz qual é o próximo treino e para quando a meta da semana é cumprida.</p>
     </section>
   );
 }

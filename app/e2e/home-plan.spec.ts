@@ -127,3 +127,30 @@ test('biblioteca: filtrar, adicionar a um dia do plano e criar exercício própr
   await expect(page.getByRole('article', { name: 'Segunda' })).toContainText('Remada Alta (Halteres)');
   expect(errors).toEqual([]);
 });
+
+test('início: remarcar o treino de hoje para outro dia e desfazer (M19)', async ({ page }) => {
+  const errors: string[] = [];
+  page.on('console', msg => { if (msg.type() === 'error') errors.push(msg.text()); });
+  await page.clock.setFixedTime(new Date(2026, 9, 19, 10)); // segunda
+  await page.goto('/');
+  await page.getByRole('button', { name: 'Escolher um modelo' }).click();
+  await page.getByRole('button', { name: 'Usar Superior / Inferior 4×' }).click();
+  await expect(page.getByRole('heading', { name: 'Segunda: Superior A' })).toBeVisible();
+
+  await page.getByRole('button', { name: 'Hoje não dá: remarcar para outro dia' }).click();
+  const sheet = page.getByRole('dialog', { name: 'Remarcar o treino' });
+  await expect(sheet.getByRole('button', { name: /Amanhã\s*Já tem treino/ })).toBeDisabled();
+  await page.screenshot({ path: 'test-results/remarcar-treino.png' });
+  await sheet.getByRole('button', { name: /Quarta-feira, 21\s*Livre/ }).click();
+
+  await expect(page.getByRole('heading', { name: 'Dia de descanso' })).toBeVisible();
+  await expect(page.getByText('Você remarcou o treino de hoje para quarta-feira, 21.')).toBeVisible();
+  const week = page.getByRole('region', { name: 'Esta semana' });
+  await expect(week.getByRole('listitem', { name: 'Quarta 21, treino remarcado para este dia' })).toBeVisible();
+  await page.screenshot({ path: 'test-results/remarcado.png' });
+
+  await page.getByRole('button', { name: 'Desfazer: treinar hoje' }).click();
+  await expect(page.getByRole('heading', { name: 'Segunda: Superior A' })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Começar treino' })).toBeVisible();
+  expect(errors).toEqual([]);
+});

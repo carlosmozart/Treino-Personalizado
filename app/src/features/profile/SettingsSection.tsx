@@ -239,7 +239,7 @@ function ReminderToggle({ on, set }: { on: boolean; set: (patch: Partial<Setting
         if (v) resyncReminders();
       }} />
       {on && !hasTime && <p className="text-xs text-warning">Defina o horário do treino em Plano → Planos para receber o lembrete.</p>}
-      {on && hasTime && <p className="text-xs text-faint">Às {plan!.trainingTime}, nos dias obrigatórios com exercícios.</p>}
+      {on && hasTime && <p className="text-xs text-faint">Às {plan!.trainingTime}, nos dias de treino do plano. Não toca no dia em que você já treinou nem no dia marcado como sem treino.</p>}
       {denied && <p className="text-xs text-warning">Permissão de notificações não concedida.</p>}
     </>
   );

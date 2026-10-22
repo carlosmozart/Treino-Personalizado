@@ -117,14 +117,20 @@ describe('rotação no resto do app', () => {
     expect(streakOf(withRotation([], ['2026-10-03', '2026-10-07', '2026-10-09']), now)).toBe(2);
   });
 
-  it('lembrete todo dia com o próximo treino, que muda depois de treinar', () => {
+  it('lembrete todo dia sem treino com o próximo da volta, até cumprir a meta da semana (M47)', () => {
     const p = { ...abc(), trainingTime: '18:00' };
     p.days.SEG = { ...p.days.SEG, name: '' };
     p.days.QUA = { ...p.days.QUA, name: 'Quarta: B: Costas' };
-    expect(remindersFor(p)).toHaveLength(7);
-    expect(remindersFor(p)[0]!.body).toBe('Próximo treino: Treino A');
-    expect(remindersFor(p, [done('2026-10-05', 'SEG')])[3]!.body).toBe('Próximo treino: B: Costas');
-    expect(remindersFor(disableRotation(p))).toHaveLength(3);
+    const now = new Date(2026, 9, 5, 8); // segunda
+    expect(remindersFor(p, { now })).toHaveLength(14);
+    expect(remindersFor(p, { now })[0]!.body).toBe('Próximo treino: Treino A');
+    // treinou A na segunda: hoje sai, e amanhã já avisa o B
+    const afterA = remindersFor(p, { now, workouts: [done('2026-10-05', 'SEG')] });
+    expect(afterA[0]).toMatchObject({ date: '2026-10-06', body: 'Próximo treino: B: Costas' });
+    // meta de 3 na semana cumprida: nada até a segunda seguinte
+    const week = [done('2026-10-05', 'SEG'), done('2026-10-06', 'QUA'), done('2026-10-07', 'SEX')];
+    expect(remindersFor(p, { now, workouts: week })[0]!.date).toBe('2026-10-12');
+    expect(remindersFor(disableRotation(p), { now })).toHaveLength(6);
   });
 
   it('título sem o dia da semana dos modelos', () => {

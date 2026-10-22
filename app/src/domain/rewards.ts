@@ -9,7 +9,8 @@ import {
   STREAK_BONUS_PCT, streakBonusKey, WATER_BONUS_PCT
 } from './gamification';
 import { waterTargetMl } from './health';
-import { computeTotalXP, dayKeyOf, trainingDaysPerWeek, type AppData } from './model';
+import { computeTotalXP, trainingDaysPerWeek, type AppData } from './model';
+import { scheduledDay } from './reschedule';
 
 import type { RecordKind } from './strength';
 
@@ -64,8 +65,10 @@ export function streakOf(data: AppData, now: Date): number {
     isCheckedIn,
     isRestDay: date => {
       if (noted(date)) return true;
-      const day = plan?.days[dayKeyOf(date)];
-      return !!day && (day.optional || day.exercises.length === 0);
+      if (!plan) return false;
+      // M19: o dia de onde o treino foi remarcado vira descanso; o de destino passa a contar
+      const k = scheduledDay(plan, toDateKey(date), data.moves);
+      return !k || plan.days[k].optional;
     },
     now
   });

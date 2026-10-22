@@ -6,6 +6,11 @@ Todas as mudanças relevantes do app ficam registradas aqui. Ao lançar uma nova
    atualizar o app instalado
 3. Adicione uma entrada aqui, nesse formato
 
+## Não lançado
+
+- Lembretes de treino por data: o aviso não toca mais no dia em que você já treinou, nem no dia marcado como sem treino (doente, viajando). Na rotação A/B/C, os avisos param quando a meta da semana é cumprida. Os lembretes cobrem os próximos 14 dias e são refeitos sempre que você abre o app.
+- Início → "Hoje não dá: remarcar para outro dia": leva o treino de hoje para um dia livre dos próximos 6, sem mudar o plano da semana. Hoje vira descanso (não quebra a sequência), o dia novo mostra o treino com "remarcado de…" e o lembrete vai junto. Dá para desfazer no mesmo dia. Vale para a semana fixa; na rotação A/B/C o próximo treino já espera você.
+
 ## [3.13.0] - 2026-10-21
 
 - Plano → Planos → "Revisar este plano com IA": o pedido leva o plano atual e o que você fez de verdade nas últimas semanas (cargas, repetições e quantos treinos). A IA sugere ajustes com o motivo, e o app mostra cada mudança (alterar, trocar, incluir, tirar) para você aprovar uma a uma; o que não for marcado fica como está.

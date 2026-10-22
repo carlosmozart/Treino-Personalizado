@@ -116,6 +116,14 @@ export interface DayNote {
   text?: string;
 }
 
+/** M19: treino remarcado. Na origem `day` é null (o treino saiu para `to`); no destino, o dia do plano que veio de `from`. */
+export interface DayMove {
+  planId: string;
+  day: DayKey | null;
+  from?: DateKey;
+  to?: DateKey;
+}
+
 export interface WeighIn {
   date: DateKey;
   weight: number;
@@ -237,6 +245,8 @@ export interface AppData {
   measurements?: Record<DateKey, Measurements>;
   /** S8: motivo de um dia sem treino; o dia não quebra a sequência. Ausente em dados antigos. */
   dayNotes?: Record<DateKey, DayNote>;
+  /** M19: treinos remarcados, por data. Ausente em dados antigos. */
+  moves?: Record<DateKey, DayMove>;
   gamification: Gamification;
   settings: Settings;
   /** Carimbos para juntar dados de dois aparelhos (ver sync.ts). */

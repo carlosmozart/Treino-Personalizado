@@ -128,7 +128,7 @@ M15	✅ (10/10/2026, Progresso → Histórico; sem recorde retroativo. Corrigir 
 M16	✅ (revisão de 10/10/2026: feito no app 3.x, mapa de calor de 6 meses; P5) Mapa de calor anual de treinos (estilo GitHub) no histórico	Média
 M17	✅ (10/10/2026, no plano e na hora pelo menu ⋯) Bi-set/superset: agrupar dois exercícios com um único descanso ao fim da rodada	Média
 M18	✅ (10/10/2026, adicionar e tirar exercício no treino; treino livre em 12/10/2026) Adicionar/remover exercício no meio do treino sem finalizar; treino livre com valores pré-preenchidos da última vez	Média
-M19	Remarcar o treino do dia para outro dia sem alterar o plano semanal; escolher início da semana (seg/dom)	Baixa
+M19	🟡 (21/10/2026: remarcar feito, só na semana fixa, para um dia livre dos próximos 6, com desfazer; Início, semana, seletor de treino, sequência e lembretes acompanham; falta escolher início da semana) Remarcar o treino do dia para outro dia sem alterar o plano semanal; escolher início da semana (seg/dom)	Baixa
 M20	✅ (10/10/2026, menu ⋯ do exercício) Histórico do exercício acessível de dentro do treino (últimas sessões + linha de evolução)	Média
 
 Fase 5 — descanso, conforto e extras
@@ -162,9 +162,10 @@ M44	Equilíbrio entre exercícios: comparar levantamentos entre si (ex.: supino 
 Gráficos: comparados em 04/10/2026 — o openGym é melhor no componente (eixos, legenda, interação) e nas métricas; já previstos M3, M16, M22, M28–M29, M38 e N9, completados por M41–M44
 M45	✅ Planos prontos para carregar e editar (ex.: Push/Pull/Legs, Superior/Inferior, Corpo inteiro, 5×5), além do plano padrão e do gerado pela IA	Média
 M46	✅ (21/10/2026: Plano → Biblioteca com os 153 exercícios, filtros por grupo e equipamento, favoritar, adicionar a um dia do plano e criar exercício próprio com grupo; a foto do exercício próprio fica para o Q4) Tela Biblioteca de exercícios: busca, filtros por grupo muscular e equipamento, criar exercício próprio (nome + grupo, foto opcional — Q4) e adicionar ao plano em um toque; usa as ilustrações da seção Q	Alta
-M47	Lembretes por data em vez de semanais fixos: agendar só dias planejados ainda sem treino e cancelar ao finalizar ou remarcar. Hoje o lembrete repete toda semana e dispara mesmo se você já treinou naquele dia	Média
+M47	✅ (21/10/2026: 14 dias à frente com data, refeitos a cada mudança e ao voltar ao app; pula dia treinado, nota de sem treino e, na rotação, a semana com a meta cumprida. Remarcar fica com o M19) Lembretes por data em vez de semanais fixos: agendar só dias planejados ainda sem treino e cancelar ao finalizar ou remarcar. Hoje o lembrete repete toda semana e dispara mesmo se você já treinou naquele dia	Média
 M48	Combinar dois dias/planos num mesmo treino (ex.: treino do dia + abdômen), mantendo cada exercício ligado ao seu plano	Baixa
 M49	Drop-set e rest-pause como tipos de série (complementa M8)	Baixa
+M50	Pendente (pedido do Carlos em 21/10/2026): registrar o treino terminado no Samsung Health e apps parecidos. Caminho no Android: Health Connect (vem no Android 14+; antes, app da Google Play), que o Samsung Health, o Google Fit e outros leem. Gravar a sessão de exercício (início, fim, tipo musculação ou cardio) e as calorias estimadas; pesagens podem ir junto. Exige código nativo (plugin do Capacitor próprio ou da comunidade), pedir permissão de escrita, e na Play Store declarar o uso dos dados de saúde. iPhone: HealthKit só num app nativo (não dá pela versão web). Opcional e desligado por padrão, já que hoje o app não manda nada para fora	Média
 Varredura final de 04/10/2026: README, módulos e telas do openGym (commit 1350409) cruzados com este TODO. Fora de escopo, por exigirem servidor ou não se aplicarem: sincronização entre aparelhos, passkeys/senha, painel admin, check-in por QR na academia, servidor MCP, 17 idiomas (fica F3), importação via API do Hevy e teclas físicas no treino
 
 N. Interface inspirada no openGym (comparação das telas em 04/10/2026)

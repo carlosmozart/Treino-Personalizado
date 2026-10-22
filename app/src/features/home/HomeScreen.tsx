@@ -8,6 +8,9 @@ import { HomeNotices } from './HomeNotices';
 import { IosInstallNotice } from './IosInstallNotice';
 import { WeightLogSheet } from './WeightLogSheet';
 import { DayNoteSheet, reasonLabel } from './DayNoteSheet';
+import { MoveWorkoutSheet, moveDayLabel } from './MoveWorkoutSheet';
+import { undoMove } from '../../domain/reschedule';
+import { toDateKey } from '../../domain/dates';
 import { PlanChooser, type ChooserMode } from '../plan/PlanChooser';
 import { formatNumber, plural, shortDate } from '../../ui/format';
 import { DAY_FULL_NAMES, trainingDaysPerWeek } from '../../domain/model';
@@ -80,7 +83,7 @@ function WeekStrip() {
         {days.map(d => {
           // S8: dia passado (ou hoje) sem treino aceita uma nota com o motivo
           const canNote = !d.trained && !d.future;
-          const label = `${DAY_FULL_NAMES[d.dayKey]} ${d.dayOfMonth}${d.trained ? ', treinou' : d.note ? `, ${reasonLabel(d.note.reason).toLowerCase()}` : d.planned && !d.future ? ', não treinou' : ''}${d.today ? ', hoje' : ''}`;
+          const label = `${DAY_FULL_NAMES[d.dayKey]} ${d.dayOfMonth}${d.trained ? ', treinou' : d.note ? `, ${reasonLabel(d.note.reason).toLowerCase()}` : d.planned && !d.future ? ', não treinou' : ''}${d.moved === 'out' ? ', treino remarcado' : d.moved === 'in' ? ', treino remarcado para este dia' : ''}${d.today ? ', hoje' : ''}`;
           const body = (
             <>
               <span className={`text-xs font-semibold ${d.today ? 'text-ink' : 'text-faint'}`}>{d.letter}</span>
@@ -115,6 +118,7 @@ function TodayCard({ card, onChoose }: { card: ReturnType<typeof todayCard>; onC
   const start = useAppStore(s => s.startWorkout);
   const run = useAppStore(s => s.run);
   const data = useAppStore(s => s.data)!;
+  const [moving, setMoving] = useState(false);
 
   if (card.kind === 'no-plan') {
     return (
@@ -147,6 +151,15 @@ function TodayCard({ card, onChoose }: { card: ReturnType<typeof todayCard>; onC
             Próximo treino {card.next.inDays === 1 ? 'amanhã' : `em ${card.next.inDays} dias`}: {card.next.title}
           </p>
         )}
+        {card.movedTo && (
+          <>
+            <p className="mt-2 text-sm text-muted">Você remarcou o treino de hoje para {moveDayLabel(card.movedTo)}.</p>
+            <button type="button" onClick={() => run((d, now) => undoMove(d, toDateKey(now), now))}
+              className="mt-1 h-11 text-sm font-semibold text-primary">
+              Desfazer: treinar hoje
+            </button>
+          </>
+        )}
       </section>
     );
   }
@@ -156,7 +169,7 @@ function TodayCard({ card, onChoose }: { card: ReturnType<typeof todayCard>; onC
       <p className="text-xs font-semibold text-muted">
         {card.rotation
           ? `${checkedIn ? 'Próximo treino' : `Hoje · treino ${card.rotation.letter}`} · ${card.rotation.done} de ${card.rotation.total} da volta`
-          : `Hoje${card.optional ? ' · opcional' : ''}`}
+          : `Hoje${card.optional ? ' · opcional' : ''}${card.movedFrom ? ` · remarcado de ${moveDayLabel(card.movedFrom)}` : ''}`}
       </p>
       <h2 className="text-lg font-bold leading-snug">{card.title}</h2>
       <p className="text-sm text-muted">{plural(card.exercises, 'exercício', 'exercícios')}{card.focus ? ` · ${card.focus}` : ''}</p>
@@ -172,6 +185,12 @@ function TodayCard({ card, onChoose }: { card: ReturnType<typeof todayCard>; onC
             className="mt-2 h-11 w-full rounded-xl text-sm font-semibold text-muted">
             Já treinei hoje, só marcar presença
           </button>
+          {!card.rotation && (
+            <button type="button" onClick={() => setMoving(true)} className="h-11 w-full rounded-xl text-sm font-semibold text-muted">
+              Hoje não dá: remarcar para outro dia
+            </button>
+          )}
+          <MoveWorkoutSheet open={moving} title={card.title} onClose={() => setMoving(false)} />
         </>
       )}
       {checkedIn && (

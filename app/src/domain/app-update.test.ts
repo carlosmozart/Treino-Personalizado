@@ -1,7 +1,7 @@
 import { expect, test } from 'vitest';
 import { compareVersions, isNewer, parseRelease } from './app-update';
 import { remindersFor, parseTrainingTime } from './reminders';
-import { samplePlan } from './testing';
+import { samplePlan, workout } from './testing';
 
 const SHA = 'a'.repeat(64);
 const release = (extra: object = {}) => ({
@@ -27,12 +27,24 @@ test('lê a release: APK do repositório e SHA-256; recusa rascunho, outra orige
   expect(isNewer(parseRelease(release()), '3.0.0')).toBe(false);
 });
 
-test('lembretes: dias obrigatórios com exercícios, no horário do plano', () => {
+test('M47: lembretes por data nos dias obrigatórios com exercícios, no horário do plano', () => {
   const plan = { ...samplePlan(), trainingTime: '12:15' };
   plan.days.SAB = { ...plan.days.SAB, optional: true };
-  const list = remindersFor(plan);
-  expect(list.map(r => r.dayKey)).toEqual(['SEG', 'TER', 'QUA', 'QUI', 'SEX']);
-  expect(list[0]).toEqual({ id: 4100, dayKey: 'SEG', weekday: 2, hour: 12, minute: 15, body: 'Hoje: Treino SEG' });
-  expect(remindersFor({ ...plan, trainingTime: '' })).toEqual([]);
+  const now = new Date(2026, 9, 5, 8); // segunda, 08:00
+  const list = remindersFor(plan, { now });
+  // 14 dias: segunda a sexta das duas semanas (sábado opcional, domingo sem exercícios)
+  expect(list.map(r => r.date)).toEqual(['2026-10-05', '2026-10-06', '2026-10-07', '2026-10-08', '2026-10-09', '2026-10-12', '2026-10-13', '2026-10-14', '2026-10-15', '2026-10-16']);
+  expect(list[0]).toEqual({ id: 4100, date: '2026-10-05', at: new Date(2026, 9, 5, 12, 15), body: 'Hoje: Treino SEG' });
+  expect(list[5]!.id).toBe(4107);
+  expect(remindersFor({ ...plan, trainingTime: '' }, { now })).toEqual([]);
   expect(parseTrainingTime('25:00')).toBeNull();
+});
+
+test('M47: sem lembrete no dia que já teve treino, no dia com nota de sem treino e no horário que já passou', () => {
+  const plan = { ...samplePlan(), trainingTime: '12:15' };
+  const dates = (ctx: Parameters<typeof remindersFor>[1]) => remindersFor(plan, ctx).map(r => r.date).slice(0, 3);
+  const segunda = new Date(2026, 9, 5, 8);
+  expect(dates({ now: segunda, workouts: [workout('2026-10-05', 'Supino', [[10, 40]])] })).toEqual(['2026-10-06', '2026-10-07', '2026-10-08']);
+  expect(dates({ now: segunda, dayNotes: { '2026-10-06': { reason: 'doente' } } })).toEqual(['2026-10-05', '2026-10-07', '2026-10-08']);
+  expect(dates({ now: new Date(2026, 9, 5, 13) })).toEqual(['2026-10-06', '2026-10-07', '2026-10-08']);
 });

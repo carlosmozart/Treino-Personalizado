@@ -3,7 +3,8 @@ import { DAY_KEYS, type DayKey } from './ai-plan';
 import { addDays, mondayOf, toDateKey, type DateKey } from './dates';
 import { goalProgress } from './body-goal';
 import { levelInfo, freeMealThreshold, type LevelInfo } from './gamification';
-import { DAY_FULL_NAMES, dayKeyOf, type AppData, type DayNote, type PlanDay } from './model';
+import { DAY_FULL_NAMES, type AppData, type DayNote } from './model';
+import { moveOn, scheduledDay } from './reschedule';
 import { rotationLetter, rotationState, rotationTitle } from './rotation';
 import { daysPerWeekOf, streakOf, weekCheckins } from './rewards';
 import { waterTargetMl } from './health';
@@ -23,13 +24,13 @@ export interface WeekDay {
   planned: boolean;
   /** S8: motivo anotado para o dia sem treino. */
   note: DayNote | null;
+  /** M19: o treino saiu deste dia ('out') ou veio de outro ('in'). */
+  moved: 'out' | 'in' | null;
 }
 
 function activePlan(data: AppData) {
   return data.activePlanId ? data.plans[data.activePlanId] : undefined;
 }
-
-const isTrainingDay = (day: PlanDay | undefined) => !!day && day.exercises.length > 0;
 
 /** Semana de segunda a domingo da data atual (N6). */
 export function weekStrip(data: AppData, now: Date): WeekDay[] {
@@ -38,12 +39,15 @@ export function weekStrip(data: AppData, now: Date): WeekDay[] {
   const plan = activePlan(data);
   return DAY_KEYS.map((dayKey, i) => {
     const date = addDays(monday, i);
-    const day = plan?.days[dayKey];
+    const fixed = plan && !plan.rotation ? plan : undefined;
+    const sched = fixed ? scheduledDay(fixed, date, data.moves) : null;
+    const move = fixed ? moveOn(fixed, date, data.moves) : null;
     return {
       date, dayKey, letter: SHORT[dayKey], dayOfMonth: Number(date.slice(8, 10)),
       trained: !!data.checkins[date], today: date === today, future: date > today,
-      planned: !plan?.rotation && isTrainingDay(day) && !day!.optional,
-      note: data.dayNotes?.[date] ?? null
+      planned: !!sched && !fixed!.days[sched].optional,
+      note: data.dayNotes?.[date] ?? null,
+      moved: move ? (move.day ? 'in' : 'out') : null
     };
   });
 }
@@ -53,9 +57,11 @@ export type TodayCard =
   | { kind: 'in-progress'; title: string; setsDone: number; setsTotal: number }
   | { kind: 'workout'; dayKey: DayKey; title: string; focus: string; exercises: number; optional: boolean; doneToday: boolean;
       /** Rotação (R1): letra, treinos feitos na volta e tamanho da volta. */
-      rotation?: { letter: string; done: number; total: number } }
-  /** M35: no descanso, quando é o próximo treino. */
-  | { kind: 'rest'; next: { dayKey: DayKey; title: string; inDays: number } | null };
+      rotation?: { letter: string; done: number; total: number };
+      /** M19: treino remarcado para hoje, vindo desta data. */
+      movedFrom?: DateKey }
+  /** M35: no descanso, quando é o próximo treino. M19: `movedTo` quando o treino de hoje foi remarcado. */
+  | { kind: 'rest'; next: { dayKey: DayKey; title: string; inDays: number } | null; movedTo?: DateKey };
 
 export function todayCard(data: AppData, now: Date, session: { dayName: string; exercises: { sets: { done: boolean }[] }[] } | null): TodayCard {
   if (session) {
@@ -73,22 +79,23 @@ export function todayCard(data: AppData, now: Date, session: { dayName: string; 
       rotation: { letter: rotationLetter(plan, rot.next), done: rot.done, total: rot.order.length }
     };
   }
-  const dayKey = dayKeyOf(now);
-  const day = plan.days[dayKey];
-  if (isTrainingDay(day)) {
+  const today = toDateKey(now);
+  const move = moveOn(plan, today, data.moves);
+  const dayKey = scheduledDay(plan, today, data.moves);
+  if (dayKey) {
+    const day = plan.days[dayKey];
     return {
       kind: 'workout', dayKey, title: day.name.replace(/\s*\(opcional\)\s*$/i, '') || dayKey, focus: day.focus,
-      exercises: day.exercises.length, optional: day.optional, doneToday: !!data.checkins[toDateKey(now)]
+      exercises: day.exercises.length, optional: day.optional, doneToday: !!data.checkins[today],
+      ...(move?.from ? { movedFrom: move.from } : {})
     };
   }
+  const movedTo = move?.to ? { movedTo: move.to } : {};
   for (let inDays = 1; inDays <= 7; inDays++) {
-    const date = new Date(now);
-    date.setDate(date.getDate() + inDays);
-    const k = dayKeyOf(date);
-    const next = plan.days[k];
-    if (isTrainingDay(next)) return { kind: 'rest', next: { dayKey: k, title: next.name.replace(/\s*\(opcional\)\s*$/i, '') || k, inDays } };
+    const k = scheduledDay(plan, addDays(today, inDays), data.moves);
+    if (k) return { kind: 'rest', next: { dayKey: k, title: plan.days[k].name.replace(/\s*\(opcional\)\s*$/i, '') || k, inDays }, ...movedTo };
   }
-  return { kind: 'rest', next: null };
+  return { kind: 'rest', next: null, ...movedTo };
 }
 
 export interface ProgressCard {
@@ -178,12 +185,8 @@ export function nextWorkoutAfterToday(data: AppData, now: Date): { title: string
   const rot = rotationState(plan, data.workouts);
   if (rot) return { title: rotationTitle(plan, rot.next), when: `treino ${rotationLetter(plan, rot.next)} da rotação` };
   for (let inDays = 1; inDays <= 7; inDays++) {
-    const date = new Date(now);
-    date.setDate(date.getDate() + inDays);
-    const day = plan.days[dayKeyOf(date)];
-    if (isTrainingDay(day)) {
-      return { title: day!.name.replace(/\s*\(opcional\)\s*$/i, '') || DAY_FULL_NAMES[dayKeyOf(date)], when: inDays === 1 ? 'amanhã' : `em ${inDays} dias` };
-    }
+    const k = scheduledDay(plan, addDays(toDateKey(now), inDays), data.moves);
+    if (k) return { title: plan.days[k].name.replace(/\s*\(opcional\)\s*$/i, '') || DAY_FULL_NAMES[k], when: inDays === 1 ? 'amanhã' : `em ${inDays} dias` };
   }
   return null;
 }
