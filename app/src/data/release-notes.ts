@@ -3,6 +3,14 @@ export interface ReleaseNote { version: string; date: string; items: string[] }
 
 export const RELEASE_NOTES: readonly ReleaseNote[] = [
   {
+    version: '3.14.0',
+    date: '2026-10',
+    items: [
+      'Lembretes de treino: não tocam mais no dia em que você já treinou nem no dia marcado como sem treino; na rotação, param quando a meta da semana é cumprida.',
+      'Início → "Hoje não dá: remarcar para outro dia": leve o treino de hoje para um dia livre sem mudar o plano; a sequência não quebra e o lembrete vai junto.'
+    ]
+  },
+  {
     version: '3.13.0',
     date: '2026-10',
     items: [
