@@ -172,9 +172,12 @@ export function addWater(data: AppData, deltaMl: number, now: Date): ActionResul
   return { data: draft, events };
 }
 
-/** Pesagem: uma por dia (a nova substitui), peso atual = pesagem mais recente. */
+/**
+ * Pesagem: uma por dia (a nova substitui), peso atual = pesagem mais recente. A data pode ser de
+ * um dia anterior (T2), nunca futura.
+ */
 export function logWeight(data: AppData, weightKg: number, date: DateKey, now: Date): ActionResult {
-  if (!Number.isFinite(weightKg) || weightKg < 20 || weightKg > 400) return unchanged(data);
+  if (!Number.isFinite(weightKg) || weightKg < 20 || weightKg > 400 || date > toDateKey(now)) return unchanged(data);
   const weight = Math.round(weightKg * 10) / 10;
   const draft = structuredClone(data);
   const p = draft.profile;

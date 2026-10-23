@@ -278,3 +278,19 @@ S11	Para depois: progressão tripla, halteres disponíveis, mapa de fadiga, expo
 S12	✅ (10/10/2026, openGym 1.4.1) Busca: exercícios já feitos primeiro, e nomes do histórico entram na busca	Média
 S13	✅ (10/10/2026, openGym 1.4.1) Período de 1 ano nos gráficos	Baixa
 S14	Som do fim do descanso por cima da música com o app aberto (nativo no Android; junto com S10)	Média
+
+T. Ideias do openGym v1.4.2 e do roadmap até a v1.4.11 (23/10/2026)
+Só a ideia; o código do openGym é AGPL: nada é copiado. Já tínhamos: reservas do exercício oferecidas primeiro na troca, lembrete que sabe que você treinou (M47), treino salvo ao ir para o fundo. Fora do nosso caso: iPhone, Apple Watch, servidor, contas e Coach.
+#	Sugestão	Prioridade
+T1	✅ (23/10/2026: Restaurar pergunta entre juntar (mergeAppData) e substituir) Restaurar backup juntando com os dados atuais (a junção de dois aparelhos já existe em sync.ts), além de substituir tudo	Alta
+T2	✅ (23/10/2026: campo de data na pesagem, sem data futura) Registrar a pesagem de um dia anterior, como já dá nas medidas	Média
+T3	✅ (23/10/2026: sempre ativo; os números do topo continuam levando a qualquer exercício) Modo foco: "Próximo" pula os exercícios já concluídos (opção ao lado de recolher concluídos)	Média
+T4	✅ (23/10/2026: também ao pular o descanso; vale no modo foco e na lista) Exercício por tempo (prancha): ao acabar o último descanso, o próximo exercício aparece sozinho	Baixa
+T5	✅ (23/10/2026: some quando o exercício é de peso do corpo e todas as séries estão sem carga) Exercício só de peso do corpo sem os botões de ajuste de carga	Baixa
+T6	Descanso do aquecimento como ajuste geral (sem cronômetro ou um tempo próprio) e descanso entre os lados nos exercícios por lado (M31)	Média
+T7	Barras por tipo na calculadora de anilhas: olímpica 20 kg, feminina 15 kg, W/EZ, hexagonal; cada exercício usa a sua; atalhos de anilhas e a de 1,5 kg	Baixa
+T8	Equilíbrio muscular: mostrar também os grupos não treinados e, ao tocar, abrir a Biblioteca filtrada no grupo	Média
+T9	Exportar o histórico em CSV (planilha), par do M24	Média
+T10	Composição corporal nas medidas: massa muscular, água e gordura visceral (balança de bioimpedância)	Baixa
+T11	Exercícios assistidos (barra fixa e paralela no gravitron) como carga negativa, que progride diminuindo	Baixa
+T12	Para depois: widget do Android com o treino do dia e a sequência; ler pesagens do Health Connect (junto com o M50); academias diferentes com históricos separados; cardio em intervalos (C25k)	Baixa

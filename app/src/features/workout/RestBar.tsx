@@ -10,7 +10,7 @@ export function RestBar() {
   const endsAt = useRestStore(s => s.endsAt);
   const total = useRestStore(s => s.total);
   const add = useRestStore(s => s.add);
-  const stop = useRestStore(s => s.stop);
+  const finish = useRestStore(s => s.finish);
   const now = useNow(250, endsAt !== null);
   const remaining = endsAt === null ? 0 : Math.ceil((endsAt - now) / 1000);
 
@@ -20,8 +20,8 @@ export function RestBar() {
     // com o alarme do Android agendado na hora certa, ele já toca: a página só vibra
     const native = restAlarm.handledNatively(endsAt);
     restAlert({ sound: !native && (settings?.restSound ?? true), vibrate: settings?.restVibrate ?? true });
-    stop();
-  }, [endsAt, remaining, stop]);
+    finish();
+  }, [endsAt, remaining, finish]);
 
   if (endsAt === null) return null;
   const pct = total ? Math.min(100, Math.max(0, (remaining / total) * 100)) : 0;
@@ -37,7 +37,7 @@ export function RestBar() {
         </div>
         <button type="button" onClick={() => add(-15)} className="h-11 rounded-xl px-3 font-bold text-muted">−15</button>
         <button type="button" onClick={() => add(15)} className="h-11 rounded-xl px-3 font-bold text-muted">+15</button>
-        <button type="button" onClick={stop} className="h-11 rounded-xl bg-page px-4 font-bold">Pular</button>
+        <button type="button" onClick={finish} className="h-11 rounded-xl bg-page px-4 font-bold">Pular</button>
       </div>
     </div>
   );

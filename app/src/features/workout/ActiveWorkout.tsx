@@ -1,6 +1,6 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { DAY_KEYS } from '../../domain/ai-plan';
-import { isExerciseDone, sessionProgress, type ActiveSession } from '../../domain/session';
+import { isExerciseDone, nextOpenExercise, sessionProgress, type ActiveSession } from '../../domain/session';
 import { updateMeta, updateSettings } from '../../domain/actions';
 import { Icon } from '../../ui/Icon';
 import { useNow } from '../../hooks/use-now';
@@ -40,6 +40,21 @@ export function ActiveWorkout({ session }: { session: ActiveSession }) {
   const elapsed = (now - Date.parse(session.startedAt)) / 1000;
   const pct = progress.setsTotal ? (progress.setsDone / progress.setsTotal) * 100 : 0;
   const deload = useAppStore(s => (s.data ? isDeloadDate(s.data, session.date) : false));
+  // T3: "Próximo" vai ao próximo exercício pendente; com todos feitos, segue a ordem
+  const pending = nextOpenExercise(session.exercises, at);
+  const nextTarget = pending ?? (at < total - 1 ? at + 1 : null);
+  // T4: exercício por tempo (prancha) concluído: quando o último descanso acaba, o próximo aparece
+  const ended = useRestStore(s => s.ended);
+  const seenRest = useRef(useRestStore.getState().ended?.seq ?? 0);
+  useEffect(() => {
+    if (!ended || ended.seq <= seenRest.current) return;
+    seenRest.current = ended.seq;
+    const ex = ended.source === null ? undefined : session.exercises[ended.source];
+    if (!ex || ex.mode !== 'time' || !isExerciseDone(ex)) return;
+    const next = nextOpenExercise(session.exercises, ended.source!);
+    if (next !== null) goTo(next);
+    // só reage a um descanso novo; a sessão e o modo são lidos no momento em que ele termina
+  }, [ended]);
 
   return (
     <div>
@@ -110,7 +125,7 @@ export function ActiveWorkout({ session }: { session: ActiveSession }) {
             <button type="button" disabled={at === 0} onClick={() => setCurrent(at - 1)} aria-label="Exercício anterior"
               className="flex size-11 items-center justify-center rounded-xl bg-surface-2 disabled:opacity-40"><Icon name="subir" className="size-6 -rotate-90" /></button>
             <p className="flex-1 text-center font-semibold" aria-live="polite">Exercício {at + 1}/{total}</p>
-            <button type="button" disabled={at === total - 1} onClick={() => setCurrent(at + 1)} aria-label="Próximo exercício"
+            <button type="button" disabled={nextTarget === null} onClick={() => { if (nextTarget !== null) setCurrent(nextTarget); }} aria-label="Próximo exercício"
               className={`flex size-11 items-center justify-center rounded-xl disabled:opacity-40 ${isExerciseDone(session.exercises[at]!) ? 'bg-primary text-white' : 'bg-surface-2'}`}>
               <Icon name="subir" className="size-6 rotate-90" />
             </button>

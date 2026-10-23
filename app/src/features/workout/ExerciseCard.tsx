@@ -19,6 +19,7 @@ import { SwipeRow } from '../../ui/SwipeRow';
 import { searchNames } from '../../domain/search';
 import { useSearchPool } from '../../hooks/use-search-pool';
 import { isBarbell } from '../../domain/plates';
+import { isBodyweight } from '../../domain/progression';
 
 const ADJUSTS = [-5, -0.5, 0.5, 5, 10] as const;
 
@@ -112,7 +113,7 @@ export function ExerciseCard({ session, index, alwaysOpen = false, onGoTo }: Pro
       else document.getElementById(`exercicio-${next.next}`)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
       return;
     }
-    if (settings?.restAutoStart) useRestStore.getState().start(ex.restSeconds ?? settings.restSeconds);
+    if (settings?.restAutoStart) useRestStore.getState().start(ex.restSeconds ?? settings.restSeconds, undefined, index);
   }
 
   const close = () => setMenu(false);
@@ -224,7 +225,8 @@ export function ExerciseCard({ session, index, alwaysOpen = false, onGoTo }: Pro
               <button type="button" onClick={undoRemove} className="h-10 px-2 font-bold text-info">Desfazer</button>
             </div>
           )}
-          {(data?.settings.weightButtons ?? true) && ex.sets.some(set => !set.done) && (
+          {/* T5: peso do corpo sem carga não tem o que ajustar */}
+          {(data?.settings.weightButtons ?? true) && ex.sets.some(set => !set.done) && !(isBodyweight(ex.name) && ex.sets.every(set => set.weight === 0)) && (
             <div className="mt-2 flex items-center gap-1" role="group" aria-label={`Ajustar a carga das séries não feitas de ${ex.name}`}>
               <span className="mr-1 text-xs font-semibold text-faint">Carga</span>
               {ADJUSTS.map(d => (

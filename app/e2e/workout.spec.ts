@@ -149,3 +149,41 @@ test('treino salvo: compartilhar como imagem, com recorde (S9)', async ({ page }
   await img.screenshot({ path: 'test-results/treino-imagem.png' });
   expect(errors).toEqual([]);
 });
+
+test('modo foco: próximo pula os concluídos, prancha avança sozinha, peso do corpo sem botões de carga (T3, T4, T5)', async ({ page }) => {
+  const errors: string[] = [];
+  page.on('console', msg => { if (msg.type() === 'error') errors.push(msg.text()); });
+  await page.clock.setFixedTime(new Date(2026, 9, 19, 10)); // segunda
+  await page.goto('/');
+  await page.getByRole('button', { name: 'Treino', exact: true }).click();
+  await page.getByRole('button', { name: 'Escolher um modelo' }).click();
+  await page.getByRole('button', { name: 'Usar Em casa 3×' }).click();
+  await page.getByRole('button', { name: /^Começar / }).first().click();
+  await page.getByRole('button', { name: 'Um exercício por vez' }).click();
+  const markAll = async () => {
+    await page.getByRole('button', { name: /^Opções de / }).click();
+    await page.getByRole('button', { name: 'Marcar todas as séries' }).click();
+  };
+
+  // T5: flexão (peso do corpo, sem carga) não mostra os botões de carga; o agachamento mostra
+  await expect(page.getByRole('group', { name: /^Ajustar a carga .* Agachamento Livre$/ })).toBeVisible();
+  await page.getByRole('button', { name: /^Ir para Flexão de Braço/ }).click();
+  await expect(page.getByRole('heading', { name: /Flexão de Braço/ })).toBeVisible();
+  await expect(page.getByRole('group', { name: /^Ajustar a carga/ })).toHaveCount(0);
+
+  // T3: com o 2 feito, terminar o 1 e tocar em Próximo vai ao 3
+  await markAll();
+  await page.getByRole('button', { name: /^Ir para Agachamento Livre/ }).click();
+  await markAll();
+  await page.getByRole('button', { name: 'Próximo exercício' }).click();
+  await expect(page.getByText('Exercício 3/8')).toBeVisible();
+
+  // T4: prancha concluída, o fim do descanso (aqui, Pular) traz o próximo pendente
+  await page.getByRole('button', { name: /^Ir para Prancha Isométrica/ }).click();
+  for (const n of [1, 2, 3]) await page.getByRole('button', { name: `Série ${n} feita` }).click();
+  await expect(page.getByRole('timer', { name: 'Descanso' })).toBeVisible();
+  await expect(page.getByText('Exercício 7/8')).toBeVisible();
+  await page.getByRole('button', { name: 'Pular' }).click();
+  await expect(page.getByText('Exercício 8/8')).toBeVisible();
+  expect(errors).toEqual([]);
+});

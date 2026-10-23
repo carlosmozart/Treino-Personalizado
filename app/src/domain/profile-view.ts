@@ -1,7 +1,7 @@
 // O que as telas de Perfil e Saúde mostram, calculado a partir do cadastro.
 import { fromDateKey, toDateKey } from './dates';
 import { bmi, classifyBmi, idealWeightRange, TMB_FORMULAS, tdee, waterTargetMl, type BmiClass } from './health';
-import { stampAll } from './sync';
+import { mergeAppData, stampAll } from './sync';
 import type { ActionResult } from './actions';
 import type { AppData, UserProfile } from './model';
 
@@ -58,4 +58,13 @@ export function healthSummary(profile: UserProfile, now: Date): HealthSummary {
  */
 export function restoreBackup(_data: AppData, restored: AppData, now: Date): ActionResult {
   return { data: stampAll({ ...restored, sync: { changed: {}, deleted: { ...restored.sync.deleted } } }, now), events: [] };
+}
+
+/**
+ * T1: junta o backup com os dados deste aparelho, pela mesma junção de dois aparelhos (sync.ts):
+ * o que só existe de um lado fica; o mesmo registro nos dois, vence a alteração mais recente; o que
+ * foi apagado depois de alterado continua apagado. Juntar de novo o mesmo backup não muda nada.
+ */
+export function mergeBackup(data: AppData, restored: AppData): ActionResult {
+  return { data: mergeAppData(data, restored), events: [] };
 }

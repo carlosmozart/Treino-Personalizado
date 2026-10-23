@@ -6,6 +6,14 @@ Todas as mudanças relevantes do app ficam registradas aqui. Ao lançar uma nova
    atualizar o app instalado
 3. Adicione uma entrada aqui, nesse formato
 
+## Não lançado
+
+- Perfil → Dados e backup → Restaurar: agora pergunta se é para **juntar com os dados atuais** (fica o que já está no aparelho, entra o que só existe no backup e, se o mesmo registro estiver nos dois, vale o alterado por último) ou **substituir tudo**, como antes.
+- Registrar peso: dá para escolher a data e anotar a pesagem de um dia anterior. O peso atual continua sendo o da pesagem mais recente.
+- Modo foco: "Próximo" vai direto ao próximo exercício que falta, pulando os já concluídos.
+- Exercício por tempo (prancha): quando o último descanso acaba (ou você pula), o próximo exercício que falta aparece sozinho.
+- Exercício só de peso do corpo, sem carga, não mostra mais os botões de ajuste de carga.
+
 ## [3.15.0] - 2026-10-22
 
 - Exercício criado por você ou pela IA ganha a ilustração do exercício da biblioteca com as mesmas palavras ("Supino reto com halteres" usa a do Supino Reto com Halteres). Nome que indica outro movimento ou outro equipamento fica sem ilustração, para não mostrar uma errada.

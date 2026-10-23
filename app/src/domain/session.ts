@@ -366,6 +366,18 @@ export function swapExercise(s: ActiveSession, data: AppData, exIndex: number, n
   });
 }
 
+/**
+ * T3: o próximo exercício ainda pendente depois de `from` (dando a volta para os de antes).
+ * Null quando todos estão feitos.
+ */
+export function nextOpenExercise(exercises: readonly SessionExercise[], from: number): number | null {
+  for (let step = 1; step < exercises.length; step++) {
+    const i = (from + step) % exercises.length;
+    if (!isExerciseDone(exercises[i]!)) return i;
+  }
+  return null;
+}
+
 export function isExerciseDone(ex: SessionExercise): boolean {
   return ex.mode === 'cardio' ? !!ex.cardio?.done : ex.sets.length > 0 && ex.sets.every(set => set.done);
 }

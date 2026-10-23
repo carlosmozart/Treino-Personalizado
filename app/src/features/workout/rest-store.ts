@@ -4,22 +4,36 @@ interface RestState {
   /** Fim do descanso em ms (Date.now), ou null se parado. */
   endsAt: number | null;
   total: number;
-  start(seconds: number, now?: number): void;
+  /** T4: o exercício (índice no treino) cuja série começou o descanso. */
+  source: number | null;
+  /** T4: o último descanso que chegou ao fim (o tempo acabou ou "Pular"); `seq` muda a cada um. */
+  ended: { source: number | null; seq: number } | null;
+  start(seconds: number, now?: number, source?: number | null): void;
   add(seconds: number, now?: number): void;
+  /** Para sem avisar ninguém (treino cancelado ou concluído). */
   stop(): void;
+  /** Fim do descanso: o tempo acabou ou a pessoa pulou. */
+  finish(): void;
 }
 
 export const useRestStore = create<RestState>((set, get) => ({
   endsAt: null,
   total: 0,
-  start: (seconds, now = Date.now()) => { primeRestSound(); set({ endsAt: now + seconds * 1000, total: seconds }); },
+  source: null,
+  ended: null,
+  start: (seconds, now = Date.now(), source = null) => { primeRestSound(); set({ endsAt: now + seconds * 1000, total: seconds, source }); },
   add: (seconds, now = Date.now()) => {
     const { endsAt, total } = get();
     if (endsAt === null) return;
     const next = Math.max(now, endsAt + seconds * 1000);
     set({ endsAt: next, total: Math.max(1, total + seconds) });
   },
-  stop: () => set({ endsAt: null, total: 0 })
+  stop: () => set({ endsAt: null, total: 0, source: null }),
+  finish: () => {
+    const { endsAt, source, ended } = get();
+    if (endsAt === null) return;
+    set({ endsAt: null, total: 0, source: null, ended: { source, seq: (ended?.seq ?? 0) + 1 } });
+  }
 }));
 
 // Som do descanso (O13): um AudioContext só, destravado pelo toque que inicia o descanso (o

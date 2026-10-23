@@ -7,7 +7,8 @@ import { dataStatus } from '../../domain/data-status';
 import { errorReport, useErrorLog } from '../../platform/error-log';
 import { toDateKey } from '../../domain/dates';
 import { loadSourceOf, type AppData, type LoadSource, type Settings, type ThemePref } from '../../domain/model';
-import { restoreBackup } from '../../domain/profile-view';
+import { mergeBackup, restoreBackup } from '../../domain/profile-view';
+import { Sheet } from '../../ui/Sheet';
 import { useAppStore } from '../../store';
 import { NumberField } from '../../ui/NumberField';
 import { DurationWheel } from '../../ui/DurationWheel';
@@ -127,6 +128,8 @@ function BackupCard() {
   const run = useAppStore(s => s.run);
   const fileRef = useRef<HTMLInputElement>(null);
   const [pending, setPending] = useState<{ text: string; needsPassword: boolean } | null>(null);
+  // T1: o backup lido espera a escolha entre juntar e substituir
+  const [choice, setChoice] = useState<{ data: AppData; summary: string } | null>(null);
   const [password, setPassword] = useState('');
   const [message, setMessage] = useState('');
 
@@ -163,9 +166,16 @@ function BackupCard() {
     const d: AppData = result.data;
     const summary = `${plural(d.workouts.length, 'treino', 'treinos')}, ${plural(Object.keys(d.plans).length, 'plano', 'planos')}`;
     setPending(null); setPassword('');
-    if (!confirm(`Restaurar este backup (${summary})? Os dados atuais deste aparelho serão substituídos.`)) { setMessage('Restauração cancelada.'); return; }
-    run((cur, now) => restoreBackup(cur, d, now));
-    setMessage(`Backup restaurado: ${summary}.`);
+    setMessage('');
+    setChoice({ data: d, summary });
+  };
+  const restore = (how: 'merge' | 'replace') => {
+    if (!choice) return;
+    const { data: d, summary } = choice;
+    if (how === 'merge') run(cur => mergeBackup(cur, d));
+    else run((cur, now) => restoreBackup(cur, d, now));
+    setChoice(null);
+    setMessage(how === 'merge' ? `Backup juntado aos dados deste aparelho (${summary} no arquivo).` : `Backup restaurado: ${summary}.`);
   };
 
   return (
@@ -204,6 +214,19 @@ function BackupCard() {
         </form>
       )}
       {message && <p role="status" className="text-sm text-muted">{message}</p>}
+      <Sheet title="Restaurar backup" open={choice !== null} onClose={() => { setChoice(null); setMessage('Restauração cancelada.'); }}>
+        <div className="space-y-3 px-1 pb-3">
+          <p className="text-sm text-muted">O arquivo tem {choice?.summary}.</p>
+          <button type="button" onClick={() => restore('merge')} className="w-full rounded-xl bg-primary p-3 text-left text-white">
+            <span className="block font-bold">Juntar com os dados atuais</span>
+            <span className="block text-sm opacity-90">Fica tudo o que já está aqui e entra o que só existe no backup. Se o mesmo registro estiver nos dois, vale o que foi alterado por último.</span>
+          </button>
+          <button type="button" onClick={() => restore('replace')} className="w-full rounded-xl bg-surface-2 p-3 text-left">
+            <span className="block font-bold text-danger">Substituir tudo pelo backup</span>
+            <span className="block text-sm text-muted">Os dados atuais deste aparelho são apagados e ficam só os do arquivo.</span>
+          </button>
+        </div>
+      </Sheet>
       {canAutoBackup() && settings && (
         <>
           <Toggle label="Backup automático" checked={settings.autoBackup ?? true} onChange={v => run((d, t) => updateSettings(d, { autoBackup: v }, t))} />
