@@ -184,8 +184,27 @@ const GROUP_BY_NAME = new Map<string, string>();
 for (const [group, names] of Object.entries(EXERCISE_LIBRARY)) {
   for (const name of names) GROUP_BY_NAME.set(normalizeExerciseName(name), group);
 }
+// Nomes dos modelos de plano (data/plan-templates.ts) que não são exatamente um da biblioteca:
+// sem eles, esses exercícios ficavam fora do equilíbrio muscular e da troca pelo mesmo grupo.
+const TEMPLATE_GROUPS: Record<string, string> = {
+  'Crossover Polia Alta (de cima p/ baixo)': 'Peito',
+  'Supino Articulado (Pegada Neutra)': 'Peito',
+  'Remada Cavalinho ou Máquina': 'Costas',
+  'Extensão Lombar Leve (Banco Romano)': 'Costas',
+  'Rosca Direta (Polia Baixa)': 'Bíceps',
+  'Rosca Martelo (Halteres)': 'Bíceps',
+  'Tríceps Francês (Polia/Halter)': 'Tríceps',
+  'Leg Press 45º (Amplitude Parcial)': 'Pernas (Quadríceps)',
+  'Cadeira Extensora (Amplitude Parcial, Carga Leve)': 'Pernas (Quadríceps)',
+  'Mesa/Cadeira Flexora': 'Pernas (Posterior/Glúteo)',
+  'Stiff/RDL (Halteres Leves)': 'Pernas (Posterior/Glúteo)',
+  'Panturrilha (Leg Press ou em pé)': 'Panturrilha',
+  'Panturrilha Sentado (Máquina)': 'Panturrilha',
+  'Abdominal (Prancha ou Máquina)': 'Abdômen / Core'
+};
+for (const [name, group] of Object.entries(TEMPLATE_GROUPS)) GROUP_BY_NAME.set(normalizeExerciseName(name), group);
 
-/** Grupo muscular quando o nome é exatamente um da biblioteca ou um exercício próprio (M46). */
+/** Grupo muscular quando o nome é exatamente um da biblioteca, de um modelo de plano ou um exercício próprio (M46). */
 export function groupOf(name: string, custom?: readonly CustomExercise[]): string | null {
   const k = normalizeExerciseName(name);
   return GROUP_BY_NAME.get(k) ?? custom?.find(c => normalizeExerciseName(c.name) === k)?.group ?? null;

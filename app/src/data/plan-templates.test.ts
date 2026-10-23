@@ -49,3 +49,13 @@ test('dois planos do mesmo modelo são independentes', () => {
   const data = addPlan(sampleData(), a, MONDAY).data;
   expect(data.activePlanId).toBe('a');
 });
+
+test('todo exercício dos modelos (fora o cardio) tem grupo muscular: entra no equilíbrio e na troca pelo mesmo grupo', () => {
+  const names = new Set<string>();
+  for (const t of PLAN_TEMPLATES) {
+    for (const day of Object.values(t.build('2026-10-23', 'x').days)) for (const e of day.exercises) names.add(e.name);
+  }
+  expect([...names].filter(n => !groupOf(n) && !isCardioName(n))).toEqual([]);
+  expect(groupOf('Supino Articulado (Pegada Neutra)')).toBe('Peito');
+  expect(groupOf('Mesa/Cadeira Flexora')).toBe('Pernas (Posterior/Glúteo)');
+});
