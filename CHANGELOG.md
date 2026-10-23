@@ -6,7 +6,7 @@ Todas as mudanças relevantes do app ficam registradas aqui. Ao lançar uma nova
    atualizar o app instalado
 3. Adicione uma entrada aqui, nesse formato
 
-## Não lançado
+## [3.17.1] - 2026-10-23
 
 - Corrigido: com incremento de 1,25 kg a progressão sugeria 41,3 kg em vez de 41,25, e digitar 41,25 numa série gravava 41,3. As cargas agora vão até duas casas, na sugestão, nas séries e na tela.
 - Corrigido: o deload de uma carga muito leve (2,5 kg, por exemplo) sugeria 0 kg; agora mantém a carga.

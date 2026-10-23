@@ -3,6 +3,14 @@ export interface ReleaseNote { version: string; date: string; items: string[] }
 
 export const RELEASE_NOTES: readonly ReleaseNote[] = [
   {
+    version: '3.17.1',
+    date: '2026-10',
+    items: [
+      'Cargas com anilhas de 1,25 kg: a sugestão e as séries agora ficam em 41,25 kg, e não mais em 41,3.',
+      'Carga muito leve parada há alguns treinos não recebe mais a sugestão de 0 kg.'
+    ]
+  },
+  {
     version: '3.17.0',
     date: '2026-10',
     items: [
