@@ -6,7 +6,7 @@ Todas as mudanças relevantes do app ficam registradas aqui. Ao lançar uma nova
    atualizar o app instalado
 3. Adicione uma entrada aqui, nesse formato
 
-## Não lançado
+## [3.17.0] - 2026-10-23
 
 - Perfil → Treino → "Descanso depois do aquecimento": igual às outras séries, sem cronômetro ou um tempo próprio para todos os exercícios.
 - Exercício por lado: no Plano, "Entre os lados (s)" define um descanso curto entre um lado e o outro; no treino ele vira o botão "Trocar de lado".

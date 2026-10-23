@@ -3,6 +3,16 @@ export interface ReleaseNote { version: string; date: string; items: string[] }
 
 export const RELEASE_NOTES: readonly ReleaseNote[] = [
   {
+    version: '3.17.0',
+    date: '2026-10',
+    items: [
+      'Perfil → Treino: escolha o descanso depois do aquecimento (igual, sem ou um tempo próprio).',
+      'Exercício por lado: "Entre os lados" no Plano vira o botão "Trocar de lado" no treino.',
+      'Progresso → Séries por grupo: veja os grupos sem treino e toque para abrir os exercícios na Biblioteca.',
+      'Perfil → Dados e backup: exporte o histórico em planilha (CSV). E exercícios dos modelos agora contam no grupo muscular certo.'
+    ]
+  },
+  {
     version: '3.16.0',
     date: '2026-10',
     items: [
