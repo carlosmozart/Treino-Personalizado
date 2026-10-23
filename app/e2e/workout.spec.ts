@@ -86,3 +86,66 @@ test('início: começar pelo cartão de hoje, registrar peso e água', async ({ 
     await expect(page.getByRole('button', { name: 'Continuar treino' })).toBeVisible();
   }
 });
+
+test('treino salvo: compartilhar como imagem, com recorde (S9)', async ({ page }) => {
+  const errors: string[] = [];
+  page.on('console', msg => { if (msg.type() === 'error') errors.push(msg.text()); });
+  // o navegador do teste não tem a folha de compartilhamento: guarda o arquivo que iria para ela
+  await page.addInitScript(() => {
+    const w = window as unknown as { shared?: File[] };
+    Object.assign(navigator, {
+      canShare: (d: { files?: File[] }) => !!d.files?.length,
+      share: async (d: { files: File[] }) => { w.shared = d.files; }
+    });
+  });
+  const finishAll = async () => {
+    for (let i = 0; i < 8; i++) {
+      const options = page.getByRole('button', { name: /^Opções de / }).first();
+      if (!(await options.isVisible())) break;
+      await options.click();
+      await page.getByRole('button', { name: 'Marcar todas as séries' }).click();
+    }
+    await page.getByRole('button', { name: 'Concluir' }).click();
+    await page.getByRole('button', { name: /^Finalizar (treino|assim)$/ }).click();
+    await expect(page.getByRole('heading', { name: 'Treino salvo' })).toBeVisible();
+  };
+
+  await page.clock.setFixedTime(new Date(2026, 9, 15, 18)); // quinta
+  await page.goto('/');
+  await page.getByRole('button', { name: 'Treino', exact: true }).click();
+  await page.getByRole('button', { name: 'Escolher um modelo' }).click();
+  await page.getByRole('button', { name: 'Usar PPL do app original' }).click();
+  await page.getByRole('button', { name: /^Começar / }).first().click();
+  await finishAll();
+  await page.getByRole('button', { name: 'Fechar' }).click();
+
+  // uma semana depois, mais carga no primeiro exercício: recorde
+  await page.waitForTimeout(400); // a gravação dos dados é adiada um instante
+  await page.clock.setFixedTime(new Date(2026, 9, 22, 18));
+  await page.reload();
+  await page.getByRole('button', { name: 'Treino', exact: true }).click();
+  await page.getByRole('button', { name: /^Começar / }).first().click();
+  await page.getByRole('article').first().getByRole('textbox', { name: 'Carga da série 1' }).fill('80');
+  await finishAll();
+  await expect(page.getByText(/^Recorde:/).first()).toBeVisible();
+
+  await page.getByRole('button', { name: 'Compartilhar como imagem' }).click();
+  await expect(page.getByRole('button', { name: 'Compartilhar como imagem' })).toBeEnabled();
+  const file = await page.evaluate(() => {
+    const f = (window as unknown as { shared?: File[] }).shared?.[0];
+    if (!f) return null;
+    // mostra a imagem gerada na página para a captura de tela do teste
+    const img = document.createElement('img');
+    img.id = 'imagem-compartilhada';
+    img.src = URL.createObjectURL(f);
+    img.style.cssText = 'position:fixed;inset:0;z-index:9999;width:100%;height:auto;background:#000';
+    document.body.append(img);
+    return { name: f.name, type: f.type, size: f.size };
+  });
+  expect(file).toMatchObject({ name: 'treino-2026-10-22.png', type: 'image/png' });
+  expect(file!.size).toBeGreaterThan(10_000);
+  const img = page.locator('#imagem-compartilhada');
+  await expect(img).toHaveJSProperty('complete', true);
+  await img.screenshot({ path: 'test-results/treino-imagem.png' });
+  expect(errors).toEqual([]);
+});

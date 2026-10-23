@@ -272,7 +272,7 @@ S5	✅ (09/10/2026) Série até a falha: marca no menu da série	Baixa
 S6	✅ (09/10/2026) Busca tolerante a erros de digitação, abreviações e plurais	Média
 S7	✅ (09/10/2026, Progresso → Metas) Medidas do corpo (cintura, braço, % de gordura) com gráfico	Média
 S8	✅ (09/10/2026) Nota para um dia sem treino (doente, viajando) que não quebra a sequência	Baixa
-S9	Compartilhar o treino como imagem	Baixa
+S9	✅ (22/10/2026: cartão PNG 1080 de largura, quadrado a 4:5, desenhado em canvas; plugin nativo ShareImage no APK, Web Share ou download no navegador; no resumo do treino e no histórico) Compartilhar o treino como imagem	Baixa
 S10	Escolher o som do fim do descanso	Baixa
 S11	Para depois: progressão tripla, halteres disponíveis, mapa de fadiga, exportar para Garmin	Baixa
 S12	✅ (10/10/2026, openGym 1.4.1) Busca: exercícios já feitos primeiro, e nomes do histórico entram na busca	Média

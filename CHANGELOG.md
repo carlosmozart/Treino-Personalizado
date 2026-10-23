@@ -11,6 +11,7 @@ Todas as mudanças relevantes do app ficam registradas aqui. Ao lançar uma nova
 - Exercício criado por você ou pela IA ganha a ilustração do exercício da biblioteca com as mesmas palavras ("Supino reto com halteres" usa a do Supino Reto com Halteres). Nome que indica outro movimento ou outro equipamento fica sem ilustração, para não mostrar uma errada.
 - Plano → exercício → "Repetições por lado": para afundo e exercícios unilaterais. O treino mostra "Reps/lado", o histórico mostra "3x8 por lado", o volume conta os dois lados e a progressão sobe 1 repetição por lado.
 - Início → "Marcar esta semana como deload": os treinos da semana leve ficam no histórico (com a marca "deload"), mas não viram base da progressão. Durante o deload a carga sugerida não sobe; depois dele o app volta de onde você estava.
+- Treino salvo e Progresso → Histórico → "Compartilhar como imagem": um cartão com o nome do treino, a data, os números (minutos, exercícios, séries, volume), os exercícios com as séries e o selo de recorde, para mandar no WhatsApp ou postar. No APK abre o compartilhar do Android; no navegador, o compartilhar do sistema ou o download do PNG. Nada sai do aparelho sem você escolher para onde.
 - Perfil → Treino → "A semana começa na": segunda ou domingo. Vale para a semana do Início, a meta da semana, a refeição livre e os gráficos por semana.
 
 ## [3.14.0] - 2026-10-21

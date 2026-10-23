@@ -6,6 +6,7 @@ import { Icon } from '../../ui/Icon';
 import { formatNumber } from '../../ui/format';
 import { useWorkoutUi } from './workout-ui';
 import { CopyTextButton } from '../progress/CopyTextButton';
+import { ShareImageButton } from '../progress/ShareImageButton';
 
 /** Resumo logo após finalizar: o que entrou no histórico, com números grandes. */
 export function WorkoutSummary({ id }: { id: string }) {
@@ -56,7 +57,7 @@ export function WorkoutSummary({ id }: { id: string }) {
           </p>
         );
       })()}
-      <div className="mt-6 flex justify-center"><CopyTextButton w={workout} /></div>
+      <div className="mt-6 flex flex-wrap justify-center gap-2"><ShareImageButton w={workout} primary /><CopyTextButton w={workout} /></div>
       <button type="button" onClick={close} className="mt-3 h-12 w-full rounded-xl bg-surface-2 text-base font-bold">Fechar</button>
     </section>
   );

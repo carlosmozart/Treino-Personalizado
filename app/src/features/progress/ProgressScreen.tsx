@@ -14,6 +14,7 @@ import { EntryEditor } from './EntryEditor';
 import { ExerciseProgressCard } from './ExerciseProgressCard';
 import { PastWorkoutButton } from './PastWorkoutSheet';
 import { CopyTextButton } from './CopyTextButton';
+import { ShareImageButton } from './ShareImageButton';
 import { WorkoutMoreActions } from './WorkoutMoreActions';
 import { formatNumber, plural, shortDate } from '../../ui/format';
 
@@ -180,6 +181,7 @@ function WorkoutItem({ w, open, onToggle, onDelete }: { w: Workout; open: boolea
           </ul>
           <div className="mt-3 flex flex-wrap items-center gap-2">
             <RepeatButton w={w} />
+            <ShareImageButton w={w} />
             <CopyTextButton w={w} />
             <WorkoutMoreActions w={w} />
             <button type="button" onClick={onDelete} className="flex h-11 items-center gap-2 rounded-xl px-2 font-semibold text-danger">
