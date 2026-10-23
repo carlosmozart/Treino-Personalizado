@@ -37,7 +37,9 @@ export default defineConfig({
       workbox: {
         // tudo que o build gera fica disponível offline; nenhuma rota externa é cacheada
         globPatterns: ['**/*.{js,css,html,png,svg,webmanifest}'],
-        navigateFallback: 'index.html'
+        navigateFallback: 'index.html',
+        // a página de divulgação (/convite/, posta pelo workflow do Pages) abre como ela mesma
+        navigateFallbackDenylist: [/\/convite\//]
       }
     })
   ],

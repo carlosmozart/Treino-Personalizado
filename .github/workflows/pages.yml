@@ -5,7 +5,7 @@ name: Versão web (GitHub Pages)
 on:
   push:
     branches: [main]
-    paths: ['app/**', '.github/workflows/pages.yml']
+    paths: ['app/**', 'site/**', 'docs/screenshots/**', '.github/workflows/pages.yml']
   workflow_dispatch:
 
 permissions:
@@ -42,6 +42,14 @@ jobs:
 
       - name: Build
         run: npm run build
+
+      # Página de divulgação em /convite/: entra depois do build, para não ir para o APK nem
+      # para o cache offline do app. As telas são as mesmas do README.
+      - name: Add invite page
+        run: |
+          mkdir -p dist/convite/telas
+          cp ../site/convite/index.html dist/convite/
+          cp ../docs/screenshots/*.png dist/convite/telas/
 
       - name: Upload site
         uses: actions/upload-pages-artifact@v4

@@ -1,0 +1,509 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Treino Personalizado</title>
+<meta name="description" content="App de treino em português que lembra sua última carga e sobe o peso quando você bate as repetições. Grátis, sem cadastro e sem anúncio.">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Treino Personalizado: a carga de hoje já está lá">
+<meta property="og:description" content="App de treino grátis, sem cadastro e sem anúncio. Android e iPhone.">
+<meta property="og:image" content="https://carlosmozart.github.io/Treino-Personalizado/convite/telas/treino.png">
+<meta property="og:url" content="https://carlosmozart.github.io/Treino-Personalizado/convite/">
+<meta name="theme-color" content="#060709">
+<link rel="icon" href="../icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;800;900&family=Figtree:wght@400;500;600;700&display=swap">
+<style>
+/* Layout: página de academia em fundo de borracha escura; o herói é uma série de verdade que a pessoa marca,
+   e a barra ganha anilha quando ela bate as repetições. Azul e verde são os mesmos do app. */
+:root {
+  --bg: #060709;          /* piso de borracha */
+  --panel: #111216;       /* cartões, como no app */
+  --panel-2: #1d1e24;     /* campos sobre cartões */
+  --line: #2a2b33;
+  --ink: #f4f4f6;
+  --muted: #a3a3ad;
+  --faint: #73737d;
+  --blue: #2563eb;        /* ação principal do app */
+  --blue-ink: #93c5fd;
+  --green: #10b981;       /* concluído */
+  --green-bg: #06281e;
+  --steel: #8b8f99;       /* barra */
+  --display: "Big Shoulders Display", "Arial Narrow", Impact, sans-serif;
+  --body: "Figtree", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  color-scheme: dark;
+}
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme="dark"]) {
+    --bg: #f2f2f4; --panel: #ffffff; --panel-2: #e9e9ee; --line: #d8d8de;
+    --ink: #111114; --muted: #50505a; --faint: #70707a;
+    --blue: #2563eb; --blue-ink: #1d4ed8; --green: #047857; --green-bg: #dff5ec; --steel: #6b6f78;
+    color-scheme: light;
+  }
+}
+:root[data-theme="light"] {
+  --bg: #f2f2f4; --panel: #ffffff; --panel-2: #e9e9ee; --line: #d8d8de;
+  --ink: #111114; --muted: #50505a; --faint: #70707a;
+  --blue: #2563eb; --blue-ink: #1d4ed8; --green: #047857; --green-bg: #dff5ec; --steel: #6b6f78;
+  color-scheme: light;
+}
+
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+img { max-width: 100%; }
+[hidden] { display: none !important; }
+body {
+  margin: 0;
+  background: var(--bg); color: var(--ink);
+  font-family: var(--body); font-size: 17px; line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+}
+.wrap {
+  max-width: 1120px; margin: 0 auto;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+a { color: var(--blue-ink); }
+:focus-visible { outline: 2px solid var(--blue-ink); outline-offset: 2px; }
+h1, h2, h3 { font-family: var(--display); text-wrap: balance; margin: 0; line-height: 0.95; letter-spacing: 0.005em; }
+h2 { font-size: clamp(2.4rem, 6vw, 3.6rem); font-weight: 900; text-transform: uppercase; }
+h3 { font-size: 1.6rem; font-weight: 800; text-transform: uppercase; }
+p { margin: 0; }
+.eyebrow { font-size: 0.78rem; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); }
+.lead { color: var(--muted); font-size: 1.12rem; max-width: 34em; }
+.num { font-variant-numeric: tabular-nums; }
+
+/* topo */
+.top { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding-block: 18px; }
+.brand { display: flex; align-items: center; gap: 10px; font-family: var(--display); font-weight: 800; font-size: 1.35rem; text-transform: uppercase; letter-spacing: 0.02em; }
+.brand svg { width: 30px; height: 30px; flex: none; }
+.version { font-size: 0.8rem; color: var(--faint); }
+
+/* botões */
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  min-height: 48px; padding: 0 20px; border-radius: 14px; border: 1px solid transparent;
+  font: 700 1rem/1 var(--body); text-decoration: none; cursor: pointer;
+}
+.btn-primary { background: var(--blue); color: #fff; }
+.btn-primary:hover { filter: brightness(1.1); }
+.btn-ghost { background: var(--panel-2); color: var(--ink); border-color: var(--line); }
+.btn-ghost:hover { border-color: var(--faint); }
+.btn small { font-weight: 500; opacity: 0.8; }
+
+/* herói */
+.hero { display: grid; grid-template-columns: 1.05fr 1fr; gap: 48px; align-items: center; padding-block: 28px 64px; }
+.hero > * { min-width: 0; }
+.hero h1 { font-size: clamp(3.1rem, 8.4vw, 6.2rem); font-weight: 900; text-transform: uppercase; margin-block: 14px 22px; }
+.hero h1 em { font-style: normal; color: var(--green); }
+.cta-row { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 28px; }
+.promises { display: flex; flex-wrap: wrap; gap: 8px 18px; margin-top: 22px; padding: 0; list-style: none; color: var(--muted); font-size: 0.95rem; }
+.promises li { display: flex; align-items: center; gap: 7px; }
+.promises li::before { content: ""; width: 7px; height: 7px; border-radius: 2px; background: var(--green); }
+
+/* cartão do exercício (demo) */
+.demo { background: var(--panel); border: 1px solid var(--line); border-radius: 24px; padding: 20px; }
+.demo-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
+.demo-head h3 { font-size: 1.5rem; }
+.chip { display: inline-block; padding: 3px 10px; border-radius: 999px; background: var(--panel-2); color: var(--muted); font-size: 0.82rem; white-space: nowrap; }
+.bar-stage { margin: 14px 0 6px; background: var(--bg); border-radius: 16px; padding: 10px 6px 8px; }
+.bar-stage svg { display: block; width: 100%; height: auto; }
+.bar-caption { display: flex; justify-content: space-between; gap: 10px; flex-wrap: wrap; font-size: 0.86rem; color: var(--muted); padding: 0 6px; }
+.bar-caption b { color: var(--ink); font-family: var(--display); font-size: 1.35rem; font-weight: 800; letter-spacing: 0.02em; }
+.last { font-size: 0.92rem; color: var(--muted); margin-top: 10px; }
+.sets { display: grid; gap: 8px; margin-top: 12px; }
+.sets-head, .set { display: grid; grid-template-columns: 36px 1fr 1.3fr 48px; gap: 8px; align-items: center; }
+.sets-head { font-size: 0.8rem; color: var(--faint); padding: 0 4px; }
+.set { padding: 4px; border-radius: 14px; transition: background .2s; }
+.set.done { background: var(--green-bg); }
+.set-n { text-align: center; font-weight: 700; color: var(--muted); }
+.cell { height: 46px; display: flex; align-items: center; justify-content: center; border-radius: 12px; background: var(--bg); border: 1px solid var(--line); font-weight: 700; font-size: 1.1rem; }
+.reps { justify-content: space-between; padding: 0 4px; }
+.reps button { width: 34px; height: 34px; border-radius: 9px; border: 0; background: var(--panel-2); color: var(--ink); font: 700 1.1rem/1 var(--body); cursor: pointer; }
+.check { width: 48px; height: 46px; border-radius: 12px; border: 1px solid var(--line); background: var(--bg); color: var(--faint); cursor: pointer; display: grid; place-items: center; }
+.check svg { width: 22px; height: 22px; }
+.set.done .check { background: var(--green); border-color: var(--green); color: #fff; }
+.demo-foot { display: flex; align-items: center; gap: 12px; margin-top: 14px; flex-wrap: wrap; }
+.demo-foot .btn { flex: 1 1 auto; }
+.hint { font-size: 0.85rem; color: var(--faint); }
+.verdict { margin-top: 14px; padding: 12px 14px; border-radius: 14px; border: 1px dashed var(--line); font-size: 0.98rem; color: var(--muted); }
+.verdict strong { display: block; font-family: var(--display); font-size: 1.7rem; font-weight: 900; letter-spacing: 0.01em; color: var(--ink); line-height: 1.05; margin-bottom: 2px; }
+.verdict.up strong { color: var(--green); }
+.verdict .why { color: var(--green); font-weight: 600; }
+.verdict.keep .why { color: var(--muted); }
+
+/* seções */
+section { padding-block: 56px; border-top: 1px solid var(--line); }
+.section-head { display: grid; gap: 12px; margin-bottom: 32px; max-width: 40em; }
+
+/* telas */
+.screens { display: flex; gap: 18px; overflow-x: auto; scroll-snap-type: x mandatory; padding-bottom: 14px; }
+.screens figure { margin: 0; flex: 0 0 210px; scroll-snap-align: start; }
+.phone { border-radius: 28px; padding: 7px; background: #0b0b0d; border: 1px solid var(--line); }
+.phone img { display: block; width: 100%; aspect-ratio: 1082 / 2202; border-radius: 22px; object-fit: cover; background: #000; }
+.screens figcaption { font-size: 0.9rem; color: var(--muted); margin-top: 10px; }
+.screens figcaption b { color: var(--ink); display: block; }
+
+/* um dia de treino */
+.day { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0; border: 1px solid var(--line); border-radius: 22px; overflow: hidden; background: var(--panel); }
+.day > div { padding: 24px 22px; min-width: 0; }
+.day > div + div { border-left: 1px solid var(--line); }
+.day .when { font-family: var(--display); font-weight: 900; font-size: 2.6rem; line-height: 1; text-transform: uppercase; }
+.day .when span { display: block; font-family: var(--body); font-size: 0.78rem; font-weight: 700; letter-spacing: 0.14em; color: var(--faint); margin-bottom: 6px; }
+.day ul { list-style: none; padding: 0; margin: 18px 0 0; display: grid; gap: 14px; }
+.day li { font-size: 0.96rem; color: var(--muted); }
+.day li b { color: var(--ink); font-weight: 600; }
+
+/* treinar junto */
+.together { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px; }
+.together article { padding: 22px; border-radius: 20px; background: var(--panel); border: 1px solid var(--line); display: grid; gap: 10px; align-content: start; }
+.together .path { font-size: 0.82rem; color: var(--blue-ink); font-weight: 600; }
+.together p { color: var(--muted); font-size: 0.96rem; }
+.msg { background: var(--panel-2); border-radius: 14px 14px 14px 4px; padding: 10px 12px; font-size: 0.86rem; color: var(--ink); white-space: pre-line; font-variant-numeric: tabular-nums; }
+
+/* o que ele não faz */
+.nots { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 28px 32px; }
+.nots div { display: grid; gap: 6px; align-content: start; }
+.nots .big { font-family: var(--display); font-weight: 900; font-size: 2.2rem; text-transform: uppercase; line-height: 1; }
+.nots .big s { text-decoration-thickness: 4px; text-decoration-color: var(--green); }
+.nots p { color: var(--muted); font-size: 0.96rem; }
+.careful { margin-top: 30px; padding: 16px 18px; border-radius: 16px; background: var(--panel); border: 1px solid var(--line); color: var(--muted); font-size: 0.95rem; max-width: 46em; }
+.careful b { color: var(--ink); }
+
+/* instalar */
+.install { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.install > article { min-width: 0; padding: 26px 24px; border-radius: 22px; background: var(--panel); border: 1px solid var(--line); display: grid; gap: 16px; align-content: start; }
+.install ol { margin: 0; padding: 0; list-style: none; counter-reset: step; display: grid; gap: 12px; }
+.install li { counter-increment: step; display: grid; grid-template-columns: 30px 1fr; gap: 10px; color: var(--muted); font-size: 0.96rem; }
+.install li::before { content: counter(step); width: 30px; height: 30px; border-radius: 9px; background: var(--panel-2); color: var(--ink); display: grid; place-items: center; font-family: var(--display); font-weight: 800; font-size: 1.1rem; }
+.install li b { color: var(--ink); font-weight: 600; }
+.install code { font-size: 0.86em; background: var(--panel-2); padding: 1px 6px; border-radius: 6px; overflow-wrap: anywhere; }
+.copy-row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+.copy-row input { flex: 1 1 220px; min-width: 0; height: 44px; border-radius: 12px; border: 1px solid var(--line); background: var(--bg); color: var(--ink); padding: 0 12px; font: 500 0.88rem var(--body); }
+.copied { font-size: 0.85rem; color: var(--green); }
+
+footer { border-top: 1px solid var(--line); padding-block: 36px 48px; color: var(--faint); font-size: 0.88rem; display: grid; gap: 8px; }
+footer p:first-child { color: var(--muted); font-size: 1rem; }
+
+@media (max-width: 860px) {
+  .hero { grid-template-columns: 1fr; gap: 32px; padding-top: 12px; }
+  .day { grid-template-columns: 1fr; }
+  .day > div + div { border-left: 0; border-top: 1px solid var(--line); }
+  .install { grid-template-columns: 1fr; }
+}
+@media (max-width: 420px) {
+  .demo { padding: 14px; }
+  .sets-head, .set { grid-template-columns: 26px 0.9fr 1.4fr 44px; gap: 6px; }
+  .check { width: 44px; }
+  .screens figure { flex-basis: 180px; }
+}
+.plate-new { animation: drop .45s cubic-bezier(.2,.9,.3,1.2); }
+@keyframes drop { from { transform: translateY(-18px); opacity: .2; } to { transform: none; opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { .plate-new { animation: none; } .set { transition: none; } }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <header class="top">
+    <div class="brand">
+      <svg viewBox="0 0 32 32" aria-hidden="true"><rect x="1" y="9" width="5" height="14" rx="1.5" fill="var(--blue)"/><rect x="7" y="6" width="5" height="20" rx="1.5" fill="var(--blue)"/><rect x="12" y="14.5" width="8" height="3" fill="var(--steel)"/><rect x="20" y="6" width="5" height="20" rx="1.5" fill="var(--blue)"/><rect x="26" y="9" width="5" height="14" rx="1.5" fill="var(--blue)"/></svg>
+      Treino Personalizado
+    </div>
+    <a class="btn btn-ghost" href="#instalar">Instalar</a>
+  </header>
+
+  <main>
+    <div class="hero">
+      <div>
+        <p class="eyebrow">App de academia · Android e iPhone · de graça</p>
+        <h1>Abre o treino e a carga de hoje <em>já está lá</em>.</h1>
+        <p class="lead">Ele lembra quanto você levantou da última vez e sobe o peso quando você bate todas as repetições. Você só treina e marca as séries. Fizemos para a gente usar, e agora queremos você treinando com ele.</p>
+        <div class="cta-row">
+          <a class="btn btn-primary" href="https://github.com/carlosmozart/Treino-Personalizado/releases/latest" target="_blank" rel="noopener">Baixar para Android <small>5,3 MB</small></a>
+          <a class="btn btn-ghost" href="https://carlosmozart.github.io/Treino-Personalizado/" target="_blank" rel="noopener">Abrir no iPhone ou navegador</a>
+        </div>
+        <ul class="promises">
+          <li>Sem cadastro</li><li>Sem anúncio</li><li>Funciona sem internet</li><li>Em português</li>
+        </ul>
+      </div>
+
+      <div class="demo" aria-label="Demonstração: marque as séries do supino">
+        <div class="demo-head">
+          <h3>Supino Reto (Barra)</h3>
+          <span class="chip">Peito · 4 × 10</span>
+        </div>
+        <div class="bar-stage">
+          <svg id="barbell" viewBox="0 0 360 120" role="img" aria-label="Barra com anilhas"></svg>
+          <div class="bar-caption">
+            <span id="barLabel">Na barra hoje</span>
+            <span><b id="barKg" class="num">55 kg</b></span>
+          </div>
+          <div class="bar-caption"><span id="barPlates" class="num">Cada lado: 15 + 2,5 · barra de 20 kg</span></div>
+        </div>
+        <p class="last num">Última vez, há 4 dias: 55×10, 55×10, 55×9, 55×8</p>
+        <div class="sets" id="sets">
+          <div class="sets-head"><span>Série</span><span>Carga (kg)</span><span>Reps</span><span></span></div>
+        </div>
+        <div class="demo-foot">
+          <button class="btn btn-primary" id="save" type="button">Concluir treino</button>
+          <span class="hint" id="hint">Marque as séries que faltam e conclua.</span>
+        </div>
+        <div class="verdict" id="verdict" aria-live="polite">
+          <strong>Próxima vez</strong>
+          O app olha as suas séries e decide a carga do próximo supino. Experimente marcar 10 reps em todas, ou menos em alguma.
+        </div>
+      </div>
+    </div>
+
+    <section aria-labelledby="telas">
+      <div class="section-head">
+        <p class="eyebrow">Como ele é por dentro</p>
+        <h2 id="telas">As telas de verdade</h2>
+        <p class="lead">Capturas do app com dados de exemplo. Tem tema escuro e claro e você escolhe a cor de destaque.</p>
+      </div>
+      <div class="screens">
+        <figure><div class="phone"><img src="telas/inicio.png" alt="Tela Início com a semana, o treino de hoje e a sequência" loading="lazy"></div><figcaption><b>Início</b>O treino do dia em um toque, a semana e a sua sequência.</figcaption></figure>
+        <figure><div class="phone"><img src="telas/treino.png" alt="Treino em andamento com a carga sugerida e o motivo" loading="lazy"></div><figcaption><b>Treino</b>Carga sugerida, a última vez e o porquê do aumento.</figcaption></figure>
+        <figure><div class="phone"><img src="telas/plano-rotacao.png" alt="Plano em rotação A, B e C" loading="lazy"></div><figcaption><b>Plano em rotação</b>Faltou na segunda? Na terça vem o treino seguinte.</figcaption></figure>
+        <figure><div class="phone"><img src="telas/progresso.png" alt="Progresso com mapa de calor e volume semanal" loading="lazy"></div><figcaption><b>Progresso</b>Mapa de calor dos meses e volume por semana.</figcaption></figure>
+        <figure><div class="phone"><img src="telas/medidas.png" alt="Medidas do corpo com gráfico da cintura" loading="lazy"></div><figcaption><b>Medidas</b>Cintura, braço e % de gordura com gráfico.</figcaption></figure>
+        <figure><div class="phone"><img src="telas/inicio-claro.png" alt="Tela Início no tema claro" loading="lazy"></div><figcaption><b>Tema claro</b>Para quem treina de manhã com sol na tela.</figcaption></figure>
+      </div>
+    </section>
+
+    <section aria-labelledby="dia">
+      <div class="section-head">
+        <p class="eyebrow">Um dia de treino com ele</p>
+        <h2 id="dia">Do vestiário ao banho</h2>
+      </div>
+      <div class="day">
+        <div>
+          <p class="when"><span>Antes</span>Monta o plano</p>
+          <ul>
+            <li><b>Modelos prontos:</b> corpo inteiro, em casa, ABC, superior e inferior, Push/Pull/Legs e força 5×5.</li>
+            <li><b>Cinco perguntas</b> e ele monta um plano para os seus dias e o seu nível.</li>
+            <li><b>Biblioteca de 153 exercícios</b> com desenho, filtro por músculo e por aparelho.</li>
+            <li><b>Por dia da semana ou em rotação A/B/C.</b> Lembrete no horário que você escolher.</li>
+          </ul>
+        </div>
+        <div>
+          <p class="when"><span>Durante</span>Só marca</p>
+          <ul>
+            <li><b>Carga e reps já preenchidas</b> com base no seu histórico.</li>
+            <li><b>Descanso com alarme,</b> que toca mesmo com a tela bloqueada no Android.</li>
+            <li><b>Calculadora de anilhas:</b> diz o que pôr em cada lado da barra.</li>
+            <li><b>Aparelho ocupado?</b> A troca sugere outro exercício do mesmo músculo com o que tem aí.</li>
+            <li>Superset, aquecimento, série até a falha e exercício por lado.</li>
+          </ul>
+        </div>
+        <div>
+          <p class="when"><span>Depois</span>Vê evoluir</p>
+          <ul>
+            <li><b>Recordes</b> pelo 1RM estimado e gráfico de cada exercício.</li>
+            <li><b>Séries por grupo muscular</b> na semana, e quais músculos ficaram sem treino.</li>
+            <li><b>Peso e medidas</b> com meta, IMC e gasto diário estimado.</li>
+            <li><b>Sequência, níveis e conquistas</b> para manter o ritmo. E a refeição livre liberada quando bate a meta da semana.</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <section aria-labelledby="junto">
+      <div class="section-head">
+        <p class="eyebrow">Para treinar com os amigos</p>
+        <h2 id="junto">Manda o treino no grupo</h2>
+        <p class="lead">A parte que mais importa nessa página. Se a gente usar junto, dá para trocar plano e cobrar um ao outro.</p>
+      </div>
+      <div class="together">
+        <article>
+          <h3>Seu plano para o amigo</h3>
+          <p class="path">Plano → Planos → Compartilhar</p>
+          <p>Vira um arquivo que o outro importa com um toque. Vai só o plano, sem nenhum dado seu. As cargas são opcionais.</p>
+        </article>
+        <article>
+          <h3>O treino de hoje no WhatsApp</h3>
+          <p class="path">Treino salvo → Copiar como texto</p>
+          <div class="msg">A: Peito, ombro e tríceps · 52 min
+Supino Reto: 57,5×10 · 57,5×10 · 57,5×9
+Supino Inclinado: 22×12 · 22×11 · 22×10</div>
+          <p>Ou como imagem, com os números e os recordes do dia, para postar.</p>
+        </article>
+        <article>
+          <h3>Já tem uma ficha?</h3>
+          <p class="path">Plano → Importar treino feito em IA</p>
+          <p>Cola a ficha do personal no ChatGPT ou no Gemini com o pedido que o app prepara, e a resposta vira o seu plano. A IA também pode revisar o plano olhando o que você fez de verdade.</p>
+        </article>
+      </div>
+    </section>
+
+    <section aria-labelledby="nao">
+      <div class="section-head">
+        <p class="eyebrow">O que ele não faz</p>
+        <h2 id="nao">Nada de pegadinha</h2>
+      </div>
+      <div class="nots">
+        <div><p class="big"><s>Conta</s></p><p>Abre e usa. Não pede e-mail, senha nem login com Google.</p></div>
+        <div><p class="big"><s>Anúncio</s></p><p>Nenhum banner, nenhum vídeo para liberar função.</p></div>
+        <div><p class="big"><s>Mensalidade</s></p><p>Tudo o que está nesta página é de graça.</p></div>
+        <div><p class="big"><s>Seus dados fora</s></p><p>Fica tudo no seu celular. A única conexão é para ver se saiu versão nova.</p></div>
+      </div>
+      <p class="careful"><b>O outro lado disso:</b> como os dados ficam só no aparelho, faça um backup de vez em quando em <b>Perfil → Dados e backup</b>, principalmente antes de trocar de celular. No Android ele também guarda um backup automático na pasta Downloads.</p>
+    </section>
+
+    <section id="instalar" aria-labelledby="inst">
+      <div class="section-head">
+        <p class="eyebrow">Versão 3.17.0 · 23 de outubro de 2026</p>
+        <h2 id="inst">Instalar leva um minuto</h2>
+      </div>
+      <div class="install">
+        <article>
+          <h3>Android</h3>
+          <ol>
+            <li><span>Abra a <a href="https://github.com/carlosmozart/Treino-Personalizado/releases/latest" target="_blank" rel="noopener">página da última versão</a> no celular.</span></li>
+            <li><span>Toque no arquivo <code>treino-personalizado-v3.17.0.apk</code> para baixar.</span></li>
+            <li><span>Abra o arquivo. O Android vai pedir para <b>permitir instalar apps desta fonte</b>, porque o app ainda não está na Play Store. Permita e instale.</span></li>
+            <li><span>Pronto. Quando sair versão nova, <b>o próprio app avisa</b> e confere o arquivo antes de instalar.</span></li>
+          </ol>
+          <a class="btn btn-primary" href="https://github.com/carlosmozart/Treino-Personalizado/releases/latest" target="_blank" rel="noopener">Baixar o APK</a>
+        </article>
+        <article>
+          <h3>iPhone</h3>
+          <ol>
+            <li><span>Abra o link abaixo no <b>Safari</b>.</span></li>
+            <li><span>Toque em <b>Compartilhar</b> e depois em <b>Adicionar à Tela de Início</b>.</span></li>
+            <li><span>Ele abre como um app, com ícone próprio, e funciona sem internet.</span></li>
+            <li><span>Uma diferença: no iPhone o alarme do descanso <b>não toca com a tela bloqueada</b>. Deixe a tela acesa durante a série.</span></li>
+          </ol>
+          <div class="copy-row">
+            <input id="weblink" type="text" readonly value="https://carlosmozart.github.io/Treino-Personalizado/" aria-label="Link da versão web">
+            <button class="btn btn-ghost" id="copy" type="button">Copiar link</button>
+            <span class="copied" id="copied" hidden>Link copiado</span>
+          </div>
+        </article>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <p>Feito pelo Carlos e pelo William. Achou um bug ou sentiu falta de alguma coisa? Fala comigo, que entra na próxima versão.</p>
+    <p>Desenhos dos exercícios do Everkinetic, de Greg Priday, sob a licença CC BY-SA 4.0.</p>
+  </footer>
+</div>
+
+<script>
+(function () {
+  var BAR = 20, TARGET = 10, BASE = 55, STEP = 2.5;
+  var PLATES = [25, 20, 15, 10, 5, 2.5, 1.25];
+  // Cores das anilhas olímpicas, com altura e largura de cada uma no desenho.
+  var LOOK = {
+    25: ['#d42a2a', 98, 15, '#fff'], 20: ['#1f5fd6', 98, 14, '#fff'], 15: ['#e8b20e', 88, 13, '#1a1a1a'],
+    10: ['#1e9a55', 76, 12, '#fff'], 5: ['#ececee', 60, 10, '#1a1a1a'], 2.5: ['#c23030', 46, 8, '#fff'], 1.25: ['#b9bcc4', 38, 7, '#1a1a1a']
+  };
+  var sets = [
+    { reps: 10, done: true }, { reps: 10, done: true }, { reps: 10, done: false }, { reps: 10, done: false }
+  ];
+  var shown = BASE;
+
+  var fmt = function (n) { return String(n).replace('.', ','); };
+  function perSide(total) {
+    var left = (total - BAR) / 2, out = [];
+    PLATES.forEach(function (p) { while (left >= p - 1e-9) { out.push(p); left -= p; } });
+    return out;
+  }
+
+  function drawBar(total, animateFrom) {
+    var svg = document.getElementById('barbell');
+    var side = perSide(total), before = animateFrom ? perSide(animateFrom) : side;
+    var cy = 60, parts = [];
+    parts.push('<rect x="6" y="' + (cy - 3) + '" width="348" height="6" rx="3" fill="var(--steel)"/>');
+    parts.push('<rect x="92" y="' + (cy - 7) + '" width="8" height="14" rx="2" fill="var(--steel)"/>');
+    parts.push('<rect x="260" y="' + (cy - 7) + '" width="8" height="14" rx="2" fill="var(--steel)"/>');
+    [-1, 1].forEach(function (dir) {
+      var x = dir < 0 ? 92 : 268;
+      side.forEach(function (p, i) {
+        var l = LOOK[p], w = l[2], h = l[1];
+        var px = dir < 0 ? x - w : x;
+        var isNew = i >= before.length || before[i] !== p;
+        parts.push('<g' + (isNew && animateFrom ? ' class="plate-new"' : '') + '>' +
+          '<rect x="' + px + '" y="' + (cy - h / 2) + '" width="' + w + '" height="' + h + '" rx="3" fill="' + l[0] + '" stroke="rgba(0,0,0,.35)"/>' +
+          (h >= 60 ? '<text x="' + (px + w / 2) + '" y="' + (cy + 4) + '" font-size="9" font-weight="700" text-anchor="middle" fill="' + l[3] + '" font-family="Figtree, sans-serif" transform="rotate(-90 ' + (px + w / 2) + ' ' + cy + ')">' + fmt(p) + '</text>' : '') +
+          '</g>');
+        x += dir < 0 ? -(w + 1) : (w + 1);
+      });
+    });
+    svg.innerHTML = parts.join('');
+    document.getElementById('barKg').textContent = fmt(total) + ' kg';
+    document.getElementById('barPlates').textContent = 'Cada lado: ' + side.map(fmt).join(' + ') + ' · barra de 20 kg';
+  }
+
+  var checkIcon = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>';
+  function renderSets() {
+    var box = document.getElementById('sets');
+    box.querySelectorAll('.set').forEach(function (el) { el.remove(); });
+    sets.forEach(function (s, i) {
+      var row = document.createElement('div');
+      row.className = 'set' + (s.done ? ' done' : '');
+      row.innerHTML =
+        '<span class="set-n">' + (i + 1) + '</span>' +
+        '<span class="cell num">' + fmt(BASE) + '</span>' +
+        '<span class="cell reps num"><button type="button" id="menos' + i + '" aria-label="Menos uma repetição na série ' + (i + 1) + '">−</button>' + s.reps +
+        '<button type="button" id="mais' + i + '" aria-label="Mais uma repetição na série ' + (i + 1) + '">+</button></span>' +
+        '<button type="button" class="check" id="feita' + i + '" aria-pressed="' + s.done + '" aria-label="Série ' + (i + 1) + ' feita">' + checkIcon + '</button>';
+      row.querySelector('#menos' + i).onclick = function () { s.reps = Math.max(1, s.reps - 1); reset(); };
+      row.querySelector('#mais' + i).onclick = function () { s.reps = Math.min(20, s.reps + 1); reset(); };
+      row.querySelector('#feita' + i).onclick = function () { s.done = !s.done; reset(); };
+      box.appendChild(row);
+    });
+    var left = sets.filter(function (s) { return !s.done; }).length;
+    document.getElementById('hint').textContent = left
+      ? (left === 1 ? 'Falta 1 série.' : 'Faltam ' + left + ' séries.') + ' Marque e conclua.'
+      : 'Todas feitas. Conclua o treino.';
+  }
+
+  // Mesma regra da progressão dupla do app (docs/dev/progressao.md), com alvo fixo de 10 reps.
+  function decide() {
+    var done = sets.filter(function (s) { return s.done; });
+    if (done.length < sets.length) {
+      return { next: BASE, up: false, why: 'Mantém ' + fmt(BASE) + ' kg: ' + done.length + ' de ' + sets.length + ' séries na última vez.' };
+    }
+    if (done.every(function (s) { return s.reps >= TARGET; })) {
+      return { next: BASE + STEP, up: true, why: '+' + fmt(STEP) + ' kg: ' + TARGET + ' reps nas ' + sets.length + ' séries.' };
+    }
+    return { next: BASE, up: false, why: 'Mantém ' + fmt(BASE) + ' kg: busque ' + TARGET + ' reps em todas (última: ' + done.map(function (s) { return s.reps; }).join(' · ') + ').' };
+  }
+
+  function reset() {
+    renderSets();
+    if (shown !== BASE) { shown = BASE; drawBar(BASE); }
+    document.getElementById('barLabel').textContent = 'Na barra hoje';
+    var v = document.getElementById('verdict');
+    v.className = 'verdict';
+    v.innerHTML = '<strong>Próxima vez</strong>O app olha as suas séries e decide a carga do próximo supino. Experimente marcar 10 reps em todas, ou menos em alguma.';
+  }
+
+  document.getElementById('save').onclick = function () {
+    var r = decide(), v = document.getElementById('verdict');
+    v.className = 'verdict ' + (r.up ? 'up' : 'keep');
+    v.innerHTML = '<strong class="num">Próximo supino: ' + fmt(r.next) + ' kg</strong><span class="why">' + r.why + '</span>';
+    document.getElementById('barLabel').textContent = 'Na barra no próximo treino';
+    var from = shown; shown = r.next;
+    drawBar(r.next, r.next !== from ? from : null);
+  };
+
+  document.getElementById('copy').onclick = function () {
+    var input = document.getElementById('weblink'), ok = document.getElementById('copied');
+    var show = function () { ok.hidden = false; setTimeout(function () { ok.hidden = true; }, 2200); };
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(input.value).then(show, function () { input.select(); });
+    } else { input.select(); }
+  };
+
+  renderSets();
+  drawBar(BASE);
+})();
+</script>
+</body>
+</html>
