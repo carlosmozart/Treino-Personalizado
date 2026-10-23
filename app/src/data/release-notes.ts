@@ -3,6 +3,16 @@ export interface ReleaseNote { version: string; date: string; items: string[] }
 
 export const RELEASE_NOTES: readonly ReleaseNote[] = [
   {
+    version: '3.15.0',
+    date: '2026-10',
+    items: [
+      'Treino salvo → "Compartilhar como imagem": um cartão com o treino, os números e os recordes para mandar no WhatsApp ou postar.',
+      'Plano → exercício → "Repetições por lado", para afundo e exercícios unilaterais.',
+      'Início → "Marcar esta semana como deload": a semana leve não conta para a progressão.',
+      'Perfil → Treino: a semana pode começar no domingo. E exercícios criados por você ou pela IA ganham ilustração pelo nome.'
+    ]
+  },
+  {
     version: '3.14.0',
     date: '2026-10',
     items: [
