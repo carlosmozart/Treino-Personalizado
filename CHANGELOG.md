@@ -6,7 +6,7 @@ Todas as mudanças relevantes do app ficam registradas aqui. Ao lançar uma nova
    atualizar o app instalado
 3. Adicione uma entrada aqui, nesse formato
 
-## Não lançado
+## [3.16.0] - 2026-10-23
 
 - Perfil → Dados e backup → Restaurar: agora pergunta se é para **juntar com os dados atuais** (fica o que já está no aparelho, entra o que só existe no backup e, se o mesmo registro estiver nos dois, vale o alterado por último) ou **substituir tudo**, como antes.
 - Registrar peso: dá para escolher a data e anotar a pesagem de um dia anterior. O peso atual continua sendo o da pesagem mais recente.

@@ -3,6 +3,16 @@ export interface ReleaseNote { version: string; date: string; items: string[] }
 
 export const RELEASE_NOTES: readonly ReleaseNote[] = [
   {
+    version: '3.16.0',
+    date: '2026-10',
+    items: [
+      'Restaurar backup: agora dá para juntar com os dados do aparelho, sem perder o que foi feito depois do backup.',
+      'Registrar peso: escolha a data para anotar a pesagem de um dia anterior.',
+      'Modo foco: "Próximo" pula os exercícios já feitos, e depois da prancha o próximo aparece sozinho.',
+      'Exercícios só com o peso do corpo não mostram mais os botões de carga.'
+    ]
+  },
+  {
     version: '3.15.0',
     date: '2026-10',
     items: [
