@@ -60,6 +60,8 @@ export interface ActiveSession {
 }
 
 const round1 = (n: number) => Math.round(n * 10) / 10;
+/** Carga em centésimos (41,25 kg existe com anilhas de 1,25). */
+const roundKg = (n: number) => Math.round(n * 100) / 100;
 const clamp = (n: number, min: number, max: number) => Math.min(max, Math.max(min, n));
 
 type PlanTarget = Pick<PlanExercise, 'sets' | 'reps' | 'weight' | 'seconds' | 'repMin' | 'repMax' | 'increment'> & { linear?: boolean };
@@ -228,7 +230,7 @@ export function updateSet(s: ActiveSession, exIndex: number, setIndex: number, p
     ...set,
     ...(patch.kind ? { kind: patch.kind } : {}),
     ...(patch.reps !== undefined ? { reps: clamp(Math.round(patch.reps), 0, 999) } : {}),
-    ...(patch.weight !== undefined ? { weight: clamp(round1(patch.weight), 0, 999) } : {})
+    ...(patch.weight !== undefined ? { weight: clamp(roundKg(patch.weight), 0, 999) } : {})
   }));
 }
 
@@ -332,7 +334,7 @@ export function setNote(s: ActiveSession, exIndex: number, note: string): Active
 export function adjustWeights(s: ActiveSession, exIndex: number, delta: number): ActiveSession {
   return mapExercise(s, exIndex, ex => {
     if (!ex.sets.some(set => !set.done)) return ex;
-    return { ...ex, sets: ex.sets.map(set => (set.done ? set : { ...set, weight: Math.round(Math.max(0, set.weight + delta) * 10) / 10 })) };
+    return { ...ex, sets: ex.sets.map(set => (set.done ? set : { ...set, weight: roundKg(Math.max(0, set.weight + delta)) })) };
   });
 }
 

@@ -34,7 +34,12 @@ export interface MigrationResult {
 }
 
 const isObj = (v: unknown): v is Obj => v !== null && typeof v === 'object' && !Array.isArray(v);
-const isDateKey = (v: unknown): v is DateKey => typeof v === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(v);
+/** Data no formato e que existe no calendário (2026-13-45 tem o formato, mas não existe). */
+const isDateKey = (v: unknown): v is DateKey => {
+  if (typeof v !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(v)) return false;
+  const d = new Date(`${v}T12:00:00`);
+  return !Number.isNaN(d.getTime()) && toDateKey(d) === v;
+};
 const isDayKey = (v: unknown): v is DayKey => (DAY_KEYS as readonly unknown[]).includes(v);
 const str = (v: unknown, fallback = ''): string => (typeof v === 'string' ? v : fallback);
 const objOf = (v: unknown): Obj => (isObj(v) ? v : {});
@@ -43,7 +48,7 @@ const objOf = (v: unknown): Obj => (isObj(v) ? v : {});
 function num(v: unknown): number | null {
   if (typeof v === 'number') return Number.isFinite(v) ? v : null;
   if (typeof v === 'string' && v.trim() !== '') {
-    const n = Number(v);
+    const n = Number(v.replace(',', '.'));
     return Number.isFinite(n) ? n : null;
   }
   return null;
@@ -178,12 +183,13 @@ function locate(plans: Record<string, Plan>, exerciseId: string, preferDay: DayK
 
 function setsOf(entry: Obj): { sets: WorkoutSet[]; aggregated: boolean } {
   if (Array.isArray(entry.series) && entry.series.length) {
-    const sets = entry.series.map(objOf).map(s => ({ reps: num(s.reps) ?? 0, weight: num(s.weight) ?? 0, kind: 'work' as const }));
+    // repetição inteira; carga negativa (digitada errado) vira zero
+    const sets = entry.series.map(objOf).map(s => ({ reps: Math.round(num(s.reps) ?? 0), weight: Math.max(0, num(s.weight) ?? 0), kind: 'work' as const }));
     return { sets: sets.filter(s => s.reps > 0), aggregated: false };
   }
   const count = Math.max(0, Math.trunc(num(entry.sets) ?? 0));
-  const reps = num(entry.reps) ?? 0;
-  const weight = num(entry.weight) ?? 0;
+  const reps = Math.round(num(entry.reps) ?? 0);
+  const weight = Math.max(0, num(entry.weight) ?? 0);
   if (reps <= 0) return { sets: [], aggregated: true };
   return { sets: Array.from({ length: count }, () => ({ reps, weight, kind: 'work' as const })), aggregated: true };
 }

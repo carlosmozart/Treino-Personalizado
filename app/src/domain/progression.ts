@@ -81,8 +81,9 @@ function bodyweightProgression(name: string, ref: ReturnType<typeof reference>, 
   return { kind: 'keep', weight: 0, reps: target, reason: `Busque ${target} reps em todas (última: ${reps.join(' · ')}).` };
 }
 
-const kg = (n: number) => `${String(Math.round(n * 10) / 10).replace('.', ',')} kg`;
-const round1 = (n: number) => Math.round(n * 10) / 10;
+// cargas em centésimos: 41,25 kg (anilhas de 1,25) existe; arredondar em décimos dava 41,3
+const roundKg = (n: number) => Math.round(n * 100) / 100;
+const kg = (n: number) => `${String(roundKg(n)).replace('.', ',')} kg`;
 
 /** Carga de referência da sessão (última série de trabalho) e as séries feitas com ela. */
 function reference(entry: WorkoutEntry) {
@@ -124,11 +125,16 @@ export function suggestProgression(workouts: readonly Workout[], key: string, ta
     return { kind: 'keep', weight: ref.weight, reps: max, reason: `Mantém ${kg(ref.weight)}: chegou a ${max} reps, mas indo até a falha.` };
   }
   if (ref.atWeight.length >= planned && ref.atWeight.every(s => s.reps >= max)) {
-    return { kind: 'up', weight: round1(ref.weight + inc), reps: min, reason: `+${kg(inc)}: ${max} reps nas ${planned} séries.` };
+    return { kind: 'up', weight: roundKg(ref.weight + inc), reps: min, reason: `+${kg(inc)}: ${max} reps nas ${planned} séries.` };
   }
   if (stalled(history, ref.weight, max, planned)) {
-    const weight = Math.max(0, Math.floor((ref.weight * 0.9) / inc) * inc);
-    return { kind: 'deload', weight: round1(weight), reps: max, reason: `−10%: ${STALL_SESSIONS} treinos sem evoluir com ${kg(ref.weight)}.` };
+    // a folga de 1e-9 evita que 22,5 / 2,5 = 8,9999… desça um degrau a mais
+    const weight = roundKg(Math.floor((ref.weight * 0.9) / inc + 1e-9) * inc);
+    if (weight > 0) {
+      return { kind: 'deload', weight, reps: max, reason: `−10%: ${STALL_SESSIONS} treinos sem evoluir com ${kg(ref.weight)}.` };
+    }
+    // carga tão leve que o −10% chegaria a zero: não há para onde baixar
+    return { kind: 'keep', weight: ref.weight, reps: max, reason: `Mantém ${kg(ref.weight)}: ${STALL_SESSIONS} treinos sem evoluir, mas a carga já é a menor do incremento.` };
   }
   if (ref.atWeight.length < planned) {
     return { kind: 'keep', weight: ref.weight, reps: max, reason: `Mantém ${kg(ref.weight)}: ${ref.atWeight.length} de ${planned} séries na última vez.` };

@@ -7,8 +7,9 @@ type Obj = Record<string, unknown>;
 const object = (v: unknown): v is Obj => v !== null && typeof v === 'object' && !Array.isArray(v);
 const text: Check = v => typeof v === 'string';
 const number: Check = v => typeof v === 'number' && Number.isFinite(v);
-// Formulários antigos gravavam números como texto.
-const numeric: Check = v => number(v) || (typeof v === 'string' && (v === '' || (v.trim() !== '' && Number.isFinite(Number(v)))));
+// Formulários antigos gravavam números como texto, às vezes com vírgula ("42,5"): recusar um
+// deles derrubava o histórico inteiro na migração.
+const numeric: Check = v => number(v) || (typeof v === 'string' && (v === '' || (v.trim() !== '' && Number.isFinite(Number(v.replace(',', '.'))))));
 const bool: Check = v => typeof v === 'boolean';
 const list = (check: Check): Check => v => Array.isArray(v) && v.every(check);
 const map = (check: Check): Check => v => object(v) && Object.values(v).every(check);

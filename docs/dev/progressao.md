@@ -43,7 +43,10 @@ já usava para pré-preencher), e contam as séries feitas com essa carga.
 ## Incremento
 
 `increment` do exercício; sem ele, 2,5 kg. Opções no editor: 1, 1,25, 2,5 e 5 kg. A carga
-sugerida nunca fica abaixo de 0 e é arredondada para o incremento (deload) ou para 0,1 kg.
+sugerida nunca fica abaixo de 0 e é arredondada para o incremento (deload) ou para 0,01 kg: com
+1,25 kg, 40 sobe para 41,25 (em décimos daria 41,3, carga que não se monta). O deload que chegaria
+a 0 kg (carga igual ou menor que um incremento) não acontece: mantém a carga e explica.
+Casos-limite cobertos em `app/src/domain/edge-cases.test.ts` (M27).
 
 ## Progressão linear (M10)
 

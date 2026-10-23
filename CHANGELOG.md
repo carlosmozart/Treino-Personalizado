@@ -6,6 +6,13 @@ Todas as mudanças relevantes do app ficam registradas aqui. Ao lançar uma nova
    atualizar o app instalado
 3. Adicione uma entrada aqui, nesse formato
 
+## Não lançado
+
+- Corrigido: com incremento de 1,25 kg a progressão sugeria 41,3 kg em vez de 41,25, e digitar 41,25 numa série gravava 41,3. As cargas agora vão até duas casas, na sugestão, nas séries e na tela.
+- Corrigido: o deload de uma carga muito leve (2,5 kg, por exemplo) sugeria 0 kg; agora mantém a carga.
+- Corrigido na migração do app antigo: uma única carga gravada com vírgula ("42,5") fazia o histórico inteiro ser recusado; carga negativa vira zero, repetição quebrada é arredondada e data inexistente (como mês 13) é descartada.
+- Mais testes de casos-limite da progressão, do 1RM, dos recordes e da migração.
+
 ## [3.17.0] - 2026-10-23
 
 - Perfil → Treino → "Descanso depois do aquecimento": igual às outras séries, sem cronômetro ou um tempo próprio para todos os exercícios.

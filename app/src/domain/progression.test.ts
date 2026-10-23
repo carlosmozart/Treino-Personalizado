@@ -43,7 +43,7 @@ describe('progressão dupla', () => {
   });
 
   it('respeita o incremento do exercício', () => {
-    expect(suggest([workout('2026-10-01', 'Supino', [[10, 40], [10, 40], [10, 40]])], { increment: 1.25 })).toMatchObject({ kind: 'up', weight: 41.3 });
+    expect(suggest([workout('2026-10-01', 'Supino', [[10, 40], [10, 40], [10, 40]])], { increment: 1.25 })).toMatchObject({ kind: 'up', weight: 41.25 });
   });
 
   it('uma série abaixo do topo: mantém e mira o topo', () => {

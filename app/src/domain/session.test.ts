@@ -24,7 +24,7 @@ test('ações devolvem sessão nova e respeitam limites', () => {
   const s0 = startSession(sampleData(), 'p1', 'SEG', MONDAY, 's1')!;
   const s1 = updateSet(toggleSet(s0, 0, 1), 0, 1, { weight: 22.456, reps: -3 });
   expect(s0.exercises[0]!.sets[1]!.done).toBe(false);
-  expect(s1.exercises[0]!.sets[1]).toEqual({ reps: 0, weight: 22.5, kind: 'work', done: true });
+  expect(s1.exercises[0]!.sets[1]).toEqual({ reps: 0, weight: 22.46, kind: 'work', done: true });
   const s2 = addSet(s1, 0);
   expect(s2.exercises[0]!.sets).toHaveLength(4);
   expect(s2.exercises[0]!.sets[3]).toMatchObject({ weight: 20, done: false });

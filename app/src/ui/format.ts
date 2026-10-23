@@ -6,8 +6,9 @@ import { DAY_FULL_NAMES, type PlanDay } from '../domain/model';
 const MONTHS = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez'];
 
 /** 42.5 → "42,5"; 40 → "40". */
+/** Número com vírgula, até duas casas (41,25 kg aparece como é). */
 export function formatNumber(n: number): string {
-  return String(Math.round(n * 10) / 10).replace('.', ',');
+  return String(Math.round(n * 100) / 100).replace('.', ',');
 }
 
 /** "2026-10-02" → "2 out". */

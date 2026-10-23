@@ -138,7 +138,7 @@ M23	🟡 (arquivo do plano para compartilhar e importar, 12/10/2026; faltam impo
 M24	Importar histórico de Strong/Hevy/FitNotes (CSV), casando nomes com a biblioteca (depende de M5)	Baixa
 M25	✅ (tema claro e escuro em 07/10/2026; cor de destaque com cinco opções em 10/10/2026) Tema claro e cor de destaque configurável (exige revisar tokens de cor do guia de interface)	Baixa
 M26	✅ (10/10/2026, menu ⋯ do exercício; primeiro na troca e nas buscas) Favoritar exercícios para aparecerem primeiro na troca/biblioteca	Baixa
-M27	Ampliar testes no estilo do openGym: casos-limite de cada regra de progressão, 1RM, recordes e migração	Alta
+M27	✅ (23/10/2026: 33 casos em app/src/domain/edge-cases.test.ts; acharam e corrigiram arredondamento de 1,25 kg, deload para 0 kg e o histórico antigo recusado por uma carga com vírgula) Ampliar testes no estilo do openGym: casos-limite de cada regra de progressão, 1RM, recordes e migração	Alta
 
 Funções adicionais do openGym aproveitáveis
 M28	✅ (revisão de 10/10/2026: feito no app 3.x, séries por grupo em 30 dias e volume planejado; P5) Equilíbrio muscular: mapear exercícios → grupos musculares e mostrar séries por grupo na semana/30 dias/90 dias, destacando grupos não treinados (começar com barras/lista; figura do corpo depois, com arte própria)	Média
