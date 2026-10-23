@@ -10,6 +10,7 @@ import { WeightLogSheet } from './WeightLogSheet';
 import { DayNoteSheet, reasonLabel } from './DayNoteSheet';
 import { MoveWorkoutSheet, moveDayLabel } from './MoveWorkoutSheet';
 import { undoMove } from '../../domain/reschedule';
+import { isDeloadDate, setDeloadWeek } from '../../domain/deload';
 import { toDateKey } from '../../domain/dates';
 import { PlanChooser, type ChooserMode } from '../plan/PlanChooser';
 import { formatNumber, plural, shortDate } from '../../ui/format';
@@ -57,8 +58,10 @@ export function HomeScreen() {
 function PlanSection({ onChoose }: { onChoose: (m: ChooserMode) => void }) {
   const data = useAppStore(s => s.data)!;
   const setTab = useUiStore(s => s.setTab);
+  const run = useAppStore(s => s.run);
   const plan = data.activePlanId ? data.plans[data.activePlanId] : undefined;
   if (!plan) return null;
+  const deload = isDeloadDate(data, toDateKey(new Date()));
   return (
     <section aria-label="Plano de treino" className="rounded-2xl border border-line bg-surface p-4">
       <p className="text-xs font-semibold text-muted">Plano de treino</p>
@@ -68,6 +71,16 @@ function PlanSection({ onChoose }: { onChoose: (m: ChooserMode) => void }) {
         <button type="button" onClick={() => setTab('plano')} className="h-11 rounded-xl bg-surface-2 font-bold">Editar plano</button>
         <button type="button" onClick={() => onChoose('menu')} className="h-11 rounded-xl bg-surface-2 font-bold">Novo plano</button>
       </div>
+      {/* M32: semana leve para recuperar, fora da base da progressão */}
+      {deload && (
+        <p className="mt-3 rounded-xl bg-surface-2 p-3 text-sm">
+          <span className="font-semibold">Semana de deload.</span> Use cerca de 60% da carga e menos séries. Os treinos desta semana ficam no histórico, mas não contam para a progressão.
+        </p>
+      )}
+      <button type="button" onClick={() => run((d, now) => setDeloadWeek(d, !deload, now))}
+        className="mt-2 h-11 w-full rounded-xl text-sm font-semibold text-muted">
+        {deload ? 'Desmarcar a semana de deload' : 'Marcar esta semana como deload'}
+      </button>
     </section>
   );
 }

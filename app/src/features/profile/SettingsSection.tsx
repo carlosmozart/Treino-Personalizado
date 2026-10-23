@@ -36,6 +36,7 @@ export function SettingsSection() {
         <WorkoutSettingsFields />
         <AlarmSettings />
         {notificationsAvailable() && <ReminderToggle on={!!settings.trainingReminders} set={set} />}
+        <WeekStartChoice value={settings.weekStart ?? 'seg'} onChange={v => set({ weekStart: v })} />
       </Card>
       <Card title="Aparência">
         <ThemeChoice value={settings.theme ?? 'system'} onChange={v => set({ theme: v })} />
@@ -223,6 +224,22 @@ function ErrorLogButton() {
     }}>
       {copied ? 'Registro copiado' : `Copiar registro de erros (${entries.length})`}
     </button>
+  );
+}
+
+/** M19: em que dia a semana começa (faixa do Início, meta da semana, gráficos e deload). */
+function WeekStartChoice({ value, onChange }: { value: 'seg' | 'dom'; onChange: (v: 'seg' | 'dom') => void }) {
+  return (
+    <div className="py-2">
+      <p className="text-sm font-semibold text-muted">A semana começa na</p>
+      <div role="radiogroup" aria-label="A semana começa na" className="mt-1 grid grid-cols-2 gap-1 rounded-xl bg-surface-2 p-1">
+        {([['seg', 'Segunda'], ['dom', 'Domingo']] as const).map(([id, label]) => (
+          <button key={id} type="button" role="radio" aria-checked={value === id} onClick={() => onChange(id)}
+            className={`min-h-11 rounded-lg text-sm font-semibold ${value === id ? 'bg-primary text-white' : 'text-muted'}`}>{label}</button>
+        ))}
+      </div>
+      <p className="mt-1 text-xs text-faint">Vale para a semana do Início, a meta de treinos da semana, a refeição livre e os gráficos por semana.</p>
+    </div>
   );
 }
 

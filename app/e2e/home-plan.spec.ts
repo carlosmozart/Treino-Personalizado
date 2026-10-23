@@ -154,3 +154,29 @@ test('início: remarcar o treino de hoje para outro dia e desfazer (M19)', async
   await expect(page.getByRole('button', { name: 'Começar treino' })).toBeVisible();
   expect(errors).toEqual([]);
 });
+
+test('semana começando no domingo, semana de deload e repetições por lado (M19, M32, M31)', async ({ page }) => {
+  const errors: string[] = [];
+  page.on('console', msg => { if (msg.type() === 'error') errors.push(msg.text()); });
+  await page.clock.setFixedTime(new Date(2026, 9, 19, 10)); // segunda
+  await page.goto('/');
+  await page.getByRole('button', { name: 'Escolher um modelo' }).click();
+  await page.getByRole('button', { name: 'Usar Superior / Inferior 4×' }).click();
+
+  await page.getByRole('button', { name: 'Perfil', exact: true }).click();
+  await page.getByRole('radiogroup', { name: 'A semana começa na' }).getByRole('radio', { name: 'Domingo' }).click();
+  await page.getByRole('button', { name: 'Início', exact: true }).click();
+  const week = page.getByRole('region', { name: 'Esta semana' });
+  await expect(week.getByRole('listitem').first()).toHaveAccessibleName(/^Domingo 18/);
+
+  await page.getByRole('button', { name: 'Marcar esta semana como deload' }).click();
+  await expect(page.getByText('Semana de deload.')).toBeVisible();
+  await page.screenshot({ path: 'test-results/deload.png', fullPage: true });
+
+  await page.getByRole('button', { name: 'Editar plano' }).click();
+  const row = page.locator('button[aria-expanded="false"]').filter({ hasText: /\d × / }).first();
+  await row.click();
+  await page.getByRole('checkbox', { name: /Repetições por lado/ }).check();
+  await expect(page.locator('button[aria-expanded="true"]').filter({ hasText: 'por lado' })).toBeVisible();
+  expect(errors).toEqual([]);
+});

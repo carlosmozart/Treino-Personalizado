@@ -107,7 +107,8 @@ export function suggestProgression(workouts: readonly Workout[], key: string, ta
   const range = repRange(target);
   // linear: sem faixa; as reps do plano (o topo) valem para subir e continuam as mesmas depois
   const { min, max } = target.linear ? { min: range.max, max: range.max } : range;
-  const history = sessionsOf(workouts, key).filter(s => s.workout.date < date).map(s => s.entry).filter(e => workSets(e).length);
+  // M32: treino de deload não é base da progressão
+  const history = sessionsOf(workouts, key).filter(s => s.workout.date < date && !s.workout.deload).map(s => s.entry).filter(e => workSets(e).length);
   const last = history[history.length - 1];
   if (!last) return target.weight > 0 ? { kind: 'first', weight: target.weight, reps: max, reason: '' } : null;
 

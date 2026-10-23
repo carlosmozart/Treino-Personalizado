@@ -21,6 +21,13 @@ export function addDays(key: DateKey, days: number): DateKey {
   return toDateKey(date);
 }
 
+export type WeekStart = 'seg' | 'dom';
+
+/** Primeiro dia da semana da data: segunda (padrão) ou domingo, conforme o ajuste (M19). */
+export function weekStartOf(key: DateKey, start: WeekStart = 'seg'): DateKey {
+  return start === 'dom' ? addDays(mondayOf(addDays(key, 1)), -1) : mondayOf(key);
+}
+
 /** Segunda-feira da semana da data (domingo pertence à semana iniciada na segunda anterior). */
 export function mondayOf(key: DateKey): DateKey {
   const date = fromDateKey(key);

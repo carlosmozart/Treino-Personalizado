@@ -14,6 +14,7 @@ import { useWorkoutUi } from './workout-ui';
 import { WorkoutSettingsFields } from '../profile/SettingsSection';
 import { AddToWorkoutSheet } from './AddToWorkoutSheet';
 import { WeighInNotice } from './WeighInNotice';
+import { isDeloadDate } from '../../domain/deload';
 
 export function ActiveWorkout({ session }: { session: ActiveSession }) {
   const now = useNow(1000);
@@ -38,6 +39,7 @@ export function ActiveWorkout({ session }: { session: ActiveSession }) {
   };
   const elapsed = (now - Date.parse(session.startedAt)) / 1000;
   const pct = progress.setsTotal ? (progress.setsDone / progress.setsTotal) * 100 : 0;
+  const deload = useAppStore(s => (s.data ? isDeloadDate(s.data, session.date) : false));
 
   return (
     <div>
@@ -47,7 +49,7 @@ export function ActiveWorkout({ session }: { session: ActiveSession }) {
           <div className="min-w-0 flex-1">
             <h1 className="truncate text-xl font-black">{session.dayName || 'Treino'}</h1>
             <p className="text-sm text-muted tabular-nums">
-              {session.backdated ? `Treino de ${shortDate(session.date)} · ${session.backdated.durationMin} min` : formatClock(elapsed)} · {progress.setsDone}/{progress.setsTotal} séries
+              {session.backdated ? `Treino de ${shortDate(session.date)} · ${session.backdated.durationMin} min` : formatClock(elapsed)} · {progress.setsDone}/{progress.setsTotal} séries{deload ? ' · deload' : ''}
             </p>
           </div>
           <button type="button" onClick={() => setSettingsOpen(true)} aria-label="Ajustes do treino"

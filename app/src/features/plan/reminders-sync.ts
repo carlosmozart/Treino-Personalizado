@@ -3,11 +3,11 @@
 import { remindersFor, remindersKey, REMINDER_IDS } from '../../domain/reminders';
 import { notificationsAvailable, syncTrainingReminders } from '../../platform/notifications';
 import { useErrorLog } from '../../platform/error-log';
-import type { AppData } from '../../domain/model';
+import { weekStartSetting, type AppData } from '../../domain/model';
 import { useAppStore } from '../../store';
 
 const plan = (d: AppData) => (d.activePlanId ? d.plans[d.activePlanId] : undefined);
-const listFor = (d: AppData) => remindersFor(plan(d), { workouts: d.workouts, dayNotes: d.dayNotes ?? {}, moves: d.moves ?? {}, now: new Date() });
+const listFor = (d: AppData) => remindersFor(plan(d), { workouts: d.workouts, dayNotes: d.dayNotes ?? {}, moves: d.moves ?? {}, weekStart: weekStartSetting(d.settings), now: new Date() });
 
 export function startRemindersSync() {
   if (!notificationsAvailable()) return;

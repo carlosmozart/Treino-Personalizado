@@ -2,14 +2,14 @@
 // Trabalham sobre um rascunho já copiado pela ação e registram eventos para a interface
 // mostrar — nenhuma regra daqui exibe nada.
 import { calculateStreak } from './streak';
-import { addDays, mondayOf, toDateKey, type DateKey } from './dates';
+import { addDays, toDateKey, weekStartOf, type DateKey } from './dates';
 import { maxRestGap } from './rotation';
 import {
   applyCheckinXP, bonusXP, freeMealThreshold, fullCheckinXP, isBirthday, isNightCheckin, levelInfo,
   STREAK_BONUS_PCT, streakBonusKey, WATER_BONUS_PCT
 } from './gamification';
 import { waterTargetMl } from './health';
-import { computeTotalXP, trainingDaysPerWeek, type AppData } from './model';
+import { computeTotalXP, trainingDaysPerWeek, weekStartSetting, type AppData } from './model';
 import { scheduledDay } from './reschedule';
 
 import type { RecordKind } from './strength';
@@ -75,9 +75,9 @@ export function streakOf(data: AppData, now: Date): number {
 }
 
 export function weekCheckins(data: AppData, date: DateKey): number {
-  const monday = mondayOf(date);
+  const start = weekStartOf(date, weekStartSetting(data.settings));
   let count = 0;
-  for (let i = 0; i < 7; i++) if (data.checkins[addDays(monday, i)]) count++;
+  for (let i = 0; i < 7; i++) if (data.checkins[addDays(start, i)]) count++;
   return count;
 }
 
@@ -113,7 +113,7 @@ export function grantCheckin(draft: AppData, date: DateKey, full: boolean, now: 
     events.push({ kind: 'streak-bonus', streak, xp });
   }
 
-  const week = mondayOf(date);
+  const week = weekStartOf(date, weekStartSetting(draft.settings));
   if (!g.freeMealRewards[week] && weekCheckins(draft, date) >= freeMealThreshold(daysPerWeekOf(draft))) {
     g.freeMealRewards[week] = true;
     events.push({ kind: 'free-meal' });

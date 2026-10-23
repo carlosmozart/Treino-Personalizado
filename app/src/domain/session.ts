@@ -9,6 +9,7 @@ import { lastSessionBefore, workSets } from './workouts';
 import { isCardioName } from '../data/exercise-library';
 import { repRange, suggestProgression, type Progression } from './progression';
 import { rotationTitle } from './rotation';
+import { isDeloadDate, progressionWorkouts } from './deload';
 
 export interface SessionSet {
   reps: number;
@@ -40,6 +41,8 @@ export interface SessionExercise {
   superset?: string;
   /** Sugestão da progressão automática que preencheu as séries (M12), com o porquê. */
   progression?: Progression;
+  /** M31: repetições por lado. */
+  perSide?: true;
 }
 
 export interface ActiveSession {
@@ -69,7 +72,8 @@ type PlanTarget = Pick<PlanExercise, 'sets' | 'reps' | 'weight' | 'seconds' | 'r
 function initialSets(data: AppData, name: string, mode: ExerciseMode, plan: PlanTarget | null, date: DateKey): { sets: SessionSet[]; progression?: Progression } {
   if (mode === 'cardio') return { sets: [] };
   const key = normalizeExerciseName(name);
-  const last = lastSessionBefore(data.workouts, key, date);
+  // M32: a carga sugerida vem dos treinos normais; na semana de deload, sem subir carga
+  const last = lastSessionBefore(progressionWorkouts(data.workouts), key, date);
   const lastSets = last ? workSets(last.entry) : [];
   const count = plan?.sets || lastSets.length || 3;
   let reps = mode === 'time' ? (plan?.seconds ?? lastSets[0]?.reps ?? 30) : (plan?.reps || lastSets[0]?.reps || 10);
@@ -79,7 +83,7 @@ function initialSets(data: AppData, name: string, mode: ExerciseMode, plan: Plan
     weight = plan.weight;
     if (mode === 'reps') reps = repRange(plan).max;
   }
-  const progression = mode === 'reps' && plan && source === 'auto'
+  const progression = mode === 'reps' && plan && source === 'auto' && !isDeloadDate(data, date)
     ? suggestProgression(data.workouts, key, plan, date) ?? undefined
     : undefined;
   if (progression) ({ reps, weight } = progression);
@@ -105,6 +109,7 @@ function fromPlanExercise(data: AppData, ex: PlanExercise, date: DateKey, linear
   if (ex.restSeconds) out.restSeconds = ex.restSeconds;
   if (ex.tip) out.tip = ex.tip;
   if (ex.superset) out.superset = ex.superset;
+  if (ex.perSide && ex.mode === 'reps') out.perSide = true;
   if (ex.mode === 'cardio') out.cardio = { minutes: ex.minutes, km: ex.km, done: false };
   return out;
 }
@@ -186,6 +191,7 @@ export function repeatSession(data: AppData, workout: Workout, now: Date, id: st
     if (entry.mode === 'time' && entry.sets[0]) ex.seconds = entry.sets[0].reps;
     if (planEx?.restSeconds) ex.restSeconds = planEx.restSeconds;
     if (planEx?.tip) ex.tip = planEx.tip;
+    if (entry.perSide) ex.perSide = true;
     return ex;
   });
   return {
@@ -396,7 +402,7 @@ export function sessionToWorkout(s: ActiveSession, now: Date): Workout | null {
       continue;
     }
     const sets = ex.sets.filter(set => set.done).map(({ reps, weight, kind, failure }) => ({ reps, weight, kind, ...(failure ? { failure } : {}) }));
-    if (sets.length) entries.push({ key: ex.key, name: ex.name, mode: ex.mode, sets, ...(note ? { note } : {}) });
+    if (sets.length) entries.push({ key: ex.key, name: ex.name, mode: ex.mode, sets, ...(note ? { note } : {}), ...(ex.perSide ? { perSide: true as const } : {}) });
   }
   if (!entries.length) return null;
   // M15: treino passado usa a duração informada; senão, o relógio do início até agora

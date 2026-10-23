@@ -1,9 +1,9 @@
 // O que a tela de Início mostra, calculado a partir dos dados (nada gravado).
-import { DAY_KEYS, type DayKey } from './ai-plan';
-import { addDays, mondayOf, toDateKey, type DateKey } from './dates';
+import type { DayKey } from './ai-plan';
+import { addDays, fromDateKey, toDateKey, weekStartOf, type DateKey, type WeekStart } from './dates';
 import { goalProgress } from './body-goal';
 import { levelInfo, freeMealThreshold, type LevelInfo } from './gamification';
-import { DAY_FULL_NAMES, type AppData, type DayNote } from './model';
+import { DAY_FULL_NAMES, dayKeyOf, weekStartSetting, type AppData, type DayNote } from './model';
 import { moveOn, scheduledDay } from './reschedule';
 import { rotationLetter, rotationState, rotationTitle } from './rotation';
 import { daysPerWeekOf, streakOf, weekCheckins } from './rewards';
@@ -32,13 +32,14 @@ function activePlan(data: AppData) {
   return data.activePlanId ? data.plans[data.activePlanId] : undefined;
 }
 
-/** Semana de segunda a domingo da data atual (N6). */
+/** Semana da data atual (N6), de segunda a domingo ou de domingo a sábado (M19). */
 export function weekStrip(data: AppData, now: Date): WeekDay[] {
   const today = toDateKey(now);
-  const monday = mondayOf(today);
+  const start = weekStartOf(today, weekStartSetting(data.settings));
   const plan = activePlan(data);
-  return DAY_KEYS.map((dayKey, i) => {
-    const date = addDays(monday, i);
+  return Array.from({ length: 7 }, (_, i) => {
+    const date = addDays(start, i);
+    const dayKey = dayKeyOf(fromDateKey(date));
     const fixed = plan && !plan.rotation ? plan : undefined;
     const sched = fixed ? scheduledDay(fixed, date, data.moves) : null;
     const move = fixed ? moveOn(fixed, date, data.moves) : null;
@@ -122,7 +123,7 @@ export function progressCard(data: AppData, now: Date): ProgressCard {
     weekDone,
     weekTarget: target,
     freeMealMissing: Math.max(0, freeMealThreshold(target) - weekDone),
-    freeMealUnlocked: !!data.gamification.freeMealRewards[mondayOf(today)],
+    freeMealUnlocked: !!data.gamification.freeMealRewards[weekStartOf(today, weekStartSetting(data.settings))],
     totalWorkouts: data.workouts.length,
     level: levelInfo(data.gamification.totalXP)
   };
@@ -194,10 +195,10 @@ export function nextWorkoutAfterToday(data: AppData, now: Date): { title: string
 export interface WeekWeight { monday: DateKey; average: number; count: number; change: number | null }
 
 /** M38: pesagens agrupadas por semana (de segunda), com a média e a variação da média anterior. */
-export function weeklyWeights(weighIns: readonly { date: DateKey; weight: number }[]): WeekWeight[] {
+export function weeklyWeights(weighIns: readonly { date: DateKey; weight: number }[], weekStart: WeekStart = 'seg'): WeekWeight[] {
   const byWeek = new Map<DateKey, number[]>();
   for (const w of weighIns) {
-    const k = mondayOf(w.date);
+    const k = weekStartOf(w.date, weekStart);
     byWeek.set(k, [...(byWeek.get(k) ?? []), w.weight]);
   }
   const weeks = [...byWeek].sort(([a], [b]) => a.localeCompare(b)).map(([monday, ws]) => ({

@@ -352,7 +352,7 @@ function summary(ex: PlanExercise): string {
   if (ex.mode === 'cardio') return `${ex.minutes} min${ex.km ? ` · ${formatNumber(ex.km)} km` : ''}`;
   if (ex.mode === 'time') return `${ex.sets} × ${ex.seconds ?? 30} s`;
   const { min, max } = repRange(ex);
-  return `${ex.sets} × ${min === max ? max : `${min}–${max}`}${ex.weight ? ` · ${formatNumber(ex.weight)} kg` : ''}`;
+  return `${ex.sets} × ${min === max ? max : `${min}–${max}`}${ex.perSide ? ' por lado' : ''}${ex.weight ? ` · ${formatNumber(ex.weight)} kg` : ''}`;
 }
 
 interface RowProps {
@@ -429,6 +429,12 @@ function ExerciseRow({ ex, open, first, last, swipe, superset, linkedToNext, onT
             <input type="checkbox" checked={ex.optional} onChange={e => onChange({ optional: e.target.checked })} className="size-5 accent-[var(--color-primary)]" />
             <span className="text-sm font-semibold">Exercício opcional</span>
           </label>
+          {ex.mode === 'reps' && (
+            <label className="flex min-h-11 items-center gap-3">
+              <input type="checkbox" checked={!!ex.perSide} onChange={e => onChange({ perSide: e.target.checked })} className="size-5 accent-[var(--color-primary)]" />
+              <span className="text-sm font-semibold">Repetições por lado <span className="font-normal text-muted">(afundo, unilateral)</span></span>
+            </label>
+          )}
           <div className="mt-2">
             <p className="text-xs font-semibold text-muted">Reservas (para trocar no treino)</p>
             {ex.alternatives.map((a, i) => (

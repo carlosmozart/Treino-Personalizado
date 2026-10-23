@@ -6,6 +6,13 @@ Todas as mudanças relevantes do app ficam registradas aqui. Ao lançar uma nova
    atualizar o app instalado
 3. Adicione uma entrada aqui, nesse formato
 
+## Não lançado
+
+- Exercício criado por você ou pela IA ganha a ilustração do exercício da biblioteca com as mesmas palavras ("Supino reto com halteres" usa a do Supino Reto com Halteres). Nome que indica outro movimento ou outro equipamento fica sem ilustração, para não mostrar uma errada.
+- Plano → exercício → "Repetições por lado": para afundo e exercícios unilaterais. O treino mostra "Reps/lado", o histórico mostra "3x8 por lado", o volume conta os dois lados e a progressão sobe 1 repetição por lado.
+- Início → "Marcar esta semana como deload": os treinos da semana leve ficam no histórico (com a marca "deload"), mas não viram base da progressão. Durante o deload a carga sugerida não sobe; depois dele o app volta de onde você estava.
+- Perfil → Treino → "A semana começa na": segunda ou domingo. Vale para a semana do Início, a meta da semana, a refeição livre e os gráficos por semana.
+
 ## [3.14.0] - 2026-10-21
 
 - Lembretes de treino por data: o aviso não toca mais no dia em que você já treinou, nem no dia marcado como sem treino (doente, viajando). Na rotação A/B/C, os avisos param quando a meta da semana é cumprida. Os lembretes cobrem os próximos 14 dias e são refeitos sempre que você abre o app.

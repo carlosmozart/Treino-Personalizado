@@ -10,8 +10,9 @@ export function workSets(entry: WorkoutEntry): WorkoutSet[] {
   return entry.sets.filter(s => s.kind === 'work');
 }
 
+/** Volume em kg; por lado (M31) conta os dois lados. */
 export function entryVolume(entry: WorkoutEntry): number {
-  return workSets(entry).reduce((total, s) => total + s.reps * s.weight, 0);
+  return workSets(entry).reduce((total, s) => total + s.reps * s.weight, 0) * (entry.perSide ? 2 : 1);
 }
 
 export function workoutVolume(workout: Workout): number {
@@ -40,7 +41,7 @@ export function describeEntry(entry: WorkoutEntry): string {
   const weights = sets.map(s => s.weight);
   const sameReps = reps.every(r => r === reps[0]);
   const sameWeight = weights.every(w => w === weights[0]);
-  const repsPart = sameReps ? `${sets.length}x${reps[0]}` : reps.join('/');
+  const repsPart = `${sameReps ? `${sets.length}x${reps[0]}` : reps.join('/')}${entry.perSide ? ' por lado' : ''}`;
   const kg = (n: number) => String(n).replace('.', ',');
   const weightPart = sameWeight ? `${kg(weights[0]!)}kg` : `${kg(Math.max(...weights))}-${kg(Math.min(...weights))}kg`;
   const failure = sets.some(x => x.failure) ? ' · até a falha' : '';

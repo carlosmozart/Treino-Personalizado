@@ -1,5 +1,5 @@
 // Formato dos dados do app novo. Detalhes e motivos: docs/dev/modelo-de-dados.md.
-import type { DateKey } from './dates';
+import type { DateKey, WeekStart } from './dates';
 import type { DayKey } from './ai-plan';
 import type { ActivityLevel, Sex, TmbFormulaId } from './health';
 import type { WeightGoal } from './body-goal';
@@ -29,6 +29,8 @@ export interface WorkoutEntry {
   note?: string;
   /** Veio do formato antigo "3x10 · 40kg": as séries são uma reconstrução uniforme. */
   aggregated?: true;
+  /** M31: repetições contadas por lado (afundo, remada unilateral); o volume conta os dois lados. */
+  perSide?: true;
 }
 
 export interface Workout {
@@ -42,6 +44,8 @@ export interface Workout {
   dayName?: string;
   source: 'app' | 'migrated';
   entries: WorkoutEntry[];
+  /** M32: feito numa semana de deload: fica no histórico, mas não vira base da progressão. */
+  deload?: true;
 }
 
 export interface PlanExercise {
@@ -56,6 +60,11 @@ export interface PlanExercise {
   repMax?: number;
   /** Quanto a carga sobe na progressão, em kg (M13). Ausente = 2,5. */
   increment?: number;
+  /**
+   * M31: as repetições são por lado ("8 por lado" no afundo ou na remada unilateral). A faixa e a
+   * progressão andam por lado: +1 rep por lado são 2 a mais no total.
+   */
+  perSide?: boolean;
   weight: number;
   /** Segundos-alvo por série (modo time: prancha, isometria). */
   seconds?: number;
@@ -202,6 +211,10 @@ export interface Settings {
   customExercises?: CustomExercise[];
   /** M36: equipamentos que a pessoa tem (filtro da troca de exercício). Ausente ou vazio = todos. */
   availableEquipment?: string[];
+  /** M19: em que dia a semana começa (faixa da semana, meta semanal, gráficos). Ausente = segunda. */
+  weekStart?: WeekStart;
+  /** M32: primeiro dia da semana marcada como deload (treinos dela não viram base da progressão). */
+  deloadWeek?: DateKey;
   /** M25: cor de destaque (botões, seleção). Ausente = azul. */
   accent?: AccentId;
   /** Tema da interface. Ausente = acompanha o sistema. */
@@ -218,6 +231,8 @@ export type AccentId = 'azul' | 'roxo' | 'rosa' | 'laranja' | 'ciano';
 export type LoadSource = 'auto' | 'last' | 'plan';
 
 /** Fonte efetiva da carga: dados de antes do M13 só tinham a chave da progressão. */
+export const weekStartSetting = (settings: Settings): WeekStart => settings.weekStart ?? 'seg';
+
 export function loadSourceOf(settings: Settings): LoadSource {
   return settings.loadSource ?? (settings.autoProgression === false ? 'last' : 'auto');
 }

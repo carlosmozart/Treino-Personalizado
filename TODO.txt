@@ -128,7 +128,7 @@ M15	✅ (10/10/2026, Progresso → Histórico; sem recorde retroativo. Corrigir 
 M16	✅ (revisão de 10/10/2026: feito no app 3.x, mapa de calor de 6 meses; P5) Mapa de calor anual de treinos (estilo GitHub) no histórico	Média
 M17	✅ (10/10/2026, no plano e na hora pelo menu ⋯) Bi-set/superset: agrupar dois exercícios com um único descanso ao fim da rodada	Média
 M18	✅ (10/10/2026, adicionar e tirar exercício no treino; treino livre em 12/10/2026) Adicionar/remover exercício no meio do treino sem finalizar; treino livre com valores pré-preenchidos da última vez	Média
-M19	🟡 (21/10/2026: remarcar feito, só na semana fixa, para um dia livre dos próximos 6, com desfazer; Início, semana, seletor de treino, sequência e lembretes acompanham; falta escolher início da semana) Remarcar o treino do dia para outro dia sem alterar o plano semanal; escolher início da semana (seg/dom)	Baixa
+M19	✅ (21–22/10/2026: remarcar na semana fixa, para um dia livre dos próximos 6, com desfazer; semana começando na segunda ou no domingo em Perfil → Treino) Remarcar o treino do dia para outro dia sem alterar o plano semanal; escolher início da semana (seg/dom)	Baixa
 M20	✅ (10/10/2026, menu ⋯ do exercício) Histórico do exercício acessível de dentro do treino (últimas sessões + linha de evolução)	Média
 
 Fase 5 — descanso, conforto e extras
@@ -144,8 +144,8 @@ Funções adicionais do openGym aproveitáveis
 M28	✅ (revisão de 10/10/2026: feito no app 3.x, séries por grupo em 30 dias e volume planejado; P5) Equilíbrio muscular: mapear exercícios → grupos musculares e mostrar séries por grupo na semana/30 dias/90 dias, destacando grupos não treinados (começar com barras/lista; figura do corpo depois, com arte própria)	Média
 M29	Recuperação/fadiga por grupo muscular, decaindo com o tempo desde o último treino (depende de M28)	Baixa
 M30	✅ (09/10/2026, por repetições, só em nomes de peso do corpo) Exercícios de peso corporal: sem coluna de carga, progressão por reps; carga extra (cinto) somada quando houver	Média
-M31	Reps por lado (afundo, remada unilateral): registra o total, mostra "8 por lado" e progride de 2 em 2	Baixa
-M32	Marcar um plano/semana como deload: entra no histórico mas não vira base da progressão	Baixa
+M31	✅ (22/10/2026: "Repetições por lado" no exercício do plano; as reps ficam por lado, o volume dobra e a progressão sobe 1 por lado) Reps por lado (afundo, remada unilateral): registra o total, mostra "8 por lado" e progride de 2 em 2	Baixa
+M32	✅ (22/10/2026: marcar a semana atual no Início; treinos com a marca deload ficam fora da progressão e da carga sugerida) Marcar um plano/semana como deload: entra no histórico mas não vira base da progressão	Baixa
 M33	✅ (copiar treino como texto e salvar treino feito como dia do plano, 12/10/2026) Copiar treino como texto e salvar um treino feito como novo dia do plano	Baixa
 M34	✅ (21/10/2026, Plano → Planos → Revisar este plano com IA; domain/ai-review.ts: pedido com plano e histórico, comparação e aplicação só do aprovado) Revisão do treino pela IA: gerar prompt com o histórico recente para a IA propor ajustes com justificativa, e importar a resposta pelo fluxo de importação que já existe (cada mudança aprovada pelo usuário)	Média
 M35	✅ (revisão de 10/10/2026: feito no app 3.x, Início mostra o próximo treino no descanso) No dia de descanso, informar quando é o próximo treino e qual é	Baixa
@@ -244,7 +244,7 @@ Q1	✅ (04/10/2026: 56 ilustrações para 70 nomes da biblioteca e do plano de e
 Q2	✅ (cartão do treino, troca de exercício e biblioteca com miniaturas; tamanho pequeno, médio ou grande, 09/10/2026) Exibir no cartão do exercício, na troca de exercício e na biblioteca; animação alternando posição inicial/final, com opção de tamanho ou ocultar e respeitando "reduzir movimento"	Alta
 Q3	✅ (crédito ao abrir a ilustração, LICENSE.txt junto das imagens, docs/creditos.md e tela Créditos e licenças em Perfil → Sobre, 07/10/2026) Tela de créditos com a atribuição exigida e arquivo de licença ao lado das imagens	Alta
 Q4	Lacunas (aparelhos de cardio, prancha frontal): ícones próprios; e foto/vídeo do próprio usuário para qualquer exercício (exercícios personalizados)	Média
-Q5	Exercícios criados pela IA ou pelo usuário recebem ilustração pela correspondência de nome, quando houver	Média
+Q5	✅ (22/10/2026: nome livre casa por palavras com o exercício ilustrado; outro movimento ou equipamento fica sem; nomes da biblioteca sem desenho continuam sem) Exercícios criados pela IA ou pelo usuário recebem ilustração pela correspondência de nome, quando houver	Média
 Q6	🟡 (20/10/2026: Desenvolvimento com Halteres, Desenvolvimento Máquina e Peck Deck ligados; o Everkinetic só tem esses em PNG, vetorizados em app/scripts/everkinetic-traced. A Puxada Frontal ficou de fora: o desenho do 0097 puxa a barra atrás da nuca) Ligar 4 ilustrações que o Everkinetic já tem e que não estão no mapa: Puxada Frontal (Polia) → 0097 Wide Grip Lat Pull Down; Desenvolvimento com Halteres → 0012 Dumbbell Shoulder Press; Desenvolvimento Máquina → 0003 Seated Shoulder Press Machine; Peck Deck (Voador) → 0047 Butterfly Machine. Conferir na folha de contato antes	Alta
 Q7	Pendente: ícones próprios dos 5 aparelhos de cardio (esteira, bicicleta, elíptico, escada, remo), no mesmo traço das ilustrações, só o aparelho (parte do Q4)	Média
 Q8	Pendente, decisão: 11 exercícios sem desenho no Everkinetic (face pull, elevação pélvica, agachamento búlgaro, prancha, remada unilateral com halter, crossover polia baixa, elevação lateral na polia, crucifixo invertido máquina, remada máquina, abdominal máquina, rotação de tronco). Opções: (a) imagens do wger (CC BY-SA, crédito por imagem, estilo misto) ou (b) seguir sem ilustração	Média

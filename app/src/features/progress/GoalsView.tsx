@@ -112,13 +112,14 @@ function WeightGoalCard() {
 /** Histórico de peso com opção de apagar uma pesagem errada. */
 function WeighInsCard() {
   const profile = useAppStore(s => s.data?.profile);
+  const weekStart = useAppStore(s => s.data?.settings.weekStart ?? 'seg');
   const run = useAppStore(s => s.run);
   const [all, setAll] = useState(false);
   if (!profile || !profile.weighIns.length) return null;
   const list = [...profile.weighIns].reverse();
   const shown = all ? list : list.slice(0, 5);
   const target = profile.weightGoal?.targetWeight ?? profile.targetWeightKg ?? undefined;
-  const weeks = weeklyWeights(profile.weighIns);
+  const weeks = weeklyWeights(profile.weighIns, weekStart);
   return (
     <section className="rounded-2xl border border-line bg-surface p-4">
       <h2 className="font-bold">Pesagens</h2>

@@ -1,6 +1,6 @@
 // O que a tela de Progresso mostra (N9, M16, M28), calculado a partir dos dados.
-import { addDays, mondayOf, toDateKey, type DateKey } from './dates';
-import type { AppData, Workout } from './model';
+import { addDays, toDateKey, weekStartOf, type DateKey } from './dates';
+import { weekStartSetting, type AppData, type Workout } from './model';
 import { streakOf } from './rewards';
 import { groupOf } from '../data/exercise-library';
 import { workoutVolume, workSets } from './workouts';
@@ -34,12 +34,12 @@ export function statsSummary(data: AppData, now: Date): StatsSummary {
 export type HeatLevel = 0 | 1 | 2 | 3;
 export interface HeatCell { date: DateKey; level: HeatLevel; future: boolean }
 
-/** Semanas (colunas de segunda a domingo) terminando na semana atual (M16). */
+/** Semanas (colunas a partir do início da semana do ajuste) terminando na semana atual (M16). */
 export function heatmap(data: AppData, now: Date, weeks = 26): HeatCell[][] {
   const today = toDateKey(now);
   const sets = new Map<DateKey, number>();
   for (const w of data.workouts) sets.set(w.date, (sets.get(w.date) ?? 0) + w.entries.reduce((n, e) => n + workSets(e).length + (e.cardio ? 3 : 0), 0));
-  const start = addDays(mondayOf(today), -7 * (weeks - 1));
+  const start = addDays(weekStartOf(today, weekStartSetting(data.settings)), -7 * (weeks - 1));
   return Array.from({ length: weeks }, (_, c) => Array.from({ length: 7 }, (_, r) => {
     const date = addDays(start, c * 7 + r);
     const n = sets.get(date) ?? 0;
@@ -65,11 +65,11 @@ export function muscleBalance(data: AppData, now: Date, days = 30): { group: str
 
 export interface WeekVolume { start: DateKey; end: DateKey; volume: number; workouts: number }
 
-/** Volume (kg levantados) por semana de segunda a domingo, da mais antiga à atual. */
+/** Volume (kg levantados) por semana, da mais antiga à atual. */
 export function weeklyVolume(data: AppData, now: Date, weeks = 8): WeekVolume[] {
-  const monday = mondayOf(toDateKey(now));
+  const first = weekStartOf(toDateKey(now), weekStartSetting(data.settings));
   return Array.from({ length: weeks }, (_, i) => {
-    const start = addDays(monday, -7 * (weeks - 1 - i));
+    const start = addDays(first, -7 * (weeks - 1 - i));
     const end = addDays(start, 6);
     const inWeek = data.workouts.filter(w => w.date >= start && w.date <= end);
     return { start, end, volume: Math.round(inWeek.reduce((n, w) => n + workoutVolume(w), 0)), workouts: inWeek.length };

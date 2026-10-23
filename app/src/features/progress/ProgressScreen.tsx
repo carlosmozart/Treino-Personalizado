@@ -151,7 +151,7 @@ function History() {
 function WorkoutItem({ w, open, onToggle, onDelete }: { w: Workout; open: boolean; onToggle: () => void; onDelete: () => void }) {
   const [editing, setEditing] = useState<number | null>(null);
   const volume = workoutVolume(w);
-  const meta = [plural(w.entries.length, 'exercício', 'exercícios'), w.durationMin ? `${w.durationMin} min` : '', volume ? `${formatNumber(volume)} kg` : ''].filter(Boolean).join(' · ');
+  const meta = [plural(w.entries.length, 'exercício', 'exercícios'), w.durationMin ? `${w.durationMin} min` : '', volume ? `${formatNumber(volume)} kg` : '', w.deload ? 'deload' : ''].filter(Boolean).join(' · ');
   return (
     <li className="rounded-2xl border border-line bg-surface">
       <button type="button" onClick={onToggle} aria-expanded={open} className="flex min-h-14 w-full items-center gap-3 px-4 py-2 text-left">
@@ -233,7 +233,7 @@ function WeeklyVolume() {
           </div>
         ))}
       </div>
-      <p className="mt-1 text-xs text-faint">Semanas de segunda a domingo; semana sem treino aparece como zero.</p>
+      <p className="mt-1 text-xs text-faint">Semanas de {data.settings.weekStart === 'dom' ? 'domingo a sábado' : 'segunda a domingo'}; semana sem treino aparece como zero.</p>
     </section>
   );
 }

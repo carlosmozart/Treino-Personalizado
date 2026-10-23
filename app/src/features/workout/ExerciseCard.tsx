@@ -91,7 +91,7 @@ export function ExerciseCard({ session, index, alwaysOpen = false, onGoTo }: Pro
   const { last, best } = useExerciseContext(ex, session.date);
   const group = groupOf(ex.name, data?.settings.customExercises);
   const done = isExerciseDone(ex);
-  const unit = ex.mode === 'time' ? 'Seg' : 'Reps';
+  const unit = ex.mode === 'time' ? 'Seg' : ex.perSide ? 'Reps/lado' : 'Reps';
 
   const [check, setCheck] = useState<{ set: number; weight: number; max: number; suggestion: number | null } | null>(null);
   const [query, setQuery] = useState('');

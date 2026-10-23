@@ -10,6 +10,7 @@ import { sessionProgress, sessionToWorkout, type ActiveSession } from './session
 import { bestSet } from './workouts';
 import { bestE1rm, recordKinds } from './strength';
 import { key, tombstone, touch } from './sync';
+import { isDeloadDate } from './deload';
 import { normalizeExerciseName } from './text';
 
 export interface ActionResult {
@@ -35,6 +36,7 @@ export type FinishResult =
 export function finishWorkout(data: AppData, session: ActiveSession, now: Date): FinishResult {
   const workout = sessionToWorkout(session, now);
   if (!workout) return { kind: 'empty' };
+  if (isDeloadDate(data, workout.date)) workout.deload = true;
   const draft = structuredClone(data);
   const events: RewardEvent[] = [];
   draft.workouts = [...draft.workouts.filter(w => w.id !== workout.id), workout].sort(byDateThenStart);

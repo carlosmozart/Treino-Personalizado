@@ -3,7 +3,7 @@
 // tocavam mesmo depois de a pessoa já ter treinado no dia. Agora o dia que já teve treino, o dia
 // com nota de "sem treino" (S8) e o horário que já passou ficam de fora, e a lista é refeita a
 // cada mudança nos dados e quando o app volta para a tela. O treino remarcado (M19) avisa no dia novo.
-import { addDays, fromDateKey, mondayOf, toDateKey, type DateKey } from './dates';
+import { addDays, fromDateKey, toDateKey, weekStartOf, type DateKey, type WeekStart } from './dates';
 import type { DayMove, DayNote, Plan, Workout } from './model';
 import { scheduledDay } from './reschedule';
 import { rotationState, rotationTitle } from './rotation';
@@ -27,6 +27,7 @@ export interface ReminderContext {
   workouts?: readonly Workout[];
   dayNotes?: Readonly<Record<DateKey, DayNote>>;
   moves?: Readonly<Record<DateKey, DayMove>>;
+  weekStart?: WeekStart;
   now: Date;
 }
 
@@ -35,7 +36,7 @@ export interface ReminderContext {
  * já com os treinos remarcados (M19).
  * Rotação (R1): todo dia ainda sem treino, com o próximo da volta, até cumprir a meta da semana.
  */
-export function remindersFor(plan: Plan | undefined, { workouts = [], dayNotes = {}, moves = {}, now }: ReminderContext): Reminder[] {
+export function remindersFor(plan: Plan | undefined, { workouts = [], dayNotes = {}, moves = {}, weekStart = 'seg', now }: ReminderContext): Reminder[] {
   const time = plan ? parseTrainingTime(plan.trainingTime) : null;
   if (!plan || !time) return [];
   const trained = new Set(workouts.map(w => w.date));
@@ -44,7 +45,7 @@ export function remindersFor(plan: Plan | undefined, { workouts = [], dayNotes =
   if (plan.rotation && !rot) return [];
   const perWeek = plan.rotation?.perWeek ?? 0;
   const doneInWeek = (date: DateKey) => {
-    const start = mondayOf(date), end = addDays(start, 6);
+    const start = weekStartOf(date, weekStart), end = addDays(start, 6);
     return [...trained].filter(d => d >= start && d <= end).length;
   };
 
