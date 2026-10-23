@@ -2,7 +2,7 @@
 import { addDays, toDateKey, weekStartOf, type DateKey } from './dates';
 import { weekStartSetting, type AppData, type Workout } from './model';
 import { streakOf } from './rewards';
-import { groupOf } from '../data/exercise-library';
+import { MUSCLE_GROUPS, groupOf } from '../data/exercise-library';
 import { workoutVolume, workSets } from './workouts';
 
 export interface StatsSummary {
@@ -61,6 +61,12 @@ export function muscleBalance(data: AppData, now: Date, days = 30): { group: str
     }
   }
   return [...totals].map(([group, sets]) => ({ group, sets })).filter(g => g.sets > 0).sort((a, b) => b.sets - a.sets);
+}
+
+/** T8: grupos musculares sem nenhuma série no período (fora o cardio), na ordem da biblioteca. */
+export function untrainedGroups(data: AppData, now: Date, days = 30): string[] {
+  const trained = new Set(muscleBalance(data, now, days).map(g => g.group));
+  return MUSCLE_GROUPS.filter(g => g !== 'Cardio' && !trained.has(g));
 }
 
 export interface WeekVolume { start: DateKey; end: DateKey; volume: number; workouts: number }

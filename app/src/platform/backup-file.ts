@@ -13,7 +13,10 @@ function plugin(): BackupFilePlugin | undefined {
 
 const errorCode = (e: unknown) => (e && typeof e === 'object' && 'code' in e ? String((e as { code: unknown }).code) : '');
 
-/** Salva escolhendo o destino. 'cancelled' quando a pessoa fecha o seletor. */
+/**
+ * Salva escolhendo o destino. 'cancelled' quando a pessoa fecha o seletor. Serve ao backup (.json)
+ * e ao histórico em planilha (.csv, T9).
+ */
 export async function saveBackupFile(fileName: string, content: string): Promise<'saved' | 'cancelled'> {
   const native = isNative() ? plugin() : undefined;
   if (native) {
@@ -21,7 +24,7 @@ export async function saveBackupFile(fileName: string, content: string): Promise
     catch (e) { if (errorCode(e) === 'CANCELLED') return 'cancelled'; throw e; }
   }
   const a = document.createElement('a');
-  a.href = URL.createObjectURL(new Blob([content], { type: 'application/json' }));
+  a.href = URL.createObjectURL(new Blob([content], { type: fileName.endsWith('.csv') ? 'text/csv;charset=utf-8' : 'application/json' }));
   a.download = fileName;
   a.click();
   setTimeout(() => URL.revokeObjectURL(a.href), 1000);

@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
 import { SWAP_EQUIPMENT, fitsEquipment, groupOf, guessGroup, swapSuggestions } from '../../data/exercise-library';
 import {
-  addSet, afterSet, supersetBlock, toggleSupersetWithNext, addWarmupSet, adjustWeights, removeWarmupSet, completeExercise, isExerciseDone, duplicateSet, insertSet, removeExerciseFromSession, removeSet, setNote, swapExercise, toggleFailure, toggleSet, updateCardio, updateSet,
+  addSet, afterSet, restAfterSet, supersetBlock, toggleSupersetWithNext, addWarmupSet, adjustWeights, removeWarmupSet, completeExercise, isExerciseDone, duplicateSet, insertSet, removeExerciseFromSession, removeSet, setNote, swapExercise, toggleFailure, toggleSet, updateCardio, updateSet,
   type ActiveSession, type SessionExercise, type SessionSet
 } from '../../domain/session';
 import { bestSet, lastSessionBefore, sessionsOf, suspiciousWeight, workSets } from '../../domain/workouts';
@@ -11,7 +11,7 @@ import { NumberField } from '../../ui/NumberField';
 import { ExerciseIllustration, ExerciseThumb, hasIllustration } from '../../ui/ExerciseIllustration';
 import { markBigWeightJump, toggleFavorite, updateSettings } from '../../domain/actions';
 import { Sheet, SheetAction } from '../../ui/Sheet';
-import { formatNumber, relativeDate, shortDate } from '../../ui/format';
+import { formatClock, formatNumber, relativeDate, shortDate } from '../../ui/format';
 import { useRestStore } from './rest-store';
 import { PlateSheet } from './PlateSheet';
 import { ExerciseProgressCard } from '../progress/ExerciseProgressCard';
@@ -113,7 +113,8 @@ export function ExerciseCard({ session, index, alwaysOpen = false, onGoTo }: Pro
       else document.getElementById(`exercicio-${next.next}`)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
       return;
     }
-    if (settings?.restAutoStart) useRestStore.getState().start(ex.restSeconds ?? settings.restSeconds, undefined, index);
+    const rest = settings ? restAfterSet(ex, setIndex, settings) : 0;
+    if (settings?.restAutoStart && rest > 0) useRestStore.getState().start(rest, undefined, index);
   }
 
   const close = () => setMenu(false);
@@ -224,6 +225,13 @@ export function ExerciseCard({ session, index, alwaysOpen = false, onGoTo }: Pro
               <span>Série apagada.</span>
               <button type="button" onClick={undoRemove} className="h-10 px-2 font-bold text-info">Desfazer</button>
             </div>
+          )}
+          {/* T6: exercício por lado com descanso entre os lados: um toque começa a contagem curta */}
+          {ex.perSide && !!ex.sideRestSeconds && ex.sets.some(set => !set.done) && (
+            <button type="button" onClick={() => useRestStore.getState().start(ex.sideRestSeconds!)}
+              className="mt-2 h-10 w-full rounded-lg bg-surface-2 text-sm font-semibold text-muted">
+              Trocar de lado · descanso de {formatClock(ex.sideRestSeconds)}
+            </button>
           )}
           {/* T5: peso do corpo sem carga não tem o que ajustar */}
           {(data?.settings.weightButtons ?? true) && ex.sets.some(set => !set.done) && !(isBodyweight(ex.name) && ex.sets.every(set => set.weight === 0)) && (

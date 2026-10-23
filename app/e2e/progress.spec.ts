@@ -97,3 +97,38 @@ test('histórico: corrigir um exercício, evolução e apagar pesagem', async ({
   await expect(page.getByRole('heading', { name: 'Pesagens' })).toHaveCount(0);
   expect(errors).toEqual([]);
 });
+
+test('equilíbrio muscular abre a Biblioteca no grupo (T8), histórico em CSV (T9) e descanso do aquecimento (T6)', async ({ page }) => {
+  const errors: string[] = [];
+  page.on('console', msg => { if (msg.type() === 'error') errors.push(msg.text()); });
+  await page.goto('/');
+  await page.getByRole('button', { name: 'Treino', exact: true }).click();
+  await page.getByRole('button', { name: 'Escolher um modelo' }).click();
+  await page.getByRole('button', { name: 'Usar PPL do app original' }).click();
+  await page.getByRole('button', { name: /^Começar / }).first().click();
+  await page.getByRole('article').first().getByRole('button', { name: 'Série 1 feita' }).click();
+  await page.getByRole('button', { name: 'Pular' }).click();
+  await page.getByRole('button', { name: 'Concluir' }).click();
+  await page.getByRole('button', { name: 'Finalizar assim' }).click();
+
+  await page.getByRole('button', { name: 'Progresso', exact: true }).click();
+  // o primeiro exercício do dia do modelo PPL entra num grupo (nomes dos modelos têm grupo)
+  await expect(page.getByRole('button', { name: /^[^:]+: 1 série\. Ver exercícios$/ })).toBeVisible();
+  await page.getByRole('button', { name: 'Bíceps: sem treino. Ver exercícios' }).click();
+  const library = page.getByRole('dialog', { name: 'Biblioteca de exercícios' });
+  await expect(library.getByRole('button', { name: 'Bíceps', exact: true })).toHaveAttribute('aria-pressed', 'true');
+  await expect(library.getByText('Rosca Direta (Barra)', { exact: true })).toBeVisible();
+  await page.screenshot({ path: 'test-results/equilibrio-biblioteca.png' });
+  await library.getByRole('button', { name: 'Fechar' }).click();
+
+  await page.getByRole('button', { name: 'Perfil', exact: true }).click();
+  const [download] = await Promise.all([page.waitForEvent('download'), page.getByRole('button', { name: 'Exportar o histórico em planilha (CSV)' }).click()]);
+  expect(download.suggestedFilename()).toMatch(/^treino-historico-\d{4}-\d{2}-\d{2}\.csv$/);
+  await expect(page.getByRole('status').filter({ hasText: 'Histórico exportado: 1 treino' })).toBeVisible();
+
+  const warmup = page.getByRole('radiogroup', { name: 'Descanso depois do aquecimento' });
+  await warmup.getByRole('radio', { name: 'Sem' }).click();
+  await expect(warmup.getByRole('radio', { name: 'Sem' })).toHaveAttribute('aria-checked', 'true');
+  await expect(page.getByText('Marcar uma série de aquecimento não começa o descanso.')).toBeVisible();
+  expect(errors).toEqual([]);
+});

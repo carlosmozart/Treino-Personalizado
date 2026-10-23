@@ -435,6 +435,12 @@ function ExerciseRow({ ex, open, first, last, swipe, superset, linkedToNext, onT
               <span className="text-sm font-semibold">Repetições por lado <span className="font-normal text-muted">(afundo, unilateral)</span></span>
             </label>
           )}
+          {ex.mode === 'reps' && ex.perSide && (
+            <div className="grid grid-cols-3 gap-2">
+              {field('Entre os lados (s)', ex.sideRestSeconds ?? 0, n => onChange({ sideRestSeconds: Math.max(0, Math.round(n)) }))}
+              <p className="col-span-2 self-end pb-1 text-xs text-faint">Descanso curto entre um lado e o outro; 0 = sem. No treino vira o botão "Trocar de lado".</p>
+            </div>
+          )}
           <div className="mt-2">
             <p className="text-xs font-semibold text-muted">Reservas (para trocar no treino)</p>
             {ex.alternatives.map((a, i) => (

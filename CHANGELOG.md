@@ -6,6 +6,14 @@ Todas as mudanças relevantes do app ficam registradas aqui. Ao lançar uma nova
    atualizar o app instalado
 3. Adicione uma entrada aqui, nesse formato
 
+## Não lançado
+
+- Perfil → Treino → "Descanso depois do aquecimento": igual às outras séries, sem cronômetro ou um tempo próprio para todos os exercícios.
+- Exercício por lado: no Plano, "Entre os lados (s)" define um descanso curto entre um lado e o outro; no treino ele vira o botão "Trocar de lado".
+- Progresso → Séries por grupo: os grupos sem treino no período aparecem embaixo, e tocar em qualquer grupo abre a Biblioteca com os exercícios dele.
+- Perfil → Dados e backup → "Exportar o histórico em planilha (CSV)": uma linha por série, pronta para abrir no Excel ou no Google Planilhas.
+- Corrigido: 14 exercícios dos modelos de plano (como "Supino Articulado (Pegada Neutra)", "Mesa/Cadeira Flexora" e "Leg Press 45º (Amplitude Parcial)") não tinham grupo muscular e ficavam fora de "Séries por grupo" e da troca pelo mesmo grupo.
+
 ## [3.16.0] - 2026-10-23
 
 - Perfil → Dados e backup → Restaurar: agora pergunta se é para **juntar com os dados atuais** (fica o que já está no aparelho, entra o que só existe no backup e, se o mesmo registro estiver nos dois, vale o alterado por último) ou **substituir tudo**, como antes.

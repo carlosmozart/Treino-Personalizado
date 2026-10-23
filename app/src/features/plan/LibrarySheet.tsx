@@ -46,7 +46,8 @@ function planSlots(plan: Plan): { key: DayKey; label: string }[] {
  * M46: Biblioteca de exercícios: busca tolerante, filtros por grupo e equipamento, ilustração,
  * favoritar, adicionar a um dia do plano e criar exercício próprio.
  */
-export function LibrarySheet({ open, onClose }: { open: boolean; onClose: () => void }) {
+/** `group`: abre já filtrada nesse grupo (T8: do equilíbrio muscular no Progresso). */
+export function LibrarySheet({ open, onClose, group: initialGroup }: { open: boolean; onClose: () => void; group?: string | null }) {
   const data = useAppStore(s => s.data);
   const run = useAppStore(s => s.run);
   const pool = useSearchPool();
@@ -57,6 +58,9 @@ export function LibrarySheet({ open, onClose }: { open: boolean; onClose: () => 
   const [picked, setPicked] = useState<LibraryEntry | null>(null);
   const [creating, setCreating] = useState(false);
   const [message, setMessage] = useState('');
+  useEffect(() => {
+    if (open && initialGroup) { setGroup(initialGroup); setMine(false); setEquipment(null); setQuery(''); }
+  }, [open, initialGroup]);
 
   const custom = data?.settings.customExercises;
   const entries = useMemo(() => libraryEntries(custom ?? []), [custom]);

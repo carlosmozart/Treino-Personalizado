@@ -65,6 +65,8 @@ export interface PlanExercise {
    * progressão andam por lado: +1 rep por lado são 2 a mais no total.
    */
   perSide?: boolean;
+  /** T6: descanso curto entre os lados (exercício por lado), em segundos. Ausente ou 0 = sem. */
+  sideRestSeconds?: number;
   weight: number;
   /** Segundos-alvo por série (modo time: prancha, isometria). */
   seconds?: number;
@@ -211,6 +213,11 @@ export interface Settings {
   customExercises?: CustomExercise[];
   /** M36: equipamentos que a pessoa tem (filtro da troca de exercício). Ausente ou vazio = todos. */
   availableEquipment?: string[];
+  /**
+   * T6: descanso depois de uma série de aquecimento, em segundos; 0 = sem cronômetro. Ausente = o
+   * mesmo descanso das outras séries.
+   */
+  warmupRest?: number | undefined;
   /** M19: em que dia a semana começa (faixa da semana, meta semanal, gráficos). Ausente = segunda. */
   weekStart?: WeekStart;
   /** M32: primeiro dia da semana marcada como deload (treinos dela não viram base da progressão). */

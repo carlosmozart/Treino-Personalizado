@@ -39,13 +39,14 @@ public class BackupFilePlugin extends Plugin {
             call.reject("Backup vazio ou grande demais.", "BAD_CONTENT");
             return;
         }
-        if (!fileName.matches("[A-Za-z0-9._-]{1,120}\\.json")) {
+        // o backup em JSON ou o histórico em planilha (T9: CSV)
+        if (!fileName.matches("[A-Za-z0-9._-]{1,120}\\.(json|csv)")) {
             call.reject("Nome de arquivo inválido.", "BAD_NAME");
             return;
         }
         Intent intent = new Intent(Intent.ACTION_CREATE_DOCUMENT);
         intent.addCategory(Intent.CATEGORY_OPENABLE);
-        intent.setType("application/json");
+        intent.setType(fileName.endsWith(".csv") ? "text/csv" : "application/json");
         intent.putExtra(Intent.EXTRA_TITLE, fileName);
         startActivityForResult(call, intent, "onSaveResult");
     }

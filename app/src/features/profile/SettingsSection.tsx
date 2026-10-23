@@ -1,6 +1,7 @@
 import { useRef, useState } from 'react';
 import { updateMeta, updateSettings } from '../../domain/actions';
 import { buildBackup, readBackup } from '../../domain/backup';
+import { historyCsv } from '../../domain/history-csv';
 import { canAutoBackup, saveBackupFile } from '../../platform/backup-file';
 import { isNative } from '../../platform/platform';
 import { dataStatus } from '../../domain/data-status';
@@ -88,6 +89,7 @@ export function WorkoutSettingsFields() {
         {/* R3: roda de minutos e segundos; o domínio mantém o descanso entre 15 s e 10 min */}
         <DurationWheel label="Descanso padrão" seconds={settings.restSeconds} min={15} max={600} onChange={n => set({ restSeconds: n })} />
       </div>
+      <WarmupRestChoice value={settings.warmupRest} onChange={v => set({ warmupRest: v })} />
       {toggle('restAutoStart', 'Iniciar o descanso ao marcar a série')}
       {toggle('restSound', 'Som no fim do descanso')}
       {toggle('restVibrate', 'Vibrar no fim do descanso')}
@@ -159,6 +161,20 @@ function BackupCard() {
     }
   };
 
+  // T9: o histórico em planilha, para abrir no Excel ou no Google Planilhas
+  const exportCsv = async () => {
+    await useAppStore.getState().flush();
+    const workouts = useAppStore.getState().data?.workouts ?? [];
+    if (!workouts.length) { setMessage('Ainda não há treinos para exportar.'); return; }
+    try {
+      const result = await saveBackupFile(`treino-historico-${toDateKey(new Date())}.csv`, historyCsv(workouts));
+      setMessage(result === 'saved' ? `Histórico exportado: ${plural(workouts.length, 'treino', 'treinos')}, uma linha por série.` : '');
+    } catch (e) {
+      useErrorLog.getState().report(e, 'Exportar CSV');
+      setMessage('Não foi possível exportar o histórico.');
+    }
+  };
+
   const tryRead = async (text: string, pass?: string) => {
     const result = await readBackup(text, pass);
     if (result.kind === 'needs-password') { setPending({ text, needsPassword: true }); setMessage(pass ? 'Senha incorreta.' : 'Este backup tem senha.'); return; }
@@ -205,6 +221,9 @@ function BackupCard() {
         <button type="button" onClick={() => void exportNow()} className="h-12 rounded-xl bg-primary font-bold text-white">Fazer backup</button>
         <button type="button" onClick={() => fileRef.current?.click()} className="h-12 rounded-xl bg-surface-2 font-bold">Restaurar</button>
       </div>
+      <button type="button" onClick={() => void exportCsv()} className="h-11 w-full rounded-xl text-sm font-semibold text-muted">
+        Exportar o histórico em planilha (CSV)
+      </button>
       <input ref={fileRef} type="file" accept="application/json,.json" hidden aria-label="Arquivo de backup"
         onChange={async e => { const f = e.target.files?.[0]; e.target.value = ''; if (f) await tryRead(await f.text()); }} />
       {pending?.needsPassword && (
@@ -309,6 +328,26 @@ const LOAD_SOURCES: { id: LoadSource; label: string; hint: string }[] = [
   { id: 'last', label: 'Última vez', hint: 'Repete a carga da última vez, com as repetições do plano.' },
   { id: 'plan', label: 'Do plano', hint: 'Usa a carga e as repetições escritas no plano.' }
 ];
+
+/** T6: descanso depois de uma série de aquecimento: igual às outras, nenhum ou um tempo próprio. */
+function WarmupRestChoice({ value, onChange }: { value: number | undefined; onChange: (v: number | undefined) => void }) {
+  const mode = value === undefined ? 'same' : value === 0 ? 'none' : 'own';
+  const options = [['same', 'Igual'], ['none', 'Sem'], ['own', 'Próprio']] as const;
+  return (
+    <div className="py-2">
+      <p className="text-sm font-semibold text-muted">Descanso depois do aquecimento</p>
+      <div role="radiogroup" aria-label="Descanso depois do aquecimento" className="mt-1 grid grid-cols-3 gap-1 rounded-xl bg-surface-2 p-1">
+        {options.map(([id, label]) => (
+          <button key={id} type="button" role="radio" aria-checked={mode === id}
+            onClick={() => onChange(id === 'same' ? undefined : id === 'none' ? 0 : (value || 45))}
+            className={`min-h-11 rounded-lg text-sm font-semibold ${mode === id ? 'bg-primary text-white' : 'text-muted'}`}>{label}</button>
+        ))}
+      </div>
+      {mode === 'own' && <DurationWheel label="Descanso depois do aquecimento" seconds={value!} min={15} max={600} onChange={onChange} />}
+      <p className="mt-1 text-xs text-faint">{mode === 'same' ? 'Usa o mesmo descanso das outras séries.' : mode === 'none' ? 'Marcar uma série de aquecimento não começa o descanso.' : 'Vale para todos os exercícios.'}</p>
+    </div>
+  );
+}
 
 /** M13: de onde vêm carga e repetições ao abrir o treino. */
 function LoadSourceChoice({ value, onChange }: { value: LoadSource; onChange: (v: LoadSource) => void }) {

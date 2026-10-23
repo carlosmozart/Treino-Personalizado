@@ -4,7 +4,7 @@ import type { DayKey } from './ai-plan';
 import type { DateKey } from './dates';
 import { toDateKey } from './dates';
 import { normalizeExerciseName } from './text';
-import { dayKeyOf, loadSourceOf, type AppData, type ExerciseMode, type PlanExercise, type SetKind, type Workout, type WorkoutEntry } from './model';
+import { dayKeyOf, loadSourceOf, type AppData, type ExerciseMode, type PlanExercise, type SetKind, type Settings, type Workout, type WorkoutEntry } from './model';
 import { lastSessionBefore, workSets } from './workouts';
 import { isCardioName } from '../data/exercise-library';
 import { repRange, suggestProgression, type Progression } from './progression';
@@ -43,6 +43,8 @@ export interface SessionExercise {
   progression?: Progression;
   /** M31: repetições por lado. */
   perSide?: true;
+  /** T6: descanso entre os lados, em segundos. */
+  sideRestSeconds?: number;
 }
 
 export interface ActiveSession {
@@ -109,7 +111,10 @@ function fromPlanExercise(data: AppData, ex: PlanExercise, date: DateKey, linear
   if (ex.restSeconds) out.restSeconds = ex.restSeconds;
   if (ex.tip) out.tip = ex.tip;
   if (ex.superset) out.superset = ex.superset;
-  if (ex.perSide && ex.mode === 'reps') out.perSide = true;
+  if (ex.perSide && ex.mode === 'reps') {
+    out.perSide = true;
+    if (ex.sideRestSeconds) out.sideRestSeconds = ex.sideRestSeconds;
+  }
   if (ex.mode === 'cardio') out.cardio = { minutes: ex.minutes, km: ex.km, done: false };
   return out;
 }
@@ -376,6 +381,15 @@ export function nextOpenExercise(exercises: readonly SessionExercise[], from: nu
     if (!isExerciseDone(exercises[i]!)) return i;
   }
   return null;
+}
+
+/**
+ * Descanso depois de marcar uma série: o do exercício (ou o padrão); depois de aquecimento, o do
+ * ajuste T6 quando definido (0 = sem descanso).
+ */
+export function restAfterSet(ex: SessionExercise, setIndex: number, settings: Pick<Settings, 'restSeconds' | 'warmupRest'>): number {
+  const normal = ex.restSeconds ?? settings.restSeconds;
+  return ex.sets[setIndex]?.kind === 'warmup' && settings.warmupRest !== undefined ? settings.warmupRest : normal;
 }
 
 export function isExerciseDone(ex: SessionExercise): boolean {
