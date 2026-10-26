@@ -3,6 +3,15 @@ export interface ReleaseNote { version: string; date: string; items: string[] }
 
 export const RELEASE_NOTES: readonly ReleaseNote[] = [
   {
+    version: '3.19.0',
+    date: '2026-10',
+    items: [
+      'Plano → Rotação → "Ordem da volta": ponha dias de descanso na rotação e repita um treino (A → B → descanso → C → B).',
+      'No descanso da rotação, o Início avisa quando é o próximo treino, e dá para treinar mesmo assim.',
+      'Acrescentou um exercício no treino? No fim, "Novo neste treino" leva ele para o plano com um toque.'
+    ]
+  },
+  {
     version: '3.18.0',
     date: '2026-10',
     items: [

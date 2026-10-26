@@ -6,7 +6,7 @@ Todas as mudanças relevantes do app ficam registradas aqui. Ao lançar uma nova
    atualizar o app instalado
 3. Adicione uma entrada aqui, nesse formato
 
-## Não lançado
+## [3.19.0] - 2026-10-26
 
 - Plano → Rotação → "Ordem da volta": dias de descanso dentro da rotação e o mesmo treino mais de uma vez (A → B → descanso → C → B). No descanso, o Início mostra "Descanso da rotação" com o próximo treino e "Treinar mesmo assim"; os lembretes não tocam e a sequência não quebra.
 - "Novo neste treino": no fim do treino, os exercícios acrescentados durante a sessão aparecem com um botão para levar ao dia do plano, com as séries, as repetições e a carga de hoje. Sem o toque, o plano fica como estava.
