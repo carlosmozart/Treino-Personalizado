@@ -6,7 +6,7 @@ Todas as mudanças relevantes do app ficam registradas aqui. Ao lançar uma nova
    atualizar o app instalado
 3. Adicione uma entrada aqui, nesse formato
 
-## Não lançado
+## [3.18.0] - 2026-10-26
 
 - Tema de Halloween, de 20 a 31 de outubro: uma aranha desce da teia ao abrir o app (e foge se tocada), morcegos cruzam a tela, um gatinho preto de chapéu de bruxa senta na barra de abas e mia ao toque, e uma abóbora tímida se esconde na beira do Início (achada, acende e solta doces, uma vez por dia). No Progresso, a lua e um gatinho de vassoura; no fim do treino, o gatinho entre abóboras acesas.
 - Cores de abóbora enquanto o tema vale: destaque laranja, fundo arroxeado no escuro e creme no claro; a cor escolhida volta sozinha em 1º de novembro.

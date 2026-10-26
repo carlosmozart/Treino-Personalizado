@@ -3,6 +3,15 @@ export interface ReleaseNote { version: string; date: string; items: string[] }
 
 export const RELEASE_NOTES: readonly ReleaseNote[] = [
   {
+    version: '3.18.0',
+    date: '2026-10',
+    items: [
+      'Halloween até 31 de outubro: aranha, morcegos, teias e um gatinho de chapéu de bruxa na barra de abas (toque nele!).',
+      'Tem uma abóbora escondida no Início: ache e ganhe uma surpresa, uma vez por dia.',
+      'Perfil → Aparência → Temas de época: deixe no automático, ligue o ano todo ou desligue; as cores de abóbora e o treino têm botão próprio.'
+    ]
+  },
+  {
     version: '3.17.1',
     date: '2026-10',
     items: [
