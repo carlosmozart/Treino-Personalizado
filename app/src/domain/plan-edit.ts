@@ -2,7 +2,8 @@
 import { DAY_KEYS, type DayKey } from './ai-plan';
 import { toDateKey } from './dates';
 import { newId } from './ids';
-import { MAX_EXERCISES_PER_DAY, type AppData, type Plan, type PlanDay, type PlanExercise, type Workout } from './model';
+import { MAX_EXERCISES_PER_DAY, type AppData, type Plan, type PlanDay, type PlanExercise, type Workout, type WorkoutEntry } from './model';
+import { normalizeExerciseName } from './text';
 import { key, tombstone, touch } from './sync';
 import { isCardioName } from '../data/exercise-library';
 import type { ActionResult } from './actions';
@@ -53,19 +54,40 @@ export function insertExercise(plan: Plan, dayKey: DayKey, index: number, exerci
 }
 
 /**
- * M33: um treino feito vira um dia do plano: os mesmos exercícios, o número de séries de trabalho,
- * as repetições e a carga da melhor série. Cardio leva os minutos.
+ * Um exercício feito vira exercício do plano: o número de séries de trabalho, as repetições e a
+ * carga da melhor série. Cardio leva os minutos.
  */
+export function entryToPlanExercise(e: WorkoutEntry, id: string = newId('ex')): PlanExercise {
+  const ex = newPlanExercise(e.name, id);
+  const sets = e.sets.filter(s => s.kind === 'work');
+  if (e.mode === 'cardio') return { ...ex, mode: 'cardio', sets: 1, reps: 0, minutes: e.cardio?.minutes ?? 20, km: e.cardio?.km ?? 0 };
+  const top = sets.reduce((b, s) => (!b || s.weight > b.weight || (s.weight === b.weight && s.reps > b.reps) ? s : b), sets[0]);
+  if (e.mode === 'time') return { ...ex, mode: 'time', sets: Math.max(1, sets.length), reps: 0, seconds: top?.reps ?? 30, weight: top?.weight ?? 0 };
+  return { ...ex, mode: 'reps', sets: Math.max(1, sets.length), reps: top?.reps ?? 10, weight: top?.weight ?? 0, ...(e.perSide ? { perSide: true } : {}) };
+}
+
+/** M33: um treino feito vira um dia do plano, exercício por exercício (entryToPlanExercise). */
 export function workoutToPlanDay(w: Workout, makeId: () => string = () => newId('ex')): PlanDay {
-  const exercises: PlanExercise[] = w.entries.slice(0, MAX_EXERCISES_PER_DAY).map(e => {
-    const ex = newPlanExercise(e.name, makeId());
-    const sets = e.sets.filter(s => s.kind === 'work');
-    if (e.mode === 'cardio') return { ...ex, mode: 'cardio', sets: 1, reps: 0, minutes: e.cardio?.minutes ?? 20, km: e.cardio?.km ?? 0 };
-    const top = sets.reduce((b, s) => (!b || s.weight > b.weight || (s.weight === b.weight && s.reps > b.reps) ? s : b), sets[0]);
-    if (e.mode === 'time') return { ...ex, mode: 'time', sets: Math.max(1, sets.length), reps: 0, seconds: top?.reps ?? 30, weight: top?.weight ?? 0 };
-    return { ...ex, mode: 'reps', sets: Math.max(1, sets.length), reps: top?.reps ?? 10, weight: top?.weight ?? 0 };
-  });
+  const exercises = w.entries.slice(0, MAX_EXERCISES_PER_DAY).map(e => entryToPlanExercise(e, makeId()));
   return { name: w.dayName?.trim() || 'Treino', focus: '', optional: false, exercises };
+}
+
+/**
+ * T13 ("Novo neste treino"): exercícios acrescentados durante um treino do plano que ainda não
+ * estão no dia de onde o treino veio. Sem o plano ou o dia, nada.
+ */
+export function addedEntries(plan: Plan | undefined, w: Workout): WorkoutEntry[] {
+  const day = plan && w.planId === plan.id && w.dayKey ? plan.days[w.dayKey] : undefined;
+  if (!day) return [];
+  const inDay = new Set(day.exercises.map(e => normalizeExerciseName(e.name)));
+  return w.entries.filter(e => e.added && !inDay.has(e.key));
+}
+
+/** T13: põe os exercícios no fim do dia do plano de onde o treino veio, como foram feitos. */
+export function addEntriesToPlan(plan: Plan, w: Workout, keys: readonly string[], makeId: () => string = () => newId('ex')): Plan {
+  if (!w.dayKey || w.planId !== plan.id) return plan;
+  const entries = addedEntries(plan, w).filter(e => keys.includes(e.key));
+  return entries.reduce((p, e) => addExercise(p, w.dayKey!, entryToPlanExercise(e, makeId())), plan);
 }
 
 export function updateExercise(plan: Plan, dayKey: DayKey, id: string, patch: Partial<Omit<PlanExercise, 'id'>>): Plan {

@@ -61,8 +61,11 @@ export type TodayCard =
       rotation?: { letter: string; done: number; total: number };
       /** M19: treino remarcado para hoje, vindo desta data. */
       movedFrom?: DateKey }
-  /** M35: no descanso, quando é o próximo treino. M19: `movedTo` quando o treino de hoje foi remarcado. */
-  | { kind: 'rest'; next: { dayKey: DayKey; title: string; inDays: number } | null; movedTo?: DateKey };
+  /**
+   * M35: no descanso, quando é o próximo treino. M19: `movedTo` quando o treino de hoje foi remarcado.
+   * T14: `rotation` quando é o descanso da volta (dá para treinar mesmo assim).
+   */
+  | { kind: 'rest'; next: { dayKey: DayKey; title: string; inDays: number } | null; movedTo?: DateKey; rotation?: { letter: string } };
 
 export function todayCard(data: AppData, now: Date, session: { dayName: string; exercises: { sets: { done: boolean }[] }[] } | null): TodayCard {
   if (session) {
@@ -71,13 +74,19 @@ export function todayCard(data: AppData, now: Date, session: { dayName: string; 
   }
   const plan = activePlan(data);
   if (!plan) return { kind: 'no-plan' };
-  const rot = rotationState(plan, data.workouts);
+  const rot = rotationState(plan, data.workouts, toDateKey(now));
+  if (rot?.restToday) {
+    // o próximo treino é no dia seguinte ao fim do descanso
+    let inDays = 1;
+    while (addDays(toDateKey(now), inDays) <= rot.restUntil!) inDays++;
+    return { kind: 'rest', next: { dayKey: rot.next, title: rotationTitle(plan, rot.next), inDays }, rotation: { letter: rotationLetter(plan, rot.next) } };
+  }
   if (rot) {
     const day = plan.days[rot.next];
     return {
       kind: 'workout', dayKey: rot.next, title: rotationTitle(plan, rot.next), focus: day.focus,
       exercises: day.exercises.length, optional: false, doneToday: !!data.checkins[toDateKey(now)],
-      rotation: { letter: rotationLetter(plan, rot.next), done: rot.done, total: rot.order.length }
+      rotation: { letter: rotationLetter(plan, rot.next), done: rot.done, total: rot.total }
     };
   }
   const today = toDateKey(now);
@@ -183,8 +192,11 @@ export function waterCard(data: AppData, now: Date): WaterCard | null {
 export function nextWorkoutAfterToday(data: AppData, now: Date): { title: string; when: string } | null {
   const plan = activePlan(data);
   if (!plan) return null;
-  const rot = rotationState(plan, data.workouts);
-  if (rot) return { title: rotationTitle(plan, rot.next), when: `treino ${rotationLetter(plan, rot.next)} da rotação` };
+  const rot = rotationState(plan, data.workouts, toDateKey(now));
+  if (rot) {
+    const after = rot.restUntil && rot.restUntil > toDateKey(now) ? `, depois de ${rot.restDays === 1 ? '1 dia' : `${rot.restDays} dias`} de descanso` : '';
+    return { title: rotationTitle(plan, rot.next), when: `treino ${rotationLetter(plan, rot.next)} da rotação${after}` };
+  }
   for (let inDays = 1; inDays <= 7; inDays++) {
     const k = scheduledDay(plan, addDays(toDateKey(now), inDays), data.moves);
     if (k) return { title: plan.days[k].name.replace(/\s*\(opcional\)\s*$/i, '') || DAY_FULL_NAMES[k], when: inDays === 1 ? 'amanhã' : `em ${inDays} dias` };

@@ -41,7 +41,7 @@ export function remindersFor(plan: Plan | undefined, { workouts = [], dayNotes =
   if (!plan || !time) return [];
   const trained = new Set(workouts.map(w => w.date));
   const today = toDateKey(now);
-  const rot = plan.rotation ? rotationState(plan, workouts) : null;
+  const rot = plan.rotation ? rotationState(plan, workouts, today) : null;
   if (plan.rotation && !rot) return [];
   const perWeek = plan.rotation?.perWeek ?? 0;
   const doneInWeek = (date: DateKey) => {
@@ -58,6 +58,8 @@ export function remindersFor(plan: Plan | undefined, { workouts = [], dayNotes =
     let body: string;
     if (rot) {
       if (perWeek && doneInWeek(date) >= perWeek) continue;
+      // T14: dia de descanso da volta, logo depois do último treino
+      if (rot.restUntil && date <= rot.restUntil) continue;
       body = `Próximo treino: ${rotationTitle(plan, rot.next)}`;
     } else {
       const k = scheduledDay(plan, date, moves);

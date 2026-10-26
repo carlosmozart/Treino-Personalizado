@@ -34,7 +34,7 @@ export function AddToWorkoutSheet({ open, session, onClose, onAdded }: { open: b
       {q && !suggestions.some(n => n.toLowerCase() === q.toLowerCase()) && (
         <SheetAction onClick={() => add(q)}><Icon name="mais" />Usar “{q}”</SheetAction>
       )}
-      <p className="mt-2 px-3 text-sm text-faint">Vale só para este treino; o plano continua igual.</p>
+      <p className="mt-2 px-3 text-sm text-faint">Vale só para este treino. No fim, dá para levar ao plano.</p>
     </Sheet>
   );
 }

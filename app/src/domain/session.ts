@@ -154,13 +154,16 @@ export function startFreeSession(now: Date, id: string): ActiveSession {
   return { id, date: toDateKey(now), startedAt: now.toISOString(), planId: '', dayKey: dayKeyOf(now), dayName: 'Treino livre', exercises: [] };
 }
 
+/** Começo do slotId de um exercício posto com "Adicionar exercício" (T13 o reconhece no fim). */
+const EXTRA_PREFIX = 'extra-';
+
 /** M18: põe um exercício no fim do treino em andamento, com a carga da última vez (ou 3×10). */
 export function addExerciseToSession(s: ActiveSession, data: AppData, name: string): ActiveSession {
   const clean = name.trim();
   if (!clean || s.exercises.length >= 30) return s;
   const mode: ExerciseMode = isCardioName(clean) ? 'cardio' : 'reps';
   const ex: SessionExercise = {
-    slotId: `extra-${s.exercises.length}-${normalizeExerciseName(clean)}`, name: clean, key: normalizeExerciseName(clean), mode,
+    slotId: `${EXTRA_PREFIX}${s.exercises.length}-${normalizeExerciseName(clean)}`, name: clean, key: normalizeExerciseName(clean), mode,
     optional: false, sets: initialSets(data, clean, mode, null, s.date).sets, note: '', alternatives: []
   };
   if (mode === 'cardio') ex.cardio = { minutes: 20, km: 0, done: false };
@@ -421,6 +424,8 @@ export function sessionProgress(s: ActiveSession): SessionProgress {
 
 /** O treino como vai para o histórico: só o que foi feito. Null se nada foi marcado. */
 export function sessionToWorkout(s: ActiveSession, now: Date): Workout | null {
+  // T13: "Adicionar exercício" num treino do plano (no treino livre tudo é acrescentado)
+  const added = (ex: SessionExercise) => !!s.planId && ex.slotId.startsWith(EXTRA_PREFIX);
   const entries: WorkoutEntry[] = [];
   for (const ex of s.exercises) {
     const note = ex.note.trim();
@@ -430,7 +435,7 @@ export function sessionToWorkout(s: ActiveSession, now: Date): Workout | null {
       continue;
     }
     const sets = ex.sets.filter(set => set.done).map(({ reps, weight, kind, failure }) => ({ reps, weight, kind, ...(failure ? { failure } : {}) }));
-    if (sets.length) entries.push({ key: ex.key, name: ex.name, mode: ex.mode, sets, ...(note ? { note } : {}), ...(ex.perSide ? { perSide: true as const } : {}) });
+    if (sets.length) entries.push({ key: ex.key, name: ex.name, mode: ex.mode, sets, ...(note ? { note } : {}), ...(ex.perSide ? { perSide: true as const } : {}), ...(added(ex) ? { added: true as const } : {}) });
   }
   if (!entries.length) return null;
   // M15: treino passado usa a duração informada; senão, o relógio do início até agora

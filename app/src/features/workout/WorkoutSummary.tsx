@@ -1,3 +1,7 @@
+import { useState } from 'react';
+import { DAY_FULL_NAMES, type Workout } from '../../domain/model';
+import { addedEntries, addEntriesToPlan, editPlan } from '../../domain/plan-edit';
+import { rotationLetter } from '../../domain/rotation';
 import { compareWithLast, describeEntry, workoutCalories, workoutVolume, type Trend } from '../../domain/workouts';
 import { nextWorkoutAfterToday } from '../../domain/home';
 import { RECORD_LABEL, recordKinds } from '../../domain/strength';
@@ -48,6 +52,7 @@ export function WorkoutSummary({ id }: { id: string }) {
           </li>
         ))}
       </ul>
+      <AddedToPlan workout={workout} />
       {(() => {
         const next = nextWorkoutAfterToday(data, new Date());
         return next && (
@@ -59,6 +64,52 @@ export function WorkoutSummary({ id }: { id: string }) {
       })()}
       <div className="mt-6 flex flex-wrap justify-center gap-2"><ShareImageButton w={workout} primary /><CopyTextButton w={workout} /></div>
       <button type="button" onClick={close} className="mt-3 h-12 w-full rounded-xl bg-surface-2 text-base font-bold">Fechar</button>
+    </section>
+  );
+}
+
+/**
+ * T13 "Novo neste treino": exercícios acrescentados durante a sessão, com um toque para pôr no dia
+ * do plano como foram feitos. Sem toque, o plano fica como estava.
+ */
+function AddedToPlan({ workout }: { workout: Workout }) {
+  const data = useAppStore(s => s.data);
+  const run = useAppStore(s => s.run);
+  const [saved, setSaved] = useState<string[]>([]);
+  const plan = workout.planId ? data?.plans[workout.planId] : undefined;
+  // o que já entrou some de addedEntries; guarda os nomes para dizer "No plano"
+  const pending = addedEntries(plan, workout);
+  const shown = workout.entries.filter(e => e.added && (saved.includes(e.key) || pending.some(p => p.key === e.key)));
+  if (!plan || !workout.dayKey || !shown.length) return null;
+  const k = workout.dayKey;
+  const dayLabel = plan.rotation ? `treino ${rotationLetter(plan, k)}` : DAY_FULL_NAMES[k].toLowerCase();
+  const add = (keys: string[]) => {
+    run((d, now) => editPlan(d, plan.id, p => addEntriesToPlan(p, workout, keys), now));
+    setSaved(s => [...s, ...keys]);
+  };
+  return (
+    <section aria-label="Novo neste treino" className="mt-5 rounded-2xl border border-line bg-surface p-4">
+      <h2 className="font-bold">Novo neste treino</h2>
+      <p className="text-sm text-muted">Acrescentados hoje. Leve ao plano ({dayLabel}) com as séries, as repetições e a carga de hoje.</p>
+      <ul className="mt-2 divide-y divide-line">
+        {shown.map(e => (
+          <li key={e.key} className="flex items-center gap-3 py-2">
+            <span className="min-w-0 flex-1">
+              <span className="block font-semibold">{e.name}</span>
+              <span className="block text-sm text-muted">{describeEntry(e)}</span>
+            </span>
+            {saved.includes(e.key)
+              ? <span className="text-sm font-semibold text-success">No plano</span>
+              : <button type="button" onClick={() => add([e.key])} aria-label={`Adicionar ${e.name} ao plano`}
+                  className="h-11 shrink-0 rounded-xl bg-surface-2 px-3 text-sm font-semibold">Adicionar</button>}
+          </li>
+        ))}
+      </ul>
+      {pending.length > 1 && (
+        <button type="button" onClick={() => add(pending.map(e => e.key))} className="mt-2 h-11 w-full rounded-xl bg-primary text-sm font-bold text-white">
+          Adicionar todos ao plano
+        </button>
+      )}
     </section>
   );
 }

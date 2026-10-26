@@ -5,6 +5,7 @@ import type { ActivityLevel, Sex, TmbFormulaId } from './health';
 import type { WeightGoal } from './body-goal';
 import type { CheckinXPRecord } from './gamification';
 import type { SeasonalPref } from './seasonal';
+import type { RotationSlot } from './rotation';
 
 export const SCHEMA_VERSION = 1;
 
@@ -32,6 +33,8 @@ export interface WorkoutEntry {
   aggregated?: true;
   /** M31: repetições contadas por lado (afundo, remada unilateral); o volume conta os dois lados. */
   perSide?: true;
+  /** T13: acrescentado durante um treino do plano (não estava no dia): o resumo oferece levar ao plano. */
+  added?: true;
 }
 
 export interface Workout {
@@ -110,8 +113,8 @@ export interface Plan {
 }
 
 export interface PlanRotation {
-  /** Ordem dos treinos (espaços com exercícios). */
-  order: DayKey[];
+  /** Volta: espaços com exercícios, que podem se repetir, e dias de descanso (T14). */
+  order: RotationSlot[];
   /** Meta de treinos por semana (XP, semana e sequência). */
   perWeek: number;
   /** "Recomeçar do A": treinos antes deste instante não contam para achar o próximo. */

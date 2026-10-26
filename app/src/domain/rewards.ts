@@ -3,7 +3,7 @@
 // mostrar — nenhuma regra daqui exibe nada.
 import { calculateStreak } from './streak';
 import { addDays, toDateKey, weekStartOf, type DateKey } from './dates';
-import { maxRestGap } from './rotation';
+import { longestRestRun, maxRestGap } from './rotation';
 import {
   applyCheckinXP, bonusXP, freeMealThreshold, fullCheckinXP, isBirthday, isNightCheckin, levelInfo,
   STREAK_BONUS_PCT, streakBonusKey, WATER_BONUS_PCT
@@ -46,7 +46,8 @@ export function streakOf(data: AppData, now: Date): number {
   // S8: dia com nota (doente, viajando...) conta como descanso
   const noted = (date: Date) => !!data.dayNotes?.[toDateKey(date)];
   if (plan?.rotation) {
-    const gap = maxRestGap(plan.rotation.perWeek);
+    // T14: um descanso maior na volta também não quebra a sequência
+    const gap = maxRestGap(plan.rotation.perWeek, longestRestRun(plan));
     const today = toDateKey(now);
     return calculateStreak({
       isCheckedIn,

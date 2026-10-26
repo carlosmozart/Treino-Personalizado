@@ -1,4 +1,4 @@
-# Rotação de treinos A/B/C (R1)
+# Rotação de treinos A/B/C (R1, T14)
 
 Nota de projeto escrita antes do código (prática P9). Regras em `app/src/domain/rotation.ts`.
 
@@ -17,8 +17,11 @@ A–G. Assim a troca entre semana fixa e rotação não perde nada e as telas de
 interface Plan {
   // ...
   rotation?: {
-    /** Ordem dos treinos (espaços com exercícios). Espaço vazio ou que sumiu é ignorado. */
-    order: DayKey[];
+    /**
+     * A volta: espaços com exercícios, que podem se repetir (A, B, C, B), e "rest" para um dia de
+     * descanso (T14). Espaço vazio ou que sumiu é ignorado.
+     */
+    order: (DayKey | 'rest')[];
     /** Meta de treinos por semana: XP do check-in, semana e sequência. */
     perWeek: number;
     /** "Recomeçar do A": treinos antes deste instante não contam para achar o próximo. */
@@ -40,13 +43,34 @@ Sem `rotation`, o plano é semana fixa, como sempre.
 
 A letra de cada treino é a posição na ordem efetiva (A, B, C…).
 
+## Descanso e treino repetido (T14)
+
+- A volta pode ter o mesmo treino mais de uma vez (A → B → C → B → D) e dias de descanso (A → B →
+  descanso → C). As letras continuam uma por treino (o B repetido é "B" nas duas vezes); o total da
+  volta conta os lugares de treino, sem os descansos. No máximo 14 lugares.
+- **Onde estou na volta:** com repetição, "o seguinte ao último feito" fica ambíguo. O app percorre os
+  treinos que contam (este plano, depois de `restartAt`) do mais antigo ao mais novo: cada um ocupa o
+  primeiro lugar com o mesmo treino depois do lugar do anterior, dando a volta. Sem nada guardado no
+  treino; mudar a ordem reinterpreta o histórico, como antes.
+- **Descanso:** os descansos logo depois do lugar do último treino valem pelos dias de calendário
+  seguintes a ele (A na segunda + 1 descanso = terça é descanso; o B fica para quarta). Treinar no dia
+  de descanso não atrapalha: o treino ocupa o seu lugar e a volta segue. Um descanso no começo da volta
+  não segura o primeiro treino de todos.
+- **Início:** no dia de descanso da volta, "Descanso da rotação" com o próximo treino, quando ele vem e
+  "Treinar mesmo assim". O resumo do treino diz "depois de N dias de descanso".
+- **Lembretes:** não tocam nos dias de descanso da volta. **Sequência:** a folga aceita é a maior entre
+  a da meta por semana e o maior descanso seguido da volta.
+- **Plano:** "Ordem da volta", com subir, descer e tirar cada lugar, "+ Descanso" e "+ A/B/C…" para
+  repetir. Um treino só sai da volta se aparecer outra vez nela; para tirar de vez, esvazie o treino.
+  O plano compartilhado leva a volta inteira.
+
 ## Onde muda
 
 - **Início:** o cartão de hoje mostra o próximo treino da rotação ("Treino B · 1 de 3 da volta"),
   nunca "dia de descanso". Com o treino de hoje feito, mostra "feito" e qual é o próximo.
 - **Aba Treino:** o próximo vem primeiro, marcado "Próximo"; os outros seguem na ordem.
 - **Plano:** chave "Semana fixa / Rotação". Na rotação, os cartões aparecem na ordem com a letra no
-  lugar do dia da semana, com subir/descer, a meta por semana e "Recomeçar do A". Voltar para a
+  lugar do dia da semana, a ordem da volta (T14), a meta por semana e "Recomeçar do A". Voltar para a
   semana fixa pergunta antes e devolve os dias como estavam.
 - **Semana no Início:** sem dias planejados destacados.
 - **XP e meta da semana:** usam `perWeek` em vez dos dias com treino.

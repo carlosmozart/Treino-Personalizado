@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
-  dedupeForRotation, disableRotation, enableRotation, maxRestGap, moveInRotation, restartRotation, rotationLetter, rotationOrder, rotationState, rotationTitle, setRotationPerWeek
+  dedupeForRotation, disableRotation, enableRotation, maxRestGap, moveSlot, restartRotation, rotationLetter, rotationOrder, rotationState, rotationTitle, setRotationPerWeek
 } from './rotation';
 import { planExercise, sampleData, samplePlan } from './testing';
 import { daysPerWeekOf, streakOf } from './rewards';
@@ -49,11 +49,11 @@ describe('rotação', () => {
   });
 
   it('reordenar muda as letras e o próximo', () => {
-    const p = moveInRotation(abc(), 'SEX', -1);
+    const p = moveSlot(abc(), 2, -1);
     expect(rotationOrder(p)).toEqual(['SEG', 'SEX', 'QUA']);
     expect(rotationLetter(p, 'SEX')).toBe('B');
     expect(rotationState(p, [done('2026-10-05', 'SEG')])).toMatchObject({ next: 'SEX' });
-    expect(moveInRotation(p, 'SEG', -1)).toBe(p);
+    expect(moveSlot(p, 0, -1)).toBe(p);
   });
 
   it('treino que ganhou exercícios entra no fim; o que esvaziou sai', () => {
@@ -81,7 +81,7 @@ describe('rotação', () => {
   });
 
   it('folga que não quebra a sequência', () => {
-    expect([2, 3, 4, 5, 6, 7].map(maxRestGap)).toEqual([3, 2, 1, 1, 1, 1]);
+    expect([2, 3, 4, 5, 6, 7].map(n => maxRestGap(n))).toEqual([3, 2, 1, 1, 1, 1]);
   });
 });
 

@@ -158,11 +158,18 @@ function TodayCard({ card, onChoose }: { card: ReturnType<typeof todayCard>; onC
     return (
       <section className="rounded-2xl border border-line bg-surface p-4">
         <p className="text-xs font-semibold text-muted">Hoje</p>
-        <h2 className="text-lg font-bold">Dia de descanso</h2>
+        <h2 className="text-lg font-bold">{card.rotation ? 'Descanso da rotação' : 'Dia de descanso'}</h2>
         {card.next && (
           <p className="mt-1 text-muted">
             Próximo treino {card.next.inDays === 1 ? 'amanhã' : `em ${card.next.inDays} dias`}: {card.next.title}
           </p>
+        )}
+        {/* T14: o descanso da volta é sugestão; treinar hoje passa direto para o próximo treino */}
+        {card.rotation && card.next && (
+          <button type="button" onClick={() => { askRestAlarmPermission(); if (data.activePlanId && start(data.activePlanId, card.next!.dayKey)) setTab('treino'); }}
+            className="mt-3 h-11 w-full rounded-xl bg-surface-2 text-sm font-semibold">
+            Treinar mesmo assim: treino {card.rotation.letter}
+          </button>
         )}
         {card.movedTo && (
           <>

@@ -2,6 +2,7 @@
 // O arquivo vem de outra pessoa, então a leitura confere tudo e recria os ids.
 import { DAY_KEYS, type DayKey } from './ai-plan';
 import type { DateKey } from './dates';
+import { MAX_ROTATION_SLOTS, REST_SLOT, type RotationSlot } from './rotation';
 import { MAX_EXERCISES_PER_DAY, type ExerciseMode, type Plan, type PlanDay, type PlanExercise } from './model';
 
 export const PLAN_FILE_KIND = 'treino-personalizado/plano';
@@ -71,8 +72,9 @@ export function readPlanFile(text: string, today: DateKey, makeId: (prefix: stri
   };
   if (p.progression === 'linear') plan.progression = 'linear';
   if (isObj(p.rotation) && Array.isArray(p.rotation.order)) {
-    const order = p.rotation.order.filter((k): k is DayKey => DAY_KEYS.includes(k as DayKey));
-    plan.rotation = { order, perWeek: Math.round(num(p.rotation.perWeek, 1, 7, Math.max(1, order.length))) };
+    // T14: treinos podem se repetir e "rest" é um dia de descanso da volta
+    const order = p.rotation.order.filter((k): k is RotationSlot => k === REST_SLOT || DAY_KEYS.includes(k as DayKey)).slice(0, MAX_ROTATION_SLOTS);
+    plan.rotation = { order, perWeek: Math.round(num(p.rotation.perWeek, 1, 7, Math.max(1, new Set(order.filter(k => k !== REST_SLOT)).size))) };
   }
   return { plan };
 }

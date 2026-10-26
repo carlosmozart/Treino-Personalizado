@@ -6,6 +6,12 @@ Todas as mudanças relevantes do app ficam registradas aqui. Ao lançar uma nova
    atualizar o app instalado
 3. Adicione uma entrada aqui, nesse formato
 
+## Não lançado
+
+- Plano → Rotação → "Ordem da volta": dias de descanso dentro da rotação e o mesmo treino mais de uma vez (A → B → descanso → C → B). No descanso, o Início mostra "Descanso da rotação" com o próximo treino e "Treinar mesmo assim"; os lembretes não tocam e a sequência não quebra.
+- "Novo neste treino": no fim do treino, os exercícios acrescentados durante a sessão aparecem com um botão para levar ao dia do plano, com as séries, as repetições e a carga de hoje. Sem o toque, o plano fica como estava.
+- "Salvar no plano" agora leva também as repetições por lado.
+
 ## [3.18.0] - 2026-10-26
 
 - Tema de Halloween, de 20 a 31 de outubro: uma aranha desce da teia ao abrir o app (e foge se tocada), morcegos cruzam a tela, um gatinho preto de chapéu de bruxa senta na barra de abas e mia ao toque, e uma abóbora tímida se esconde na beira do Início (achada, acende e solta doces, uma vez por dia). No Progresso, a lua e um gatinho de vassoura; no fim do treino, o gatinho entre abóboras acesas.
