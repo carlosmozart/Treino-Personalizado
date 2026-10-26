@@ -4,6 +4,7 @@ import type { DayKey } from './ai-plan';
 import type { ActivityLevel, Sex, TmbFormulaId } from './health';
 import type { WeightGoal } from './body-goal';
 import type { CheckinXPRecord } from './gamification';
+import type { SeasonalPref } from './seasonal';
 
 export const SCHEMA_VERSION = 1;
 
@@ -226,6 +227,12 @@ export interface Settings {
   accent?: AccentId;
   /** Tema da interface. Ausente = acompanha o sistema. */
   theme?: ThemePref;
+  /** Temas de época (Halloween): automático na época, sempre ou desligado. Ausente = automático. */
+  seasonalTheme?: SeasonalPref;
+  /** Cores de abóbora enquanto o tema de época vale. Ausente = sim. */
+  seasonalColors?: boolean;
+  /** Versão calma do tema de época durante o treino. Ausente = sim. */
+  seasonalInWorkout?: boolean;
 }
 
 export type ThemePref = 'system' | 'light' | 'dark';

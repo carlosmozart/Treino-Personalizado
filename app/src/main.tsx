@@ -9,10 +9,11 @@ import { startAutoBackup } from './platform/auto-backup';
 import { keepFocusedFieldVisible } from './platform/keyboard';
 import { useUpdate } from './platform/app-update';
 import { startRemindersSync } from './features/plan/reminders-sync';
-import { startDayWatcher } from './hooks/use-today';
+import { startDayWatcher, useToday } from './hooks/use-today';
 import { dailyCheck } from './domain/actions';
 import { autoSaveBackupFile, canAutoBackup } from './platform/backup-file';
-import { applyAccent, applyTheme, watchSystemTheme } from './ui/theme';
+import { applyAccent, applySeason, applyTheme, PUMPKIN, watchSystemTheme } from './ui/theme';
+import { halloweenColors } from './domain/seasonal';
 import './index.css';
 
 installGlobalErrorHandlers();
@@ -21,9 +22,21 @@ watchSystemTheme();
 useAppStore.subscribe((s, p) => {
   const t = s.data?.settings.theme;
   if (!p.data || t !== p.data.settings.theme) applyTheme(t);
-  const a = s.data?.settings.accent;
-  if (!p.data || a !== p.data.settings.accent) applyAccent(a);
 });
+// cor de destaque e tema de época: mudam com a escolha e com a virada do dia (o Halloween some em 1º/11)
+let lastLook = '';
+const applyLook = () => {
+  const settings = useAppStore.getState().data?.settings;
+  if (!settings) return;
+  const halloween = halloweenColors(settings, useToday.getState().today);
+  const look = `${settings.accent ?? ''}|${halloween}`;
+  if (look === lastLook) return;
+  lastLook = look;
+  applySeason(halloween ? 'halloween' : null);
+  applyAccent(settings.accent, halloween ? PUMPKIN : undefined);
+};
+useAppStore.subscribe((s, p) => { if (s.data?.settings !== p.data?.settings) applyLook(); });
+useToday.subscribe(applyLook);
 void useAppStore.getState().init().then(() => {
   syncController.start();
   startRemindersSync();

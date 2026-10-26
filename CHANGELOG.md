@@ -6,6 +6,12 @@ Todas as mudanças relevantes do app ficam registradas aqui. Ao lançar uma nova
    atualizar o app instalado
 3. Adicione uma entrada aqui, nesse formato
 
+## Não lançado
+
+- Tema de Halloween, de 20 a 31 de outubro: uma aranha desce da teia ao abrir o app (e foge se tocada), morcegos cruzam a tela, um gatinho preto de chapéu de bruxa senta na barra de abas e mia ao toque, e uma abóbora tímida se esconde na beira do Início (achada, acende e solta doces, uma vez por dia). No Progresso, a lua e um gatinho de vassoura; no fim do treino, o gatinho entre abóboras acesas.
+- Cores de abóbora enquanto o tema vale: destaque laranja, fundo arroxeado no escuro e creme no claro; a cor escolhida volta sozinha em 1º de novembro.
+- Perfil → Aparência → Temas de época: Automático, Sempre ou Desligado, com "Cores de abóbora" e "Também durante o treino" (no treino, só uma abóbora parada). Com "reduzir movimento" no celular, tudo fica parado.
+
 ## [3.17.1] - 2026-10-23
 
 - Corrigido: com incremento de 1,25 kg a progressão sugeria 41,3 kg em vez de 41,25, e digitar 41,25 numa série gravava 41,3. As cargas agora vão até duas casas, na sugestão, nas séries e na tela.

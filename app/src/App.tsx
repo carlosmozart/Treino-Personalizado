@@ -12,6 +12,7 @@ import { HomeScreen } from './features/home/HomeScreen';
 import { PlanScreen } from './features/plan/PlanScreen';
 import { ProgressScreen } from './features/progress/ProgressScreen';
 import { ProfileScreen } from './features/profile/ProfileScreen';
+import { SeasonalLayer } from './features/seasonal/SeasonalLayer';
 
 const SCREENS = { inicio: () => <HomeScreen />, plano: () => <PlanScreen />, treino: () => <WorkoutScreen />, progresso: () => <ProgressScreen />, perfil: () => <ProfileScreen /> };
 
@@ -24,7 +25,7 @@ export function App() {
   const workoutCount = useAppStore(s => s.data?.workouts.length ?? 0);
 
   return (
-    <div className="safe-top min-h-dvh pb-44">
+    <div className="safe-top relative min-h-dvh pb-44">
       <main data-today={today} className="mx-auto max-w-xl px-4">
         {status === 'ready' && tab in SCREENS ? SCREENS[tab as keyof typeof SCREENS]() : (
           <>
@@ -43,6 +44,7 @@ export function App() {
         )}
         <p className="mt-6 text-center text-sm text-faint">Treino Personalizado v{__APP_VERSION__}</p>
       </main>
+      {status === 'ready' && <SeasonalLayer />}
       <RestBar />
       <Toaster />
       <ErrorNotice />

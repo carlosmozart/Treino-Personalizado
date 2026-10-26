@@ -35,6 +35,21 @@
   color-scheme: light;
 }
 
+/* Halloween (domain/seasonal.ts): fundo puxado para o roxo no escuro e para o creme no claro.
+   Texto e cores de estado continuam os mesmos, então o contraste não muda. */
+:root[data-season="halloween"] {
+  --color-page: #09060d;
+  --color-surface: #140e1b;
+  --color-surface-2: #221a2c;
+  --color-line: #2e2439;
+}
+:root[data-theme="light"][data-season="halloween"] {
+  --color-page: #f8f3ec;
+  --color-surface: #fffdf9;
+  --color-surface-2: #efe5d8;
+  --color-line: #e3d5c3;
+}
+
 :root {
   color-scheme: dark;
   -webkit-tap-highlight-color: transparent;

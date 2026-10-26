@@ -1,20 +1,9 @@
 import { useEffect, useState } from 'react';
 import { illustrationIdFor, loadIllustration, type IllustrationFrames } from '../data/illustrations';
 import { Sheet } from './Sheet';
+import { useReducedMotion } from '../hooks/use-reduced-motion';
 
 const FRAME_MS = 1100;
-
-function useReducedMotion(): boolean {
-  const [reduced, setReduced] = useState(() => typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches);
-  useEffect(() => {
-    if (typeof matchMedia !== 'function') return;
-    const query = matchMedia('(prefers-reduced-motion: reduce)');
-    const onChange = () => setReduced(query.matches);
-    query.addEventListener('change', onChange);
-    return () => query.removeEventListener('change', onChange);
-  }, []);
-  return reduced;
-}
 
 function useFrames(name: string): IllustrationFrames | null {
   const id = illustrationIdFor(name);

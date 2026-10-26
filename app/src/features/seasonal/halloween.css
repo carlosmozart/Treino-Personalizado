@@ -1,0 +1,73 @@
+/* Halloween: só é carregado quando o tema está ligado (Halloween.tsx entra por import()).
+   Com "reduzir movimento" o index.css desliga as animações e tudo fica parado no lugar. */
+:root {
+  --hw-body: #17121d;
+  --hw-rim: #9a88b3;
+  --hw-leg: #9a88b3;
+  --hw-web: rgb(203 190 222 / 0.32);
+}
+:root[data-theme="light"] {
+  --hw-rim: #17121d;
+  --hw-leg: #17121d;
+  --hw-web: rgb(60 40 80 / 0.28);
+}
+
+.hw-body { fill: var(--hw-body); stroke: var(--hw-rim); stroke-width: 0.8; stroke-linejoin: round; }
+.hw-line { stroke: var(--hw-rim); stroke-width: 0.8; fill: none; stroke-linecap: round; }
+.hw-whisker { stroke: var(--hw-rim); stroke-width: 0.6; opacity: 0.8; stroke-linecap: round; }
+.hw-legs path { stroke: var(--hw-leg); stroke-width: 1.8; fill: none; stroke-linecap: round; }
+.hw-web path { stroke: var(--hw-web); stroke-width: 0.9; fill: none; }
+.hw-face path { fill: #431407; transition: fill 0.4s; }
+.hw-lit .hw-face path { fill: #fde047; }
+.hw-lit { filter: drop-shadow(0 0 10px rgb(253 224 71 / 0.7)); }
+.hw-moon { filter: drop-shadow(0 0 14px rgb(253 230 138 / 0.45)); }
+
+/* gatinho: rabo balançando e piscadas */
+.hw-tail { transform-box: fill-box; transform-origin: 0% 90%; animation: hw-tail 2.6s ease-in-out infinite alternate; }
+@keyframes hw-tail { from { transform: rotate(-8deg); } to { transform: rotate(10deg); } }
+.hw-eyes { transform-box: fill-box; transform-origin: center; animation: hw-blink 4.6s infinite; }
+@keyframes hw-blink { 0%, 92%, 100% { transform: scaleY(1); } 95% { transform: scaleY(0.1); } }
+.hw-hat { transform-box: fill-box; transform-origin: 50% 100%; }
+.hw-meow .hw-hat { animation: hw-hop 0.5s ease-out; }
+@keyframes hw-hop { 0%, 100% { transform: translateY(0) rotate(0); } 40% { transform: translateY(-6px) rotate(-8deg); } }
+
+/* aranha: desce do canto, balança e sobe; ao toque foge */
+.hw-spider-drop { transform: translateY(0); transition: transform 1.4s ease-in; }
+.hw-spider-drop.hw-enter { animation: hw-drop 1.6s cubic-bezier(0.2, 0.7, 0.3, 1.2) both; }
+.hw-spider-drop.hw-up { transform: translateY(-260px); }
+.hw-spider-drop.hw-flee { transform: translateY(-260px); transition-duration: 0.35s; transition-timing-function: ease-out; }
+.hw-spider-drop .hw-spider { animation: hw-sway 2.4s ease-in-out infinite alternate; transform-origin: 50% 0; }
+.hw-spider-drop.hw-flee .hw-spider { animation: hw-wiggle 0.1s linear infinite; }
+@keyframes hw-drop { from { transform: translateY(-260px); } to { transform: translateY(0); } }
+@keyframes hw-sway { from { transform: rotate(-6deg); } to { transform: rotate(6deg); } }
+@keyframes hw-wiggle { from { transform: rotate(-12deg); } to { transform: rotate(12deg); } }
+
+/* morcegos: atravessam a parte de cima da tela */
+.hw-flight { animation: hw-fly var(--hw-dur, 5s) linear forwards; }
+.hw-flight.hw-rtl { animation-name: hw-fly-rtl; }
+@keyframes hw-fly { from { transform: translateX(-80px); } to { transform: translateX(calc(100vw + 80px)); } }
+@keyframes hw-fly-rtl { from { transform: translateX(calc(100vw + 80px)) scaleX(-1); } to { transform: translateX(-80px) scaleX(-1); } }
+.hw-bob { animation: hw-bob 0.9s ease-in-out infinite alternate; }
+@keyframes hw-bob { from { transform: translateY(-5px); } to { transform: translateY(5px); } }
+.hw-wing { transform-box: fill-box; transform-origin: 50% 70%; animation: hw-flap 0.18s ease-in-out infinite alternate; }
+@keyframes hw-flap { from { transform: scaleY(1); } to { transform: scaleY(0.35); } }
+
+/* gatinho na vassoura cruzando a lua */
+.hw-broom { animation: hw-broom 7s linear forwards; }
+@keyframes hw-broom {
+  from { transform: translate(110%, 22px) rotate(-4deg); }
+  50% { transform: translate(-40vw, -4px) rotate(2deg); }
+  to { transform: translate(-110vw, 10px) rotate(-3deg); }
+}
+
+/* abóbora escondida: espia pela beira da tela */
+.hw-peek { transition: transform 0.6s cubic-bezier(0.3, 1.4, 0.5, 1); }
+.hw-peek.hw-found { transition-duration: 0.3s; }
+.hw-candy { animation: hw-candy 1.2s ease-out forwards; }
+@keyframes hw-candy {
+  from { transform: translate(0, 0) rotate(0); opacity: 1; }
+  to { transform: translate(var(--hw-x), var(--hw-y)) rotate(var(--hw-r)); opacity: 0; }
+}
+
+.hw-bubble { animation: hw-pop 0.25s ease-out both; }
+@keyframes hw-pop { from { transform: scale(0.6); opacity: 0; } to { transform: scale(1); opacity: 1; } }

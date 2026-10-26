@@ -24,6 +24,7 @@ import { encryptBackup } from '../../domain/backup-crypto';
 import { ensureNotificationPermission, notificationsAvailable } from '../../platform/notifications';
 import { resyncReminders } from '../plan/reminders-sync';
 import { parseTrainingTime } from '../../domain/reminders';
+import { halloweenOn, seasonalPref, type SeasonalPref } from '../../domain/seasonal';
 
 /** Configurações agrupadas (O19): treino, dados e backup, conta, sobre. */
 export function SettingsSection() {
@@ -55,6 +56,7 @@ export function SettingsSection() {
             );
           })}
         </div>
+        <SeasonalChoice settings={settings} set={set} />
       </Card>
       <BackupCard />
       <Card title="Conta e nuvem">
@@ -319,6 +321,40 @@ function ThemeChoice({ value, onChange }: { value: ThemePref; onChange: (v: Them
           {t.label}
         </button>
       ))}
+    </div>
+  );
+}
+
+const SEASONAL: { id: SeasonalPref; label: string }[] = [
+  { id: 'auto', label: 'Automático' },
+  { id: 'on', label: 'Sempre' },
+  { id: 'off', label: 'Desligado' }
+];
+
+/** Tema de época (Halloween): aranha, morcegos, teias, gatinhos de chapéu e uma abóbora escondida. */
+function SeasonalChoice({ settings, set }: { settings: Settings; set: (patch: Partial<Settings>) => void }) {
+  const pref = seasonalPref(settings);
+  const on = halloweenOn(settings, toDateKey(new Date()));
+  return (
+    <div className="mt-4">
+      <p className="text-sm font-semibold text-muted">Temas de época</p>
+      <div role="radiogroup" aria-label="Temas de época" className="mt-1 grid grid-cols-3 gap-1 rounded-xl bg-surface-2 p-1">
+        {SEASONAL.map(o => (
+          <button key={o.id} type="button" role="radio" aria-checked={pref === o.id} onClick={() => set({ seasonalTheme: o.id })}
+            className={`min-h-11 rounded-lg text-sm font-semibold ${pref === o.id ? 'bg-primary text-white' : 'text-muted'}`}>{o.label}</button>
+        ))}
+      </div>
+      <p className="mt-1 text-xs text-faint">
+        {pref === 'off' ? 'Sem decorações de época.'
+          : pref === 'on' ? 'Halloween o ano todo: aranha, morcegos, teias, gatinhos de chapéu de bruxa e uma abóbora escondida no Início.'
+          : `Halloween de 20 a 31 de outubro${on ? ' (valendo agora)' : ''}: aranha, morcegos, teias, gatinhos de chapéu de bruxa e uma abóbora escondida no Início.`}
+      </p>
+      {pref !== 'off' && (
+        <>
+          <Toggle label="Cores de abóbora" checked={settings.seasonalColors ?? true} onChange={v => set({ seasonalColors: v })} />
+          <Toggle label="Também durante o treino (só uma abóbora parada)" checked={settings.seasonalInWorkout ?? true} onChange={v => set({ seasonalInWorkout: v })} />
+        </>
+      )}
     </div>
   );
 }

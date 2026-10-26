@@ -13,6 +13,7 @@
         if (light) document.querySelector('meta[name="theme-color"]').setAttribute('content', '#f4f4f5');
         var accent = localStorage.getItem('tp-accent');
         if (accent && /^#[0-9a-f]{6}$/i.test(accent)) document.documentElement.style.setProperty('--color-primary', accent);
+        if (localStorage.getItem('tp-season') === 'halloween') document.documentElement.dataset.season = 'halloween';
       } catch (e) {}
     </script>
     <link rel="icon" href="./icon-192.png" />
