@@ -305,3 +305,10 @@ T20	Volume do treino ao vivo no fim da barra de progresso, somando as séries ma
 T21	Carga relativa ao peso do corpo: 1RM ou maior série como % do peso daquele dia, na evolução do exercício	Baixa
 T22	Aquecimento no volume, como opção desligada por padrão (recordes continuam ignorando o aquecimento)	Baixa
 T23	Pilha de pesos da máquina: os pesos que o pino realmente escolhe, e a progressão e os botões de carga caem só neles	Baixa
+
+U. Ajustes pedidos por usuários (01/11/2026)
+#	Sugestão	Prioridade
+U1	✅ (01/11/2026: selo ⏱ no cartão do treino e item no menu ⋯, painel Padrão/Sem/Próprio com "Guardar no plano"; botão no Plano; resumo mostra quando foge do padrão; descanso 0 do plano passou a valer) Descanso por exercício fácil de achar e mudar	Alta
+U2	✅ (01/11/2026: o treino abre no começo da faixa; o topo é a meta no motivo) Repetições pré-preenchidas no mínimo da faixa, não no máximo	Alta
+U3	✅ (01/11/2026: no máximo uma subida por semana por exercício; incremento Auto de 1 kg abaixo de 20 kg; deload só com série abaixo da faixa; docs/dev/progressao.md) Progressão mais gradual e natural: subia mais de uma vez na mesma semana e em degraus altos, principalmente para mulheres	Alta
+U4	Pendente, decisão dos sócios: coletar a opinião dos usuários sem perguntar pessoalmente. Ideia: Perfil → "Enviar opinião" (nota de 1 a 5, o que gosta, o que melhorar, versão) e um convite discreto no fim do treino (depois do 5º treino, no máximo 1 vez por mês). Falta escolher o canal: WhatsApp (abre a conversa com a mensagem pronta), Google Forms (respostas numa planilha) ou e-mail; o app continua sem servidor próprio	Alta

@@ -94,6 +94,17 @@ export function updateExercise(plan: Plan, dayKey: DayKey, id: string, patch: Pa
   return mapDay(plan, dayKey, day => ({ ...day, exercises: day.exercises.map(e => (e.id === id ? { ...e, ...patch } : e)) }));
 }
 
+/** Descanso do exercício no plano: `undefined` = o padrão do app, 0 = sem cronômetro. */
+export function setPlanExerciseRest(plan: Plan, dayKey: DayKey, id: string, seconds: number | undefined): Plan {
+  return mapDay(plan, dayKey, day => {
+    const ex = day.exercises.find(e => e.id === id);
+    if (!ex || ex.restSeconds === seconds) return day;
+    const { restSeconds: _old, ...rest } = ex;
+    const next: PlanExercise = seconds === undefined ? rest : { ...rest, restSeconds: Math.min(600, Math.max(0, Math.round(seconds))) };
+    return { ...day, exercises: day.exercises.map(e => (e.id === id ? next : e)) };
+  });
+}
+
 export function removeExercise(plan: Plan, dayKey: DayKey, id: string): Plan {
   return mapDay(plan, dayKey, day => (day.exercises.some(e => e.id === id) ? { ...day, exercises: day.exercises.filter(e => e.id !== id) } : day));
 }

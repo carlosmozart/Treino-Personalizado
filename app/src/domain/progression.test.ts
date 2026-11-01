@@ -46,9 +46,10 @@ describe('progressão dupla', () => {
     expect(suggest([workout('2026-10-01', 'Supino', [[10, 40], [10, 40], [10, 40]])], { increment: 1.25 })).toMatchObject({ kind: 'up', weight: 41.25 });
   });
 
-  it('uma série abaixo do topo: mantém e mira o topo', () => {
+  it('uma série abaixo do topo: mantém, mira o topo e abre no começo da faixa', () => {
     const p = suggest([workout('2026-10-01', 'Supino', [[12, 40], [10, 40], [9, 40]])], { repMin: 8, repMax: 12 });
-    expect(p).toMatchObject({ kind: 'keep', weight: 40, reps: 12 });
+    expect(p).toMatchObject({ kind: 'keep', weight: 40, reps: 8 });
+    expect(p?.reason).toContain('busque 12 reps');
     expect(p?.reason).toContain('12 · 10 · 9');
   });
 
@@ -116,28 +117,34 @@ describe('treino abre com a sugestão', () => {
   };
 
   it('ligada: carga e reps sugeridas, com o porquê', () => {
-    const ex = startSession(data(), 'p1', 'QUA', now, 's1')!.exercises[0]!;
+    const ex = startSession(data(), 'p1', 'QUA', new Date(2026, 9, 8, 10), 's1')!.exercises[0]!;
     expect(ex.sets.map(s => [s.weight, s.reps])).toEqual([[42.5, 8], [42.5, 8], [42.5, 8]]);
     expect(ex.progression?.reason).toBe('+2,5 kg: 10 reps nas 3 séries.');
   });
 
-  it('do plano (M13): carga e topo da faixa como estão no plano', () => {
+  it('menos de uma semana com a carga: mantém, mesmo no topo, e diz quando sobe', () => {
+    const ex = startSession(data(), 'p1', 'QUA', now, 's1')!.exercises[0]!;
+    expect(ex.sets.map(s => [s.weight, s.reps])).toEqual([[40, 8], [40, 8], [40, 8]]);
+    expect(ex.progression?.reason).toBe('Mantém 40 kg: 10 reps em todas, mas essa carga é de 6 dias atrás. Sobe a partir de 08/10 (no máximo uma vez por semana).');
+  });
+
+  it('do plano (M13): carga do plano e o começo da faixa', () => {
     const d = data();
     d.settings.loadSource = 'plan';
     const ex = startSession(d, 'p1', 'QUA', now, 's1')!.exercises[0]!;
-    expect(ex.sets.map(s => [s.weight, s.reps])).toEqual([[20, 10], [20, 10], [20, 10]]);
+    expect(ex.sets.map(s => [s.weight, s.reps])).toEqual([[20, 8], [20, 8], [20, 8]]);
     expect(ex.progression).toBeUndefined();
   });
 
   it('última vez (M13) vale como a progressão desligada', () => {
     const d = data();
     d.settings.loadSource = 'last';
-    expect(startSession(d, 'p1', 'QUA', now, 's1')!.exercises[0]!.sets[0]).toMatchObject({ weight: 40, reps: 10 });
+    expect(startSession(d, 'p1', 'QUA', now, 's1')!.exercises[0]!.sets[0]).toMatchObject({ weight: 40, reps: 8 });
   });
 
-  it('desligada: carga da última sessão e reps do plano, sem aviso', () => {
+  it('desligada: carga da última sessão e o começo da faixa, sem aviso', () => {
     const ex = startSession(data(false), 'p1', 'QUA', now, 's1')!.exercises[0]!;
-    expect(ex.sets.map(s => [s.weight, s.reps])).toEqual([[40, 10], [40, 10], [40, 10]]);
+    expect(ex.sets.map(s => [s.weight, s.reps])).toEqual([[40, 8], [40, 8], [40, 8]]);
     expect(ex.progression).toBeUndefined();
   });
 });
@@ -189,6 +196,8 @@ describe('progressão linear (M10)', () => {
     d.plans.p1!.progression = 'linear';
     d.plans.p1!.days.QUA.exercises = [planExercise('e1', 'Supino', { repMin: 8, repMax: 10 })];
     d.workouts = [workout('2026-10-01', 'Supino', [[10, 40], [10, 40], [10, 40]])];
-    expect(startSession(d, 'p1', 'QUA', new Date(2026, 9, 7, 10), 's1')!.exercises[0]!.sets[0]).toMatchObject({ weight: 42.5, reps: 10 });
+    expect(startSession(d, 'p1', 'QUA', new Date(2026, 9, 8, 10), 's1')!.exercises[0]!.sets[0]).toMatchObject({ weight: 42.5, reps: 10 });
+    // linear também sobe no máximo uma vez por semana; as reps fixas continuam as do plano
+    expect(startSession(d, 'p1', 'QUA', new Date(2026, 9, 7, 10), 's1')!.exercises[0]!.sets[0]).toMatchObject({ weight: 40, reps: 10 });
   });
 });

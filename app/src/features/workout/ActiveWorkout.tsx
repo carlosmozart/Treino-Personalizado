@@ -260,7 +260,7 @@ function ProgressionNotice({ session }: { session: ActiveSession }) {
       <h2 className="font-bold">Novidade: carga sugerida</h2>
       <p className="mt-1 text-sm text-muted">
         O treino agora abre com a carga sugerida pelo seu histórico. A linha embaixo de cada exercício diz o porquê:
-        sobe quando você fez todas as repetições, mantém quando faltou alguma. Dá para mudar em Perfil → Treino.
+        sobe quando você fez todas as repetições do topo da faixa (no máximo uma vez por semana), mantém quando faltou alguma. Dá para mudar em Perfil → Treino.
       </p>
       <div className="mt-3 flex flex-wrap gap-2">
         <button type="button" onClick={() => dismiss(false)} className="h-11 rounded-xl bg-primary px-4 font-bold text-white">Entendi</button>

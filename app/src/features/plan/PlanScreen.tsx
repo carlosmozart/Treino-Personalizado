@@ -6,7 +6,7 @@ import { newId } from '../../domain/ids';
 import { DAY_FULL_NAMES, MAX_EXERCISES_PER_DAY, dayKeyOf, trainingDaysPerWeek, type Plan, type PlanExercise } from '../../domain/model';
 import {
   addAlternative, addExercise, duplicateExercise, insertExercise, blankPlan, clearDay, deletePlan, duplicatePlan, editPlan, moveExercise, newPlanExercise, optionalHint,
-  removeAlternative, removeExercise, updateDay, updateExercise
+  removeAlternative, removeExercise, setPlanExerciseRest, updateDay, updateExercise
 } from '../../domain/plan-edit';
 import { EXERCISE_LIBRARY } from '../../data/exercise-library';
 import { useAppStore } from '../../store';
@@ -18,14 +18,15 @@ import { AiReviewSheet } from './AiReviewSheet';
 import { TemplateSheet } from './TemplateSheet';
 import { PlanFileActions } from './PlanFileActions';
 import { NumberField } from '../../ui/NumberField';
-import { DEFAULT_INCREMENT, INCREMENTS, editRange, rangeFields, repRange, settleRange } from '../../domain/progression';
+import { INCREMENTS, editRange, rangeFields, repRange, settleRange } from '../../domain/progression';
 import { Sheet, SheetAction } from '../../ui/Sheet';
 import { SwipeRow } from '../../ui/SwipeRow';
 import { searchNames } from '../../domain/search';
 import { supersetBlock, toggleSupersetWithNext } from '../../domain/session';
 import { useSearchPool } from '../../hooks/use-search-pool';
 import { addSlot, canRemoveSlot, disableRotation, enableRotation, MAX_ROTATION_SLOTS, moveSlot, removeSlot, restartRotation, REST_SLOT, rotationLetter, rotationOrder, rotationSlots as rotationSlotsOf, rotationState, rotationTitle, setRotationPerWeek } from '../../domain/rotation';
-import { dayTitle, formatNumber, plural } from '../../ui/format';
+import { dayTitle, formatClock, formatNumber, plural } from '../../ui/format';
+import { RestSheet, restLabel } from '../../ui/RestSheet';
 
 const ALL_NAMES = [...new Set(Object.values(EXERCISE_LIBRARY).flat())];
 
@@ -327,6 +328,7 @@ function DayCard({ plan, dayKey, today, edit, rotation }: { plan: Plan; dayKey: 
               onToggleSuperset={() => edit(p => ({ ...p, days: { ...p.days, [dayKey]: { ...p.days[dayKey], exercises: toggleSupersetWithNext(p.days[dayKey].exercises, i, () => newId('ss')) } } }))}
               onDuplicate={() => edit(p => duplicateExercise(p, dayKey, ex.id, newId('ex')))}
               onToggle={() => setOpenId(openId === ex.id ? null : ex.id)}
+              onRest={seconds => edit(p => setPlanExerciseRest(p, dayKey, ex.id, seconds))}
               onChange={patch => edit(p => updateExercise(p, dayKey, ex.id, patch))}
               onMove={delta => edit(p => moveExercise(p, dayKey, ex.id, delta))}
               onRemove={() => { setOpenId(null); edit(p => removeExercise(p, dayKey, ex.id)); }}
@@ -379,11 +381,13 @@ function DayCard({ plan, dayKey, today, edit, rotation }: { plan: Plan; dayKey: 
   );
 }
 
-function summary(ex: PlanExercise): string {
+/** Resumo do exercício recolhido; o descanso só aparece quando é diferente do padrão do app. */
+function summary(ex: PlanExercise, defaultRest: number): string {
   if (ex.mode === 'cardio') return `${ex.minutes} min${ex.km ? ` · ${formatNumber(ex.km)} km` : ''}`;
-  if (ex.mode === 'time') return `${ex.sets} × ${ex.seconds ?? 30} s`;
+  const rest = ex.restSeconds === undefined || ex.restSeconds === defaultRest ? '' : ` · descanso ${ex.restSeconds === 0 ? 'sem cronômetro' : formatClock(ex.restSeconds)}`;
+  if (ex.mode === 'time') return `${ex.sets} × ${ex.seconds ?? 30} s${rest}`;
   const { min, max } = repRange(ex);
-  return `${ex.sets} × ${min === max ? max : `${min}–${max}`}${ex.perSide ? ' por lado' : ''}${ex.weight ? ` · ${formatNumber(ex.weight)} kg` : ''}`;
+  return `${ex.sets} × ${min === max ? max : `${min}–${max}`}${ex.perSide ? ' por lado' : ''}${ex.weight ? ` · ${formatNumber(ex.weight)} kg` : ''}${rest}`;
 }
 
 interface RowProps {
@@ -391,12 +395,16 @@ interface RowProps {
   superset: { pos: number; size: number } | null; linkedToNext: boolean; onToggleSuperset: () => void;
   onSwipeRemove: () => void; onDuplicate: () => void;
   onToggle: () => void; onChange: (patch: Partial<PlanExercise>) => void; onMove: (delta: -1 | 1) => void; onRemove: () => void;
+  /** Descanso do exercício: `undefined` = o padrão do app, 0 = sem cronômetro. */
+  onRest: (seconds: number | undefined) => void;
   onAddAlt: (name: string) => void; onRemoveAlt: (index: number) => void;
 }
 
 /** Exercício recolhido; ao tocar abre os campos (O25). */
-function ExerciseRow({ ex, open, first, last, swipe, superset, linkedToNext, onToggleSuperset, onSwipeRemove, onDuplicate, onToggle, onChange, onMove, onRemove, onAddAlt, onRemoveAlt }: RowProps) {
+function ExerciseRow({ ex, open, first, last, swipe, superset, linkedToNext, onToggleSuperset, onSwipeRemove, onDuplicate, onToggle, onChange, onMove, onRemove, onRest, onAddAlt, onRemoveAlt }: RowProps) {
   const [alt, setAlt] = useState('');
+  const [restOpen, setRestOpen] = useState(false);
+  const defaultRest = useAppStore(s => s.data?.settings.restSeconds ?? 90);
   // faixa de reps (M10): cada campo grava o seu número a cada tecla; inversão só se acerta ao sair do campo
   const settle = (side: 'min' | 'max') => { const patch = settleRange(ex, side); if (patch) onChange(patch); };
   const listId = useId();
@@ -410,7 +418,7 @@ function ExerciseRow({ ex, open, first, last, swipe, superset, linkedToNext, onT
       <button type="button" onClick={onToggle} aria-expanded={open} className="flex min-h-12 w-full items-center gap-2 text-left">
         <span className="min-w-0 flex-1">
           <span className="block truncate font-semibold">{ex.name}</span>
-          <span className="block text-sm text-muted">{summary(ex)}{superset ? ` · superset ${superset.pos}/${superset.size}` : ''}</span>
+          <span className="block text-sm text-muted">{summary(ex, defaultRest)}{superset ? ` · superset ${superset.pos}/${superset.size}` : ''}</span>
         </span>
         <Icon name={open ? 'subir' : 'descer'} className="size-5 shrink-0 text-faint" />
       </button>
@@ -437,14 +445,22 @@ function ExerciseRow({ ex, open, first, last, swipe, superset, linkedToNext, onT
               <>
                 {field('Carga (kg)', ex.weight, weight => onChange({ weight }), true)}
                 <label className="text-xs font-semibold text-muted">Subir (kg)
-                  <select value={ex.increment ?? DEFAULT_INCREMENT} onChange={e => onChange({ increment: Number(e.target.value) })} aria-label={`Quanto subir a carga de ${ex.name}`}
+                  <select value={ex.increment || ''} onChange={e => onChange(e.target.value ? { increment: Number(e.target.value) } : { increment: 0 })} aria-label={`Quanto subir a carga de ${ex.name}`}
                     className="mt-1 h-11 w-full rounded-xl border border-line bg-surface-2 px-2 text-base text-ink">
+                    {/* Auto: 1 kg abaixo de 20 kg e 2,5 kg a partir daí (incrementFor) */}
+                    <option value="">Auto</option>
                     {INCREMENTS.map(n => <option key={n} value={n}>{formatNumber(n)}</option>)}
                   </select>
                 </label>
               </>
             )}
-            {field('Descanso (s)', ex.restSeconds ?? 90, restSeconds => onChange({ restSeconds }))}
+            <div className="text-xs font-semibold text-muted">Descanso
+              <button type="button" onClick={() => setRestOpen(true)} aria-label={`Descanso de ${ex.name}: ${restLabel(ex.restSeconds, defaultRest)}. Mudar`}
+                className="mt-1 flex h-11 w-full items-center justify-center gap-1 rounded-xl border border-line bg-surface-2 px-2 text-base font-normal text-ink">
+                <Icon name="relogio" className="size-4 text-muted" />{ex.restSeconds === undefined ? formatClock(defaultRest) : ex.restSeconds === 0 ? 'Sem' : formatClock(ex.restSeconds)}
+              </button>
+            </div>
+            <RestSheet open={restOpen} title={ex.name} seconds={ex.restSeconds} fallback={defaultRest} onClose={() => setRestOpen(false)} onSave={s => onRest(s)} />
           </div>
           <label className="mt-2 block text-xs font-semibold text-muted">Dica
             <input value={ex.tip ?? ''} placeholder="Execução ou substituição" onChange={e => onChange({ tip: e.target.value })}

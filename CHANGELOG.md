@@ -6,6 +6,13 @@ Todas as mudanças relevantes do app ficam registradas aqui. Ao lançar uma nova
    atualizar o app instalado
 3. Adicione uma entrada aqui, nesse formato
 
+## Não lançado
+
+- Descanso por exercício à vista: no treino, o cartão de cada exercício mostra o descanso (⏱ 1:30); um toque escolhe o padrão, sem cronômetro ou um tempo próprio, e guarda no plano para os próximos treinos. O mesmo no Plano, e o resumo do exercício mostra o descanso quando é diferente do padrão.
+- Faixa de repetições: o treino abre no começo da faixa (8 numa faixa de 8 a 12); o topo continua sendo a meta.
+- Progressão mais gradual: a carga sobe no máximo uma vez por semana em cada exercício, e sem incremento escolhido sobe 1 kg em cargas abaixo de 20 kg (2,5 kg a partir daí). Ficar dentro da faixa não leva mais a deload; só uma série abaixo dela.
+- Corrigido: descanso 0 num exercício do plano caía no descanso padrão em vez de ficar sem cronômetro.
+
 ## [3.19.0] - 2026-10-26
 
 - Plano → Rotação → "Ordem da volta": dias de descanso dentro da rotação e o mesmo treino mais de uma vez (A → B → descanso → C → B). No descanso, o Início mostra "Descanso da rotação" com o próximo treino e "Treinar mesmo assim"; os lembretes não tocam e a sequência não quebra.

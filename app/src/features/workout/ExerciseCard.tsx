@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
 import { SWAP_EQUIPMENT, fitsEquipment, groupOf, guessGroup, swapSuggestions } from '../../data/exercise-library';
 import {
-  addSet, afterSet, restAfterSet, supersetBlock, toggleSupersetWithNext, addWarmupSet, adjustWeights, removeWarmupSet, completeExercise, isExerciseDone, duplicateSet, insertSet, removeExerciseFromSession, removeSet, setNote, swapExercise, toggleFailure, toggleSet, updateCardio, updateSet,
+  addSet, afterSet, restAfterSet, setExerciseRest, supersetBlock, toggleSupersetWithNext, addWarmupSet, adjustWeights, removeWarmupSet, completeExercise, isExerciseDone, duplicateSet, insertSet, removeExerciseFromSession, removeSet, setNote, swapExercise, toggleFailure, toggleSet, updateCardio, updateSet,
   type ActiveSession, type SessionExercise, type SessionSet
 } from '../../domain/session';
 import { bestSet, lastSessionBefore, sessionsOf, suspiciousWeight, workSets } from '../../domain/workouts';
@@ -11,6 +11,8 @@ import { NumberField } from '../../ui/NumberField';
 import { ExerciseIllustration, ExerciseThumb, hasIllustration } from '../../ui/ExerciseIllustration';
 import { markBigWeightJump, toggleFavorite, updateSettings } from '../../domain/actions';
 import { Sheet, SheetAction } from '../../ui/Sheet';
+import { RestSheet, restLabel } from '../../ui/RestSheet';
+import { editPlan, setPlanExerciseRest } from '../../domain/plan-edit';
 import { formatClock, formatNumber, relativeDate, shortDate } from '../../ui/format';
 import { useRestStore } from './rest-store';
 import { PlateSheet } from './PlateSheet';
@@ -66,6 +68,15 @@ export function ExerciseCard({ session, index, alwaysOpen = false, onGoTo }: Pro
   const [tipOpen, setTipOpen] = useState(false);
   const [platesOpen, setPlatesOpen] = useState(false);
   const [historyOpen, setHistoryOpen] = useState(false);
+  const [restOpen, setRestOpen] = useState(false);
+  const defaultRest = data?.settings.restSeconds ?? 90;
+  // o descanso pode ir para o plano quando o exercício é o do plano (não trocado nem acrescentado)
+  const planSlot = data?.plans[session.planId]?.days[session.dayKey]?.exercises.find(p => p.id === ex.slotId);
+  const canSavePlan = !!planSlot && !ex.swappedFrom;
+  const saveRest = (seconds: number | undefined, toPlan: boolean) => {
+    update(s => setExerciseRest(s, index, seconds));
+    if (toPlan && planSlot) run((d, now) => editPlan(d, session.planId, p => setPlanExerciseRest(p, session.dayKey, planSlot.id, seconds), now));
+  };
   const block = supersetBlock(session.exercises, index);
   // S6 + openGym 1.4.1: a busca põe primeiro o que você já fez (e acha nomes digitados à mão)
   const pool = useSearchPool();
@@ -168,6 +179,12 @@ export function ExerciseCard({ session, index, alwaysOpen = false, onGoTo }: Pro
               </span>
             )}
             {best && <span className="rounded-full bg-surface-2 px-2 py-0.5 text-muted">Melhor: {formatNumber(best.weight)} kg × {best.reps}</span>}
+            {ex.mode !== 'cardio' && (
+              <button type="button" onClick={() => setRestOpen(true)} aria-label={`Descanso de ${ex.name}: ${restLabel(ex.restSeconds, defaultRest)}. Mudar`}
+                className="flex items-center gap-1 rounded-full bg-surface-2 px-2 py-0.5 text-muted">
+                <Icon name="relogio" className="size-3.5" />{ex.restSeconds === undefined ? formatClock(defaultRest) : restLabel(ex.restSeconds, defaultRest)}
+              </button>
+            )}
           </div>
           {last && (
             <button type="button" onClick={() => setShowDate(v => !v)} title={last.date} aria-label={`Última vez em ${last.date}: ${last.sets}`}
@@ -256,6 +273,8 @@ export function ExerciseCard({ session, index, alwaysOpen = false, onGoTo }: Pro
       )}
       {tipOpen && ex.tip && <p className="mt-3 rounded-xl bg-surface-2 p-3 text-sm text-info">{ex.tip}</p>}
 
+      <RestSheet open={restOpen} title={ex.name} seconds={ex.restSeconds} fallback={defaultRest} toPlan={canSavePlan}
+        onClose={() => setRestOpen(false)} onSave={saveRest} />
       <Sheet title={ex.name} open={menu} onClose={close}>
         {ex.mode !== 'cardio' && <>
           <SheetAction onClick={() => { update(s => completeExercise(s, index, !done)); close(); }}>
@@ -272,6 +291,9 @@ export function ExerciseCard({ session, index, alwaysOpen = false, onGoTo }: Pro
         </>}
         {ex.mode === 'reps' && isBarbell(ex.name) && (
           <SheetAction onClick={() => { close(); setPlatesOpen(true); }}><Icon name="treino" />Anilhas na barra</SheetAction>
+        )}
+        {ex.mode !== 'cardio' && (
+          <SheetAction onClick={() => { close(); setRestOpen(true); }}><Icon name="relogio" />Descanso deste exercício: {restLabel(ex.restSeconds, defaultRest)}</SheetAction>
         )}
         <SheetAction onClick={() => { close(); setSwapOpen(true); }}><Icon name="trocar" />Trocar exercício</SheetAction>
         {/* M26: favoritos aparecem primeiro na troca e nas buscas */}

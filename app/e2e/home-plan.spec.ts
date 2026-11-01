@@ -91,7 +91,7 @@ test('plano: apagar e redigitar a faixa de reps, como no teclado do celular', as
   await max.fill('6');
   await min.focus();
   await expect(min).toHaveValue('6');
-  await expect(page.getByText('3 × 6', { exact: true }).first()).toBeVisible();
+  await expect(page.getByText(/^3 × 6( · descanso 2:00)?$/).first()).toBeVisible();
 });
 
 test('biblioteca: filtrar, adicionar a um dia do plano e criar exercício próprio', async ({ page }) => {

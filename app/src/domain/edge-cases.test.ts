@@ -63,7 +63,8 @@ describe('progressão: incremento e arredondamento', () => {
 });
 
 describe('progressão: estagnação e deload', () => {
-  const stalled = (w: number) => ['2026-10-06', '2026-10-13', '2026-10-20'].map(d => session(d, [[10, w], [9, w], [8, w]]));
+  // faixa 8–12: uma série abaixo do começo da faixa (7) é regressão de verdade
+  const stalled = (w: number) => ['2026-10-06', '2026-10-13', '2026-10-20'].map(d => session(d, [[9, w], [8, w], [7, w]]));
 
   test('três sessões na mesma carga sem evoluir pedem −10%, arredondado para baixo no incremento', () => {
     expect(suggest(stalled(40))).toMatchObject({ kind: 'deload', weight: 35 });
@@ -76,13 +77,20 @@ describe('progressão: estagnação e deload', () => {
   });
 
   test('carga tão leve que o −10% daria zero: mantém, em vez de sugerir 0 kg', () => {
-    const s = suggest(stalled(2.5));
+    const s = suggest(stalled(1));
     expect(s?.kind).toBe('keep');
-    expect(s?.weight).toBe(2.5);
+    expect(s?.weight).toBe(1);
+    // com o degrau automático de 1 kg, 2,5 kg já tem para onde baixar
+    expect(suggest(stalled(2.5))).toMatchObject({ kind: 'deload', weight: 2 });
   });
 
   test('duas sessões paradas ainda não são estagnação', () => {
     expect(suggest(stalled(40).slice(1))).toMatchObject({ kind: 'keep', weight: 40 });
+  });
+
+  test('ficar dentro da faixa (10 · 9 · 8 em 8–12) não é estagnação: o treino já abre no começo dela', () => {
+    const h = ['2026-10-06', '2026-10-13', '2026-10-20'].map(d => session(d, [[10, 40], [9, 40], [8, 40]]));
+    expect(suggest(h)).toMatchObject({ kind: 'keep', weight: 40, reps: 8 });
   });
 
   test('repetições crescendo na mesma carga não são estagnação', () => {

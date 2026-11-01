@@ -80,12 +80,14 @@ function initialSets(data: AppData, name: string, mode: ExerciseMode, plan: Plan
   const last = lastSessionBefore(progressionWorkouts(data.workouts), key, date);
   const lastSets = last ? workSets(last.entry) : [];
   const count = plan?.sets || lastSets.length || 3;
-  let reps = mode === 'time' ? (plan?.seconds ?? lastSets[0]?.reps ?? 30) : (plan?.reps || lastSets[0]?.reps || 10);
+  // faixa de reps: abre no começo (8 de 8–12); o topo é a meta. Linear: as reps fixas do plano
+  const planReps = plan && mode === 'reps' ? (plan.linear ? repRange(plan).max : repRange(plan).min) : plan?.reps;
+  let reps = mode === 'time' ? (plan?.seconds ?? lastSets[0]?.reps ?? 30) : (planReps || lastSets[0]?.reps || 10);
   let weight = lastSets.length ? lastSets[lastSets.length - 1]!.weight : (plan?.weight ?? 0);
   const source = loadSourceOf(data.settings);
   if (source === 'plan' && plan) {
     weight = plan.weight;
-    if (mode === 'reps') reps = repRange(plan).max;
+    if (mode === 'reps') reps = planReps ?? reps;
   }
   const progression = mode === 'reps' && plan && source === 'auto' && !isDeloadDate(data, date)
     ? suggestProgression(data.workouts, key, plan, date) ?? undefined
@@ -110,7 +112,8 @@ function fromPlanExercise(data: AppData, ex: PlanExercise, date: DateKey, linear
   out.sets = start.sets;
   if (start.progression) out.progression = start.progression;
   if (ex.mode === 'time' && ex.seconds) out.seconds = ex.seconds;
-  if (ex.restSeconds) out.restSeconds = ex.restSeconds;
+  // 0 = sem cronômetro neste exercício (antes caía no descanso padrão)
+  if (ex.restSeconds !== undefined) out.restSeconds = ex.restSeconds;
   if (ex.tip) out.tip = ex.tip;
   if (ex.superset) out.superset = ex.superset;
   if (ex.perSide && ex.mode === 'reps') {
@@ -199,7 +202,7 @@ export function repeatSession(data: AppData, workout: Workout, now: Date, id: st
     };
     if (entry.mode === 'cardio') ex.cardio = { minutes: entry.cardio?.minutes ?? 20, km: entry.cardio?.km ?? 0, done: false };
     if (entry.mode === 'time' && entry.sets[0]) ex.seconds = entry.sets[0].reps;
-    if (planEx?.restSeconds) ex.restSeconds = planEx.restSeconds;
+    if (planEx?.restSeconds !== undefined) ex.restSeconds = planEx.restSeconds;
     if (planEx?.tip) ex.tip = planEx.tip;
     if (entry.perSide) ex.perSide = true;
     return ex;
@@ -208,6 +211,15 @@ export function repeatSession(data: AppData, workout: Workout, now: Date, id: st
     id, date: toDateKey(now), startedAt: now.toISOString(), planId, dayKey,
     dayName: workout.dayName || 'Treino repetido', exercises
   };
+}
+
+/** Descanso só deste exercício no treino: `undefined` volta ao padrão, 0 = sem cronômetro. */
+export function setExerciseRest(s: ActiveSession, index: number, seconds: number | undefined): ActiveSession {
+  return mapExercise(s, index, ex => {
+    if (ex.restSeconds === seconds) return ex;
+    const { restSeconds: _old, ...rest } = ex;
+    return seconds === undefined ? rest : { ...rest, restSeconds: Math.min(600, Math.max(0, Math.round(seconds))) };
+  });
 }
 
 function mapExercise(s: ActiveSession, index: number, fn: (ex: SessionExercise) => SessionExercise): ActiveSession {
@@ -368,7 +380,7 @@ export function swapExercise(s: ActiveSession, data: AppData, exIndex: number, n
     const start = initialSets(data, name, mode, planEx && mode === planEx.mode ? { ...planEx, weight: 0, linear: data.plans[s.planId]?.progression === 'linear' } : null, s.date);
     swapped.sets = start.sets;
     if (start.progression) swapped.progression = start.progression;
-    if (ex.restSeconds) swapped.restSeconds = ex.restSeconds;
+    if (ex.restSeconds !== undefined) swapped.restSeconds = ex.restSeconds;
     if (ex.tip) swapped.tip = ex.tip;
     if (ex.superset) swapped.superset = ex.superset;
     if (mode === 'cardio') swapped.cardio = { minutes: planEx?.minutes || 20, km: 0, done: false };
