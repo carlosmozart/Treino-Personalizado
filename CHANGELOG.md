@@ -6,7 +6,7 @@ Todas as mudanças relevantes do app ficam registradas aqui. Ao lançar uma nova
    atualizar o app instalado
 3. Adicione uma entrada aqui, nesse formato
 
-## Não lançado
+## [3.20.0] - 2026-11-01
 
 - Descanso por exercício à vista: no treino, o cartão de cada exercício mostra o descanso (⏱ 1:30); um toque escolhe o padrão, sem cronômetro ou um tempo próprio, e guarda no plano para os próximos treinos. O mesmo no Plano, e o resumo do exercício mostra o descanso quando é diferente do padrão.
 - Faixa de repetições: o treino abre no começo da faixa (8 numa faixa de 8 a 12); o topo continua sendo a meta.

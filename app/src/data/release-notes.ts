@@ -3,6 +3,15 @@ export interface ReleaseNote { version: string; date: string; items: string[] }
 
 export const RELEASE_NOTES: readonly ReleaseNote[] = [
   {
+    version: '3.20.0',
+    date: '2026-11',
+    items: [
+      'Descanso de cada exercício à vista no treino (⏱ 1:30): toque para mudar e guardar no plano.',
+      'Faixa de 8 a 12? O treino agora abre no 8; o 12 é a meta.',
+      'Carga sugerida mais gradual: no máximo uma subida por semana em cada exercício, e de 1 kg em cargas leves.'
+    ]
+  },
+  {
     version: '3.19.0',
     date: '2026-10',
     items: [
