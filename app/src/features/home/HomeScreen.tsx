@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { YearReviewCard } from '../year-review/YearReview';
 import { AdventSlot } from '../seasonal/SeasonalLayer';
 import { addWater, toggleCheckin } from '../../domain/actions';
 import { progressCard, todayCard, waterCard, weekStrip, weightCard, type WeightCard as WeightData } from '../../domain/home';
@@ -46,6 +47,7 @@ export function HomeScreen() {
       <HomeNotices />
       <WeekStrip />
       {!planFirst && today}
+      <YearReviewCard />
       <AdventSlot />
       <PlanSection onChoose={setChooser} />
       <ProgressSection />

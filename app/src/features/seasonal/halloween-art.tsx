@@ -1,13 +1,17 @@
 // Desenhos do Halloween, feitos à mão em SVG. As cores do corpo vêm das variáveis --hw-* do
 // halloween.css (contorno claro no tema escuro, para o bicho preto não sumir no fundo).
 
+/** Cor do gatinho: branco por padrão; o preto é só do Halloween. */
+export type CatColor = 'branco' | 'preto';
+
 /**
- * Gatinho preto sentado, com chapéu de bruxa (ou, no Natal, gorro de Papai Noel); o rabo balança e
- * os olhos piscam (halloween.css).
+ * Gatinho sentado, com chapéu de bruxa (ou, no Natal, gorro de Papai Noel); o rabo balança e os
+ * olhos piscam (halloween.css). Branco por padrão, de olhos azuis; preto, de olhos amarelos, no Halloween.
  */
-export function WitchCat({ size = 56, className = '', hat = 'bruxa' }: { size?: number; className?: string; hat?: 'bruxa' | 'noel' }) {
+export function WitchCat({ size = 56, className = '', hat = 'bruxa', color = 'branco' }: { size?: number; className?: string; hat?: 'bruxa' | 'noel'; color?: CatColor }) {
+  const iris = color === 'preto' ? '#facc15' : '#38bdf8';
   return (
-    <svg viewBox="0 -14 60 78" width={size} height={size * 1.3} className={`hw-cat ${className}`} aria-hidden="true">
+    <svg viewBox="0 -14 60 78" width={size} height={size * 1.3} className={`hw-cat ${color === 'branco' ? 'hw-cat-white' : ''} ${className}`} aria-hidden="true">
       <path className="hw-tail" d="M40 57 C55 57 59 44 53 35 C51 32 47 33 48.5 36.5 C52.5 43.5 49.5 51 40 52 Z" />
       <path className="hw-body" d="M18 61 C13.5 50 16 38 24 33 L36 33 C44 38 46.5 50 42 61 Z" />
       <ellipse className="hw-body" cx="24.5" cy="61" rx="4.2" ry="2.6" />
@@ -16,8 +20,8 @@ export function WitchCat({ size = 56, className = '', hat = 'bruxa' }: { size?: 
       <path className="hw-body" d="M40.5 24 L45.5 11.5 L34.5 17.5 Z" />
       <circle className="hw-body" cx="30" cy="26" r="11" />
       <g className="hw-eyes">
-        <ellipse cx="25.5" cy="26" rx="3" ry="3.4" fill="#facc15" />
-        <ellipse cx="34.5" cy="26" rx="3" ry="3.4" fill="#facc15" />
+        <ellipse cx="25.5" cy="26" rx="3" ry="3.4" fill={iris} />
+        <ellipse cx="34.5" cy="26" rx="3" ry="3.4" fill={iris} />
         <ellipse cx="25.5" cy="26" rx="0.9" ry="2.6" fill="#111" />
         <ellipse cx="34.5" cy="26" rx="0.9" ry="2.6" fill="#111" />
       </g>

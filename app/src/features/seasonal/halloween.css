@@ -13,6 +13,10 @@
 }
 
 .hw-body { fill: var(--hw-body); stroke: var(--hw-rim); stroke-width: 0.8; stroke-linejoin: round; }
+/* gatinho branco (o padrão; o preto é só do Halloween): contorno cinza nos dois temas */
+.hw-tail { fill: var(--hw-body); stroke: var(--hw-rim); stroke-width: 0.8; stroke-linejoin: round; }
+.hw-cat-white .hw-body, .hw-cat-white .hw-tail { fill: #f8fafc; stroke: #94a3b8; }
+.hw-cat-white .hw-line, .hw-cat-white .hw-whisker { stroke: #94a3b8; }
 .hw-line { stroke: var(--hw-rim); stroke-width: 0.8; fill: none; stroke-linecap: round; }
 .hw-whisker { stroke: var(--hw-rim); stroke-width: 0.6; opacity: 0.8; stroke-linecap: round; }
 .hw-legs path { stroke: var(--hw-leg); stroke-width: 1.8; fill: none; stroke-linecap: round; }

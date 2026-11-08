@@ -6,7 +6,7 @@ import { useAppStore } from '../../store';
 import { ACCENTS } from '../../ui/theme';
 import { workoutCardBlob } from './workout-card-image';
 
-const APP_NAME = 'Treino Personalizado';
+export const APP_NAME = 'Treino Personalizado';
 
 /** S9: o treino como imagem (cartão com números, exercícios e recordes) para mandar ou postar. */
 export function ShareImageButton({ w, primary = false }: { w: Workout; primary?: boolean }) {

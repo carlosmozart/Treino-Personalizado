@@ -15,12 +15,12 @@ const RECORD = '#f59e0b';
 const LINE_H = 104;
 const FOOTER_H = 110;
 
-function fontFamily(): string {
+export function fontFamily(): string {
   return (typeof getComputedStyle === 'function' && getComputedStyle(document.body).fontFamily) || 'system-ui, sans-serif';
 }
 
 /** Corta o texto com reticências para caber na largura. */
-function fit(ctx: CanvasRenderingContext2D, text: string, width: number): string {
+export function fit(ctx: CanvasRenderingContext2D, text: string, width: number): string {
   if (ctx.measureText(text).width <= width) return text;
   let lo = 0, hi = text.length;
   while (lo < hi) {
@@ -31,7 +31,7 @@ function fit(ctx: CanvasRenderingContext2D, text: string, width: number): string
 }
 
 /** Quebra em até `max` linhas; a última leva reticências se sobrar texto. */
-function wrap(ctx: CanvasRenderingContext2D, text: string, width: number, max: number): string[] {
+export function wrap(ctx: CanvasRenderingContext2D, text: string, width: number, max: number): string[] {
   const words = text.split(/\s+/);
   const lines: string[] = [];
   let cur = '';

@@ -36,7 +36,7 @@ export default function Halloween({ mode, tab, today }: { mode: HalloweenMode; t
       {mode === 'full' && <SpiderDrop active={tab === 'inicio'} />}
       {mode === 'full' && !reduced && <Bats />}
       {mode === 'full' && tab === 'inicio' && <HiddenPumpkin today={today} />}
-      {mode === 'full' && <TabBarCat label="Gatinho de bruxa" lines={CAT_LINES} />}
+      {mode === 'full' && <TabBarCat label="Gatinho de bruxa" lines={CAT_LINES} color="preto" />}
       {(mode === 'summary' || (mode === 'full' && tab === 'progresso')) && (
         <div className="pointer-events-none absolute inset-x-0 top-0 z-10 overflow-hidden" style={{ height: 'calc(env(safe-area-inset-top) + 110px)' }}>
           <div className="relative mx-auto h-full max-w-xl">
@@ -217,7 +217,7 @@ function SummaryParty() {
   return (
     <div className="absolute right-4 flex items-end" style={{ top: 'calc(env(safe-area-inset-top) + 8px)' }}>
       <Pumpkin size={28} lit />
-      <WitchCat size={34} />
+      <WitchCat size={34} color="preto" />
       <Pumpkin size={24} lit />
     </div>
   );

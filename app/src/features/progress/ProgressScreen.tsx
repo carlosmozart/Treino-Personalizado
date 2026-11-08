@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { YearReviewLinks } from '../year-review/YearReview';
 import { deleteWorkout } from '../../domain/actions';
 import { fromDateKey } from '../../domain/dates';
 import type { Workout } from '../../domain/model';
@@ -101,6 +102,7 @@ function Stats() {
         )}
         <LibrarySheet open={libraryGroup !== null} group={libraryGroup} onClose={() => setLibraryGroup(null)} />
       </section>
+      <YearReviewLinks />
     </div>
   );
 }
