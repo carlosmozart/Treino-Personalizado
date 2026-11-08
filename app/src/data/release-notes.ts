@@ -3,6 +3,15 @@ export interface ReleaseNote { version: string; date: string; items: string[] }
 
 export const RELEASE_NOTES: readonly ReleaseNote[] = [
   {
+    version: '3.21.0',
+    date: '2026-11',
+    items: [
+      'Em dezembro o app entra no clima: neve, pisca-pisca, um gatinho de gorro e um presente escondido no Início para achar todo dia.',
+      'Calendário do advento de 1º a 24 de dezembro: uma porta por dia, com dicas, desafios, piadas e números do seu ano.',
+      'Perfil → Aparência → Temas de época: Halloween e Natal no automático, ou desligue quando quiser.'
+    ]
+  },
+  {
     version: '3.20.0',
     date: '2026-11',
     items: [

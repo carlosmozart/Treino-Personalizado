@@ -6,7 +6,7 @@ Todas as mudanças relevantes do app ficam registradas aqui. Ao lançar uma nova
    atualizar o app instalado
 3. Adicione uma entrada aqui, nesse formato
 
-## Não lançado
+## [3.21.0] - 2026-11-08
 
 - Tema de Natal, de 1º a 31 de dezembro: neve leve ao abrir o app, pisca-pisca no topo do Início e do Progresso, azevinho no canto, o gatinho de gorro de Papai Noel na barra de abas, um presente escondido no Início (achado, abre e solta confete, uma vez por dia), boneco de neve e um trenó passando no Progresso, e o gatinho entre presentes no fim do treino. No treino, só um presente parado.
 - Calendário do advento no Início, de 1º a 24 de dezembro: uma porta por dia com dicas, curiosidades, pequenos desafios, alongamentos, piadas e números do seu ano (treinos, toneladas, maior sequência); a de hoje brilha, as que passaram esperam e as do futuro ficam fechadas.
