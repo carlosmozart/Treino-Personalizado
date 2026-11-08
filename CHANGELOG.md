@@ -6,7 +6,7 @@ Todas as mudanças relevantes do app ficam registradas aqui. Ao lançar uma nova
    atualizar o app instalado
 3. Adicione uma entrada aqui, nesse formato
 
-## Não lançado
+## [3.22.0] - 2026-11-08
 
 - Retrospectiva do ano: de 1º de dezembro ao fim de janeiro, o Início mostra "Seu ano está pronto". São telas no estilo stories com os treinos, os dias, as horas, as toneladas levantadas (em carros, elefantes ou baleias), a maior sequência, o exercício que mais apareceu, os recordes, o dia e o horário preferidos, o melhor mês, o peso (que dá para esconder) e o seu jeito de treinar. Cada tela vira imagem 9:16 para compartilhar. No Progresso, dá para ver a retrospectiva de qualquer ano com treino. Tudo é calculado no aparelho.
 - O gatinho de Natal agora é branco, de olhos azuis; o gatinho preto fica só no Halloween.

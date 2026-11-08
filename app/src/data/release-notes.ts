@@ -3,6 +3,15 @@ export interface ReleaseNote { version: string; date: string; items: string[] }
 
 export const RELEASE_NOTES: readonly ReleaseNote[] = [
   {
+    version: '3.22.0',
+    date: '2026-11',
+    items: [
+      'Cada série feita mostra ↑, = ou ↓ comparando com a mesma série da última vez, no treino e no histórico.',
+      'Toque no número da série para anotar ("senti o ombro") ou marcar até a falha.',
+      'Em dezembro chega a Retrospectiva do seu ano: treinos, toneladas, recordes e o seu jeito de treinar, para compartilhar. Já dá para ver em Progresso.'
+    ]
+  },
+  {
     version: '3.21.0',
     date: '2026-11',
     items: [
