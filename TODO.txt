@@ -299,9 +299,9 @@ T14	✅ (26/10/2026: "Ordem da volta" no Plano; posição achada percorrendo o h
 T15	Ritmo semanal do peso: tendência das últimas 3 semanas em kg e em % do peso por semana, com uma meta de ritmo (no ritmo, rápido demais, devagar demais); hoje há só a média de cada semana	Média
 T16	Outros nomes para o exercício (apelidos, inclusive nos da biblioteca), usados na busca, na troca e na biblioteca	Média
 T17	Descanso só desta série, para o treino de hoje (o toque no número da série hoje marca falha: precisa de um menu)	Baixa
-T18	Desfazer ao apagar uma pesagem	Baixa
-T19	Total levantado: bloco no Progresso com a soma de toda a carga já levantada	Baixa
-T20	Volume do treino ao vivo no fim da barra de progresso, somando as séries marcadas	Baixa
+T18	✅ (08/11/2026: apaga sem perguntar, Desfazer por 6 s) Desfazer ao apagar uma pesagem	Baixa
+T19	✅ (08/11/2026: bloco largo nas Estatísticas, em t a partir de 1.000 kg) Total levantado: bloco no Progresso com a soma de toda a carga já levantada	Baixa
+T20	✅ (08/11/2026: no cabeçalho do treino, ao lado das séries) Volume do treino ao vivo no fim da barra de progresso, somando as séries marcadas	Baixa
 T21	Carga relativa ao peso do corpo: 1RM ou maior série como % do peso daquele dia, na evolução do exercício	Baixa
 T22	Aquecimento no volume, como opção desligada por padrão (recordes continuam ignorando o aquecimento)	Baixa
 T23	Pilha de pesos da máquina: os pesos que o pino realmente escolhe, e a progressão e os botões de carga caem só neles	Baixa
@@ -326,8 +326,8 @@ V7	Desafios do mês: 3 metas ajustadas ao histórico (treinos no mês, volume, r
 V8	Aquecimento automático (desligado por padrão): rampa a partir da carga de trabalho nos compostos (barra × 10, 40/60/80%), arredondada às anilhas; segue a carga se ela mudar no treino	Média
 V9	Nível de força por exercício (Iniciante a Elite) pelo 1RM estimado ÷ peso do corpo, com sexo e idade; nos detalhes do exercício e no Progresso	Baixa
 V10	Juntar dois exercícios (histórico, planos e favoritos passam de um para o outro), com prévia e Desfazer; útil para nomes duplicados da migração	Baixa
-V11	Tocar na aba em que já está volta ao topo da página	Baixa
-V12	"Ver no YouTube" no menu do exercício (busca nome + "execução"); só abre ao tocar	Baixa
+V11	✅ (08/11/2026) Tocar na aba em que já está volta ao topo da página	Baixa
+V12	✅ (08/11/2026: link no menu ⋯ do exercício, abre fora do app) "Ver no YouTube" no menu do exercício (busca nome + "execução"); só abre ao tocar	Baixa
 V13	Contar o peso do corpo no volume de barra fixa e paralelas (opção; recordes e progressão não mudam)	Baixa
 V14	Tempo por exercício no histórico (gravar a hora de cada série marcada)	Baixa
 V15	Dica de recuperação no Início ("pernas ainda se recuperando de ontem"), depende do M29	Baixa

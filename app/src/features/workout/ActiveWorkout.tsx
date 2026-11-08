@@ -1,13 +1,14 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { DAY_KEYS } from '../../domain/ai-plan';
-import { isExerciseDone, nextOpenExercise, sessionProgress, type ActiveSession } from '../../domain/session';
+import { isExerciseDone, nextOpenExercise, sessionProgress, sessionToWorkout, type ActiveSession } from '../../domain/session';
+import { workoutVolume } from '../../domain/workouts';
 import { updateMeta, updateSettings } from '../../domain/actions';
 import { Icon } from '../../ui/Icon';
 import { useNow } from '../../hooks/use-now';
 import { useWakeLock } from '../../hooks/use-wake-lock';
 import { useAppStore } from '../../store';
 import { Sheet } from '../../ui/Sheet';
-import { dayTitle, formatClock, plural, shortDate } from '../../ui/format';
+import { dayTitle, formatClock, formatNumber, plural, shortDate } from '../../ui/format';
 import { ExerciseCard } from './ExerciseCard';
 import { useRestStore } from './rest-store';
 import { useWorkoutUi } from './workout-ui';
@@ -26,6 +27,8 @@ export function ActiveWorkout({ session }: { session: ActiveSession }) {
   const keepScreenOn = useAppStore(s => s.data?.settings.keepScreenOn ?? true);
   useWakeLock(keepScreenOn);
   const progress = sessionProgress(session);
+  // T20: o volume do treino até agora, somando as séries marcadas
+  const liveVolume = useMemo(() => { const w = sessionToWorkout(session, new Date()); return w ? workoutVolume(w) : 0; }, [session]);
   const run = useAppStore(s => s.run);
   const focus = useAppStore(s => s.data?.settings.focusMode ?? false);
   const total = session.exercises.length;
@@ -64,7 +67,7 @@ export function ActiveWorkout({ session }: { session: ActiveSession }) {
           <div className="min-w-0 flex-1">
             <h1 className="truncate text-xl font-black">{session.dayName || 'Treino'}</h1>
             <p className="text-sm text-muted tabular-nums">
-              {session.backdated ? `Treino de ${shortDate(session.date)} · ${session.backdated.durationMin} min` : formatClock(elapsed)} · {progress.setsDone}/{progress.setsTotal} séries{deload ? ' · deload' : ''}
+              {session.backdated ? `Treino de ${shortDate(session.date)} · ${session.backdated.durationMin} min` : formatClock(elapsed)} · {progress.setsDone}/{progress.setsTotal} séries{liveVolume > 0 ? ` · ${formatNumber(liveVolume)} kg` : ''}{deload ? ' · deload' : ''}
             </p>
           </div>
           <button type="button" onClick={() => setSettingsOpen(true)} aria-label="Ajustes do treino"

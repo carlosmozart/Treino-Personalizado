@@ -333,6 +333,11 @@ export function ExerciseCard({ session, index, alwaysOpen = false, onGoTo }: Pro
         {ex.mode !== 'cardio' && (
           <SheetAction onClick={() => { close(); setHistoryOpen(true); }}><Icon name="progresso" />Histórico do exercício</SheetAction>
         )}
+        {/* V12: busca a execução no YouTube (app ou navegador); nada sai do app antes do toque */}
+        <a href={youtubeSearch(ex.name)} target="_blank" rel="noreferrer" onClick={close}
+          className="flex min-h-12 w-full items-center gap-3 rounded-xl px-3 text-left text-base font-semibold text-ink active:bg-surface-2">
+          <Icon name="treino" />Ver a execução no YouTube
+        </a>
         {/* M18: tirar do treino de hoje (o plano continua igual) */}
         {session.exercises.length > 1 && (
           <SheetAction tone="danger" onClick={() => {
@@ -521,3 +526,6 @@ function SetMenu({ open, exName, index, set, prev, unit, onClose, onFailure, onN
     </Sheet>
   );
 }
+
+/** V12: busca no YouTube pelo nome do exercício + "execução". */
+export const youtubeSearch = (name: string) => `https://www.youtube.com/results?search_query=${encodeURIComponent(`${name} execução`)}`;

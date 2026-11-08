@@ -9,6 +9,12 @@ const LABELS: Record<Tab, string> = {
   perfil: 'Perfil'
 };
 
+/** V11: tocar na aba em que já está volta ao topo (direto, com "reduzir movimento"). */
+function toTop() {
+  const reduced = typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches;
+  window.scrollTo({ top: 0, behavior: reduced ? 'auto' : 'smooth' });
+}
+
 /** Barra inferior com o treino como botão central de destaque (N11). */
 export function TabBar() {
   const tab = useUiStore(s => s.tab);
@@ -23,7 +29,7 @@ export function TabBar() {
           const central = key === 'treino';
           return (
             <li key={key} className="flex justify-center">
-              <button type="button" onClick={() => setTab(key)}
+              <button type="button" onClick={() => (active ? toTop() : setTab(key))}
                 aria-current={active ? 'page' : undefined}
                 className={`flex min-h-16 w-full flex-col items-center justify-center gap-1 text-xs font-semibold ${
                   active ? 'text-ink' : 'text-faint'}`}>

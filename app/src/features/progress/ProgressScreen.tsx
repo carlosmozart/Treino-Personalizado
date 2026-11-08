@@ -59,6 +59,8 @@ function Stats() {
   const untrained = untrainedGroups(data, now);
   const max = balance[0]?.sets ?? 1;
   const w = s.weight30d;
+  // T19: tudo o que já foi levantado (carga × repetições das séries de trabalho)
+  const lifted = data.workouts.reduce((n, x) => n + workoutVolume(x), 0);
   return (
     <div className="mt-4 space-y-4">
       <div className="grid grid-cols-2 gap-3">
@@ -66,6 +68,7 @@ function Stats() {
         <Block label="Este mês" value={String(s.thisMonth)} hint="dias treinados" />
         <Block label="Sequência" value={String(s.streak)} hint={`recorde ${s.longestStreak}`} />
         <Block label="Peso em 30 dias" value={w === null ? '—' : `${w > 0 ? '+' : ''}${formatNumber(w)} kg`} />
+        <Block label="Total levantado" wide value={liftedText(lifted)} hint={lifted ? `em ${plural(s.totalWorkouts, 'treino', 'treinos')}, desde o primeiro` : 'some a carga × repetições de todas as séries'} />
       </div>
       <section className="rounded-2xl border border-line bg-surface p-4">
         <h2 className="font-bold">Últimos 6 meses</h2>
@@ -108,9 +111,12 @@ function Stats() {
   );
 }
 
-function Block({ label, value, hint }: { label: string; value: string; hint?: string }) {
+/** "12,3 t" a partir de uma tonelada, senão em kg. */
+const liftedText = (kg: number) => (kg >= 1000 ? `${formatNumber(Math.round(kg / 100) / 10)} t` : `${formatNumber(Math.round(kg))} kg`);
+
+function Block({ label, value, hint, wide = false }: { label: string; value: string; hint?: string; wide?: boolean }) {
   return (
-    <div className="rounded-2xl border border-line bg-surface p-4">
+    <div className={`rounded-2xl border border-line bg-surface p-4 ${wide ? 'col-span-2' : ''}`}>
       <p className="text-sm text-muted">{label}</p>
       <p className="text-3xl font-black tracking-tight">{value}</p>
       {hint && <p className="text-xs text-faint">{hint}</p>}

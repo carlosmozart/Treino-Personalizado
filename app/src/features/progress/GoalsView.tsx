@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { weeklyWeights } from '../../domain/home';
 import { MeasurementsCard } from './MeasurementsCard';
 import { achievementList, startWeightGoal } from '../../domain/achievements';
-import { removeWeighIn } from '../../domain/actions';
+import { logWeight, removeWeighIn } from '../../domain/actions';
 import { LineChart } from '../../ui/LineChart';
 import { goalProgress } from '../../domain/body-goal';
 import { useAppStore } from '../../store';
@@ -115,7 +115,26 @@ function WeighInsCard() {
   const weekStart = useAppStore(s => s.data?.settings.weekStart ?? 'seg');
   const run = useAppStore(s => s.run);
   const [all, setAll] = useState(false);
-  if (!profile || !profile.weighIns.length) return null;
+  // T18: apaga na hora e dá alguns segundos para desfazer (a pesagem volta igual)
+  const [removed, setRemoved] = useState<{ date: string; weight: number; timer: number } | null>(null);
+  const removeWithUndo = (w: { date: string; weight: number }) => {
+    if (removed) clearTimeout(removed.timer);
+    run((d, now) => removeWeighIn(d, w.date, now));
+    setRemoved({ ...w, timer: window.setTimeout(() => setRemoved(null), 6000) });
+  };
+  const undo = () => {
+    if (!removed) return;
+    clearTimeout(removed.timer);
+    run((d, now) => logWeight(d, removed.weight, removed.date, now));
+    setRemoved(null);
+  };
+  const undoBar = removed && (
+    <div role="status" className="mt-2 flex items-center justify-between gap-2 rounded-xl bg-surface-2 px-3 py-1 text-sm">
+      <span>Pesagem de {shortDate(removed.date)} apagada.</span>
+      <button type="button" onClick={undo} className="h-10 px-2 font-bold text-info">Desfazer</button>
+    </div>
+  );
+  if (!profile || !profile.weighIns.length) return undoBar ? <section className="rounded-2xl border border-line bg-surface p-4"><h2 className="font-bold">Pesagens</h2>{undoBar}</section> : null;
   const list = [...profile.weighIns].reverse();
   const shown = all ? list : list.slice(0, 5);
   const target = profile.weightGoal?.targetWeight ?? profile.targetWeightKg ?? undefined;
@@ -134,13 +153,14 @@ function WeighInsCard() {
             <span className="text-muted">{shortDate(w.date)}</span>
             <span className="flex items-center gap-1 font-semibold">{formatNumber(w.weight)} kg
               <button type="button" aria-label={`Apagar pesagem de ${shortDate(w.date)}`} className="flex size-11 items-center justify-center text-muted"
-                onClick={() => { if (confirm(`Apagar a pesagem de ${shortDate(w.date)} (${formatNumber(w.weight)} kg)?`)) run((d, now) => removeWeighIn(d, w.date, now)); }}>
+                onClick={() => removeWithUndo(w)}>
                 <Icon name="lixo" className="size-5" />
               </button>
             </span>
           </li>
         ))}
       </ul>
+      {undoBar}
       {list.length > 5 && (
         <button type="button" onClick={() => setAll(!all)} className="mt-1 h-11 font-semibold text-primary">{all ? 'Mostrar menos' : `Ver todas (${list.length})`}</button>
       )}

@@ -92,9 +92,13 @@ test('histórico: corrigir um exercício, evolução e apagar pesagem', async ({
   await page.getByRole('button', { name: 'Salvar' }).click();
   await page.getByRole('button', { name: 'Progresso', exact: true }).click();
   await page.getByRole('tab', { name: 'Metas' }).click();
-  page.once('dialog', d => d.accept());
+  // T18: apaga sem perguntar e dá para desfazer
   await page.getByRole('button', { name: /^Apagar pesagem de / }).first().click();
-  await expect(page.getByRole('heading', { name: 'Pesagens' })).toHaveCount(0);
+  await expect(page.getByRole('status').filter({ hasText: /^Pesagem de .* apagada\.Desfazer$/ })).toBeVisible();
+  await page.getByRole('button', { name: 'Desfazer' }).click();
+  await expect(page.getByRole('button', { name: /^Apagar pesagem de / })).toHaveCount(1);
+  await page.getByRole('button', { name: /^Apagar pesagem de / }).first().click();
+  await expect(page.getByRole('heading', { name: 'Pesagens' })).toHaveCount(0, { timeout: 9000 });
   expect(errors).toEqual([]);
 });
 
