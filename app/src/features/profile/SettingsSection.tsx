@@ -57,6 +57,7 @@ export function SettingsSection() {
           })}
         </div>
         <SeasonalChoice settings={settings} set={set} />
+        <Toggle label="Resumo da semana e do mês no Início" checked={settings.recaps ?? true} onChange={v => set({ recaps: v })} />
       </Card>
       <BackupCard />
       <Card title="Conta e nuvem">

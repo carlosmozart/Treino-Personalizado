@@ -69,13 +69,15 @@ export function drawSlide(canvas: HTMLCanvasElement, slide: ReviewSlide, appName
     y += 40;
     for (const [label, value] of stats) {
       y += STAT;
-      ctx.globalAlpha = 0.75;
-      ctx.font = `600 42px ${font}`;
-      ctx.fillText(label, PAD, y - 30);
-      ctx.globalAlpha = 1;
+      // o valor primeiro: o rótulo corta para caber ao lado dele, sem passar por cima
       ctx.font = `800 56px ${font}`;
       const v = fit(ctx, value, inner * 0.6);
-      ctx.fillText(v, STORY_W - PAD - ctx.measureText(v).width, y - 30);
+      const vw = ctx.measureText(v).width;
+      ctx.fillText(v, STORY_W - PAD - vw, y - 30);
+      ctx.globalAlpha = 0.75;
+      ctx.font = `600 42px ${font}`;
+      ctx.fillText(fit(ctx, label, inner - vw - 32), PAD, y - 30);
+      ctx.globalAlpha = 1;
     }
   }
 

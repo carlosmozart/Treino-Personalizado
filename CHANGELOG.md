@@ -13,6 +13,8 @@ Todas as mudanças relevantes do app ficam registradas aqui. Ao lançar uma nova
 - Apagar uma pesagem não pergunta mais: ela some na hora e o "Desfazer" fica alguns segundos na tela.
 - Progresso → "Total levantado": tudo o que você já levantou, somando carga × repetições de todas as séries.
 - No treino, o cabeçalho mostra o volume até agora ao lado das séries ("3/13 séries · 1.250 kg").
+- Progresso → "Séries da semana": as séries de trabalho de cada grupo na semana contra uma faixa-alvo ("Peito 8 / 10–20, faltam 2"), com a faixa marcada na barra. As faixas partem do que a pesquisa de hipertrofia costuma indicar e mudam em "Faixas", onde também dá para mostrar no Início o grupo com mais espaço.
+- "Sua semana" e "Seu mês" no Início: nos primeiros dias da semana e do mês seguintes, um cartão com treinos, volume, recordes e o grupo mais treinado, para compartilhar como imagem. O × fecha; Perfil → Aparência desliga.
 
 ## [3.22.0] - 2026-11-08
 

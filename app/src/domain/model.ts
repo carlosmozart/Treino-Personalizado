@@ -234,6 +234,12 @@ export interface Settings {
   theme?: ThemePref;
   /** V1: seta em cada série contra a mesma série da última vez. Ausente = ligada. */
   compareSets?: boolean;
+  /** V3: faixa de séries por semana de cada grupo, quando diferente da padrão. */
+  weeklySetTargets?: Record<string, { min: number; max: number }>;
+  /** V3: linha no Início com o grupo que mais tem espaço na semana. Ausente = desligada. */
+  weeklySetsOnHome?: boolean;
+  /** V4: resumo da semana e do mês no Início. Ausente = ligado. */
+  recaps?: boolean;
   /** Temas de época (Halloween): automático na época, sempre ou desligado. Ausente = automático. */
   seasonalTheme?: SeasonalPref;
   /** Cores de abóbora enquanto o tema de época vale. Ausente = sim. */

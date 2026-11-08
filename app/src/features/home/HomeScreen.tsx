@@ -1,4 +1,6 @@
 import { useState } from 'react';
+import { RecapCards } from './RecapCards';
+import { WeeklySetsHomeLine } from '../progress/WeeklySetsCard';
 import { YearReviewCard } from '../year-review/YearReview';
 import { AdventSlot } from '../seasonal/SeasonalLayer';
 import { addWater, toggleCheckin } from '../../domain/actions';
@@ -50,7 +52,9 @@ export function HomeScreen() {
       <YearReviewCard />
       <AdventSlot />
       <PlanSection onChoose={setChooser} />
+      <RecapCards />
       <ProgressSection />
+      <WeeklySetsHomeLine />
       <WeightSection card={weightCard(data)} />
       <WaterSection />
       <PlanChooser mode={chooser} setMode={setChooser} />

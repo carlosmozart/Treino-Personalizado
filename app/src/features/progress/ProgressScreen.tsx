@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { WeeklySetsCard } from './WeeklySetsCard';
 import { previousWorkSets, setTrends, TREND_ARROW } from '../../domain/set-compare';
 import { YearReviewLinks } from '../year-review/YearReview';
 import { deleteWorkout } from '../../domain/actions';
@@ -75,6 +76,7 @@ function Stats() {
         <Heatmap />
       </section>
       <WeeklyVolume />
+      <WeeklySetsCard />
       <ExerciseProgressCard />
       <section className="rounded-2xl border border-line bg-surface p-4">
         <h2 className="font-bold">Séries por grupo (30 dias)</h2>
