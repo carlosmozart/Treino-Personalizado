@@ -18,6 +18,8 @@ export interface SessionSet {
   done: boolean;
   /** Até a falha (S5). */
   failure?: true;
+  /** V2: nota curta da série. */
+  note?: string;
 }
 
 export interface SessionExercise {
@@ -231,9 +233,13 @@ function mapExercise(s: ActiveSession, index: number, fn: (ex: SessionExercise) 
 }
 
 function mapSet(s: ActiveSession, exIndex: number, setIndex: number, fn: (set: SessionSet) => SessionSet): ActiveSession {
-  return mapExercise(s, exIndex, ex => (ex.sets[setIndex]
-    ? { ...ex, sets: ex.sets.map((set, i) => (i === setIndex ? fn(set) : set)) }
-    : ex));
+  return mapExercise(s, exIndex, ex => {
+    const target = ex.sets[setIndex];
+    if (!target) return ex;
+    const changed = fn(target);
+    // nada mudou: a mesma série, e a sessão também (a store não grava à toa)
+    return changed === target ? ex : { ...ex, sets: ex.sets.map((set, i) => (i === setIndex ? changed : set)) };
+  });
 }
 
 export function toggleSet(s: ActiveSession, exIndex: number, setIndex: number): ActiveSession {
@@ -295,13 +301,27 @@ export function toggleFailure(s: ActiveSession, exIndex: number, setIndex: numbe
   });
 }
 
+/** Nota de uma série deixando no máximo 200 caracteres. */
+export const SET_NOTE_MAX = 200;
+
+/** V2: a nota de uma série; vazia apaga. */
+export function setSetNote(s: ActiveSession, exIndex: number, setIndex: number, note: string): ActiveSession {
+  const clean = note.trim().replace(/\s+/g, ' ').slice(0, SET_NOTE_MAX);
+  return mapSet(s, exIndex, setIndex, set => {
+    if ((set.note ?? '') === clean) return set;
+    const { note: _old, ...rest } = set;
+    return clean ? { ...rest, note: clean } : rest;
+  });
+}
+
 /** Deslizar para a direita (R2): copia a série logo abaixo, ainda não feita. */
 export function duplicateSet(s: ActiveSession, exIndex: number, setIndex: number): ActiveSession {
   return mapExercise(s, exIndex, ex => {
     const set = ex.sets[setIndex];
     if (!set || ex.mode === 'cardio' || ex.sets.length >= 20) return ex;
     const sets = [...ex.sets];
-    const { failure: _f, ...copy } = set;
+    // a cópia nasce sem falha e sem a nota da original
+    const { failure: _f, note: _n, ...copy } = set;
     sets.splice(setIndex + 1, 0, { ...copy, done: false });
     return { ...ex, sets };
   });
@@ -446,7 +466,7 @@ export function sessionToWorkout(s: ActiveSession, now: Date): Workout | null {
       entries.push({ key: ex.key, name: ex.name, mode: 'cardio', sets: [], cardio: { minutes: ex.cardio.minutes, ...(ex.cardio.km ? { km: ex.cardio.km } : {}) }, ...(note ? { note } : {}) });
       continue;
     }
-    const sets = ex.sets.filter(set => set.done).map(({ reps, weight, kind, failure }) => ({ reps, weight, kind, ...(failure ? { failure } : {}) }));
+    const sets = ex.sets.filter(set => set.done).map(({ reps, weight, kind, failure, note }) => ({ reps, weight, kind, ...(failure ? { failure } : {}), ...(note ? { note } : {}) }));
     if (sets.length) entries.push({ key: ex.key, name: ex.name, mode: ex.mode, sets, ...(note ? { note } : {}), ...(ex.perSide ? { perSide: true as const } : {}), ...(added(ex) ? { added: true as const } : {}) });
   }
   if (!entries.length) return null;

@@ -1,7 +1,7 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { SWAP_EQUIPMENT, fitsEquipment, groupOf, guessGroup, swapSuggestions } from '../../data/exercise-library';
 import {
-  addSet, afterSet, restAfterSet, setExerciseRest, supersetBlock, toggleSupersetWithNext, addWarmupSet, adjustWeights, removeWarmupSet, completeExercise, isExerciseDone, duplicateSet, insertSet, removeExerciseFromSession, removeSet, setNote, swapExercise, toggleFailure, toggleSet, updateCardio, updateSet,
+  addSet, afterSet, restAfterSet, setExerciseRest, setSetNote, SET_NOTE_MAX, supersetBlock, toggleSupersetWithNext, addWarmupSet, adjustWeights, removeWarmupSet, completeExercise, isExerciseDone, duplicateSet, insertSet, removeExerciseFromSession, removeSet, setNote, swapExercise, toggleFailure, toggleSet, updateCardio, updateSet,
   type ActiveSession, type SessionExercise, type SessionSet
 } from '../../domain/session';
 import { bestSet, lastSessionBefore, sessionsOf, suspiciousWeight, workSets } from '../../domain/workouts';
@@ -12,6 +12,7 @@ import { ExerciseIllustration, ExerciseThumb, hasIllustration } from '../../ui/E
 import { markBigWeightJump, toggleFavorite, updateSettings } from '../../domain/actions';
 import { Sheet, SheetAction } from '../../ui/Sheet';
 import { RestSheet, restLabel } from '../../ui/RestSheet';
+import { previousWorkSets, setTrends, TREND_ARROW, trendLabel, type SetTrend } from '../../domain/set-compare';
 import { editPlan, setPlanExerciseRest } from '../../domain/plan-edit';
 import { formatClock, formatNumber, relativeDate, shortDate } from '../../ui/format';
 import { useRestStore } from './rest-store';
@@ -69,6 +70,12 @@ export function ExerciseCard({ session, index, alwaysOpen = false, onGoTo }: Pro
   const [platesOpen, setPlatesOpen] = useState(false);
   const [historyOpen, setHistoryOpen] = useState(false);
   const [restOpen, setRestOpen] = useState(false);
+  const [menuSet, setMenuSet] = useState<number | null>(null);
+  // V1: a mesma série da última vez (só séries de trabalho, na ordem)
+  const compare = data?.settings.compareSets ?? true;
+  const prevSets = useMemo(() => (compare && data ? previousWorkSets(data.workouts, ex.key, { date: session.date, id: session.id, startedAt: session.startedAt }) : null),
+    [compare, data, ex.key, session.date, session.id, session.startedAt]);
+  const trends = setTrends(prevSets, ex.sets, ex.mode);
   const defaultRest = data?.settings.restSeconds ?? 90;
   // o descanso pode ir para o plano quando o exercício é o do plano (não trocado nem acrescentado)
   const planSlot = data?.plans[session.planId]?.days[session.dayKey]?.exercises.find(p => p.id === ex.slotId);
@@ -217,25 +224,36 @@ export function ExerciseCard({ session, index, alwaysOpen = false, onGoTo }: Pro
             <span>Série</span><span className="text-center">Carga (kg)</span><span className="text-center">{unit}</span><span className="sr-only">Feita</span>
           </div>
           <ol className="mt-1 space-y-2">
-            {ex.sets.map((set, i) => (
-              <SwipeRow key={i} enabled={swipe} onCopy={() => update(s => duplicateSet(s, index, i))}
-                {...(ex.sets.length > 1 ? { onDelete: () => removeWithUndo(i) } : {})}
-                className={`grid grid-cols-[2rem_1fr_1fr_2.75rem] items-center gap-2 rounded-xl ${set.done ? 'bg-success/10' : ''}`}>
-                {set.kind === 'warmup' ? (
-                  <span className="text-center text-base font-bold text-warning" title="Aquecimento">A</span>
-                ) : (
-                  // S5: tocar no número marca a série como até a falha ("F")
-                  <button type="button" onClick={() => update(s => toggleFailure(s, index, i))} aria-pressed={!!set.failure}
-                    aria-label={`Série ${i + 1}: ${set.failure ? 'até a falha (tocar desmarca)' : 'marcar como até a falha'}`}
-                    className={`flex h-11 items-center justify-center rounded-lg text-base font-bold ${set.failure ? 'bg-danger/15 text-danger' : 'text-muted'}`}>
-                    {set.failure ? 'F' : i + 1 - ex.sets.slice(0, i).filter(s => s.kind === 'warmup').length}
-                  </button>
-                )}
-                <NumberField label={`Carga da série ${i + 1}`} decimal value={set.weight} onChange={v => update(s => updateSet(s, index, i, { weight: v }))} />
-                <NumberField label={`${unit} da série ${i + 1}`} value={set.reps} onChange={v => update(s => updateSet(s, index, i, { reps: v }))} />
-                <DoneButton done={set.done} label={`Série ${i + 1} feita`} onClick={() => toggle(i)} />
-              </SwipeRow>
-            ))}
+            {ex.sets.map((set, i) => {
+              const trend = set.done ? trends[i] : null;
+              const prev = trend ? prevSets?.[ex.sets.slice(0, i).filter(s => s.kind === 'work').length] : undefined;
+              return (
+                <SwipeRow key={i} enabled={swipe} onCopy={() => update(s => duplicateSet(s, index, i))}
+                  {...(ex.sets.length > 1 ? { onDelete: () => removeWithUndo(i) } : {})}
+                  className={`grid grid-cols-[2rem_1fr_1fr_2.75rem] items-center gap-x-2 gap-y-0.5 rounded-xl ${set.done ? 'bg-success/10' : ''}`}>
+                  {/* V2: o número abre o menu da série (até a falha e nota); V1: a seta contra a última vez */}
+                  <div className="relative">
+                    <button type="button" onClick={() => setMenuSet(i)} title={set.kind === 'warmup' ? 'Aquecimento' : undefined}
+                      aria-label={`Série ${i + 1}${set.kind === 'warmup' ? ' (aquecimento)' : ''}: opções${set.failure ? ', até a falha' : ''}${set.note ? ', com nota' : ''}`}
+                      className={`flex h-11 w-full items-center justify-center rounded-lg text-base font-bold ${
+                        set.kind === 'warmup' ? 'text-warning' : set.failure ? 'bg-danger/15 text-danger' : 'text-muted'}`}>
+                      {set.kind === 'warmup' ? 'A' : set.failure ? 'F' : i + 1 - ex.sets.slice(0, i).filter(s => s.kind === 'warmup').length}
+                    </button>
+                    {trend && prev && (
+                      <span role="img" aria-label={`Série ${i + 1}: ${trendLabel(trend, prev, ex.mode)}`}
+                        className={`pointer-events-none absolute -right-1.5 -top-0.5 text-sm font-black leading-none ${TREND_TONE[trend]}`}>{TREND_ARROW[trend]}</span>
+                    )}
+                  </div>
+                  <NumberField label={`Carga da série ${i + 1}`} decimal value={set.weight} onChange={v => update(s => updateSet(s, index, i, { weight: v }))} />
+                  <NumberField label={`${unit} da série ${i + 1}`} value={set.reps} onChange={v => update(s => updateSet(s, index, i, { reps: v }))} />
+                  <DoneButton done={set.done} label={`Série ${i + 1} feita`} onClick={() => toggle(i)} />
+                  {set.note && (
+                    <button type="button" onClick={() => setMenuSet(i)} aria-label={`Nota da série ${i + 1}: ${set.note}. Mudar`}
+                      className="col-span-4 -mt-1 truncate px-1 pb-1 text-left text-sm italic text-muted">✎ {set.note}</button>
+                  )}
+                </SwipeRow>
+              );
+            })}
           </ol>
           {removed && (
             <div role="status" className="mt-2 flex items-center justify-between gap-2 rounded-xl bg-surface-2 px-3 py-1 text-sm">
@@ -273,6 +291,11 @@ export function ExerciseCard({ session, index, alwaysOpen = false, onGoTo }: Pro
       )}
       {tipOpen && ex.tip && <p className="mt-3 rounded-xl bg-surface-2 p-3 text-sm text-info">{ex.tip}</p>}
 
+      <SetMenu open={menuSet !== null} exName={ex.name} index={menuSet ?? 0} set={menuSet !== null ? ex.sets[menuSet] : undefined}
+        prev={menuSet !== null && ex.sets[menuSet]?.kind === 'work' ? prevSets?.[ex.sets.slice(0, menuSet).filter(s => s.kind === 'work').length] : undefined}
+        unit={unit} onClose={() => setMenuSet(null)}
+        onFailure={() => { if (menuSet !== null) update(s => toggleFailure(s, index, menuSet)); }}
+        onNote={note => { if (menuSet !== null) update(s => setSetNote(s, index, menuSet, note)); }} />
       <RestSheet open={restOpen} title={ex.name} seconds={ex.restSeconds} fallback={defaultRest} toPlan={canSavePlan}
         onClose={() => setRestOpen(false)} onSave={saveRest} />
       <Sheet title={ex.name} open={menu} onClose={close}>
@@ -455,5 +478,46 @@ function LastSessions({ exerciseKey, date }: { exerciseKey: string; date: string
         </li>
       ))}
     </ul>
+  );
+}
+
+const TREND_TONE: Record<SetTrend, string> = { up: 'text-success', same: 'text-faint', down: 'text-warning' };
+
+/**
+ * V2: menu da série, aberto pelo número: até a falha (S5, só nas de trabalho) e uma nota curta, com a
+ * mesma série da última vez para lembrar.
+ */
+function SetMenu({ open, exName, index, set, prev, unit, onClose, onFailure, onNote }: {
+  open: boolean; exName: string; index: number; set: SessionSet | undefined; prev: { reps: number; weight: number } | undefined; unit: string;
+  onClose: () => void; onFailure: () => void; onNote: (note: string) => void;
+}) {
+  const [note, setNote] = useState('');
+  useEffect(() => { if (open) setNote(set?.note ?? ''); }, [open, set?.note]);
+  if (!set) return null;
+  const work = set.kind === 'work';
+  return (
+    <Sheet title={`${exName} · série ${index + 1}${work ? '' : ' (aquecimento)'}`} open={open} onClose={onClose}>
+      <div className="space-y-3 px-1 pb-3">
+        {prev && <p className="text-sm text-muted">Última vez: {formatNumber(prev.weight)} kg × {prev.reps} {unit === 'Seg' ? 's' : 'reps'}</p>}
+        {work && (
+          <button type="button" onClick={() => { onFailure(); onClose(); }} aria-pressed={!!set.failure}
+            className={`flex h-12 w-full items-center gap-3 rounded-xl px-3 text-left font-semibold ${set.failure ? 'bg-danger/15 text-danger' : 'bg-surface-2'}`}>
+            <span className="flex size-7 items-center justify-center rounded-md bg-danger/15 text-sm font-black text-danger">F</span>
+            {set.failure ? 'Desmarcar "até a falha"' : 'Marcar como até a falha'}
+          </button>
+        )}
+        <label className="block text-sm font-semibold text-muted">Nota da série
+          <input value={note} maxLength={SET_NOTE_MAX} onChange={e => setNote(e.target.value)} placeholder="Ex.: pegada escorregou, senti o ombro"
+            className="mt-1 h-12 w-full rounded-xl border border-line bg-surface-2 px-3 text-base text-ink" />
+        </label>
+        <div className="flex gap-2">
+          {set.note && (
+            <button type="button" onClick={() => { onNote(''); onClose(); }} className="h-12 flex-1 rounded-xl bg-surface-2 font-semibold">Apagar nota</button>
+          )}
+          <button type="button" disabled={note.trim() === (set.note ?? '')} onClick={() => { onNote(note); onClose(); }}
+            className="h-12 flex-1 rounded-xl bg-primary font-bold text-white disabled:opacity-50">Salvar nota</button>
+        </div>
+      </div>
+    </Sheet>
   );
 }

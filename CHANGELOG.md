@@ -10,6 +10,8 @@ Todas as mudanças relevantes do app ficam registradas aqui. Ao lançar uma nova
 
 - Retrospectiva do ano: de 1º de dezembro ao fim de janeiro, o Início mostra "Seu ano está pronto". São telas no estilo stories com os treinos, os dias, as horas, as toneladas levantadas (em carros, elefantes ou baleias), a maior sequência, o exercício que mais apareceu, os recordes, o dia e o horário preferidos, o melhor mês, o peso (que dá para esconder) e o seu jeito de treinar. Cada tela vira imagem 9:16 para compartilhar. No Progresso, dá para ver a retrospectiva de qualquer ano com treino. Tudo é calculado no aparelho.
 - O gatinho de Natal agora é branco, de olhos azuis; o gatinho preto fica só no Halloween.
+- Cada série feita ganha uma seta contra a mesma série da última vez: ↑ subiu, = igual, ↓ caiu. A carga vem primeiro, depois as repetições; quando uma sobe e a outra desce, o 1RM estimado decide. Aparece no treino e no histórico, e dá para desligar em Perfil → Treino.
+- Nota em cada série ("senti o ombro", "pegada escorregou"): tocar no número da série abre um menu com a nota e o "até a falha". A nota aparece embaixo da série, no histórico e na planilha (coluna nova "Nota da série").
 
 ## [3.21.0] - 2026-11-08
 

@@ -316,8 +316,8 @@ U4	Pendente, decisão dos sócios: coletar a opinião dos usuários sem pergunta
 V. Ideias do openGym v1.4.4 (08/11/2026, commit 8fb98b168)
 Só a ideia; o código do openGym é AGPL: nada é copiado. Já tínhamos: treino como imagem logo depois de salvar (S9), compartilhar plano (M23), "Conferir a carga" para erro de digitação, troca pelo mesmo grupo e equipamento (M36), contador da semana. Fora do nosso caso: Siri, NFC, F-Droid, webhooks e integrações, Coach, várias academias, várias pesagens no dia e kg/lb (M37).
 #	Sugestão	Prioridade
-V1	Seta em cada série (↑ = ↓) contra a mesma série da última vez, no treino e no histórico; carga primeiro, depois reps, e o 1RM estimado desempata	Média
-V2	Nota em cada série ("pegada escorregou"): tocar no número da série abre um menu com Falha e Nota; aparece embaixo da série, no histórico e no CSV	Média
+V1	✅ (08/11/2026: domain/set-compare.ts; seta no número da série depois de marcada e no histórico; Perfil → Treino desliga) Seta em cada série (↑ = ↓) contra a mesma série da última vez, no treino e no histórico; carga primeiro, depois reps, e o 1RM estimado desempata	Média
+V2	✅ (08/11/2026: o número da série abre o menu com até a falha e nota; nota embaixo da série, no histórico e no CSV) Nota em cada série ("pegada escorregou"): tocar no número da série abre um menu com Falha e Nota; aparece embaixo da série, no histórico e no CSV	Média
 V3	Séries por grupo na semana contra uma faixa-alvo editável ("Peito 14 / 10–20"), no Progresso e numa linha opcional do Início	Média
 V4	Resumo da semana e do mês no Início (treinos, volume, recordes, sequência, grupo que mais trabalhou), compartilhável como imagem (S9); semana sem treino não ganha resumo	Média
 V5	✅ (08/11/2026: features/seasonal/Natal.tsx e AdventCalendar.tsx, carregados só em dezembro; activeSeason em domain/seasonal.ts escolhe Halloween ou Natal) Tema de Natal (1º a 31/12) com calendário do advento (1º a 24/12): neve ao abrir, pisca-pisca, gorro, presente escondido, trenó, boneco de neve; mesma estrutura do Halloween	Alta

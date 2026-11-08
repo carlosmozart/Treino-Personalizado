@@ -18,6 +18,8 @@ export interface WorkoutSet {
   kind: SetKind;
   /** Série levada até a falha (S5). Conta como série de trabalho normal em volume e recordes. */
   failure?: true;
+  /** V2: nota curta da série ("pegada escorregou", "senti o ombro"). */
+  note?: string;
 }
 
 export interface WorkoutEntry {
@@ -230,6 +232,8 @@ export interface Settings {
   accent?: AccentId;
   /** Tema da interface. Ausente = acompanha o sistema. */
   theme?: ThemePref;
+  /** V1: seta em cada série contra a mesma série da última vez. Ausente = ligada. */
+  compareSets?: boolean;
   /** Temas de época (Halloween): automático na época, sempre ou desligado. Ausente = automático. */
   seasonalTheme?: SeasonalPref;
   /** Cores de abóbora enquanto o tema de época vale. Ausente = sim. */

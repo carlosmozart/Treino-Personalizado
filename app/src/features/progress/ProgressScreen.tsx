@@ -1,8 +1,9 @@
 import { useState } from 'react';
+import { previousWorkSets, setTrends, TREND_ARROW } from '../../domain/set-compare';
 import { YearReviewLinks } from '../year-review/YearReview';
 import { deleteWorkout } from '../../domain/actions';
 import { fromDateKey } from '../../domain/dates';
-import type { Workout } from '../../domain/model';
+import type { Workout, WorkoutEntry } from '../../domain/model';
 import { heatmap, historyByMonth, muscleBalance, statsSummary, untrainedGroups, weeklyVolume, type HeatLevel } from '../../domain/stats';
 import { LibrarySheet } from '../plan/LibrarySheet';
 import { describeEntry, workoutVolume } from '../../domain/workouts';
@@ -170,6 +171,35 @@ function History() {
   );
 }
 
+/**
+ * V1 e V2 no histórico: cada série com a seta contra o treino anterior (nunca um depois) e as
+ * notas das séries. Some quando não há nada a mostrar.
+ */
+function SetDetails({ w, entry }: { w: Workout; entry: WorkoutEntry }) {
+  const workouts = useAppStore(s => s.data?.workouts);
+  const compare = useAppStore(s => s.data?.settings.compareSets ?? true);
+  if (entry.mode === 'cardio' || !workouts) return null;
+  const trends = compare ? setTrends(previousWorkSets(workouts, entry.key, w), entry.sets, entry.mode) : [];
+  const notes = entry.sets.map((s, i) => ({ i, note: s.note })).filter(n => n.note);
+  if (!trends.some(Boolean) && !notes.length) return null;
+  const unit = entry.mode === 'time' ? 's' : '';
+  return (
+    <div className="-mt-1 mb-1 text-xs text-muted">
+      {trends.some(Boolean) && (
+        <p className="flex flex-wrap gap-x-2 gap-y-0.5">
+          {entry.sets.map((s, i) => (
+            <span key={i} className={s.kind === 'warmup' ? 'text-faint' : ''}>
+              {formatNumber(s.weight)}×{s.reps}{unit}
+              {trends[i] && <span className={`ml-0.5 font-black ${trends[i] === 'up' ? 'text-success' : trends[i] === 'down' ? 'text-warning' : 'text-faint'}`}>{TREND_ARROW[trends[i]]}</span>}
+            </span>
+          ))}
+        </p>
+      )}
+      {notes.map(n => <p key={n.i} className="italic">✎ Série {n.i + 1}: {n.note}</p>)}
+    </div>
+  );
+}
+
 function WorkoutItem({ w, open, onToggle, onDelete }: { w: Workout; open: boolean; onToggle: () => void; onDelete: () => void }) {
   const [editing, setEditing] = useState<number | null>(null);
   const volume = workoutVolume(w);
@@ -197,6 +227,7 @@ function WorkoutItem({ w, open, onToggle, onDelete }: { w: Workout; open: boolea
                   <span className="min-w-0 truncate">{e.name}</span>
                   <span className="flex shrink-0 items-center gap-2 text-muted">{describeEntry(e)}<Icon name="editar" className="size-4" /></span>
                 </button>
+                <SetDetails w={w} entry={e} />
               </li>
             ))}
           </ul>

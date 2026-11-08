@@ -97,6 +97,7 @@ export function WorkoutSettingsFields() {
       {toggle('restVibrate', 'Vibrar no fim do descanso')}
       <LoadSourceChoice value={loadSourceOf(settings)} onChange={v => set({ loadSource: v, autoProgression: v === 'auto' })} />
       <Toggle label="Deslizar para apagar (esquerda) ou copiar (direita) séries e exercícios do plano" checked={settings.swipeSets ?? true} onChange={v => set({ swipeSets: v })} />
+      <Toggle label="Comparar cada série com a última vez (↑ = ↓)" checked={settings.compareSets ?? true} onChange={v => set({ compareSets: v })} />
       <Toggle label="Botões de ajuste de carga no treino" checked={settings.weightButtons ?? true} onChange={v => set({ weightButtons: v })} />
       <Toggle label="Manter a tela ligada no treino" checked={settings.keepScreenOn ?? true} onChange={v => set({ keepScreenOn: v })} />
       <Toggle label="Pedir o peso do dia ao começar o treino" checked={settings.weighBeforeWorkout ?? false} onChange={v => set({ weighBeforeWorkout: v })} />

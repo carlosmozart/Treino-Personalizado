@@ -6,7 +6,7 @@ import type { Workout } from './model';
 
 export const CSV_HEADER = [
   'Data', 'Treino', 'Exercício', 'Série', 'Tipo', 'Repetições', 'Segundos', 'Carga (kg)',
-  'Por lado', 'Até a falha', 'Minutos', 'Km', 'Deload', 'Nota'
+  'Por lado', 'Até a falha', 'Minutos', 'Km', 'Deload', 'Nota', 'Nota da série'
 ] as const;
 
 const num = (n: number | undefined) => (n === undefined ? '' : String(Math.round(n * 100) / 100).replace('.', ','));
@@ -29,14 +29,14 @@ export function historyCsv(workouts: readonly Workout[]): string {
     for (const e of w.entries) {
       const note = e.note?.trim() ?? '';
       if (e.mode === 'cardio') {
-        rows.push([...base, e.name, '', 'Cardio', '', '', '', '', '', num(e.cardio?.minutes), num(e.cardio?.km), yes(w.deload), note]);
+        rows.push([...base, e.name, '', 'Cardio', '', '', '', '', '', num(e.cardio?.minutes), num(e.cardio?.km), yes(w.deload), note, '']);
         continue;
       }
       e.sets.forEach((s, i) => {
         rows.push([
           ...base, e.name, String(i + 1), s.kind === 'warmup' ? 'Aquecimento' : 'Trabalho',
           e.mode === 'reps' ? String(s.reps) : '', e.mode === 'time' ? String(s.reps) : '', num(s.weight),
-          yes(e.perSide), yes(s.failure), '', '', yes(w.deload), i === 0 ? note : ''
+          yes(e.perSide), yes(s.failure), '', '', yes(w.deload), i === 0 ? note : '', s.note?.trim() ?? ''
         ]);
       });
     }

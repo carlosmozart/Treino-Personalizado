@@ -35,12 +35,12 @@ test('T9: CSV com uma linha por série, ponto e vírgula, vírgula decimal e tex
   w.entries.push({ key: 'prancha', name: 'Prancha', mode: 'time', sets: [{ reps: 45, weight: 0, kind: 'work' }] });
   w.entries.push({ key: 'esteira', name: 'Esteira', mode: 'cardio', sets: [], cardio: { minutes: 20, km: 2.5 } });
   const lines = historyCsv([w]).split('\r\n');
-  expect(lines[0]).toBe('﻿Data;Treino;Exercício;Série;Tipo;Repetições;Segundos;Carga (kg);Por lado;Até a falha;Minutos;Km;Deload;Nota');
+  expect(lines[0]).toBe('﻿Data;Treino;Exercício;Série;Tipo;Repetições;Segundos;Carga (kg);Por lado;Até a falha;Minutos;Km;Deload;Nota;Nota da série');
   expect(lines.slice(1, -1)).toEqual([
-    '22/10/2026;"Peito; tríceps";Supino Reto;1;Aquecimento;12;;20;;;;;sim;"pegada ""fechada"""',
-    '22/10/2026;"Peito; tríceps";Supino Reto;2;Trabalho;10;;42,5;;;;;sim;',
-    '22/10/2026;"Peito; tríceps";Supino Reto;3;Trabalho;8;;42,5;;;;;sim;',
-    '22/10/2026;"Peito; tríceps";Prancha;1;Trabalho;;45;0;;;;;sim;',
-    '22/10/2026;"Peito; tríceps";Esteira;;Cardio;;;;;;20;2,5;sim;'
+    '22/10/2026;"Peito; tríceps";Supino Reto;1;Aquecimento;12;;20;;;;;sim;"pegada ""fechada""";',
+    '22/10/2026;"Peito; tríceps";Supino Reto;2;Trabalho;10;;42,5;;;;;sim;;',
+    '22/10/2026;"Peito; tríceps";Supino Reto;3;Trabalho;8;;42,5;;;;;sim;;',
+    '22/10/2026;"Peito; tríceps";Prancha;1;Trabalho;;45;0;;;;;sim;;',
+    '22/10/2026;"Peito; tríceps";Esteira;;Cardio;;;;;;20;2,5;sim;;'
   ]);
 });
