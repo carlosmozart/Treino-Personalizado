@@ -3,6 +3,16 @@ export interface ReleaseNote { version: string; date: string; items: string[] }
 
 export const RELEASE_NOTES: readonly ReleaseNote[] = [
   {
+    version: '3.23.0',
+    date: '2026-11',
+    items: [
+      'Progresso → Séries da semana: quantas séries cada grupo levou na semana, contra a faixa que costuma fazer crescer.',
+      'Sua semana e Seu mês: um resumo no Início quando a semana ou o mês viram, para compartilhar.',
+      'No treino, o volume até agora no topo; no Progresso, o total que você já levantou.',
+      'Menu ⋯ do exercício → Ver a execução no YouTube. E apagar uma pesagem agora tem Desfazer.'
+    ]
+  },
+  {
     version: '3.22.0',
     date: '2026-11',
     items: [

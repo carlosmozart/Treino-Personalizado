@@ -6,7 +6,7 @@ Todas as mudanças relevantes do app ficam registradas aqui. Ao lançar uma nova
    atualizar o app instalado
 3. Adicione uma entrada aqui, nesse formato
 
-## Não lançado
+## [3.23.0] - 2026-11-08
 
 - Tocar na aba em que você já está volta ao topo da página.
 - Menu ⋯ do exercício → "Ver a execução no YouTube": busca o nome do exercício no YouTube; nada sai do app antes do toque.
