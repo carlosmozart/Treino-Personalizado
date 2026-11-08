@@ -1,6 +1,7 @@
 // Tema claro/escuro. A escolha fica nas configurações; uma cópia vai para o localStorage para o
 // index.html aplicar o tema antes do React carregar (sem piscar o escuro ao abrir no claro).
 import type { AccentId, ThemePref } from '../domain/model';
+import type { Season } from '../domain/seasonal';
 import { isNative } from '../platform/platform';
 
 export const THEME_KEY = 'tp-theme';
@@ -20,6 +21,10 @@ export const ACCENTS: { id: AccentId; label: string; hex: string }[] = [
 
 /** Laranja de abóbora do Halloween (o mesmo contraste de 4,5:1 com o texto branco). */
 export const PUMPKIN = '#c2410c';
+/** Vermelho de frutinha do Natal (6:1 com o texto branco). */
+export const BERRY = '#b91c1c';
+/** Cor de destaque de cada tema de época. */
+export const SEASON_ACCENT: Record<Season, string> = { halloween: PUMPKIN, natal: BERRY };
 
 /**
  * Aplica a cor de destaque (e guarda para o index.html aplicar antes do app carregar). `override`
@@ -35,7 +40,6 @@ export function applyAccent(id: AccentId | undefined, override?: string) {
 }
 
 export const SEASON_KEY = 'tp-season';
-export type Season = 'halloween';
 let season: Season | null = null;
 
 /** Fundo do tema de época (data-season no <html>, cores no index.css). */
@@ -52,7 +56,10 @@ export function applySeason(next: Season | null) {
 }
 
 const BG = { dark: '#000000', light: '#f4f4f5' } as const;
-const SEASON_BG = { dark: '#09060d', light: '#f8f3ec' } as const;
+const SEASON_BG: Record<Season, Record<'dark' | 'light', string>> = {
+  halloween: { dark: '#09060d', light: '#f8f3ec' },
+  natal: { dark: '#050b08', light: '#f7f5ef' }
+};
 
 // SystemBars vem no próprio Capacitor 8: LIGHT = ícones escuros sobre fundo claro
 interface SystemBarsPlugin { setStyle(o: { style: 'LIGHT' | 'DARK' }): Promise<void> }
@@ -72,7 +79,7 @@ export function applyTheme(pref: ThemePref | undefined) {
   const t = resolveTheme(pref);
   const root = document.documentElement;
   if (root.dataset.theme !== t) root.dataset.theme = t;
-  document.querySelector('meta[name="theme-color"]')?.setAttribute('content', (season ? SEASON_BG : BG)[t]);
+  document.querySelector('meta[name="theme-color"]')?.setAttribute('content', (season ? SEASON_BG[season] : BG)[t]);
   try { localStorage.setItem(THEME_KEY, pref ?? 'system'); } catch { /* sem armazenamento: só não evita o piscar */ }
   if (isNative()) void bars()?.setStyle({ style: t === 'light' ? 'LIGHT' : 'DARK' }).catch(() => {});
 }

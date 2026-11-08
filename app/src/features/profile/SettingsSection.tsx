@@ -24,7 +24,7 @@ import { encryptBackup } from '../../domain/backup-crypto';
 import { ensureNotificationPermission, notificationsAvailable } from '../../platform/notifications';
 import { resyncReminders } from '../plan/reminders-sync';
 import { parseTrainingTime } from '../../domain/reminders';
-import { halloweenOn, seasonalPref, type SeasonalPref } from '../../domain/seasonal';
+import { activeSeason, seasonalPref, type SeasonalPref } from '../../domain/seasonal';
 
 /** Configurações agrupadas (O19): treino, dados e backup, conta, sobre. */
 export function SettingsSection() {
@@ -331,10 +331,10 @@ const SEASONAL: { id: SeasonalPref; label: string }[] = [
   { id: 'off', label: 'Desligado' }
 ];
 
-/** Tema de época (Halloween): aranha, morcegos, teias, gatinhos de chapéu e uma abóbora escondida. */
+/** Temas de época: Halloween (aranha, morcegos, abóbora escondida) e Natal (neve, pisca-pisca, presente, calendário do advento). */
 function SeasonalChoice({ settings, set }: { settings: Settings; set: (patch: Partial<Settings>) => void }) {
   const pref = seasonalPref(settings);
-  const on = halloweenOn(settings, toDateKey(new Date()));
+  const now = activeSeason(settings, toDateKey(new Date()));
   return (
     <div className="mt-4">
       <p className="text-sm font-semibold text-muted">Temas de época</p>
@@ -346,13 +346,13 @@ function SeasonalChoice({ settings, set }: { settings: Settings; set: (patch: Pa
       </div>
       <p className="mt-1 text-xs text-faint">
         {pref === 'off' ? 'Sem decorações de época.'
-          : pref === 'on' ? 'Halloween o ano todo: aranha, morcegos, teias, gatinhos de chapéu de bruxa e uma abóbora escondida no Início.'
-          : `Halloween de 20 a 31 de outubro${on ? ' (valendo agora)' : ''}: aranha, morcegos, teias, gatinhos de chapéu de bruxa e uma abóbora escondida no Início.`}
+          : pref === 'on' ? 'O ano todo: Natal de novembro a janeiro e Halloween no resto do ano.'
+          : `Halloween de 20 a 31 de outubro${now === 'halloween' ? ' (valendo agora)' : ''} e Natal em dezembro${now === 'natal' ? ' (valendo agora)' : ''}, com calendário do advento até o dia 24.`}
       </p>
       {pref !== 'off' && (
         <>
-          <Toggle label="Cores de abóbora" checked={settings.seasonalColors ?? true} onChange={v => set({ seasonalColors: v })} />
-          <Toggle label="Também durante o treino (só uma abóbora parada)" checked={settings.seasonalInWorkout ?? true} onChange={v => set({ seasonalInWorkout: v })} />
+          <Toggle label="Cores da época (abóbora no Halloween, vermelho no Natal)" checked={settings.seasonalColors ?? true} onChange={v => set({ seasonalColors: v })} />
+          <Toggle label="Também durante o treino (só um enfeite parado)" checked={settings.seasonalInWorkout ?? true} onChange={v => set({ seasonalInWorkout: v })} />
         </>
       )}
     </div>

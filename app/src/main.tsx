@@ -12,8 +12,8 @@ import { startRemindersSync } from './features/plan/reminders-sync';
 import { startDayWatcher, useToday } from './hooks/use-today';
 import { dailyCheck } from './domain/actions';
 import { autoSaveBackupFile, canAutoBackup } from './platform/backup-file';
-import { applyAccent, applySeason, applyTheme, PUMPKIN, watchSystemTheme } from './ui/theme';
-import { halloweenColors } from './domain/seasonal';
+import { applyAccent, applySeason, applyTheme, SEASON_ACCENT, watchSystemTheme } from './ui/theme';
+import { seasonColors } from './domain/seasonal';
 import './index.css';
 
 installGlobalErrorHandlers();
@@ -28,12 +28,12 @@ let lastLook = '';
 const applyLook = () => {
   const settings = useAppStore.getState().data?.settings;
   if (!settings) return;
-  const halloween = halloweenColors(settings, useToday.getState().today);
-  const look = `${settings.accent ?? ''}|${halloween}`;
+  const season = seasonColors(settings, useToday.getState().today);
+  const look = `${settings.accent ?? ''}|${season ?? ''}`;
   if (look === lastLook) return;
   lastLook = look;
-  applySeason(halloween ? 'halloween' : null);
-  applyAccent(settings.accent, halloween ? PUMPKIN : undefined);
+  applySeason(season);
+  applyAccent(settings.accent, season ? SEASON_ACCENT[season] : undefined);
 };
 useAppStore.subscribe((s, p) => { if (s.data?.settings !== p.data?.settings) applyLook(); });
 useToday.subscribe(applyLook);

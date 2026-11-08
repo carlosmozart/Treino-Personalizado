@@ -6,6 +6,7 @@ import { CAT_LINES, pickLine, PUMPKIN_LINES, pumpkinAvailable } from '../../doma
 import { useReducedMotion } from '../../hooks/use-reduced-motion';
 import type { Tab } from '../../store/ui-store';
 import { Bat, BroomCat, Candy, Cobweb, Moon, Pumpkin, Spider, WitchCat } from './halloween-art';
+import { Bubble, TabBarCat } from './seasonal-shared';
 import './halloween.css';
 
 export type HalloweenMode = 'full' | 'workout' | 'summary';
@@ -35,7 +36,7 @@ export default function Halloween({ mode, tab, today }: { mode: HalloweenMode; t
       {mode === 'full' && <SpiderDrop active={tab === 'inicio'} />}
       {mode === 'full' && !reduced && <Bats />}
       {mode === 'full' && tab === 'inicio' && <HiddenPumpkin today={today} />}
-      {mode === 'full' && <TabBarCat />}
+      {mode === 'full' && <TabBarCat label="Gatinho de bruxa" lines={CAT_LINES} />}
       {(mode === 'summary' || (mode === 'full' && tab === 'progresso')) && (
         <div className="pointer-events-none absolute inset-x-0 top-0 z-10 overflow-hidden" style={{ height: 'calc(env(safe-area-inset-top) + 110px)' }}>
           <div className="relative mx-auto h-full max-w-xl">
@@ -44,13 +45,6 @@ export default function Halloween({ mode, tab, today }: { mode: HalloweenMode; t
         </div>
       )}
     </>
-  );
-}
-
-/** Balão de fala que some sozinho; lido pelo leitor de tela. */
-function Bubble({ text, className = '' }: { text: string; className?: string }) {
-  return (
-    <p role="status" className={`hw-bubble absolute whitespace-nowrap rounded-xl bg-surface-2 px-3 py-2 text-sm font-semibold text-ink shadow-lg ${className}`}>{text}</p>
   );
 }
 
@@ -187,26 +181,6 @@ function HiddenPumpkin({ today }: { today: DateKey }) {
           <Bubble text={`🎃 ${found}`} className={`top-12 ${left ? 'left-2' : 'right-2'}`} />
         </>
       )}
-    </div>
-  );
-}
-
-/** Gatinho de chapéu de bruxa sentado em cima da barra de abas; tocado, mia. */
-function TabBarCat() {
-  const [line, setLine] = useState<string | null>(null);
-  const [count, setCount] = useState(0);
-  useEffect(() => {
-    if (!line) return;
-    const t = setTimeout(() => setLine(null), 2500);
-    return () => clearTimeout(t);
-  }, [line, count]);
-  return (
-    <div className="pointer-events-none fixed inset-x-0 z-30 mx-auto max-w-xl" style={{ bottom: 'calc(4rem + env(safe-area-inset-bottom) - 6px)' }}>
-      <button type="button" aria-label="Gatinho de bruxa" onClick={() => { setLine(pickLine(CAT_LINES, count + Math.random() * 10)); setCount(c => c + 1); }}
-        className={`pointer-events-auto absolute bottom-0 right-3 ${line ? 'hw-meow' : ''}`} key={count}>
-        <WitchCat size={38} />
-      </button>
-      {line && <Bubble text={line} className="bottom-14 right-3" />}
     </div>
   );
 }

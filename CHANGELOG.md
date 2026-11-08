@@ -6,6 +6,13 @@ Todas as mudanças relevantes do app ficam registradas aqui. Ao lançar uma nova
    atualizar o app instalado
 3. Adicione uma entrada aqui, nesse formato
 
+## Não lançado
+
+- Tema de Natal, de 1º a 31 de dezembro: neve leve ao abrir o app, pisca-pisca no topo do Início e do Progresso, azevinho no canto, o gatinho de gorro de Papai Noel na barra de abas, um presente escondido no Início (achado, abre e solta confete, uma vez por dia), boneco de neve e um trenó passando no Progresso, e o gatinho entre presentes no fim do treino. No treino, só um presente parado.
+- Calendário do advento no Início, de 1º a 24 de dezembro: uma porta por dia com dicas, curiosidades, pequenos desafios, alongamentos, piadas e números do seu ano (treinos, toneladas, maior sequência); a de hoje brilha, as que passaram esperam e as do futuro ficam fechadas.
+- Cores de Natal enquanto o tema vale: destaque vermelho, fundo verde-pinheiro no escuro e creme no claro.
+- Perfil → Aparência → Temas de época: o automático agora traz o Halloween (20 a 31/10) e o Natal (dezembro); "Sempre" mostra o Natal de novembro a janeiro e o Halloween no resto do ano.
+
 ## [3.20.0] - 2026-11-01
 
 - Descanso por exercício à vista: no treino, o cartão de cada exercício mostra o descanso (⏱ 1:30); um toque escolhe o padrão, sem cronômetro ou um tempo próprio, e guarda no plano para os próximos treinos. O mesmo no Plano, e o resumo do exercício mostra o descanso quando é diferente do padrão.

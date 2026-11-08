@@ -1,8 +1,11 @@
 // Desenhos do Halloween, feitos à mão em SVG. As cores do corpo vêm das variáveis --hw-* do
 // halloween.css (contorno claro no tema escuro, para o bicho preto não sumir no fundo).
 
-/** Gatinho preto sentado, com chapéu de bruxa; o rabo balança e os olhos piscam (halloween.css). */
-export function WitchCat({ size = 56, className = '' }: { size?: number; className?: string }) {
+/**
+ * Gatinho preto sentado, com chapéu de bruxa (ou, no Natal, gorro de Papai Noel); o rabo balança e
+ * os olhos piscam (halloween.css).
+ */
+export function WitchCat({ size = 56, className = '', hat = 'bruxa' }: { size?: number; className?: string; hat?: 'bruxa' | 'noel' }) {
   return (
     <svg viewBox="0 -14 60 78" width={size} height={size * 1.3} className={`hw-cat ${className}`} aria-hidden="true">
       <path className="hw-tail" d="M40 57 C55 57 59 44 53 35 C51 32 47 33 48.5 36.5 C52.5 43.5 49.5 51 40 52 Z" />
@@ -21,13 +24,27 @@ export function WitchCat({ size = 56, className = '' }: { size?: number; classNa
       <path d="M28.6 30.2 L31.4 30.2 L30 31.8 Z" fill="#f472b6" />
       <path d="M30 31.8 Q28.6 33.6 27.2 32.6 M30 31.8 Q31.4 33.6 32.8 32.6" className="hw-line" />
       <path d="M22 30 L15 29 M22 31.5 L15.5 32.5 M38 30 L45 29 M38 31.5 L44.5 32.5" className="hw-whisker" />
-      <g className="hw-hat">
-        <path d="M23 15 L30.5 -5 Q33.5 -10.5 39.5 -8.5 Q34.8 -6.8 33.6 -2 L37 15 Z" fill="#6d28d9" />
-        <path d="M23.7 12.2 L36.3 12.2 L37 15 L23 15 Z" fill="#f97316" />
-        <rect x="28.4" y="12" width="3.2" height="3" rx="0.6" fill="#fde047" />
-        <ellipse cx="30" cy="15.4" rx="13.5" ry="3.1" fill="#5b21b6" />
-      </g>
+      {hat === 'noel' ? <SantaHat /> : (
+        <g className="hw-hat">
+          <path d="M23 15 L30.5 -5 Q33.5 -10.5 39.5 -8.5 Q34.8 -6.8 33.6 -2 L37 15 Z" fill="#6d28d9" />
+          <path d="M23.7 12.2 L36.3 12.2 L37 15 L23 15 Z" fill="#f97316" />
+          <rect x="28.4" y="12" width="3.2" height="3" rx="0.6" fill="#fde047" />
+          <ellipse cx="30" cy="15.4" rx="13.5" ry="3.1" fill="#5b21b6" />
+        </g>
+      )}
     </svg>
+  );
+}
+
+/** Gorro de Papai Noel caído para o lado, com a bolinha branca na ponta. */
+export function SantaHat() {
+  return (
+    <g className="hw-hat">
+      <path d="M20 14 Q21 -1 33 -5 Q43 -7 47.5 2.5 L44.6 4.2 Q41.5 -0.5 36.5 1.2 Q33 4 39.5 14 Z" fill="#dc2626" />
+      <path d="M27 2 Q31 -2 37 -3" stroke="#ef4444" strokeWidth="1.2" fill="none" strokeLinecap="round" />
+      <circle cx="46.8" cy="4.6" r="3.4" fill="#f8fafc" />
+      <rect x="17.5" y="11.6" width="25" height="5.2" rx="2.6" fill="#f8fafc" />
+    </g>
   );
 }
 

@@ -64,7 +64,7 @@ test('Halloween: aranha, gatinho, abóbora, lua, versão calma no treino e desli
 
 test('Halloween: fora da época não aparece; "Sempre" liga; reduzir movimento deixa tudo parado', async ({ page }) => {
   await page.emulateMedia({ reducedMotion: 'reduce' });
-  await page.clock.setFixedTime(new Date(2026, 10, 1, 10));
+  await page.clock.setFixedTime(new Date(2026, 2, 10, 10)); // março: "Sempre" é o Halloween (o Natal fica de novembro a janeiro)
   await page.goto('/');
   await expect(page.getByRole('heading', { name: 'Início' })).toBeVisible();
   await expect(page.getByTestId('halloween')).toHaveCount(0);
@@ -72,7 +72,7 @@ test('Halloween: fora da época não aparece; "Sempre" liga; reduzir movimento d
   await page.getByRole('button', { name: 'Perfil', exact: true }).click();
   await page.getByRole('radiogroup', { name: 'Temas de época' }).getByRole('radio', { name: 'Sempre' }).click();
   await expect(page.getByTestId('halloween')).toBeVisible();
-  await page.getByRole('switch', { name: 'Cores de abóbora' }).uncheck();
+  await page.getByRole('switch', { name: /^Cores da época/ }).uncheck();
   await expect(page.locator('html')).not.toHaveAttribute('data-season', 'halloween');
 
   // parado: sem morcegos, e a aranha aparece já pendurada ao voltar para o Início

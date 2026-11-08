@@ -312,3 +312,27 @@ U1	✅ (01/11/2026: selo ⏱ no cartão do treino e item no menu ⋯, painel Pad
 U2	✅ (01/11/2026: o treino abre no começo da faixa; o topo é a meta no motivo) Repetições pré-preenchidas no mínimo da faixa, não no máximo	Alta
 U3	✅ (01/11/2026: no máximo uma subida por semana por exercício; incremento Auto de 1 kg abaixo de 20 kg; deload só com série abaixo da faixa; docs/dev/progressao.md) Progressão mais gradual e natural: subia mais de uma vez na mesma semana e em degraus altos, principalmente para mulheres	Alta
 U4	Pendente, decisão dos sócios: coletar a opinião dos usuários sem perguntar pessoalmente. Ideia: Perfil → "Enviar opinião" (nota de 1 a 5, o que gosta, o que melhorar, versão) e um convite discreto no fim do treino (depois do 5º treino, no máximo 1 vez por mês). Falta escolher o canal: WhatsApp (abre a conversa com a mensagem pronta), Google Forms (respostas numa planilha) ou e-mail; o app continua sem servidor próprio	Alta
+
+V. Ideias do openGym v1.4.4 (08/11/2026, commit 8fb98b168)
+Só a ideia; o código do openGym é AGPL: nada é copiado. Já tínhamos: treino como imagem logo depois de salvar (S9), compartilhar plano (M23), "Conferir a carga" para erro de digitação, troca pelo mesmo grupo e equipamento (M36), contador da semana. Fora do nosso caso: Siri, NFC, F-Droid, webhooks e integrações, Coach, várias academias, várias pesagens no dia e kg/lb (M37).
+#	Sugestão	Prioridade
+V1	Seta em cada série (↑ = ↓) contra a mesma série da última vez, no treino e no histórico; carga primeiro, depois reps, e o 1RM estimado desempata	Média
+V2	Nota em cada série ("pegada escorregou"): tocar no número da série abre um menu com Falha e Nota; aparece embaixo da série, no histórico e no CSV	Média
+V3	Séries por grupo na semana contra uma faixa-alvo editável ("Peito 14 / 10–20"), no Progresso e numa linha opcional do Início	Média
+V4	Resumo da semana e do mês no Início (treinos, volume, recordes, sequência, grupo que mais trabalhou), compartilhável como imagem (S9); semana sem treino não ganha resumo	Média
+V5	✅ (08/11/2026: features/seasonal/Natal.tsx e AdventCalendar.tsx, carregados só em dezembro; activeSeason em domain/seasonal.ts escolhe Halloween ou Natal) Tema de Natal (1º a 31/12) com calendário do advento (1º a 24/12): neve ao abrir, pisca-pisca, gorro, presente escondido, trenó, boneco de neve; mesma estrutura do Halloween	Alta
+V6	Retrospectiva do ano (dezembro e janeiro): telas tipo stories com treinos, horas, toneladas, maior sequência, exercício preferido, recordes, melhor mês; cada tela vira imagem	Média
+V7	Desafios do mês: 3 metas ajustadas ao histórico (treinos no mês, volume, recordes, pesagens, todos os grupos), com medalha; somam ao XP e às conquistas	Média
+V8	Aquecimento automático (desligado por padrão): rampa a partir da carga de trabalho nos compostos (barra × 10, 40/60/80%), arredondada às anilhas; segue a carga se ela mudar no treino	Média
+V9	Nível de força por exercício (Iniciante a Elite) pelo 1RM estimado ÷ peso do corpo, com sexo e idade; nos detalhes do exercício e no Progresso	Baixa
+V10	Juntar dois exercícios (histórico, planos e favoritos passam de um para o outro), com prévia e Desfazer; útil para nomes duplicados da migração	Baixa
+V11	Tocar na aba em que já está volta ao topo da página	Baixa
+V12	"Ver no YouTube" no menu do exercício (busca nome + "execução"); só abre ao tocar	Baixa
+V13	Contar o peso do corpo no volume de barra fixa e paralelas (opção; recordes e progressão não mudam)	Baixa
+V14	Tempo por exercício no histórico (gravar a hora de cada série marcada)	Baixa
+V15	Dica de recuperação no Início ("pernas ainda se recuperando de ontem"), depende do M29	Baixa
+V16	Avisos falados no descanso (próxima série, 10 segundos, acabou), voz do celular; nativo, junto com S14	Baixa
+V17	Prancha e isometrias que começam sozinhas depois do descanso (3, 2, 1) e registram o tempo planejado	Baixa
+V18	Imprimir o plano com as figuras dos exercícios (completa o M23)	Baixa
+V19	Para depois: Programas (blocos de 1 a 16 semanas com %1RM, RPE ou deload por semana) e Módulos (ligar e desligar partes do app)	Baixa
+V20	Relógios (interesse do Carlos em 08/11/2026): app para relógio que mostra a série atual, marca a série e conta o descanso no pulso, conversando com o app do celular. Começar pelo Wear OS (Android, Data Layer com o APK); Amazfit (Zepp OS) e Garmin (Connect IQ) depois. Projeto à parte: código nativo e teste em relógio de verdade	Média

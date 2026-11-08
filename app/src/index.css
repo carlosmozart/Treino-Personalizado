@@ -49,6 +49,19 @@
   --color-surface-2: #efe5d8;
   --color-line: #e3d5c3;
 }
+/* Natal (V5): fundo puxado para o verde-pinheiro no escuro e para o creme no claro. */
+:root[data-season="natal"] {
+  --color-page: #050b08;
+  --color-surface: #0d1612;
+  --color-surface-2: #17231d;
+  --color-line: #213128;
+}
+:root[data-theme="light"][data-season="natal"] {
+  --color-page: #f7f5ef;
+  --color-surface: #fffefb;
+  --color-surface-2: #ece8dc;
+  --color-line: #ddd7c6;
+}
 
 :root {
   color-scheme: dark;
