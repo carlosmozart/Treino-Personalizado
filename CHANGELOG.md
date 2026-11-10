@@ -6,6 +6,16 @@ Todas as mudanças relevantes do app ficam registradas aqui. Ao lançar uma nova
    atualizar o app instalado
 3. Adicione uma entrada aqui, nesse formato
 
+## [3.24.0] - 2026-11-09
+
+- Modo RPG, opcional, em Perfil → "Ligar o modo RPG": seus treinos viram a evolução de um personagem. Desligar não apaga nada, e ao religar tudo continua de onde parou.
+- Dois temas de nomes com as mesmas regras: Clássico (Aprendiz, Espadachim, Arqueiro, Gatuno, Noviço, Mago, Mercador e 12 especializações) e Maromba, para quem não é do mundo dos RPGs (Frango, Gladiador Marombeiro, Maratonista da Esteira, Ninja do HIIT, Rato de Academia, Mestre da Planilha, Carregador de Ferro…). Os nomes acompanham o personagem masculino ou feminino.
+- Nível de classe calculado do seu histórico: cada dia de treino vale XP, e a semana com a meta cumprida vale um bônus. Só um treino por dia conta, e no máximo 6 dias por semana. Cada classe rende até 50% a mais com o tipo de treino dela (carga pesada, cardio, treinos curtos e densos, constância, plano seguido, tonelagem). Quem já treina começa como Aprendiz com o XP guardado para a primeira classe.
+- Missões de troca de classe (10 recordes de 1RM, 300 minutos de cardio, 100 toneladas…), seis atributos que vêm do treino real (FOR, AGI, VIT, INT, DES, SOR) com pontos de bônus para distribuir, e quatro conquistas novas que só aparecem com o modo ligado.
+- Personagem ilustrado: cada classe tem a sua roupa, e o criador escolhe sexo, tom de pele, cabelo e cor, olhos, rosto, barba, sardas ou cicatriz e óculos. Busto no Perfil, corpo inteiro na ficha.
+- Level up animado, com o personagem sorrindo e uma fanfarra (dá para desligar o som na ficha); troca de classe em roxo.
+- Arte do personagem: OpenWorld (domínio público, CC0), detalhes em Créditos e licenças. Ela só é baixada por quem liga o modo.
+
 ## [3.23.0] - 2026-11-08
 
 - Tocar na aba em que você já está volta ao topo da página.

@@ -3,6 +3,16 @@ export interface ReleaseNote { version: string; date: string; items: string[] }
 
 export const RELEASE_NOTES: readonly ReleaseNote[] = [
   {
+    version: '3.24.0',
+    date: '2026-11',
+    items: [
+      'Novo modo RPG, opcional: ligue em Perfil e seus treinos viram a evolução de um personagem, com classe, nível, missões e atributos.',
+      'Dois temas: Clássico (Espadachim, Mago…) ou Maromba (Gladiador Marombeiro, Rato de Academia, Ninja do HIIT…).',
+      'Monte o seu personagem: pele, cabelo, olhos, rosto e barba. A roupa muda com a classe.',
+      'Level up animado a cada nível de classe. Tudo vem do seu histórico; desligar não apaga nada.'
+    ]
+  },
+  {
     version: '3.23.0',
     date: '2026-11',
     items: [
