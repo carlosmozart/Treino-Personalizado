@@ -1,13 +1,15 @@
 // Modo RPG no Perfil (R1): convite para ligar, cartão do personagem e a ficha completa.
 import { useMemo, useState, type ReactNode } from 'react';
 import { FIRST_CLASSES, RPG_CLASS_BY_ID, STATS, THEME_ABOUT, THEME_LABEL, secondClassesOf, type RpgClass, type RpgTheme } from '../../data/rpg-classes';
-import { CLASS_CAP, allocateRpgPoint, chooseRpgClass, className, rpgUnlocked, rpgView, setRpgEnabled, setRpgTheme, STAT_MAX, type RpgView } from '../../domain/rpg';
+import { CLASS_CAP, allocateRpgPoint, chooseRpgClass, className, rpgUnlocked, rpgView, setRpgEnabled, setRpgSex, setRpgSound, setRpgTheme, STAT_MAX, type RpgSex, type RpgView } from '../../domain/rpg';
 import { useAppStore } from '../../store';
 import { useToday } from '../../hooks/use-today';
 import { Sheet } from '../../ui/Sheet';
 import { Icon } from '../../ui/Icon';
-import { formatNumber } from '../../ui/format';
 import { RpgEmblem, emblemColor } from './RpgEmblem';
+
+/** Inteiro com ponto de milhar: 2.700. */
+const int = (n: number) => Math.round(n).toLocaleString('pt-BR');
 
 export function useRpgView(): RpgView | null {
   const data = useAppStore(s => s.data);
@@ -37,6 +39,7 @@ export function RpgCard() {
           Classes, nível de classe, missões e atributos, tudo calculado do seu histórico. É opcional: desligar não apaga nada.
         </p>
         <ThemePicker value={view.theme} onChange={t => run((d, n) => setRpgTheme(d, t, n))} />
+        <SexPicker value={view.sex} onChange={x => run((d, n) => setRpgSex(d, x, n))} />
         <button type="button" onClick={() => run((d, n) => setRpgEnabled(d, true, n))}
           className="mt-3 h-12 w-full rounded-xl bg-primary font-bold text-white">Ligar o modo RPG</button>
       </section>
@@ -107,7 +110,7 @@ function CharacterSheet({ open, onClose, view }: { open: boolean; onClose: () =>
         <XpBar view={view} />
         {view.banked > 0 && (
           <p className="rounded-xl bg-surface-2 p-3 text-sm text-muted">
-            <b className="text-ink">{formatNumber(view.banked)} XP guardado.</b>{' '}
+            <b className="text-ink">{int(view.banked)} XP guardado.</b>{' '}
             {current.cls.tier < 2 ? 'Entra na próxima classe assim que você escolher, já com a afinidade dela.' : 'Fica guardado para a próxima etapa do modo RPG.'}
           </p>
         )}
@@ -117,7 +120,7 @@ function CharacterSheet({ open, onClose, view }: { open: boolean; onClose: () =>
             <p className="font-semibold">{current.mission.label}</p>
             <Meter value={current.mission.progress} max={current.mission.goal} color={emblemColor(current.cls)} />
             <p className="text-xs text-faint">
-              {current.mission.done ? 'Missão cumprida!' : `${formatNumber(current.mission.progress)} de ${formatNumber(current.mission.goal)} ${current.mission.unit}`}
+              {current.mission.done ? 'Missão cumprida!' : `${int(current.mission.progress)} de ${int(current.mission.goal)} ${current.mission.unit}`}
               {' · conta desde o início desta classe'}
             </p>
           </Section>
@@ -225,16 +228,22 @@ function CharacterSheet({ open, onClose, view }: { open: boolean; onClose: () =>
           </ul>
         </Section>
 
-        <Section title="Tema dos nomes">
+        <Section title="Ajustes do modo">
           <ThemePicker value={theme} onChange={t => run((d, n) => setRpgTheme(d, t, n))} />
           <p className="text-xs text-faint">As regras são as mesmas nos dois temas: trocar não muda o seu progresso.</p>
+          <SexPicker value={sex} onChange={x => run((d, n) => setRpgSex(d, x, n))} />
+          <label className="flex min-h-12 items-center justify-between gap-3">
+            <span className="font-semibold">Som do level up</span>
+            <input type="checkbox" role="switch" checked={view.state.sound ?? true} onChange={e => { const on = e.target.checked; run((d, n) => setRpgSound(d, on, n)); }}
+              className="size-6 shrink-0 accent-[var(--color-primary)]" />
+          </label>
         </Section>
 
         <details className="text-sm text-muted">
           <summary className="min-h-11 cursor-pointer py-2 font-semibold text-primary">Como funciona</summary>
           <div className="space-y-2">
             <p>Cada dia de treino vale XP de classe, e cada semana com a sua meta cumprida ({view.history.target} treinos) vale um bônus. Só um treino por dia conta, e no máximo 6 dias por semana: descansar faz parte.</p>
-            <p>A classe ganha até 50% a mais nos treinos que combinam com ela (afinidade). O {name(RPG_CLASS_BY_ID.novico!)} ganha a semana cumprida em dobro.</p>
+            <p>A classe ganha até 50% a mais nos treinos que combinam com ela (afinidade): carga pesada e recordes para as de força, minutos de cardio, treinos curtos e densos, plano seguido e carga subindo, tonelagem. As de constância ({name(RPG_CLASS_BY_ID.novico!)} e {name(RPG_CLASS_BY_ID.sacerdote!)}) ganham a semana cumprida em dobro.</p>
             <p>O {name(RPG_CLASS_BY_ID.aprendiz!)} vai até o nível {CLASS_CAP[0]}; as classes, até o {CLASS_CAP[1]}. O XP que passa do teto fica guardado para a próxima classe. Para trocar de classe, cumpra a missão dela.</p>
             <p>Tudo é calculado do seu histórico: corrigir ou apagar um treino corrige o personagem.</p>
           </div>
@@ -245,6 +254,20 @@ function CharacterSheet({ open, onClose, view }: { open: boolean; onClose: () =>
         <p className="text-center text-xs text-faint">Desligado, o app volta a ser como antes. Ao religar, tudo continua de onde parou.</p>
       </div>
     </Sheet>
+  );
+}
+
+function SexPicker({ value, onChange }: { value: RpgSex; onChange: (s: RpgSex) => void }) {
+  return (
+    <div role="radiogroup" aria-label="Personagem" className="mt-3 grid grid-cols-2 gap-1 rounded-xl bg-surface-2 p-1">
+      {([['m', 'Masculino'], ['f', 'Feminino']] as const).map(([id, label]) => {
+        const on = value === id;
+        return (
+          <button key={id} type="button" role="radio" aria-checked={on} onClick={() => onChange(id)}
+            className={`min-h-11 rounded-lg text-sm font-semibold ${on ? 'bg-primary text-white' : 'text-muted'}`}>Personagem {label.toLowerCase()}</button>
+        );
+      })}
+    </div>
   );
 }
 

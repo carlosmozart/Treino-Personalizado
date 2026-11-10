@@ -5,6 +5,7 @@ import { className, markRpgCelebrated, pendingCelebration } from '../../domain/r
 import { useAppStore } from '../../store';
 import { useReducedMotion } from '../../hooks/use-reduced-motion';
 import { RpgEmblem } from './RpgEmblem';
+import { playLevelUpSound } from '../workout/rest-store';
 import { useRpgView } from './RpgCard';
 import './rpg.css';
 
@@ -21,6 +22,7 @@ export function RpgLevelUp() {
   const done = () => run((d, n) => markRpgCelebrated(d, n));
   useEffect(() => {
     if (!pending) return undefined;
+    if (view?.state.sound ?? true) playLevelUpSound(pending.kind);
     timer.current = window.setTimeout(done, DURATION_MS);
     return () => window.clearTimeout(timer.current);
     // eslint-disable-next-line react-hooks/exhaustive-deps

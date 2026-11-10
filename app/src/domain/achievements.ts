@@ -4,6 +4,7 @@ import type { ActionResult } from './actions';
 import { toDateKey, type DateKey } from './dates';
 import type { AppData } from './model';
 import { key, touch } from './sync';
+import { rpgOf } from './rpg';
 
 export interface AchievementView {
   id: string;
@@ -15,8 +16,11 @@ export interface AchievementView {
   unlockedAt: DateKey | null;
 }
 
+/** As do modo RPG só aparecem com o modo ligado, ou se já foram ganhas. */
+const visible = (data: AppData) => ACHIEVEMENTS.filter(a => !a.rpg || rpgOf(data).enabled || data.gamification.achievements[a.id]);
+
 export function achievementList(data: AppData): AchievementView[] {
-  return ACHIEVEMENTS.map(a => ({
+  return visible(data).map(a => ({
     id: a.id, name: a.name, desc: a.desc, target: a.target,
     current: Math.min(a.target, a.current(data)), unlockedAt: data.gamification.achievements[a.id] ?? null
   }));
@@ -24,7 +28,7 @@ export function achievementList(data: AppData): AchievementView[] {
 
 /** Desbloqueia o que foi atingido; devolve os mesmos dados quando nada muda. */
 export function unlockAchievements(data: AppData, now: Date): ActionResult {
-  const reached = ACHIEVEMENTS.filter(a => !data.gamification.achievements[a.id] && a.current(data) >= a.target);
+  const reached = ACHIEVEMENTS.filter(a => !data.gamification.achievements[a.id] && (!a.rpg || rpgOf(data).enabled) && a.current(data) >= a.target);
   if (!reached.length) return { data, events: [] };
   const today = toDateKey(now);
   const achievements = { ...data.gamification.achievements };

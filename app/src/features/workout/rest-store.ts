@@ -76,3 +76,35 @@ export function restAlert({ sound, vibrate }: { sound: boolean; vibrate: boolean
     else void ctx.resume().then(beep, () => undefined);
   } catch { /* sem áudio: fica a vibração */ }
 }
+
+/**
+ * Fanfarra curta do level up do modo RPG (som próprio, feito em código): quatro notas subindo;
+ * na troca de classe, uma oitava abaixo e mais lenta. Usa o mesmo AudioContext do descanso.
+ */
+export function playLevelUpSound(kind: 'level' | 'class'): void {
+  const ctx = audioContext();
+  if (!ctx) return;
+  const notes = kind === 'class' ? [262, 330, 392, 523] : [523, 659, 784, 1047];
+  const step = kind === 'class' ? 0.16 : 0.11;
+  const play = () => {
+    const t0 = ctx.currentTime + 0.02;
+    notes.forEach((freq, i) => {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = 'triangle';
+      osc.frequency.value = freq;
+      const start = t0 + i * step;
+      const length = i === notes.length - 1 ? 0.7 : step * 1.6;
+      gain.gain.setValueAtTime(0.0001, start);
+      gain.gain.exponentialRampToValueAtTime(0.22, start + 0.02);
+      gain.gain.exponentialRampToValueAtTime(0.001, start + length);
+      osc.connect(gain).connect(ctx.destination);
+      osc.start(start);
+      osc.stop(start + length);
+    });
+  };
+  try {
+    if (ctx.state === 'running') play();
+    else void ctx.resume().then(play, () => undefined);
+  } catch { /* sem áudio: fica a animação */ }
+}

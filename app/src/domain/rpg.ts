@@ -6,7 +6,7 @@
 // a etapa atual (Aprendiz até o nível 10, 1ª e 2ª classe até o 50); o que passa do teto fica
 // guardado e entra na próxima classe quando ela for escolhida, já com a afinidade dela.
 // Para não premiar excesso: só um treino por dia conta e no máximo 6 dias por semana.
-import { FIRST_CLASSES, RPG_CLASS_BY_ID, STATS, secondClassesOf, type ClassTier, type PathId, type RpgClass, type RpgTheme, type StatId } from '../data/rpg-classes';
+import { FIRST_CLASSES, RPG_CLASS_BY_ID, STATS, secondClassesOf, type ClassTier, type RpgClass, type RpgTheme, type StatId } from '../data/rpg-classes';
 import type { ActionResult } from './actions';
 import { addDays, toDateKey, weekStartOf, type DateKey } from './dates';
 import { levelInfo } from './gamification';
@@ -27,7 +27,13 @@ export interface RpgState {
   points: Partial<Record<StatId, number>>;
   /** Último nível de classe já comemorado, para a animação de level up aparecer uma vez. */
   celebrated?: { classId: string; level: number };
+  /** Sexo do personagem (nomes das classes e, na R2, o desenho). Ausente = o do perfil. */
+  sex?: RpgSex;
+  /** Som do level up. Ausente = ligado. */
+  sound?: boolean;
 }
+
+export type RpgSex = 'm' | 'f';
 
 export const emptyRpg = (): RpgState => ({ enabled: false, theme: 'classico', path: [], points: {} });
 export const rpgOf = (data: AppData): RpgState => data.rpg ?? emptyRpg();
@@ -74,28 +80,60 @@ export const DAY_XP = 100;
 /** Afinidade cheia vale +50% no dia. */
 export const AFFINITY_BONUS = 0.5;
 export const WEEK_XP = 100;
-/** Constância (Noviço e as 2ªs dele) ganha a semana cumprida em dobro, em vez de afinidade diária. */
-export const CONSTANCY_WEEK_MULT = 2;
 export const MAX_XP_DAYS_PER_WEEK = 6;
 /** Série pesada: até 8 repetições, com carga. */
 export const HEAVY_REPS = 8;
 export const SHORT_WORKOUT_MIN = 45;
 export const DENSE_MIN_SETS = 8;
+/** Densidade do Assassino: até 40 minutos com 10 séries ou mais. */
+export const VERY_DENSE_MIN = 40;
+export const VERY_DENSE_SETS = 10;
+/** Variedade do Menestrel: tipos de cardio diferentes nos últimos 14 dias. */
+export const CARDIO_VARIETY_DAYS = 14;
 
-type Affinity = Record<PathId, number>;
-const zeroAffinity = (): Affinity => ({ forca: 0, cardio: 0, intensidade: 0, constancia: 0, metodo: 0, volume: 0 });
+/**
+ * Semana cumprida vale mais para as classes de constância, que ganham pouca (ou nenhuma)
+ * afinidade no dia: Noviço e Sacerdote em dobro, Templário e Monge 1,5×. O Sábio ganha em dobro
+ * quando a semana inteira foi do plano (ver weekMult).
+ */
+const WEEK_MULT: Readonly<Record<string, number>> = { novico: 2, sacerdote: 2, monge: 1.5, templario: 1.5 };
+/** Classes cuja afinidade vem só da semana cumprida (sugestão pela parte das semanas boas). */
+const WEEKLY_CLASSES = new Set(['novico', 'sacerdote']);
 
 interface WorkoutFacts {
   date: DateKey;
-  affinity: Affinity;
   heavySets: number;
+  bodyweightSets: number;
   workSets: number;
   e1rmRecords: number;
   loadUps: number;
+  newExercises: number;
   cardioMin: number;
+  cardioKeys: string[];
+  duration: number | null;
   dense: boolean;
+  veryDense: boolean;
   fromPlan: boolean;
   volume: number;
+}
+
+/** O melhor de cada coisa num dia de treino (só um treino por dia rende XP, então vale o melhor). */
+interface DayFacts {
+  date: DateKey;
+  records: number;
+  heavyShare: number;
+  bodyweightShare: number;
+  ups: number;
+  newExercises: number;
+  cardioMin: number;
+  cardioVariety: boolean;
+  dense: boolean;
+  semiDense: boolean;
+  veryDense: boolean;
+  fromPlan: boolean;
+  volume: number;
+  water: boolean;
+  weighIn: boolean;
 }
 
 function durationOf(w: Workout): number | null {
@@ -112,22 +150,30 @@ function workoutFacts(workouts: readonly Workout[]): WorkoutFacts[] {
   const sorted = [...workouts].sort((a, b) => (a.date !== b.date ? (a.date < b.date ? -1 : 1) : (a.startedAt ?? '').localeCompare(b.startedAt ?? '')));
   const bestByKey = new Map<string, number>();
   const lastBest = new Map<string, { weight: number; reps: number }>();
+  const seen = new Set<string>();
   const out: WorkoutFacts[] = [];
-  let pending: { e1rm: [string, number][]; best: [string, { weight: number; reps: number }][] } = { e1rm: [], best: [] };
+  let pending: { e1rm: [string, number][]; best: [string, { weight: number; reps: number }][]; keys: string[] } = { e1rm: [], best: [], keys: [] };
   let currentDate = '';
   const flush = () => {
     for (const [k, v] of pending.e1rm) bestByKey.set(k, Math.max(bestByKey.get(k) ?? 0, v));
     for (const [k, v] of pending.best) lastBest.set(k, v);
-    pending = { e1rm: [], best: [] };
+    for (const k of pending.keys) seen.add(k);
+    pending = { e1rm: [], best: [], keys: [] };
   };
+  // o primeiro dia não conta exercício "novo": tudo seria novo
+  const firstDate = sorted[0]?.date;
   for (const w of sorted) {
     if (w.date !== currentDate) { flush(); currentDate = w.date; }
-    let heavy = 0, sets = 0, records = 0, ups = 0, cardio = 0;
+    let heavy = 0, bodyweight = 0, sets = 0, records = 0, ups = 0, cardio = 0, fresh = 0;
+    const cardioKeys: string[] = [];
     for (const e of w.entries) {
-      if (e.mode === 'cardio') { cardio += e.cardio?.minutes ?? 0; continue; }
+      if (!seen.has(e.key) && w.date !== firstDate) fresh++;
+      pending.keys.push(e.key);
+      if (e.mode === 'cardio') { cardio += e.cardio?.minutes ?? 0; cardioKeys.push(e.key); continue; }
       const ws = workSets(e);
       sets += ws.length;
       if (e.mode === 'reps') heavy += ws.filter(s => s.weight > 0 && s.reps >= 1 && s.reps <= HEAVY_REPS).length;
+      bodyweight += e.mode === 'time' ? ws.length : ws.filter(s => s.weight === 0).length;
       const cur = bestE1rm(e)?.value ?? 0;
       const prev = bestByKey.get(e.key) ?? 0;
       if (cur > prev && prev > 0) records++;
@@ -138,25 +184,44 @@ function workoutFacts(workouts: readonly Workout[]): WorkoutFacts[] {
       if (b) pending.best.push([e.key, { weight: b.weight, reps: b.reps }]);
     }
     const duration = durationOf(w);
-    const dense = duration !== null && duration <= SHORT_WORKOUT_MIN && sets >= DENSE_MIN_SETS;
-    const volume = workoutVolume(w);
-    const fromPlan = !!w.planId;
-    const affinity: Affinity = {
-      forca: records > 0 ? 1 : Math.min(1, (heavy / Math.max(1, sets)) * 1.5),
-      cardio: Math.min(1, cardio / 30),
-      intensidade: dense ? 1 : duration !== null && duration <= 60 && sets >= DENSE_MIN_SETS ? 0.5 : 0,
-      constancia: 0,
-      metodo: (fromPlan ? 0.5 : 0) + (ups > 0 ? 0.5 : 0),
-      volume: Math.min(1, volume / 6000)
-    };
-    out.push({ date: w.date, affinity, heavySets: heavy, workSets: sets, e1rmRecords: records, loadUps: ups, cardioMin: cardio, dense, fromPlan, volume });
+    out.push({
+      date: w.date, heavySets: heavy, bodyweightSets: bodyweight, workSets: sets, e1rmRecords: records, loadUps: ups, newExercises: fresh,
+      cardioMin: cardio, cardioKeys, duration,
+      dense: duration !== null && duration <= SHORT_WORKOUT_MIN && sets >= DENSE_MIN_SETS,
+      veryDense: duration !== null && duration <= VERY_DENSE_MIN && sets >= VERY_DENSE_SETS,
+      fromPlan: !!w.planId, volume: workoutVolume(w)
+    });
   }
   return out;
 }
 
+/** Afinidade (0 a 1) de um dia de treino com a classe. O Aprendiz não tem. */
+export function dayAffinity(classId: string, d: DayFacts): number {
+  const forca = d.records > 0 ? 1 : Math.min(1, d.heavyShare * 1.5);
+  const cardio = Math.min(1, d.cardioMin / 30);
+  switch (classId) {
+    case 'espadachim': case 'templario': return forca;
+    case 'cavaleiro': return d.records > 0 ? 1 : Math.min(0.5, d.heavyShare);
+    case 'arqueiro': return cardio;
+    case 'cacador': return Math.min(1, d.cardioMin / 45);
+    case 'menestrel': return cardio * (d.cardioVariety ? 1 : 0.5);
+    case 'gatuno': return d.dense ? 1 : d.semiDense ? 0.5 : 0;
+    case 'assassino': return d.veryDense ? 1 : d.dense ? 0.5 : 0;
+    case 'arruaceiro': return d.newExercises > 0 ? 1 : 0;
+    case 'monge': return Math.min(1, d.bodyweightShare * 1.5);
+    case 'mago': return (d.fromPlan ? 0.5 : 0) + (d.ups > 0 ? 0.5 : 0);
+    case 'bruxo': return d.ups > 0 ? 1 : 0;
+    case 'sabio': return d.fromPlan ? 0.5 : 0;
+    case 'mercador': return Math.min(1, d.volume / 6000);
+    case 'ferreiro': return Math.min(1, d.volume / 8000);
+    case 'alquimista': return (d.water ? 0.6 : 0) + (d.weighIn ? 0.4 : 0);
+    default: return 0; // Aprendiz, Noviço e Sacerdote: a constância vem da semana cumprida
+  }
+}
+
 interface WeekFacts { start: DateKey; days: number; good: boolean; allFromPlan: boolean; reachedOn: DateKey | null }
 
-type XpEvent = { date: DateKey; kind: 'day'; affinity: Affinity } | { date: DateKey; kind: 'week' };
+type XpEvent = { date: DateKey; kind: 'day'; day: DayFacts } | { date: DateKey; kind: 'week'; week: WeekFacts };
 
 interface History {
   facts: WorkoutFacts[];
@@ -165,36 +230,65 @@ interface History {
   target: number;
 }
 
+const maxOf = <T>(list: readonly T[], fn: (x: T) => number) => list.reduce((m, x) => Math.max(m, fn(x)), 0);
+
 function buildHistory(data: AppData): History {
   const facts = workoutFacts(data.workouts);
   const start = weekStartSetting(data.settings);
   const target = Math.min(MAX_XP_DAYS_PER_WEEK, Math.max(1, daysPerWeekOf(data)));
   const byDay = new Map<DateKey, WorkoutFacts[]>();
   for (const f of facts) byDay.set(f.date, [...(byDay.get(f.date) ?? []), f]);
+  const weighIns = new Set(data.profile.weighIns.map(w => w.date));
   const weeks = new Map<DateKey, WeekFacts>();
   const events: XpEvent[] = [];
+  const recentCardio: { date: DateKey; key: string }[] = [];
   for (const [date, list] of [...byDay.entries()].sort(([a], [b]) => (a < b ? -1 : 1))) {
     const wk = weekStartOf(date, start);
     const week = weeks.get(wk) ?? { start: wk, days: 0, good: false, allFromPlan: true, reachedOn: null };
     weeks.set(wk, week);
     week.allFromPlan &&= list.every(f => f.fromPlan);
+    for (const f of list) for (const key of f.cardioKeys) recentCardio.push({ date, key });
     if (week.days >= MAX_XP_DAYS_PER_WEEK) continue;
     week.days++;
-    const affinity = zeroAffinity();
-    for (const f of list) for (const p of Object.keys(affinity) as PathId[]) affinity[p] = Math.max(affinity[p], f.affinity[p]);
-    events.push({ date, kind: 'day', affinity });
+    const since = addDays(date, -(CARDIO_VARIETY_DAYS - 1));
+    const day: DayFacts = {
+      date,
+      records: maxOf(list, f => f.e1rmRecords),
+      heavyShare: maxOf(list, f => f.heavySets / Math.max(1, f.workSets)),
+      bodyweightShare: maxOf(list, f => f.bodyweightSets / Math.max(1, f.workSets)),
+      ups: maxOf(list, f => f.loadUps),
+      newExercises: maxOf(list, f => f.newExercises),
+      cardioMin: maxOf(list, f => f.cardioMin),
+      cardioVariety: new Set(recentCardio.filter(c => c.date >= since).map(c => c.key)).size >= 2,
+      dense: list.some(f => f.dense),
+      semiDense: list.some(f => f.duration !== null && f.duration <= 60 && f.workSets >= DENSE_MIN_SETS),
+      veryDense: list.some(f => f.veryDense),
+      fromPlan: list.some(f => f.fromPlan),
+      volume: maxOf(list, f => f.volume),
+      water: date in data.gamification.waterBonus,
+      weighIn: weighIns.has(date)
+    };
+    events.push({ date, kind: 'day', day });
     if (!week.good && week.days >= target) {
       week.good = true;
       week.reachedOn = date;
-      events.push({ date, kind: 'week' });
+      events.push({ date, kind: 'week', week });
     }
   }
   return { facts, weeks, events, target };
 }
 
-function eventXp(ev: XpEvent, path: PathId | undefined): number {
-  if (ev.kind === 'week') return WEEK_XP * (path === 'constancia' ? CONSTANCY_WEEK_MULT : 1);
-  return DAY_XP * (1 + AFFINITY_BONUS * (path ? ev.affinity[path] : 0));
+/** Multiplicador da semana cumprida para a classe. */
+export function weekMult(classId: string | undefined, allFromPlan: boolean): number {
+  if (classId === 'sabio') return allFromPlan ? 2 : 1;
+  return (classId && WEEK_MULT[classId]) || 1;
+}
+
+/** XP de um evento para a classe; sem classe (ou Aprendiz), o XP neutro, sem afinidade. */
+function eventXp(ev: XpEvent, cls: RpgClass | undefined): number {
+  const id = cls && cls.tier > 0 ? cls.id : undefined;
+  if (ev.kind === 'week') return WEEK_XP * weekMult(id, ev.week.allFromPlan);
+  return DAY_XP * (1 + AFFINITY_BONUS * (id ? dayAffinity(id, ev.day) : 0));
 }
 
 // ---------- missões de troca de classe ----------
@@ -307,9 +401,25 @@ function resolvePath(state: RpgState): RpgClass[] {
   return out;
 }
 
+/** Sexo do personagem: o escolhido no modo RPG ou, sem escolha, o do perfil. */
+export function rpgSexOf(data: AppData): RpgSex {
+  return rpgOf(data).sex ?? (data.profile.sex === 'feminino' ? 'f' : 'm');
+}
+
+// A visão é recalculada a cada ação (conquistas, animação, telas): guarda a última de cada dado.
+const viewCache = new WeakMap<AppData, { today: DateKey; view: RpgView }>();
+
 export function rpgView(data: AppData, now: Date): RpgView {
-  const state = rpgOf(data);
   const today = toDateKey(now);
+  const cached = viewCache.get(data);
+  if (cached?.today === today) return cached.view;
+  const view = computeRpgView(data, today);
+  viewCache.set(data, { today, view });
+  return view;
+}
+
+function computeRpgView(data: AppData, today: DateKey): RpgView {
+  const state = rpgOf(data);
   const h = buildHistory(data);
   const chain = resolvePath(state);
   const stages: StageView[] = [];
@@ -321,7 +431,7 @@ export function rpgView(data: AppData, now: Date): RpgView {
     let startedOn: DateKey | null = null;
     while (idx < h.events.length && xp < need) {
       const ev = h.events[idx]!;
-      const full = eventXp(ev, cls.path);
+      const full = eventXp(ev, cls);
       startedOn ??= ev.date;
       if (xp + full * frac <= need) { xp += full * frac; idx++; frac = 1; }
       else { frac -= (need - xp) / full; xp = need; }
@@ -337,10 +447,11 @@ export function rpgView(data: AppData, now: Date): RpgView {
   const nextChoices = current.cls.tier === 0 ? FIRST_CLASSES : current.cls.tier === 1 ? secondClassesOf(current.cls.id) : [];
   const options: ClassOption[] = !unlockedNext ? [] : nextChoices.map(cls => {
     const days = remaining.filter(r => r.ev.kind === 'day');
-    const affinity = cls.path === 'constancia'
+    // Noviço e Sacerdote: a afinidade é a parte das semanas com a meta cumprida
+    const affinity = WEEKLY_CLASSES.has(cls.id)
       ? Math.min(1, h.weeks.size ? [...h.weeks.values()].filter(w => w.good).length / h.weeks.size : 0)
-      : days.length ? days.reduce((n, r) => n + (r.ev.kind === 'day' ? r.ev.affinity[cls.path!] : 0), 0) / days.length : 0;
-    const xp = remaining.reduce((n, r) => n + eventXp(r.ev, cls.path) * r.frac, 0);
+      : days.length ? days.reduce((n, r) => n + (r.ev.kind === 'day' ? dayAffinity(cls.id, r.ev.day) : 0), 0) / days.length : 0;
+    const xp = remaining.reduce((n, r) => n + eventXp(r.ev, cls) * r.frac, 0);
     return { cls, affinity, startLevel: classLevel(cls.tier, xp).level };
   }).sort((a, b) => b.affinity - a.affinity || b.startLevel - a.startLevel);
 
@@ -356,7 +467,7 @@ export function rpgView(data: AppData, now: Date): RpgView {
   const earned = pointsForBaseLevel(baseLevel);
   const spent = stats.reduce((n, s) => n + s.bonus, 0);
   return {
-    state, theme: state.theme, sex: data.profile.sex === 'feminino' ? 'f' : 'm', baseLevel, stages, current, banked, options, nextHint,
+    state, theme: state.theme, sex: rpgSexOf(data), baseLevel, stages, current, banked, options, nextHint,
     stats, points: { earned, spent, free: Math.max(0, earned - spent) },
     history: { target: h.target, trainingDays: h.events.filter(e => e.kind === 'day').length, goodWeeks: [...h.weeks.values()].filter(w => w.good).length }
   };
@@ -395,6 +506,14 @@ export function setRpgEnabled(data: AppData, enabled: boolean, now: Date): Actio
 
 export function setRpgTheme(data: AppData, theme: RpgTheme, now: Date): ActionResult {
   return withRpg(data, { ...rpgOf(data), theme }, now);
+}
+
+export function setRpgSex(data: AppData, sex: RpgSex, now: Date): ActionResult {
+  return withRpg(data, { ...rpgOf(data), sex }, now);
+}
+
+export function setRpgSound(data: AppData, sound: boolean, now: Date): ActionResult {
+  return withRpg(data, { ...rpgOf(data), sound }, now);
 }
 
 /** Escolhe a próxima classe, se ela estiver liberada. A escolha é definitiva. */

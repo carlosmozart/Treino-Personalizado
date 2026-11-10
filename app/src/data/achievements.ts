@@ -2,6 +2,7 @@
 import { levelInfo } from '../domain/gamification';
 import type { AppData } from '../domain/model';
 import { workoutVolume } from '../domain/workouts';
+import { rpgOf, rpgView } from '../domain/rpg';
 
 export interface Achievement {
   id: string;
@@ -9,6 +10,8 @@ export interface Achievement {
   desc: string;
   target: number;
   current: (data: AppData) => number;
+  /** Conquista do modo RPG: só aparece e só desbloqueia com o modo ligado (ou se já foi ganha). */
+  rpg?: true;
 }
 
 const checkins = (d: AppData) => Object.keys(d.checkins).length;
@@ -17,6 +20,7 @@ const level = (d: AppData) => levelInfo(d.gamification.totalXP).level;
 const water = (d: AppData) => Object.keys(d.gamification.waterBonus).length;
 const volume = (d: AppData) => d.workouts.reduce((n, w) => n + workoutVolume(w), 0);
 const flag = (b: boolean) => (b ? 1 : 0);
+const rpgStages = (d: AppData) => rpgView(d, new Date()).stages;
 
 export const ACHIEVEMENTS: readonly Achievement[] = [
   { id: 'primeiro_checkin', name: 'Primeiro Passo', desc: 'Complete seu primeiro check-in.', target: 1, current: checkins },
@@ -46,5 +50,10 @@ export const ACHIEVEMENTS: readonly Achievement[] = [
   { id: 'volume_10k', name: 'Kaioken', desc: 'Acumule 10.000 kg de volume levantado.', target: 10_000, current: volume },
   { id: 'volume_30k', name: 'Kaioken x3', desc: 'Acumule 30.000 kg de volume levantado.', target: 30_000, current: volume },
   { id: 'volume_100k', name: 'Kaioken x10', desc: 'Acumule 100.000 kg de volume levantado.', target: 100_000, current: volume },
-  { id: 'volume_1m', name: 'Super Saiyajin', desc: 'Acumule 1.000.000 kg de volume levantado.', target: 1_000_000, current: volume }
+  { id: 'volume_1m', name: 'Super Saiyajin', desc: 'Acumule 1.000.000 kg de volume levantado.', target: 1_000_000, current: volume },
+  // modo RPG: as missões de troca de classe entram aqui
+  { id: 'rpg_primeira_classe', name: 'Escolha do Caminho', desc: 'Modo RPG: escolha sua primeira classe.', target: 1, current: d => flag(rpgOf(d).path.length >= 1), rpg: true },
+  { id: 'rpg_missao', name: 'Missão Cumprida', desc: 'Modo RPG: cumpra a missão de troca de classe.', target: 1, current: d => flag(rpgStages(d).some(s => s.mission?.done)), rpg: true },
+  { id: 'rpg_classe_50', name: 'No Topo da Classe', desc: 'Modo RPG: chegue ao nível 50 numa classe.', target: 1, current: d => flag(rpgStages(d).some(s => s.cls.tier > 0 && s.level.capped)), rpg: true },
+  { id: 'rpg_especializacao', name: 'Especialista', desc: 'Modo RPG: escolha sua segunda classe.', target: 1, current: d => flag(rpgOf(d).path.length >= 2), rpg: true }
 ];

@@ -4,8 +4,9 @@ import { addDays } from './dates';
 import type { AppData, Workout } from './model';
 import {
   CLASS_CAP, DAY_XP, WEEK_XP, allocateRpgPoint, chooseRpgClass, classLevel, className, markRpgCelebrated, pendingCelebration,
-  pointsForBaseLevel, rpgView, setRpgEnabled, setRpgTheme, stageNeed
+  pointsForBaseLevel, rpgView, setRpgEnabled, setRpgSex, setRpgSound, setRpgTheme, stageNeed
 } from './rpg';
+import { achievementList, unlockAchievements } from './achievements';
 import { mergeAppData } from './sync';
 import { sampleData, workout } from './testing';
 
@@ -185,5 +186,59 @@ describe('sincronização', () => {
     expect(mergeAppData(b, a).rpg?.path).toEqual([]);
     expect(mergeAppData(base, a).rpg?.path[0]?.classId).toBe('mago');
     expect(mergeAppData(base, base).rpg).toBeUndefined();
+  });
+});
+
+describe('afinidade das 2ªs classes e ajustes', () => {
+  const base = withWorkouts(days('2025-01-06', 400, (d, i) => workout(d, 'Agachamento', [[5, 100 + i], [5, 100 + i]])));
+  const firstOptions = (path: string) => rpgView(chooseRpgClass(base, path, NOW).data, NOW);
+
+  it('Monge prefere peso do corpo; Cavaleiro, recordes', () => {
+    const v = firstOptions('novico');
+    // treino todo dia num plano de 6: a meta da semana sai sempre, e a missão do Noviço também
+    expect(v.options.map(o => o.cls.id).sort()).toEqual(['monge', 'sacerdote']);
+    const espadachim = firstOptions('espadachim');
+    const cav = espadachim.options.find(o => o.cls.id === 'cavaleiro')!;
+    expect(cav.affinity).toBeGreaterThan(0.9);
+  });
+
+  it('Alquimista ganha afinidade com água e pesagem no dia do treino', () => {
+    const list = days('2026-01-01', 150);
+    const plain = withWorkouts(list);
+    const healthy = withWorkouts(list);
+    healthy.gamification.waterBonus = Object.fromEntries(list.map(w => [w.date, 10]));
+    healthy.profile.weighIns = list.map(w => ({ date: w.date, weight: 80 }));
+    // caminho gravado direto (sem checar a missão) para medir só o XP da 2ª classe
+    const rpg = { enabled: true, theme: 'classico' as const, points: {}, path: [{ classId: 'mercador', at: '' }, { classId: 'alquimista', at: '' }] };
+    const a = rpgView({ ...healthy, rpg }, NOW).current;
+    const b = rpgView({ ...plain, rpg }, NOW).current;
+    expect(a.cls.id).toBe('alquimista');
+    expect(a.xp).toBeGreaterThan(b.xp);
+  });
+
+  it('o sexo escolhido no modo vence o do perfil', () => {
+    const data = sampleData();
+    data.profile.sex = 'masculino';
+    expect(rpgView(data, NOW).sex).toBe('m');
+    const f = setRpgSex(data, 'f', NOW).data;
+    expect(rpgView(f, NOW).sex).toBe('f');
+    expect(className(RPG_CLASS_BY_ID.novico!, 'classico', rpgView(f, NOW).sex)).toBe('Noviça');
+  });
+
+  it('som do level up liga por padrão e desliga pelo ajuste', () => {
+    expect(rpgView(sampleData(), NOW).state.sound ?? true).toBe(true);
+    expect(rpgView(setRpgSound(sampleData(), false, NOW).data, NOW).state.sound).toBe(false);
+  });
+});
+
+describe('conquistas do modo RPG', () => {
+  it('só aparecem e desbloqueiam com o modo ligado', () => {
+    const ready = chooseRpgClass(withWorkouts(days('2026-10-01', 20)), 'mago', NOW).data;
+    const off = { ...ready, rpg: { ...ready.rpg!, enabled: false } };
+    expect(achievementList(off).some(a => a.id === 'rpg_primeira_classe')).toBe(false);
+    expect(unlockAchievements(off, NOW).data.gamification.achievements.rpg_primeira_classe).toBeUndefined();
+    const on = setRpgEnabled(ready, true, NOW).data;
+    expect(achievementList(on).some(a => a.id === 'rpg_primeira_classe')).toBe(true);
+    expect(unlockAchievements(on, NOW).data.gamification.achievements.rpg_primeira_classe).toBe('2026-11-08');
   });
 });

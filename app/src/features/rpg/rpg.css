@@ -2,7 +2,7 @@
 .rpg-levelup {
   --rpg-glow: #f6c445;
   --rpg-glow-soft: #f6c44555;
-  background: radial-gradient(circle at 50% 60%, #000000aa, #000000dd);
+  background: radial-gradient(circle at 50% 55%, #000000cc, #000000f0);
   animation: rpg-fade 2.6s ease forwards;
 }
 .rpg-levelup--class { --rpg-glow: #b78cff; --rpg-glow-soft: #b78cff55; }
@@ -35,7 +35,18 @@
 }
 .rpg-levelup__sparks { position: absolute; inset: 0; pointer-events: none; }
 
-.rpg-levelup__card { position: relative; animation: rpg-pop .6s .35s cubic-bezier(.2, 1.4, .4, 1) both; }
+/* cartão escuro próprio: o texto fica legível sobre qualquer tela, clara ou escura */
+.rpg-levelup__card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 20px 28px;
+  border-radius: 24px;
+  background: #0b0912e6;
+  box-shadow: 0 0 0 1px var(--rpg-glow-soft), 0 0 48px var(--rpg-glow-soft);
+  animation: rpg-pop .6s .35s cubic-bezier(.2, 1.4, .4, 1) both;
+}
 .rpg-levelup__title { color: var(--rpg-glow); text-shadow: 0 0 18px var(--rpg-glow), 0 2px 0 #0008; }
 
 .rpg-levelup--still, .rpg-levelup--still * { animation: none !important; }
