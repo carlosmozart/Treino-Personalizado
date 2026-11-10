@@ -10,6 +10,7 @@ import { NumberField } from '../../ui/NumberField';
 import { formatNumber } from '../../ui/format';
 import { SettingsSection } from './SettingsSection';
 import { WeightLogSheet } from '../home/WeightLogSheet';
+import { RpgCard } from '../rpg/RpgCard';
 
 const ACTIVITY: Record<ActivityLevel, string> = { sedentario: 'Sedentário', moderado: 'Moderado (3–5 treinos)', intenso: 'Intenso (6–7 treinos)' };
 const TONE = { info: 'text-primary', success: 'text-success', warning: 'text-warning', danger: 'text-danger' } as const;
@@ -30,6 +31,8 @@ export function ProfileScreen() {
     <>
       <h1 className="pt-6 text-3xl font-black tracking-tight">{p.name.trim() || 'Perfil'}</h1>
       <p className="text-muted">{[h.age !== null ? `${h.age} anos` : '', `Nível ${level.level}`, `${data.gamification.totalXP} XP`].filter(Boolean).join(' · ')}</p>
+
+      <RpgCard />
 
       <Card title="Seus dados">
         <Field label="Nome">

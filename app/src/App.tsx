@@ -13,6 +13,7 @@ import { PlanScreen } from './features/plan/PlanScreen';
 import { ProgressScreen } from './features/progress/ProgressScreen';
 import { ProfileScreen } from './features/profile/ProfileScreen';
 import { SeasonalLayer } from './features/seasonal/SeasonalLayer';
+import { RpgLevelUp } from './features/rpg/LevelUp';
 
 const SCREENS = { inicio: () => <HomeScreen />, plano: () => <PlanScreen />, treino: () => <WorkoutScreen />, progresso: () => <ProgressScreen />, perfil: () => <ProfileScreen /> };
 
@@ -45,6 +46,7 @@ export function App() {
         <p className="mt-6 text-center text-sm text-faint">Treino Personalizado v{__APP_VERSION__}</p>
       </main>
       {status === 'ready' && <SeasonalLayer />}
+      {status === 'ready' && <RpgLevelUp />}
       <RestBar />
       <Toaster />
       <ErrorNotice />

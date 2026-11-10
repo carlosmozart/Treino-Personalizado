@@ -6,6 +6,7 @@ import type { WeightGoal } from './body-goal';
 import type { CheckinXPRecord } from './gamification';
 import type { SeasonalPref } from './seasonal';
 import type { RotationSlot } from './rotation';
+import type { RpgState } from './rpg';
 
 export const SCHEMA_VERSION = 1;
 
@@ -290,6 +291,8 @@ export interface AppData {
   /** M19: treinos remarcados, por data. Ausente em dados antigos. */
   moves?: Record<DateKey, DayMove>;
   gamification: Gamification;
+  /** Modo RPG: escolhas da pessoa (o resto é calculado do histórico). Ausente = nunca ligado. */
+  rpg?: RpgState;
   settings: Settings;
   /** Carimbos para juntar dados de dois aparelhos (ver sync.ts). */
   sync: SyncStamps;
@@ -302,7 +305,7 @@ export interface AppData {
 
 /**
  * Chave de cada registro sincronizável: "workout:<id>", "plan:<id>", "weighin:<data>",
- * "checkin:<data>", "water:<data>", "profile", "settings", "activePlan".
+ * "checkin:<data>", "water:<data>", "profile", "settings", "activePlan", "rpg".
  */
 export type SyncKey = string;
 

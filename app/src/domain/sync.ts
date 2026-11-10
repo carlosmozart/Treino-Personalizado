@@ -14,7 +14,8 @@ export const key = {
   move: (date: string): SyncKey => `move:${date}`,
   profile: 'profile' as SyncKey,
   settings: 'settings' as SyncKey,
-  activePlan: 'activePlan' as SyncKey
+  activePlan: 'activePlan' as SyncKey,
+  rpg: 'rpg' as SyncKey
 };
 
 /** Marca um registro como alterado agora (e desfaz uma exclusão anterior dele). */
@@ -43,6 +44,7 @@ export function stampAll(data: AppData, now: Date): AppData {
   Object.keys(data.measurements ?? {}).forEach(d => add(key.measure(d)));
   Object.keys(data.moves ?? {}).forEach(d => add(key.move(d)));
   [key.profile, key.settings, key.activePlan].forEach(add);
+  if (data.rpg) add(key.rpg);
   return { ...data, sync: { changed, deleted: { ...data.sync.deleted } } };
 }
 
@@ -126,6 +128,7 @@ export function mergeAppData(local: AppData, remote: AppData): AppData {
   const measurements = mergeRecords(key.measure, local.measurements ?? {}, remote.measurements ?? {}, a, b, deleted);
   const moves = mergeRecords(key.move, local.moves ?? {}, remote.moves ?? {}, a, b, deleted);
 
+  const rpg = !local.rpg ? remote.rpg : !remote.rpg ? local.rpg : newer(a.stamp(key.rpg), b.stamp(key.rpg)) ? local.rpg : remote.rpg;
   const whole = <K extends 'profile' | 'settings'>(k: SyncKey, field: K): AppData[K] =>
     (newer(a.stamp(k), b.stamp(k)) ? local[field] : remote[field]);
   const profile = { ...whole(key.profile, 'profile'), weighIns };
@@ -150,6 +153,7 @@ export function mergeAppData(local: AppData, remote: AppData): AppData {
     ...(Object.keys(measurements).length ? { measurements } : {}),
     ...(Object.keys(moves).length ? { moves } : {}),
     gamification: mergeGamification(local.gamification, remote.gamification, new Set(Object.keys(checkins))),
+    ...(rpg ? { rpg } : {}),
     settings: whole(key.settings, 'settings'),
     sync: { changed, deleted },
     meta: {
