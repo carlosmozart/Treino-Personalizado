@@ -1,12 +1,16 @@
-// Modo RPG no Perfil (R1): convite para ligar, cartão do personagem e a ficha completa.
+// Modo RPG no Perfil: convite para ligar, cartão do personagem e a ficha completa (R1), com o
+// retrato ilustrado e o criador de personagem (R2).
 import { useMemo, useState, type ReactNode } from 'react';
-import { FIRST_CLASSES, RPG_CLASS_BY_ID, STATS, THEME_ABOUT, THEME_LABEL, secondClassesOf, type RpgClass, type RpgTheme } from '../../data/rpg-classes';
-import { CLASS_CAP, allocateRpgPoint, chooseRpgClass, className, rpgUnlocked, rpgView, setRpgEnabled, setRpgSex, setRpgSound, setRpgTheme, STAT_MAX, type RpgSex, type RpgView } from '../../domain/rpg';
+import { FIRST_CLASSES, RPG_CLASS_BY_ID, STATS, THEME_LABEL, secondClassesOf, type RpgClass } from '../../data/rpg-classes';
+import { CLASS_CAP, allocateRpgPoint, chooseRpgClass, className, rpgUnlocked, rpgView, setRpgEnabled, setRpgSex, setRpgSound, setRpgTheme, STAT_MAX, type RpgView } from '../../domain/rpg';
 import { useAppStore } from '../../store';
 import { useToday } from '../../hooks/use-today';
 import { Sheet } from '../../ui/Sheet';
 import { Icon } from '../../ui/Icon';
 import { RpgEmblem, emblemColor } from './RpgEmblem';
+import { Portrait } from './Portrait';
+import { LookEditor } from './LookEditor';
+import { SexPicker, ThemePicker } from './pickers';
 
 /** Inteiro com ponto de milhar: 2.700. */
 const int = (n: number) => Math.round(n).toLocaleString('pt-BR');
@@ -29,7 +33,7 @@ export function RpgCard() {
     return (
       <section className="mt-4 rounded-2xl border border-line bg-surface p-4">
         <div className="flex items-center gap-3">
-          <RpgEmblem cls={RPG_CLASS_BY_ID.aprendiz!} theme={view.theme} size={48} />
+          <Portrait look={view.look} sex={view.sex} cls={RPG_CLASS_BY_ID.aprendiz!} theme={view.theme} mode="bust" size={64} label="Seu personagem" />
           <div>
             <h2 className="text-lg font-bold">Modo RPG</h2>
             <p className="text-sm text-muted">Seus treinos viram a evolução de um personagem.</p>
@@ -53,7 +57,10 @@ export function RpgCard() {
       <button type="button" onClick={() => setOpen(true)} aria-label={`Personagem: ${name}, nível de classe ${current.level.level}. Abrir ficha`}
         className="mt-4 block w-full rounded-2xl border border-line bg-surface p-4 text-left">
         <div className="flex items-center gap-3">
-          <RpgEmblem cls={current.cls} theme={view.theme} size={56} />
+          <span className="relative shrink-0">
+            <span className="block overflow-hidden rounded-2xl bg-surface-2"><Portrait look={view.look} sex={view.sex} cls={current.cls} theme={view.theme} mode="bust" size={72} /></span>
+            <span className="absolute -bottom-1 -right-1"><RpgEmblem cls={current.cls} theme={view.theme} size={26} /></span>
+          </span>
           <div className="min-w-0 flex-1">
             <p className="text-xs font-bold uppercase tracking-wide text-faint">Personagem · {THEME_LABEL[view.theme]}</p>
             <p className="truncate text-lg font-black">{name}</p>
@@ -88,6 +95,7 @@ function XpBar({ view }: { view: RpgView }) {
 function CharacterSheet({ open, onClose, view }: { open: boolean; onClose: () => void; view: RpgView }) {
   const run = useAppStore(s => s.run);
   const [picking, setPicking] = useState<string | null>(null);
+  const [editing, setEditing] = useState(false);
   const { current, theme, sex } = view;
   const name = (c: RpgClass) => className(c, theme, sex);
   const walked = new Set(view.stages.map(s => s.cls.id));
@@ -96,12 +104,17 @@ function CharacterSheet({ open, onClose, view }: { open: boolean; onClose: () =>
     <Sheet title="Personagem" open={open} onClose={onClose}>
       <div className="space-y-5 pb-2">
         <div className="flex items-center gap-4">
-          <RpgEmblem cls={current.cls} theme={theme} size={76} />
-          <div className="min-w-0">
+          <span className="shrink-0 rounded-2xl bg-surface-2 p-1">
+            <Portrait look={view.look} sex={sex} cls={current.cls} theme={theme} mode="full" size={96} label={`Personagem: ${name(current.cls)}`} />
+          </span>
+          <div className="min-w-0 space-y-2">
+            <RpgEmblem cls={current.cls} theme={theme} size={40} />
             <p className="text-2xl font-black leading-tight">{name(current.cls)}</p>
             <p className="text-sm text-muted">{current.cls.about}</p>
+            <button type="button" onClick={() => setEditing(true)} className="h-11 rounded-xl bg-surface-2 px-4 text-sm font-bold">Mudar aparência</button>
           </div>
         </div>
+        <LookEditor open={editing} onClose={() => setEditing(false)} view={view} />
 
         <div className="grid grid-cols-2 gap-3">
           <Box label="Nível de classe" value={`${current.level.level}`} sub={`de ${CLASS_CAP[current.cls.tier]}`} />
@@ -254,37 +267,6 @@ function CharacterSheet({ open, onClose, view }: { open: boolean; onClose: () =>
         <p className="text-center text-xs text-faint">Desligado, o app volta a ser como antes. Ao religar, tudo continua de onde parou.</p>
       </div>
     </Sheet>
-  );
-}
-
-function SexPicker({ value, onChange }: { value: RpgSex; onChange: (s: RpgSex) => void }) {
-  return (
-    <div role="radiogroup" aria-label="Personagem" className="mt-3 grid grid-cols-2 gap-1 rounded-xl bg-surface-2 p-1">
-      {([['m', 'Masculino'], ['f', 'Feminino']] as const).map(([id, label]) => {
-        const on = value === id;
-        return (
-          <button key={id} type="button" role="radio" aria-checked={on} onClick={() => onChange(id)}
-            className={`min-h-11 rounded-lg text-sm font-semibold ${on ? 'bg-primary text-white' : 'text-muted'}`}>Personagem {label.toLowerCase()}</button>
-        );
-      })}
-    </div>
-  );
-}
-
-function ThemePicker({ value, onChange }: { value: RpgTheme; onChange: (t: RpgTheme) => void }) {
-  return (
-    <div role="radiogroup" aria-label="Tema dos nomes das classes" className="mt-3 grid grid-cols-2 gap-2">
-      {(['classico', 'maromba'] as const).map(t => {
-        const on = value === t;
-        return (
-          <button key={t} type="button" role="radio" aria-checked={on} onClick={() => onChange(t)}
-            className={`rounded-xl p-3 text-left ${on ? 'bg-surface-2 ring-2 ring-[var(--color-ink)]' : 'bg-surface-2 text-muted'}`}>
-            <span className="block font-bold text-ink">{THEME_LABEL[t]}</span>
-            <span className="block text-xs">{THEME_ABOUT[t]}</span>
-          </button>
-        );
-      })}
-    </div>
   );
 }
 

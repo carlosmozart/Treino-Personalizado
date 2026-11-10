@@ -12,6 +12,8 @@ test('modo RPG: ligar no tema Maromba, level up depois do treino e ficha', async
   await page.getByRole('radio', { name: 'Personagem feminino' }).click();
   await page.getByRole('button', { name: 'Ligar o modo RPG' }).click();
   await expect(page.getByRole('button', { name: /Personagem: Frango, nível de classe 1/ })).toBeVisible();
+  // o busto ilustrado carrega da arte em public/rpg/retrato
+  await expect(page.locator('canvas[data-ready="1"]').first()).toBeVisible();
 
   // um treino curto rende o nível 2 de classe: a animação aparece por cima do resumo
   await page.getByRole('button', { name: 'Treino', exact: true }).click();
@@ -26,6 +28,7 @@ test('modo RPG: ligar no tema Maromba, level up depois do treino e ficha', async
   await expect(levelUp).toBeVisible();
   await expect(levelUp).toContainText('LEVEL UP!');
   await expect(levelUp).toContainText('Frango · nível 2');
+  await expect(levelUp.locator('canvas[data-ready="1"]')).toBeVisible();
   await page.waitForTimeout(900); // a animação leva ~1 s para mostrar o texto
   await page.screenshot({ path: 'test-results/rpg-level-up.png' });
   await levelUp.click();
@@ -41,6 +44,16 @@ test('modo RPG: ligar no tema Maromba, level up depois do treino e ficha', async
   await expect(sheet.getByText('Espadachim', { exact: true })).toBeVisible();
   await expect(sheet.getByText('Noviça', { exact: true })).toBeVisible();
   await page.screenshot({ path: 'test-results/rpg-ficha.png' });
+
+  // criador de personagem: trança, ver a roupa de outra classe
+  await sheet.getByRole('button', { name: 'Mudar aparência' }).click();
+  const editor = page.getByRole('dialog', { name: 'Aparência do personagem' });
+  await editor.getByRole('radiogroup', { name: 'Cabelo' }).getByRole('radio', { name: 'Trança' }).click();
+  await expect(editor.getByRole('radiogroup', { name: 'Cabelo' }).getByRole('radio', { name: 'Trança' })).toHaveAttribute('aria-checked', 'true');
+  await editor.getByRole('radiogroup', { name: 'Ver com a roupa de' }).getByRole('radio', { name: 'Maga' }).click();
+  await expect(editor.getByRole('img', { name: 'Prévia do personagem como Maga' })).toHaveAttribute('data-ready', '1');
+  await page.screenshot({ path: 'test-results/rpg-criador.png' });
+  await editor.getByRole('button', { name: 'Pronto' }).click();
 
   // as conquistas do RPG aparecem com o modo ligado
   await sheet.getByRole('button', { name: 'Fechar' }).click();

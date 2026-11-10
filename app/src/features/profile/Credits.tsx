@@ -24,6 +24,18 @@ export function CreditsButton() {
             </p>
           </section>
           <section>
+            <h3 className="font-bold">Personagem do modo RPG</h3>
+            <p className="mt-1 text-muted">
+              Retratos em camadas do OpenWorld (<a className={LINK} href="https://github.com/SihanXU/openworld" target="_blank" rel="noreferrer">github.com/SihanXU/openworld</a>),
+              dedicados ao domínio público pelos autores (<a className={LINK} href="https://creativecommons.org/publicdomain/zero/1.0/deed.pt-br" target="_blank" rel="noreferrer">CC0 1.0</a>).
+              Reduzidos à metade e escolhidos só os corpos adultos.
+            </p>
+            <p className="mt-1 text-muted">
+              A montagem do retrato e a tabela de cores foram adaptadas do código do OpenWorld (licença MIT,
+              Copyright (c) 2026 The OpenWorld authors). Emblemas, classes e animações são do próprio app.
+            </p>
+          </section>
+          <section>
             <h3 className="font-bold">Programas de código aberto</h3>
             <p className="mt-1 text-muted">
               React e React DOM (Meta, licença MIT), Zustand (Poimandres, MIT), Capacitor (Ionic, MIT),

@@ -38,6 +38,13 @@ export default defineConfig({
         // tudo que o build gera fica disponível offline; nenhuma rota externa é cacheada
         globPatterns: ['**/*.{js,css,html,png,svg,webmanifest}'],
         navigateFallback: 'index.html',
+        // arte do personagem do modo RPG (~3,5 MB, .webp): fora do pré-cache, para quem não usa o modo
+        // não baixar; guardada na primeira vez que aparece e servida do cache daí em diante
+        runtimeCaching: [{
+          urlPattern: /\/rpg\/retrato\//,
+          handler: 'CacheFirst',
+          options: { cacheName: 'rpg-retrato', expiration: { maxEntries: 400 } }
+        }],
         // a página de divulgação (/convite/, posta pelo workflow do Pages) abre como ela mesma
         navigateFallbackDenylist: [/\/convite\//]
       }

@@ -7,6 +7,7 @@
 // guardado e entra na próxima classe quando ela for escolhida, já com a afinidade dela.
 // Para não premiar excesso: só um treino por dia conta e no máximo 6 dias por semana.
 import { FIRST_CLASSES, RPG_CLASS_BY_ID, STATS, secondClassesOf, type ClassTier, type RpgClass, type RpgTheme, type StatId } from '../data/rpg-classes';
+import { defaultLook, HAIR_STYLES, type RpgLook } from '../data/rpg-looks';
 import type { ActionResult } from './actions';
 import { addDays, toDateKey, weekStartOf, type DateKey } from './dates';
 import { levelInfo } from './gamification';
@@ -31,6 +32,8 @@ export interface RpgState {
   sex?: RpgSex;
   /** Som do level up. Ausente = ligado. */
   sound?: boolean;
+  /** Aparência do personagem (R2). Ausente = a padrão do sexo. */
+  look?: RpgLook;
 }
 
 export type RpgSex = 'm' | 'f';
@@ -351,6 +354,7 @@ export interface RpgView {
   state: RpgState;
   theme: RpgTheme;
   sex: 'm' | 'f';
+  look: RpgLook;
   baseLevel: number;
   stages: StageView[];
   current: StageView;
@@ -399,6 +403,17 @@ function resolvePath(state: RpgState): RpgClass[] {
     out.push(cls);
   }
   return out;
+}
+
+/**
+ * Aparência efetiva: a escolhida, ou a padrão do sexo. Um penteado que o corpo não tem (o "ralo" só
+ * existe no masculino) volta ao padrão, para o personagem nunca aparecer careca por engano.
+ */
+export function rpgLookOf(data: AppData): RpgLook {
+  const sex = rpgSexOf(data);
+  const look = rpgOf(data).look ?? defaultLook(sex);
+  const style = HAIR_STYLES.find(h => h.id === look.hair);
+  return style && (!style.sexes || style.sexes.includes(sex)) ? look : { ...look, hair: defaultLook(sex).hair };
 }
 
 /** Sexo do personagem: o escolhido no modo RPG ou, sem escolha, o do perfil. */
@@ -467,7 +482,7 @@ function computeRpgView(data: AppData, today: DateKey): RpgView {
   const earned = pointsForBaseLevel(baseLevel);
   const spent = stats.reduce((n, s) => n + s.bonus, 0);
   return {
-    state, theme: state.theme, sex: rpgSexOf(data), baseLevel, stages, current, banked, options, nextHint,
+    state, theme: state.theme, sex: rpgSexOf(data), look: rpgLookOf(data), baseLevel, stages, current, banked, options, nextHint,
     stats, points: { earned, spent, free: Math.max(0, earned - spent) },
     history: { target: h.target, trainingDays: h.events.filter(e => e.kind === 'day').length, goodWeeks: [...h.weeks.values()].filter(w => w.good).length }
   };
@@ -510,6 +525,10 @@ export function setRpgTheme(data: AppData, theme: RpgTheme, now: Date): ActionRe
 
 export function setRpgSex(data: AppData, sex: RpgSex, now: Date): ActionResult {
   return withRpg(data, { ...rpgOf(data), sex }, now);
+}
+
+export function setRpgLook(data: AppData, look: RpgLook, now: Date): ActionResult {
+  return withRpg(data, { ...rpgOf(data), look }, now);
 }
 
 export function setRpgSound(data: AppData, sound: boolean, now: Date): ActionResult {

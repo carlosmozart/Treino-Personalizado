@@ -5,6 +5,7 @@ import { className, markRpgCelebrated, pendingCelebration } from '../../domain/r
 import { useAppStore } from '../../store';
 import { useReducedMotion } from '../../hooks/use-reduced-motion';
 import { RpgEmblem } from './RpgEmblem';
+import { Portrait } from './Portrait';
 import { playLevelUpSound } from '../workout/rest-store';
 import { useRpgView } from './RpgCard';
 import './rpg.css';
@@ -44,7 +45,12 @@ export function RpgLevelUp() {
       <div className="rpg-levelup__beam" aria-hidden="true" />
       <div className="rpg-levelup__sparks" aria-hidden="true">{Array.from({ length: 14 }, (_, i) => <i key={i} style={{ ['--i' as string]: i }} />)}</div>
       <div className="rpg-levelup__card text-center">
-        <RpgEmblem cls={view.current.cls} theme={view.theme} size={84} />
+        <span className="relative">
+          <span className="block overflow-hidden rounded-full bg-[#1a1626] ring-2 ring-[var(--rpg-glow)]">
+            <Portrait look={view.look} sex={view.sex} cls={view.current.cls} theme={view.theme} mode="bust" size={120} mood="happy" />
+          </span>
+          <span className="absolute -bottom-1 -right-1"><RpgEmblem cls={view.current.cls} theme={view.theme} size={40} /></span>
+        </span>
         <p className="rpg-levelup__title mt-3 text-4xl font-black tracking-tight">{isClass ? 'NOVA CLASSE!' : 'LEVEL UP!'}</p>
         <p className="mt-1 text-lg font-bold text-white">{isClass ? name : `${name} · nível ${pending.level}`}</p>
         <p className="mt-2 text-xs text-white/70">Toque para fechar</p>
