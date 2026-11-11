@@ -3,7 +3,7 @@ import { addDays, toDateKey, weekStartOf, type DateKey } from './dates';
 import { weekStartSetting, type AppData, type Workout } from './model';
 import { streakOf } from './rewards';
 import { MUSCLE_GROUPS, groupOf } from '../data/exercise-library';
-import { workoutVolume, workSets } from './workouts';
+import { volumeOptions, workoutVolume, workSets } from './workouts';
 
 export interface StatsSummary {
   totalWorkouts: number;
@@ -74,11 +74,12 @@ export interface WeekVolume { start: DateKey; end: DateKey; volume: number; work
 /** Volume (kg levantados) por semana, da mais antiga à atual. */
 export function weeklyVolume(data: AppData, now: Date, weeks = 8): WeekVolume[] {
   const first = weekStartOf(toDateKey(now), weekStartSetting(data.settings));
+  const opts = volumeOptions(data);
   return Array.from({ length: weeks }, (_, i) => {
     const start = addDays(first, -7 * (weeks - 1 - i));
     const end = addDays(start, 6);
     const inWeek = data.workouts.filter(w => w.date >= start && w.date <= end);
-    return { start, end, volume: Math.round(inWeek.reduce((n, w) => n + workoutVolume(w), 0)), workouts: inWeek.length };
+    return { start, end, volume: Math.round(inWeek.reduce((n, w) => n + workoutVolume(w, opts), 0)), workouts: inWeek.length };
   });
 }
 

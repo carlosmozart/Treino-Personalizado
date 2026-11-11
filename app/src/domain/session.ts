@@ -10,6 +10,7 @@ import { isCardioName } from '../data/exercise-library';
 import { repRange, suggestProgression, type Progression } from './progression';
 import { rotationTitle } from './rotation';
 import { isDeloadDate, progressionWorkouts } from './deload';
+import { isCompound, warmupConfig, warmupRamp, type WarmupConfig } from './warmup';
 
 export interface SessionSet {
   reps: number;
@@ -20,6 +21,10 @@ export interface SessionSet {
   failure?: true;
   /** V2: nota curta da série. */
   note?: string;
+  /** T17: descanso depois desta série, só neste treino (0 = sem cronômetro). Ausente = o do exercício. */
+  rest?: number;
+  /** V8: aquecimento posto pela rampa automática (acompanha a carga de trabalho até ser editado). */
+  auto?: true;
 }
 
 export interface SessionExercise {
@@ -47,6 +52,8 @@ export interface SessionExercise {
   perSide?: true;
   /** T6: descanso entre os lados, em segundos. */
   sideRestSeconds?: number;
+  /** V8: como arredondar a rampa de aquecimento automático deste exercício. */
+  autoWarmup?: WarmupConfig;
 }
 
 export interface ActiveSession {
@@ -123,7 +130,42 @@ function fromPlanExercise(data: AppData, ex: PlanExercise, date: DateKey, linear
     if (ex.sideRestSeconds) out.sideRestSeconds = ex.sideRestSeconds;
   }
   if (ex.mode === 'cardio') out.cardio = { minutes: ex.minutes, km: ex.km, done: false };
-  return out;
+  return withAutoWarmup(out, data.settings);
+}
+
+/** Maior carga das séries de trabalho: o alvo da rampa de aquecimento. */
+const topWork = (sets: readonly SessionSet[]) => Math.max(0, ...sets.filter(x => x.kind === 'work').map(x => x.weight));
+
+/**
+ * V8: põe a rampa de aquecimento automático antes das séries de trabalho, quando ligada em Perfil
+ * e o exercício é composto, por repetições e com carga.
+ */
+export function withAutoWarmup(ex: SessionExercise, settings: Pick<Settings, 'autoWarmup' | 'barWeight' | 'plates'>): SessionExercise {
+  if (!settings.autoWarmup || ex.mode !== 'reps' || ex.perSide || !isCompound(ex.name) || ex.sets.some(x => x.kind === 'warmup')) return ex;
+  const config = warmupConfig(ex.name, settings);
+  const ramp = warmupRamp(topWork(ex.sets), config);
+  // sem rampa agora (carga 0 ou leve), mas guarda o jeito: se a carga subir no treino, ela aparece
+  return { ...ex, autoWarmup: config, sets: [...ramp.map(r => ({ ...r, kind: 'warmup' as const, done: false, auto: true as const })), ...ex.sets] };
+}
+
+/**
+ * V8: refaz a parte ainda não feita da rampa quando a carga de trabalho muda. O aquecimento já feito
+ * fica; o que vem depois continua dele para cima. Aquecimento editado à mão não é mexido.
+ */
+function refreshAutoWarmup(ex: SessionExercise): SessionExercise {
+  if (!ex.autoWarmup) return ex;
+  const isAuto = (x: SessionSet) => x.kind === 'warmup' && !!x.auto;
+  // a pessoa mexeu no aquecimento à mão (editou ou pôs outro): a rampa para de acompanhar
+  if (ex.sets.some(x => x.kind === 'warmup' && !x.auto && !x.done)) return ex;
+  const floor = Math.max(0, ...ex.sets.filter(x => x.kind === 'warmup' && x.done).map(x => x.weight));
+  const ramp = warmupRamp(topWork(ex.sets), ex.autoWarmup).filter(r => r.weight > floor);
+  const pending = ex.sets.filter(x => isAuto(x) && !x.done);
+  if (pending.length === ramp.length && pending.every((x, i) => x.weight === ramp[i]!.weight && x.reps === ramp[i]!.reps)) return ex;
+  const kept = ex.sets.filter(x => !(isAuto(x) && !x.done));
+  const at = kept.filter(x => x.kind === 'warmup').length;
+  const sets = [...kept];
+  sets.splice(at, 0, ...ramp.map(r => ({ ...r, kind: 'warmup' as const, done: false, auto: true as const })));
+  return { ...ex, sets };
 }
 
 export function startSession(data: AppData, planId: string, dayKey: DayKey, now: Date, id: string): ActiveSession | null {
@@ -167,11 +209,12 @@ export function addExerciseToSession(s: ActiveSession, data: AppData, name: stri
   const clean = name.trim();
   if (!clean || s.exercises.length >= 30) return s;
   const mode: ExerciseMode = isCardioName(clean) ? 'cardio' : 'reps';
-  const ex: SessionExercise = {
+  let ex: SessionExercise = {
     slotId: `${EXTRA_PREFIX}${s.exercises.length}-${normalizeExerciseName(clean)}`, name: clean, key: normalizeExerciseName(clean), mode,
     optional: false, sets: initialSets(data, clean, mode, null, s.date).sets, note: '', alternatives: []
   };
   if (mode === 'cardio') ex.cardio = { minutes: 20, km: 0, done: false };
+  ex = withAutoWarmup(ex, data.settings);
   return { ...s, exercises: [...s.exercises, ex] };
 }
 
@@ -247,12 +290,29 @@ export function toggleSet(s: ActiveSession, exIndex: number, setIndex: number): 
 }
 
 export function updateSet(s: ActiveSession, exIndex: number, setIndex: number, patch: Partial<Pick<SessionSet, 'reps' | 'weight' | 'kind'>>): ActiveSession {
-  return mapSet(s, exIndex, setIndex, set => ({
-    ...set,
-    ...(patch.kind ? { kind: patch.kind } : {}),
-    ...(patch.reps !== undefined ? { reps: clamp(Math.round(patch.reps), 0, 999) } : {}),
-    ...(patch.weight !== undefined ? { weight: clamp(roundKg(patch.weight), 0, 999) } : {})
-  }));
+  const next = mapSet(s, exIndex, setIndex, set => {
+    const changed: SessionSet = {
+      ...set,
+      ...(patch.kind ? { kind: patch.kind } : {}),
+      ...(patch.reps !== undefined ? { reps: clamp(Math.round(patch.reps), 0, 999) } : {}),
+      ...(patch.weight !== undefined ? { weight: clamp(roundKg(patch.weight), 0, 999) } : {})
+    };
+    if (changed.reps === set.reps && changed.weight === set.weight && changed.kind === set.kind) return set;
+    // V8: aquecimento mexido à mão deixa de acompanhar a carga
+    if (changed.auto) { const { auto: _a, ...rest } = changed; return rest; }
+    return changed;
+  });
+  // V8: mudou a carga de trabalho: a rampa ainda não feita acompanha
+  return next === s || next.exercises[exIndex]?.sets[setIndex]?.kind !== 'work' ? next : mapExercise(next, exIndex, refreshAutoWarmup);
+}
+
+/** T17: descanso depois de uma série, só neste treino: `undefined` volta ao do exercício, 0 = sem cronômetro. */
+export function setSetRest(s: ActiveSession, exIndex: number, setIndex: number, seconds: number | undefined): ActiveSession {
+  return mapSet(s, exIndex, setIndex, set => {
+    if (set.rest === seconds) return set;
+    const { rest: _old, ...rest } = set;
+    return seconds === undefined ? rest : { ...rest, rest: Math.min(600, Math.max(0, Math.round(seconds))) };
+  });
 }
 
 /** Nova série copia a última (é o que a pessoa costuma repetir). */
@@ -284,12 +344,23 @@ export function addWarmupSet(s: ActiveSession, exIndex: number): ActiveSession {
 export function removeWarmupSet(s: ActiveSession, exIndex: number): ActiveSession {
   return mapExercise(s, exIndex, ex => {
     const i = ex.sets.map(x => x.kind).lastIndexOf('warmup');
-    return i < 0 ? ex : { ...ex, sets: ex.sets.filter((_, j) => j !== i) };
+    return i < 0 ? ex : withoutSet(ex, i);
   });
 }
 
+/** Tira uma série; tirar um aquecimento da rampa desliga a rampa deste exercício (V8). */
+function withoutSet(ex: SessionExercise, setIndex: number): SessionExercise {
+  const removed = ex.sets[setIndex];
+  const out = { ...ex, sets: ex.sets.filter((_, i) => i !== setIndex) };
+  if (removed?.auto && out.autoWarmup) {
+    const { autoWarmup: _w, ...rest } = out;
+    return rest;
+  }
+  return out;
+}
+
 export function removeSet(s: ActiveSession, exIndex: number, setIndex: number): ActiveSession {
-  return mapExercise(s, exIndex, ex => (ex.sets.length > 1 ? { ...ex, sets: ex.sets.filter((_, i) => i !== setIndex) } : ex));
+  return mapExercise(s, exIndex, ex => (ex.sets.length > 1 ? withoutSet(ex, setIndex) : ex));
 }
 
 /** S5: marca ou desmarca a série como levada até a falha (só séries de trabalho). */
@@ -320,8 +391,8 @@ export function duplicateSet(s: ActiveSession, exIndex: number, setIndex: number
     const set = ex.sets[setIndex];
     if (!set || ex.mode === 'cardio' || ex.sets.length >= 20) return ex;
     const sets = [...ex.sets];
-    // a cópia nasce sem falha e sem a nota da original
-    const { failure: _f, note: _n, ...copy } = set;
+    // a cópia nasce sem falha, sem a nota e sem o descanso próprio da original
+    const { failure: _f, note: _n, rest: _r, ...copy } = set;
     sets.splice(setIndex + 1, 0, { ...copy, done: false });
     return { ...ex, sets };
   });
@@ -369,7 +440,9 @@ export function setNote(s: ActiveSession, exIndex: number, note: string): Active
 export function adjustWeights(s: ActiveSession, exIndex: number, delta: number): ActiveSession {
   return mapExercise(s, exIndex, ex => {
     if (!ex.sets.some(set => !set.done)) return ex;
-    return { ...ex, sets: ex.sets.map(set => (set.done ? set : { ...set, weight: roundKg(Math.max(0, set.weight + delta)) })) };
+    // V8: a rampa automática é refeita a partir da carga nova, não somada
+    const moved = ex.sets.map(set => (set.done || (set.kind === 'warmup' && set.auto) ? set : { ...set, weight: roundKg(Math.max(0, set.weight + delta)) }));
+    return refreshAutoWarmup({ ...ex, sets: moved });
   });
 }
 
@@ -404,7 +477,7 @@ export function swapExercise(s: ActiveSession, data: AppData, exIndex: number, n
     if (ex.tip) swapped.tip = ex.tip;
     if (ex.superset) swapped.superset = ex.superset;
     if (mode === 'cardio') swapped.cardio = { minutes: planEx?.minutes || 20, km: 0, done: false };
-    return swapped;
+    return withAutoWarmup(swapped, data.settings);
   });
 }
 
@@ -421,10 +494,13 @@ export function nextOpenExercise(exercises: readonly SessionExercise[], from: nu
 }
 
 /**
- * Descanso depois de marcar uma série: o do exercício (ou o padrão); depois de aquecimento, o do
- * ajuste T6 quando definido (0 = sem descanso).
+ * Descanso depois de marcar uma série: o desta série (T17), senão o do exercício (ou o padrão);
+ * depois de aquecimento, o do ajuste T6 quando definido (0 = sem descanso).
  */
 export function restAfterSet(ex: SessionExercise, setIndex: number, settings: Pick<Settings, 'restSeconds' | 'warmupRest'>): number {
+  // T17: o descanso escolhido só para esta série vale acima de tudo
+  const own = ex.sets[setIndex]?.rest;
+  if (own !== undefined) return own;
   const normal = ex.restSeconds ?? settings.restSeconds;
   return ex.sets[setIndex]?.kind === 'warmup' && settings.warmupRest !== undefined ? settings.warmupRest : normal;
 }

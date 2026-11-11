@@ -5,10 +5,12 @@ import { toDateKey } from '../../domain/dates';
 import { newId } from '../../domain/ids';
 import { DAY_FULL_NAMES, MAX_EXERCISES_PER_DAY, dayKeyOf, trainingDaysPerWeek, type Plan, type PlanExercise } from '../../domain/model';
 import {
-  addAlternative, addExercise, duplicateExercise, insertExercise, blankPlan, clearDay, deletePlan, duplicatePlan, editPlan, moveExercise, newPlanExercise, optionalHint,
+  addAlternative, addExercise, duplicateExercise, insertExercise, clearDay, isPlannedEmpty, deletePlan, duplicatePlan, editPlan, moveExercise, newPlanExercise, optionalHint,
   removeAlternative, removeExercise, setPlanExerciseRest, updateDay, updateExercise
 } from '../../domain/plan-edit';
-import { EXERCISE_LIBRARY } from '../../data/exercise-library';
+import { EXERCISE_LIBRARY, MUSCLE_GROUPS, libraryEntries } from '../../data/exercise-library';
+import { normalizeExerciseName } from '../../domain/text';
+import { ScratchPlanSheet } from './ScratchPlanSheet';
 import { useAppStore } from '../../store';
 import { Icon } from '../../ui/Icon';
 import { ExerciseThumb } from '../../ui/ExerciseIllustration';
@@ -24,7 +26,7 @@ import { SwipeRow } from '../../ui/SwipeRow';
 import { searchNames } from '../../domain/search';
 import { supersetBlock, toggleSupersetWithNext } from '../../domain/session';
 import { useSearchPool } from '../../hooks/use-search-pool';
-import { addSlot, canRemoveSlot, disableRotation, enableRotation, MAX_ROTATION_SLOTS, moveSlot, removeSlot, restartRotation, REST_SLOT, rotationLetter, rotationOrder, rotationSlots as rotationSlotsOf, rotationState, rotationTitle, setRotationPerWeek } from '../../domain/rotation';
+import { addSlot, canRemoveSlot, disableRotation, enableRotation, LETTERS, MAX_ROTATION_SLOTS, moveSlot, removeSlot, restartRotation, REST_SLOT, rotationLetter, rotationOrder, rotationSlots as rotationSlotsOf, rotationState, rotationTitle, setRotationPerWeek } from '../../domain/rotation';
 import { dayTitle, formatClock, formatNumber, plural } from '../../ui/format';
 import { RestSheet, restLabel } from '../../ui/RestSheet';
 
@@ -39,6 +41,7 @@ export function PlanScreen() {
   const [libraryOpen, setLibraryOpen] = useState(false);
   const [reviewOpen, setReviewOpen] = useState(false);
   const [templatesOpen, setTemplatesOpen] = useState(false);
+  const [scratchOpen, setScratchOpen] = useState(false);
   const plan = data?.activePlanId ? data.plans[data.activePlanId] : undefined;
 
   if (!data) return null;
@@ -55,6 +58,9 @@ export function PlanScreen() {
           <button type="button" onClick={() => setAiOpen('new')} className="mt-2 h-12 w-full rounded-xl bg-surface-2 text-base font-bold">
             Montar treino com IA
           </button>
+          <button type="button" onClick={() => setScratchOpen(true)} className="mt-2 h-12 w-full rounded-xl bg-surface-2 text-base font-bold">
+            Criar do zero
+          </button>
           <button type="button" onClick={() => setAiOpen('convert')} className="mt-2 h-12 w-full rounded-xl text-base font-semibold text-primary">
             Já tenho um treino feito em IA
           </button>
@@ -62,6 +68,7 @@ export function PlanScreen() {
         {/* mesma chave nos dois retornos: o painel continua aberto quando o plano criado vira o ativo */}
         <AiPlanSheet key="ai" open={!!aiOpen} initialKind={aiOpen || 'new'} onClose={() => setAiOpen(false)} />
         <TemplateSheet key="modelos" open={templatesOpen} onClose={() => setTemplatesOpen(false)} />
+        <ScratchPlanSheet key="do-zero" open={scratchOpen} onClose={() => setScratchOpen(false)} />
       </>
     );
   }
@@ -70,6 +77,7 @@ export function PlanScreen() {
   const days = trainingDaysPerWeek(plan);
   const today = dayKeyOf(new Date());
   const others = Object.values(data.plans).filter(p => p.id !== plan.id);
+  const empty = !Object.values(plan.days).some(d => d.exercises.length > 0);
 
   return (
     <>
@@ -105,15 +113,22 @@ export function PlanScreen() {
           );
         })}
       </div>
-      {plan.rotation ? <RotationPanel plan={plan} edit={edit} /> : (
-        /* O3: calculado pelos dias obrigatórios com exercícios, sem campo manual */
+      {plan.rotation ? <RotationPanel plan={plan} edit={edit} /> : !empty && (
+        /* O3: calculado pelos dias obrigatórios com exercícios, sem campo manual (vazio: o aviso abaixo explica) */
         <p className="mt-2 text-sm text-muted" data-testid="dias-semana">{plural(days, 'dia de treino', 'dias de treino')} por semana</p>
       )}
 
+      {/* plano do zero ainda vazio: o passo seguinte, com palavras */}
+      {empty && (
+        <p className="mt-3 rounded-2xl border border-primary bg-surface p-4 text-sm" data-testid="plano-vazio">
+          <span className="block text-base font-bold">Agora, os exercícios</span>
+          Toque em <span className="font-semibold">Adicionar exercício</span> {plan.rotation ? 'no Treino A' : 'em cada treino'}. Dá para buscar pelo nome ou escolher pelo grupo muscular, e pôr vários de uma vez. Séries, repetições e carga se ajustam tocando no exercício.
+        </p>
+      )}
       <div className="mt-4 space-y-3">
         {plan.rotation
-          ? rotationCards(plan).map(({ key, letter }) => (
-              <DayCard key={key} plan={plan} dayKey={key} today={false} edit={edit} rotation={{ letter }} />
+          ? rotationCards(plan).map(({ key, letter, ...rest }) => (
+              <DayCard key={key} plan={plan} dayKey={key} today={false} edit={edit} rotation={{ letter, next: 'next' in rest ? rest.next : '' }} />
             ))
           : DAY_KEYS.map(k => <DayCard key={k} plan={plan} dayKey={k} today={k === today} edit={edit} />)}
       </div>
@@ -178,8 +193,8 @@ export function PlanScreen() {
           <Icon name="mais" /> Duplicar este plano
         </SheetAction>
         <PlanFileActions plan={plan} onDone={() => {}} />
-        <SheetAction onClick={() => { run((d, now) => addPlan(d, blankPlan(newId('plano'), toDateKey(now)), now)); setPlansOpen(false); }}>
-          <Icon name="mais" /> Novo plano em branco
+        <SheetAction onClick={() => { setPlansOpen(false); setScratchOpen(true); }}>
+          <Icon name="mais" /> Novo plano do zero
         </SheetAction>
         <SheetAction onClick={() => { setPlansOpen(false); setTemplatesOpen(true); }}>
           <Icon name="mais" /> Novo plano a partir de um modelo
@@ -187,6 +202,7 @@ export function PlanScreen() {
       </Sheet>
       <AiPlanSheet key="ai" open={!!aiOpen} initialKind={aiOpen || 'new'} onClose={() => setAiOpen(false)} />
       <TemplateSheet key="modelos" open={templatesOpen} onClose={() => setTemplatesOpen(false)} />
+      <ScratchPlanSheet key="do-zero" open={scratchOpen} onClose={() => setScratchOpen(false)} />
     </>
   );
 }
@@ -199,7 +215,8 @@ function rotationCards(plan: Plan) {
   const empty = DAY_KEYS.find(k => !order.includes(k));
   return [
     ...order.map(key => ({ key, letter: rotationLetter(plan, key) })),
-    ...(empty ? [{ key: empty, letter: '' }] : [])
+    // o espaço vazio já leva a letra que vai ganhar (o próximo da volta)
+    ...(empty ? [{ key: empty, letter: '', next: LETTERS[order.length] ?? '' }] : [])
   ];
 }
 
@@ -271,10 +288,12 @@ function RotationOrder({ plan, edit, nextIndex }: { plan: Plan; edit: Edit; next
   );
 }
 
-function DayCard({ plan, dayKey, today, edit, rotation }: { plan: Plan; dayKey: DayKey; today: boolean; edit: Edit; rotation?: { letter: string } }) {
+function DayCard({ plan, dayKey, today, edit, rotation }: { plan: Plan; dayKey: DayKey; today: boolean; edit: Edit; rotation?: { letter: string; next?: string } }) {
   const day = plan.days[dayKey];
   const { title, optional } = dayTitle(day, dayKey);
   const rest = day.exercises.length === 0;
+  // dia escolhido para treinar, ainda sem exercícios (plano do zero) ou o próximo treino da rotação
+  const waiting = rest && (rotation ? true : isPlannedEmpty(day));
   const [openId, setOpenId] = useState<string | null>(null);
   const [adding, setAdding] = useState(false);
   const [dayMenu, setDayMenu] = useState(false);
@@ -297,20 +316,21 @@ function DayCard({ plan, dayKey, today, edit, rotation }: { plan: Plan; dayKey: 
   };
   const full = day.exercises.length >= MAX_EXERCISES_PER_DAY;
   // na rotação o espaço é "Treino B" (vazio: "Treino novo"), não o dia da semana
-  const slotName = rotation ? (rotation.letter ? `Treino ${rotation.letter}` : 'Treino novo') : DAY_FULL_NAMES[dayKey];
+  const slotName = rotation ? (rotation.letter ? `Treino ${rotation.letter}` : rotation.next ? `Treino ${rotation.next}` : 'Treino novo') : DAY_FULL_NAMES[dayKey];
   const tags = [slotName, today ? 'Hoje' : '', optional && !rest && !rotation ? 'Opcional' : ''].filter(Boolean).join(' · ');
 
   return (
-    <article aria-label={slotName} className={`rounded-2xl border bg-surface p-4 ${today ? 'border-primary' : 'border-line'}`}>
+    <article aria-label={slotName} className={`rounded-2xl border bg-surface p-4 ${today ? 'border-primary' : waiting ? 'border-dashed border-primary/60' : 'border-line'}`}>
       <div className="flex items-start gap-2">
         <div className="min-w-0 flex-1">
           <p className="text-xs font-semibold text-muted">{tags}</p>
           <h2 className="text-lg font-bold leading-snug">
-            {rest ? (rotation ? 'Vazio: adicione exercícios para incluir na rotação' : 'Descanso')
+            {rest ? (rotation ? (day.name.trim() || 'Novo treino da rotação') : waiting ? title : 'Descanso')
               : rotation ? rotationTitle(plan, dayKey)
               : title.replace(new RegExp(`^${DAY_FULL_NAMES[dayKey]}:\\s*`, 'i'), '') || title}
           </h2>
           {!rest && day.focus && <p className="text-sm text-muted">{day.focus}</p>}
+          {waiting && <p className="text-sm text-muted">{rotation ? 'Adicione exercícios para criar este treino.' : 'Ainda sem exercícios.'}</p>}
         </div>
         <button type="button" onClick={() => setDayMenu(true)} aria-label={`Editar ${slotName}`}
           className="flex size-11 shrink-0 items-center justify-center rounded-full text-muted">
@@ -345,12 +365,13 @@ function DayCard({ plan, dayKey, today, edit, rotation }: { plan: Plan; dayKey: 
       )}
 
       <button type="button" disabled={full} onClick={() => setAdding(true)}
-        className="mt-3 flex h-11 w-full items-center justify-center gap-2 rounded-xl border border-dashed border-line font-semibold text-muted disabled:opacity-50">
-        <Icon name="mais" className="size-5" /> {full ? `Limite de ${MAX_EXERCISES_PER_DAY} exercícios` : 'Adicionar exercício'}
+        className={`mt-3 flex h-11 w-full items-center justify-center gap-2 rounded-xl font-semibold disabled:opacity-50 ${waiting ? 'bg-primary text-white' : 'border border-dashed border-line text-muted'}`}>
+        <Icon name="mais" className="size-5" /> {full ? `Limite de ${MAX_EXERCISES_PER_DAY} exercícios` : rest && !waiting ? 'Adicionar exercício (vira dia de treino)' : 'Adicionar exercício'}
       </button>
 
-      <AddExerciseSheet open={adding} dayName={slotName} onClose={() => setAdding(false)}
-        onAdd={name => { const ex = newPlanExercise(name); edit(p => addExercise(p, dayKey, ex)); setOpenId(ex.id); setAdding(false); }} />
+      {/* vários de uma vez: o painel fica aberto até "Pronto" */}
+      <AddExerciseSheet open={adding} dayName={slotName} existing={day.exercises.map(e => e.name)} full={full} onClose={() => setAdding(false)}
+        onAdd={name => { const ex = newPlanExercise(name); edit(p => addExercise(p, dayKey, ex)); setOpenId(ex.id); }} />
 
       <Sheet title={slotName} open={dayMenu} onClose={() => setDayMenu(false)}>
         <label className="block text-sm font-semibold text-muted">Nome do treino
@@ -519,24 +540,71 @@ function ExerciseRow({ ex, open, first, last, swipe, superset, linkedToNext, onT
   );
 }
 
-function AddExerciseSheet({ open, dayName, onClose, onAdd }: { open: boolean; dayName: string; onClose: () => void; onAdd: (name: string) => void }) {
+/**
+ * Adicionar exercícios a um treino: buscar pelo nome ou escolher pelo grupo muscular. O painel fica
+ * aberto para pôr vários de uma vez; os que já estão no treino aparecem marcados.
+ */
+function AddExerciseSheet({ open, dayName, existing, full, onClose, onAdd }: {
+  open: boolean; dayName: string; existing: readonly string[]; full: boolean; onClose: () => void; onAdd: (name: string) => void;
+}) {
   const [query, setQuery] = useState('');
+  const [group, setGroup] = useState<string | null>(null);
+  const [added, setAdded] = useState<string[]>([]);
+  const custom = useAppStore(s => s.data?.settings.customExercises);
   const listId = useId();
   const q = query.trim().toLowerCase();
   const pool = useSearchPool();
-  const matches = q ? searchNames(q, pool.names, 6, pool.done, pool.favorites) : [];
-  const add = (name: string) => { onAdd(name); setQuery(''); };
+  const matches = q ? searchNames(q, pool.names, 8, pool.done, pool.favorites) : [];
+  const inGroup = !q && group ? libraryEntries(custom ?? []).filter(e => e.group === group).map(e => e.name) : [];
+  const have = new Set(existing.map(normalizeExerciseName));
+  const close = () => { setQuery(''); setGroup(null); setAdded([]); onClose(); };
+  const add = (name: string) => {
+    if (full) return;
+    onAdd(name.trim());
+    setAdded(a => [...a, name.trim()]);
+    setQuery('');
+  };
+  const row = (name: string) => {
+    const there = have.has(normalizeExerciseName(name));
+    return (
+      <li key={name}>
+        <SheetAction onClick={() => add(name)}>
+          <ExerciseThumb name={name} />
+          <span className="min-w-0 flex-1">{name}{there && <span className="block text-xs font-normal text-success">✓ já está no treino</span>}</span>
+        </SheetAction>
+      </li>
+    );
+  };
   return (
-    <Sheet title={`Adicionar em ${dayName}`} open={open} onClose={onClose}>
-      <input autoFocus value={query} onChange={e => setQuery(e.target.value)} placeholder="Buscar ou digitar o nome" aria-label="Nome do exercício"
+    <Sheet title={`Adicionar em ${dayName}`} open={open} onClose={close}>
+      <input value={query} onChange={e => setQuery(e.target.value)} placeholder="Buscar ou digitar o nome" aria-label="Nome do exercício"
         aria-controls={listId} className="h-12 w-full rounded-xl border border-line bg-surface-2 px-3 text-base text-ink" />
-      <ul id={listId} className="mt-2">
-        {matches.map(name => <li key={name}><SheetAction onClick={() => add(name)}><ExerciseThumb name={name} />{name}</SheetAction></li>)}
-      </ul>
+      {!q && (
+        <>
+          <p className="mt-3 text-sm font-semibold text-muted">Ou escolha pelo grupo</p>
+          <div role="radiogroup" aria-label="Grupo muscular" className="mt-1 flex flex-wrap gap-1.5">
+            {MUSCLE_GROUPS.map(g => (
+              <button key={g} type="button" role="radio" aria-checked={group === g} onClick={() => setGroup(group === g ? null : g)}
+                className={`h-9 rounded-full border px-3 text-sm font-semibold ${group === g ? 'border-primary bg-primary/10 text-ink' : 'border-line text-muted'}`}>{g}</button>
+            ))}
+          </div>
+        </>
+      )}
+      <ul id={listId} className="mt-2">{(q ? matches : inGroup).map(row)}</ul>
       {q && !matches.some(n => n.toLowerCase() === q) && (
-        <button type="button" onClick={() => add(query)} className="mt-2 h-12 w-full rounded-xl bg-primary text-base font-bold text-white">
+        <button type="button" onClick={() => add(query)} disabled={full} className="mt-2 h-12 w-full rounded-xl bg-surface-2 text-base font-bold disabled:opacity-50">
           Adicionar “{query.trim()}”
         </button>
+      )}
+      {(added.length > 0 || full) && (
+        <div className="sticky bottom-0 mt-3 space-y-2 bg-surface pb-1 pt-2">
+          <p role="status" className="text-sm text-muted">
+            {full ? `Limite de ${MAX_EXERCISES_PER_DAY} exercícios neste treino.` : `${added[added.length - 1]} adicionado. ${plural(existing.length, 'exercício', 'exercícios')} no treino.`}
+          </p>
+          <button type="button" onClick={close} className="h-12 w-full rounded-xl bg-primary text-base font-bold text-white">
+            Pronto{added.length > 1 ? ` (${added.length} adicionados)` : ''}
+          </button>
+        </div>
       )}
     </Sheet>
   );

@@ -93,6 +93,11 @@ export function WorkoutSettingsFields() {
         <DurationWheel label="Descanso padrão" seconds={settings.restSeconds} min={15} max={600} onChange={n => set({ restSeconds: n })} />
       </div>
       <WarmupRestChoice value={settings.warmupRest} onChange={v => set({ warmupRest: v })} />
+      {/* V8: rampa nos compostos (barra × 10, 40%, 60%, 80%), que acompanha a carga do dia */}
+      <Toggle label="Aquecimento automático nos exercícios compostos (supino, agachamento, terra, remada…)" checked={settings.autoWarmup ?? false} onChange={v => set({ autoWarmup: v })} />
+      {/* T22 e V13: só a conta do volume; recordes e progressão não mudam */}
+      <Toggle label="Contar o aquecimento no volume" checked={settings.volumeWarmup ?? false} onChange={v => set({ volumeWarmup: v })} />
+      <Toggle label="Contar o peso do corpo no volume de barra fixa e paralelas" checked={settings.volumeBodyweight ?? false} onChange={v => set({ volumeBodyweight: v })} />
       {toggle('restAutoStart', 'Iniciar o descanso ao marcar a série')}
       {toggle('restSound', 'Som no fim do descanso')}
       {toggle('restVibrate', 'Vibrar no fim do descanso')}

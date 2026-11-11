@@ -55,6 +55,8 @@ export function weekStrip(data: AppData, now: Date): WeekDay[] {
 
 export type TodayCard =
   | { kind: 'no-plan' }
+  /** Plano criado do zero, ainda sem nenhum exercício: o próximo passo é montar os treinos. */
+  | { kind: 'empty-plan'; name: string }
   | { kind: 'in-progress'; title: string; setsDone: number; setsTotal: number }
   | { kind: 'workout'; dayKey: DayKey; title: string; focus: string; exercises: number; optional: boolean; doneToday: boolean;
       /** Rotação (R1): letra, treinos feitos na volta e tamanho da volta. */
@@ -74,6 +76,7 @@ export function todayCard(data: AppData, now: Date, session: { dayName: string; 
   }
   const plan = activePlan(data);
   if (!plan) return { kind: 'no-plan' };
+  if (!Object.values(plan.days).some(d => d.exercises.length > 0)) return { kind: 'empty-plan', name: plan.name };
   const rot = rotationState(plan, data.workouts, toDateKey(now));
   if (rot?.restToday) {
     // o próximo treino é no dia seguinte ao fim do descanso

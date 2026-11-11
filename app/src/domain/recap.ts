@@ -4,7 +4,7 @@ import { groupOf } from '../data/exercise-library';
 import { addDays, fromDateKey, toDateKey, weekStartOf, type DateKey } from './dates';
 import { weekStartSetting, type AppData } from './model';
 import { recordKinds } from './strength';
-import { workoutVolume, workSets } from './workouts';
+import { volumeOptions, workoutVolume, workSets } from './workouts';
 
 export type RecapKind = 'semana' | 'mes';
 
@@ -37,7 +37,7 @@ function weekLabel(from: DateKey, to: DateKey): string {
 }
 
 /** Os números de um período (datas inclusive). */
-export function periodRecap(data: Pick<AppData, 'workouts' | 'settings'>, kind: RecapKind, from: DateKey, to: DateKey, label: string, id: string): Recap {
+export function periodRecap(data: Pick<AppData, 'workouts' | 'settings'> & Partial<Pick<AppData, 'profile'>>, kind: RecapKind, from: DateKey, to: DateKey, label: string, id: string): Recap {
   const inside = data.workouts.filter(w => w.date >= from && w.date <= to);
   const sets = new Map<string, number>();
   let records = 0;
@@ -52,7 +52,7 @@ export function periodRecap(data: Pick<AppData, 'workouts' | 'settings'>, kind: 
   return {
     kind, id, from, to, label,
     workouts: inside.length, days: new Set(inside.map(w => w.date)).size,
-    volume: Math.round(inside.reduce((n, w) => n + workoutVolume(w), 0)),
+    volume: Math.round(inside.reduce((n, w) => n + workoutVolume(w, volumeOptions(data)), 0)),
     records, topGroup: top?.[0] ?? null
   };
 }
@@ -61,7 +61,7 @@ export function periodRecap(data: Pick<AppData, 'workouts' | 'settings'>, kind: 
  * Os resumos a mostrar hoje: o da semana que acabou (nos primeiros dias da semana nova) e o do mês
  * que acabou (nos primeiros dias do mês). Sem treino no período, nada.
  */
-export function recapsFor(data: Pick<AppData, 'workouts' | 'settings'>, now: Date): Recap[] {
+export function recapsFor(data: Pick<AppData, 'workouts' | 'settings'> & Partial<Pick<AppData, 'profile'>>, now: Date): Recap[] {
   const today = toDateKey(now);
   const out: Recap[] = [];
   const thisWeek = weekStartOf(today, weekStartSetting(data.settings));

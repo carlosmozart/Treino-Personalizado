@@ -2,7 +2,7 @@
 // decorações no treino, calendário do advento). As decorações em si ficam em features/seasonal.
 import type { DateKey } from './dates';
 import type { AppData, Settings } from './model';
-import { workoutVolume } from './workouts';
+import { volumeOptions, workoutVolume } from './workouts';
 
 export type SeasonalPref = 'auto' | 'on' | 'off';
 export type Season = 'halloween' | 'natal';
@@ -105,9 +105,10 @@ export interface AdventDoor { kind: DoorKind; text: string }
 /** Números do ano para as portas "Seu ano": treinos, toneladas e a maior sequência. */
 export interface YearNumbers { year: number; workouts: number; tons: number; longestStreak: number }
 
-export function yearNumbers(data: Pick<AppData, 'workouts' | 'gamification'>, year: number): YearNumbers {
+export function yearNumbers(data: Pick<AppData, 'workouts' | 'gamification'> & Partial<Pick<AppData, 'settings' | 'profile'>>, year: number): YearNumbers {
   const inYear = data.workouts.filter(w => w.date.startsWith(`${year}-`));
-  const kg = inYear.reduce((n, w) => n + workoutVolume(w), 0);
+  const opts = volumeOptions(data);
+  const kg = inYear.reduce((n, w) => n + workoutVolume(w, opts), 0);
   return { year, workouts: inYear.length, tons: Math.round(kg / 100) / 10, longestStreak: data.gamification.longestStreak };
 }
 

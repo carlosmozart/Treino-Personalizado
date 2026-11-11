@@ -164,6 +164,33 @@ export function blankPlan(id: string, today: string, name = 'Novo plano'): Plan 
   return { id, name, description: '', trainingTime: '', createdAt: today, updatedAt: today, days };
 }
 
+/** O que a pessoa escolhe ao criar um plano do zero. */
+export interface ScratchChoice {
+  name: string;
+  /** Dias em que vai treinar (na rotação, só dão a meta por semana). */
+  days: readonly DayKey[];
+  rotation: boolean;
+}
+
+const SCRATCH_LETTERS = 'ABCDEFG';
+
+/**
+ * Plano do zero já com a forma escolhida: na semana fixa, os dias de treino nascem com nome
+ * ("Treino A", "Treino B"…) e vazios, esperando os exercícios; na rotação, com a meta da semana.
+ */
+export function scratchPlan(id: string, today: string, choice: ScratchChoice): Plan {
+  const plan = blankPlan(id, today, choice.name.trim().slice(0, 80) || 'Meu treino');
+  const days = DAY_KEYS.filter(k => choice.days.includes(k));
+  if (choice.rotation) return { ...plan, rotation: { order: [], perWeek: Math.min(7, Math.max(1, days.length || 3)) } };
+  return { ...plan, days: Object.fromEntries(DAY_KEYS.map(k => {
+    const i = days.indexOf(k);
+    return [k, i >= 0 ? { ...plan.days[k], name: `Treino ${SCRATCH_LETTERS[i]}` } : plan.days[k]];
+  })) as Plan['days'] };
+}
+
+/** Dia escolhido para treinar que ainda não tem exercícios (o plano do zero começa assim). */
+export const isPlannedEmpty = (day: PlanDay) => day.exercises.length === 0 && day.name.trim() !== '';
+
 /** Cópia independente de um plano (exercícios com ids novos). */
 export function duplicatePlan(plan: Plan, id: string, today: string, makeId: () => string = () => newId('ex')): Plan {
   const days = Object.fromEntries(DAY_KEYS.map(k => [k, {

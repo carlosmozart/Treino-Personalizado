@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { DAY_FULL_NAMES, type Workout } from '../../domain/model';
 import { addedEntries, addEntriesToPlan, editPlan } from '../../domain/plan-edit';
 import { rotationLetter } from '../../domain/rotation';
-import { compareWithLast, describeEntry, workoutCalories, workoutVolume, type Trend } from '../../domain/workouts';
+import { compareWithLast, describeEntry, volumeOptions, workoutCalories, workoutVolume, type Trend } from '../../domain/workouts';
 import { nextWorkoutAfterToday } from '../../domain/home';
 import { RECORD_LABEL, recordKinds } from '../../domain/strength';
 import { useAppStore } from '../../store';
@@ -19,7 +19,7 @@ export function WorkoutSummary({ id }: { id: string }) {
   const workout = data?.workouts.find(w => w.id === id);
   if (!data || !workout) return null;
   const calories = workoutCalories(workout, data.profile.weightKg ?? 0, data.settings.restSeconds);
-  const volume = workoutVolume(workout);
+  const volume = workoutVolume(workout, volumeOptions(data));
   // O4: duração estimada aparece como estimada, nunca "1 min" ao lado de calorias de 30 min
   const estimated = !!calories && !calories.measured;
   const minutes = estimated ? `~${calories.strengthMinutes} min` : workout.durationMin ? `${workout.durationMin} min` : '—';

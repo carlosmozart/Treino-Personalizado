@@ -298,12 +298,12 @@ T13	✅ (26/10/2026: marca `added` no treino salvo; cartão no resumo com "Adici
 T14	✅ (26/10/2026: "Ordem da volta" no Plano; posição achada percorrendo o histórico; descanso vale pelos dias seguintes ao treino e tem "Treinar mesmo assim"; docs/dev/rotacao.md) Rotação com dias de descanso e o mesmo treino mais de uma vez (A → B → C → B)	Média
 T15	Ritmo semanal do peso: tendência das últimas 3 semanas em kg e em % do peso por semana, com uma meta de ritmo (no ritmo, rápido demais, devagar demais); hoje há só a média de cada semana	Média
 T16	Outros nomes para o exercício (apelidos, inclusive nos da biblioteca), usados na busca, na troca e na biblioteca	Média
-T17	Descanso só desta série, para o treino de hoje (o toque no número da série hoje marca falha: precisa de um menu)	Baixa
+T17	✅ (10/11/2026: "Descanso depois desta série" no menu do número da série; só no treino de hoje) Descanso só desta série, para o treino de hoje (o toque no número da série hoje marca falha: precisa de um menu)	Baixa
 T18	✅ (08/11/2026: apaga sem perguntar, Desfazer por 6 s) Desfazer ao apagar uma pesagem	Baixa
 T19	✅ (08/11/2026: bloco largo nas Estatísticas, em t a partir de 1.000 kg) Total levantado: bloco no Progresso com a soma de toda a carga já levantada	Baixa
 T20	✅ (08/11/2026: no cabeçalho do treino, ao lado das séries) Volume do treino ao vivo no fim da barra de progresso, somando as séries marcadas	Baixa
 T21	Carga relativa ao peso do corpo: 1RM ou maior série como % do peso daquele dia, na evolução do exercício	Baixa
-T22	Aquecimento no volume, como opção desligada por padrão (recordes continuam ignorando o aquecimento)	Baixa
+T22	✅ (10/11/2026: Perfil → Treino; só o volume da tela, recordes e RPG sem mudança) Aquecimento no volume, como opção desligada por padrão (recordes continuam ignorando o aquecimento)	Baixa
 T23	Pilha de pesos da máquina: os pesos que o pino realmente escolhe, e a progressão e os botões de carga caem só neles	Baixa
 
 U. Ajustes pedidos por usuários (01/11/2026)
@@ -312,6 +312,7 @@ U1	✅ (01/11/2026: selo ⏱ no cartão do treino e item no menu ⋯, painel Pad
 U2	✅ (01/11/2026: o treino abre no começo da faixa; o topo é a meta no motivo) Repetições pré-preenchidas no mínimo da faixa, não no máximo	Alta
 U3	✅ (01/11/2026: no máximo uma subida por semana por exercício; incremento Auto de 1 kg abaixo de 20 kg; deload só com série abaixo da faixa; docs/dev/progressao.md) Progressão mais gradual e natural: subia mais de uma vez na mesma semana e em degraus altos, principalmente para mulheres	Alta
 U4	Pendente, decisão dos sócios: coletar a opinião dos usuários sem perguntar pessoalmente. Ideia: Perfil → "Enviar opinião" (nota de 1 a 5, o que gosta, o que melhorar, versão) e um convite discreto no fim do treino (depois do 5º treino, no máximo 1 vez por mês). Falta escolher o canal: WhatsApp (abre a conversa com a mensagem pronta), Google Forms (respostas numa planilha) ou e-mail; o app continua sem servidor próprio	Alta
+U5	✅ (10/11/2026: painel "Criar do zero" com nome, dias e semana fixa ou rotação; treinos vazios com nome; aviso no Plano e no Início; adicionar exercício por grupo e vários de uma vez) Criar um treino do zero mais fácil, para usuários novos e antigos (diziam que não era intuitivo)	Alta
 
 V. Ideias do openGym v1.4.4 (08/11/2026, commit 8fb98b168)
 Só a ideia; o código do openGym é AGPL: nada é copiado. Já tínhamos: treino como imagem logo depois de salvar (S9), compartilhar plano (M23), "Conferir a carga" para erro de digitação, troca pelo mesmo grupo e equipamento (M36), contador da semana. Fora do nosso caso: Siri, NFC, F-Droid, webhooks e integrações, Coach, várias academias, várias pesagens no dia e kg/lb (M37).
@@ -323,12 +324,12 @@ V4	✅ (08/11/2026: domain/recap.ts; cartões no Início nos 3 primeiros dias, i
 V5	✅ (08/11/2026: features/seasonal/Natal.tsx e AdventCalendar.tsx, carregados só em dezembro; activeSeason em domain/seasonal.ts escolhe Halloween ou Natal) Tema de Natal (1º a 31/12) com calendário do advento (1º a 24/12): neve ao abrir, pisca-pisca, gorro, presente escondido, trenó, boneco de neve; mesma estrutura do Halloween	Alta
 V6	✅ (08/11/2026: domain/year-review.ts calcula os números e as telas; features/year-review com as telas, a imagem 9:16, o cartão do Início em dezembro e janeiro e a entrada no Progresso) Retrospectiva do ano (dezembro e janeiro): telas tipo stories com treinos, horas, toneladas, maior sequência, exercício preferido, recordes, melhor mês; cada tela vira imagem	Média
 V7	Desafios do mês: 3 metas ajustadas ao histórico (treinos no mês, volume, recordes, pesagens, todos os grupos), com medalha; somam ao XP e às conquistas	Média
-V8	Aquecimento automático (desligado por padrão): rampa a partir da carga de trabalho nos compostos (barra × 10, 40/60/80%), arredondada às anilhas; segue a carga se ela mudar no treino	Média
+V8	✅ (10/11/2026: domain/warmup.ts; Perfil → Treino; barra × 10, 40/60/80%, acompanha a carga até ser editado) Aquecimento automático (desligado por padrão): rampa a partir da carga de trabalho nos compostos (barra × 10, 40/60/80%), arredondada às anilhas; segue a carga se ela mudar no treino	Média
 V9	Nível de força por exercício (Iniciante a Elite) pelo 1RM estimado ÷ peso do corpo, com sexo e idade; nos detalhes do exercício e no Progresso	Baixa
 V10	Juntar dois exercícios (histórico, planos e favoritos passam de um para o outro), com prévia e Desfazer; útil para nomes duplicados da migração	Baixa
 V11	✅ (08/11/2026) Tocar na aba em que já está volta ao topo da página	Baixa
 V12	✅ (08/11/2026: link no menu ⋯ do exercício, abre fora do app) "Ver no YouTube" no menu do exercício (busca nome + "execução"); só abre ao tocar	Baixa
-V13	Contar o peso do corpo no volume de barra fixa e paralelas (opção; recordes e progressão não mudam)	Baixa
+V13	✅ (10/11/2026: Perfil → Treino; pesagem do dia, assistidos fora) Contar o peso do corpo no volume de barra fixa e paralelas (opção; recordes e progressão não mudam)	Baixa
 V14	Tempo por exercício no histórico (gravar a hora de cada série marcada)	Baixa
 V15	Dica de recuperação no Início ("pernas ainda se recuperando de ontem"), depende do M29	Baixa
 V16	Avisos falados no descanso (próxima série, 10 segundos, acabou), voz do celular; nativo, junto com S14	Baixa

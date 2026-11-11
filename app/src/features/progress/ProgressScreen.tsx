@@ -7,7 +7,8 @@ import { fromDateKey } from '../../domain/dates';
 import type { Workout, WorkoutEntry } from '../../domain/model';
 import { heatmap, historyByMonth, muscleBalance, statsSummary, untrainedGroups, weeklyVolume, type HeatLevel } from '../../domain/stats';
 import { LibrarySheet } from '../plan/LibrarySheet';
-import { describeEntry, workoutVolume } from '../../domain/workouts';
+import { describeEntry, volumeOptions, workoutVolume } from '../../domain/workouts';
+import { useVolumeOptions } from '../../hooks/use-volume-options';
 import { useAppStore } from '../../store';
 import { useUiStore } from '../../store/ui-store';
 import { askRestAlarmPermission } from '../workout/rest-alarm-instance';
@@ -61,7 +62,8 @@ function Stats() {
   const max = balance[0]?.sets ?? 1;
   const w = s.weight30d;
   // T19: tudo o que já foi levantado (carga × repetições das séries de trabalho)
-  const lifted = data.workouts.reduce((n, x) => n + workoutVolume(x), 0);
+  const opts = volumeOptions(data);
+  const lifted = data.workouts.reduce((n, x) => n + workoutVolume(x, opts), 0);
   return (
     <div className="mt-4 space-y-4">
       <div className="grid grid-cols-2 gap-3">
@@ -210,7 +212,7 @@ function SetDetails({ w, entry }: { w: Workout; entry: WorkoutEntry }) {
 
 function WorkoutItem({ w, open, onToggle, onDelete }: { w: Workout; open: boolean; onToggle: () => void; onDelete: () => void }) {
   const [editing, setEditing] = useState<number | null>(null);
-  const volume = workoutVolume(w);
+  const volume = workoutVolume(w, useVolumeOptions());
   const meta = [plural(w.entries.length, 'exercício', 'exercícios'), w.durationMin ? `${w.durationMin} min` : '', volume ? `${formatNumber(volume)} kg` : '', w.deload ? 'deload' : ''].filter(Boolean).join(' · ');
   return (
     <li className="rounded-2xl border border-line bg-surface">

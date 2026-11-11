@@ -29,6 +29,23 @@ interface UpdateState {
   dismiss(): void;
 }
 
+/**
+ * Resolve quando o app está na tela. O Android 10+ não deixa abrir o instalador com o app em segundo
+ * plano (a tela simplesmente não aparece): se o download terminou com a pessoa em outro app, o
+ * instalador espera ela voltar.
+ */
+export function whenVisible(doc: Pick<Document, 'visibilityState' | 'addEventListener' | 'removeEventListener'> | undefined = globalThis.document): Promise<void> {
+  if (!doc || doc.visibilityState !== 'hidden') return Promise.resolve();
+  return new Promise(resolve => {
+    const on = () => {
+      if (doc.visibilityState === 'hidden') return;
+      doc.removeEventListener('visibilitychange', on);
+      resolve();
+    };
+    doc.addEventListener('visibilitychange', on);
+  });
+}
+
 const errMsg = (e: unknown) => (e instanceof Error ? e.message : String(e));
 const code = (e: unknown) => (e && typeof e === 'object' && 'code' in e ? String((e as { code: unknown }).code) : '');
 
@@ -65,6 +82,9 @@ export const useUpdate = create<UpdateState>((set, get) => ({
     const listener = await p.addListener('downloadProgress', e => set({ status: e.percent >= 0 ? `Baixando atualização… ${e.percent}%` : 'Baixando atualização…' }));
     try {
       await p.download({ url: info.url, sha256: info.sha256 });
+      // trocou de app no meio do download: o instalador abre quando voltar
+      if (globalThis.document?.visibilityState === 'hidden') set({ status: 'Download conferido. Volte ao app para instalar.' });
+      await whenVisible();
       set({ status: 'Download conferido. Abrindo o instalador…' });
       await p.install();
       set({ status: '' });

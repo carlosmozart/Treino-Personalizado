@@ -2,7 +2,7 @@
 import { fromDateKey, weekdayName } from './dates';
 import type { Workout } from './model';
 import { recordKinds } from './strength';
-import { describeEntry, workoutVolume, workSets } from './workouts';
+import { describeEntry, workoutVolume, workSets, type VolumeOptions } from './workouts';
 
 export interface WorkoutCardLine { name: string; detail: string; record: string | null }
 
@@ -17,11 +17,11 @@ export interface WorkoutCard {
 
 const n = (v: number) => Math.round(v).toLocaleString('pt-BR');
 
-export function workoutCard(workouts: readonly Workout[], w: Workout): WorkoutCard {
+export function workoutCard(workouts: readonly Workout[], w: Workout, opts?: VolumeOptions): WorkoutCard {
   const d = fromDateKey(w.date);
   const date = `${weekdayName(w.date)}, ${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}/${d.getFullYear()}`;
   const sets = w.entries.reduce((total, e) => total + workSets(e).length, 0);
-  const volume = workoutVolume(w);
+  const volume = workoutVolume(w, opts);
   const lines = w.entries.map(e => {
     // no cartão, só "Recorde" (os tipos ficam no app); o nome do exercício precisa do espaço
     const records = recordKinds(workouts, w, e);

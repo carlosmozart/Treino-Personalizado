@@ -19,6 +19,8 @@ test('plano: dias em cartões, adicionar, editar recolhido, descanso e opcional'
   await sunday.getByRole('button', { name: 'Adicionar exercício' }).click();
   await page.getByRole('textbox', { name: 'Nome do exercício' }).fill('esteira');
   await page.getByRole('button', { name: 'Esteira', exact: true }).click();
+  // o painel fica aberto para pôr outros; "Pronto" fecha com o último aberto para ajustar
+  await page.getByRole('button', { name: 'Pronto' }).click();
   await expect(sunday.getByText('20 min')).toBeVisible();
   await expect(page.getByTestId('dias-semana')).toHaveText('7 dias de treino por semana');
 

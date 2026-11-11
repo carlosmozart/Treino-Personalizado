@@ -225,6 +225,12 @@ export interface Settings {
    * mesmo descanso das outras séries.
    */
   warmupRest?: number | undefined;
+  /** V8: rampa de aquecimento automática nos compostos. Ausente = desligada. */
+  autoWarmup?: boolean;
+  /** T22: aquecimento conta no volume (recordes e progressão continuam sem ele). Ausente = não. */
+  volumeWarmup?: boolean;
+  /** V13: peso do corpo no volume de barra fixa e paralelas. Ausente = não. */
+  volumeBodyweight?: boolean;
   /** M19: em que dia a semana começa (faixa da semana, meta semanal, gráficos). Ausente = segunda. */
   weekStart?: WeekStart;
   /** M32: primeiro dia da semana marcada como deload (treinos dela não viram base da progressão). */

@@ -3,7 +3,7 @@ import { DAY_KEYS, type DayKey } from './ai-plan';
 import { addDays, type DateKey } from './dates';
 import { DAY_FULL_NAMES, type Plan, type Workout } from './model';
 
-const LETTERS = 'ABCDEFG';
+export const LETTERS = 'ABCDEFG';
 
 const hasExercises = (plan: Plan, k: DayKey) => plan.days[k].exercises.length > 0;
 

@@ -1,6 +1,8 @@
 // Leituras derivadas dos treinos. Nada daqui é gravado: corrigir um treino corrige tudo.
 import { cardioMet, kcal, strengthMet, type LoggedSet } from './calories';
-import type { Workout, WorkoutEntry, WorkoutSet } from './model';
+import type { AppData, Workout, WorkoutEntry, WorkoutSet } from './model';
+import type { DateKey } from './dates';
+import { normalizeExerciseName } from './text';
 
 /** Segundos médios de execução de uma série, para estimar a duração quando o cronômetro falha. */
 export const SECONDS_PER_SET = 45;
@@ -10,13 +12,56 @@ export function workSets(entry: WorkoutEntry): WorkoutSet[] {
   return entry.sets.filter(s => s.kind === 'work');
 }
 
-/** Volume em kg; por lado (M31) conta os dois lados. */
-export function entryVolume(entry: WorkoutEntry): number {
-  return workSets(entry).reduce((total, s) => total + s.reps * s.weight, 0) * (entry.perSide ? 2 : 1);
+/**
+ * Como contar o volume que aparece na tela (Perfil → Treino). Recordes, progressão, conquistas e o
+ * modo RPG continuam só com as séries de trabalho e a carga anotada.
+ */
+export interface VolumeOptions {
+  /** T22: o aquecimento entra na soma. */
+  warmup?: boolean;
+  /** V13: peso do corpo naquela data, somado à carga na barra fixa e nas paralelas. */
+  bodyAt?: (date: DateKey) => number | null;
 }
 
-export function workoutVolume(workout: Workout): number {
-  return workout.entries.reduce((total, e) => total + entryVolume(e), 0);
+/** V13: exercícios em que o corpo é a carga (a anotada é o lastro). Graviton e assistidos ficam de fora. */
+export function liftsBodyweight(name: string): boolean {
+  const n = normalizeExerciseName(name);
+  if (/assistid|graviton|maquina|australian|invertid/.test(n)) return false;
+  return /barra fixa|paralela|mergulho|\bchin ?up\b|\bpull ?up\b|\bdips?\b/.test(n);
+}
+
+/** Peso do corpo numa data: a última pesagem até ela, senão a primeira depois, senão o do perfil. */
+export function bodyWeightAt(profile: Pick<AppData['profile'], 'weighIns' | 'weightKg'>, date: DateKey): number | null {
+  let before: number | null = null, after: number | null = null;
+  for (const w of profile.weighIns) {
+    if (w.date <= date) before = w.weight;
+    else if (after === null) after = w.weight;
+  }
+  return before ?? after ?? profile.weightKg ?? null;
+}
+
+/** As opções de volume escolhidas em Perfil; sem nenhuma, `undefined` (a conta de sempre). */
+export function volumeOptions(data: { settings?: Pick<AppData['settings'], 'volumeWarmup' | 'volumeBodyweight'>; profile?: Pick<AppData['profile'], 'weighIns' | 'weightKg'> } | null | undefined): VolumeOptions | undefined {
+  const s = data?.settings;
+  if (!s?.volumeWarmup && !s?.volumeBodyweight) return undefined;
+  const profile = data?.profile;
+  // as pesagens ficam em ordem de data
+  const sorted = profile ? { weightKg: profile.weightKg, weighIns: [...profile.weighIns].sort((a, b) => (a.date < b.date ? -1 : a.date > b.date ? 1 : 0)) } : null;
+  return {
+    ...(s.volumeWarmup ? { warmup: true } : {}),
+    ...(s.volumeBodyweight && sorted ? { bodyAt: (date: DateKey) => bodyWeightAt(sorted, date) } : {})
+  };
+}
+
+/** Volume em kg; por lado (M31) conta os dois lados. `date` é a do treino (para o peso do corpo). */
+export function entryVolume(entry: WorkoutEntry, opts?: VolumeOptions, date?: DateKey): number {
+  const sets = opts?.warmup ? entry.sets : workSets(entry);
+  const body = opts?.bodyAt && date && entry.mode === 'reps' && liftsBodyweight(entry.name) ? opts.bodyAt(date) ?? 0 : 0;
+  return sets.reduce((total, s) => total + s.reps * (s.weight + body), 0) * (entry.perSide ? 2 : 1);
+}
+
+export function workoutVolume(workout: Workout, opts?: VolumeOptions): number {
+  return workout.entries.reduce((total, e) => total + entryVolume(e, opts, workout.date), 0);
 }
 
 /** Maior carga; empate decidido por repetições. */

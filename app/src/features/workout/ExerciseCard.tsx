@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { SWAP_EQUIPMENT, fitsEquipment, groupOf, guessGroup, swapSuggestions } from '../../data/exercise-library';
 import {
-  addSet, afterSet, restAfterSet, setExerciseRest, setSetNote, SET_NOTE_MAX, supersetBlock, toggleSupersetWithNext, addWarmupSet, adjustWeights, removeWarmupSet, completeExercise, isExerciseDone, duplicateSet, insertSet, removeExerciseFromSession, removeSet, setNote, swapExercise, toggleFailure, toggleSet, updateCardio, updateSet,
+  addSet, afterSet, restAfterSet, setExerciseRest, setSetNote, setSetRest, SET_NOTE_MAX, supersetBlock, toggleSupersetWithNext, addWarmupSet, adjustWeights, removeWarmupSet, completeExercise, isExerciseDone, duplicateSet, insertSet, removeExerciseFromSession, removeSet, setNote, swapExercise, toggleFailure, toggleSet, updateCardio, updateSet,
   type ActiveSession, type SessionExercise, type SessionSet
 } from '../../domain/session';
 import { bestSet, lastSessionBefore, sessionsOf, suspiciousWeight, workSets } from '../../domain/workouts';
@@ -71,12 +71,19 @@ export function ExerciseCard({ session, index, alwaysOpen = false, onGoTo }: Pro
   const [historyOpen, setHistoryOpen] = useState(false);
   const [restOpen, setRestOpen] = useState(false);
   const [menuSet, setMenuSet] = useState<number | null>(null);
+  // T17: descanso só de uma série
+  const [restSet, setRestSet] = useState<number | null>(null);
   // V1: a mesma série da última vez (só séries de trabalho, na ordem)
   const compare = data?.settings.compareSets ?? true;
   const prevSets = useMemo(() => (compare && data ? previousWorkSets(data.workouts, ex.key, { date: session.date, id: session.id, startedAt: session.startedAt }) : null),
     [compare, data, ex.key, session.date, session.id, session.startedAt]);
   const trends = setTrends(prevSets, ex.sets, ex.mode);
   const defaultRest = data?.settings.restSeconds ?? 90;
+  // o descanso de uma série sem escolha própria: o de aquecimento (T6) ou o do exercício
+  const setFallback = (i: number) => {
+    const warmupRest = data?.settings.warmupRest;
+    return ex.sets[i]?.kind === 'warmup' && warmupRest !== undefined ? warmupRest : ex.restSeconds ?? defaultRest;
+  };
   // o descanso pode ir para o plano quando o exercício é o do plano (não trocado nem acrescentado)
   const planSlot = data?.plans[session.planId]?.days[session.dayKey]?.exercises.find(p => p.id === ex.slotId);
   const canSavePlan = !!planSlot && !ex.swappedFrom;
@@ -295,7 +302,12 @@ export function ExerciseCard({ session, index, alwaysOpen = false, onGoTo }: Pro
         prev={menuSet !== null && ex.sets[menuSet]?.kind === 'work' ? prevSets?.[ex.sets.slice(0, menuSet).filter(s => s.kind === 'work').length] : undefined}
         unit={unit} onClose={() => setMenuSet(null)}
         onFailure={() => { if (menuSet !== null) update(s => toggleFailure(s, index, menuSet)); }}
-        onNote={note => { if (menuSet !== null) update(s => setSetNote(s, index, menuSet, note)); }} />
+        onNote={note => { if (menuSet !== null) update(s => setSetNote(s, index, menuSet, note)); }}
+        restText={menuSet !== null && ex.mode !== 'cardio' ? restLabel(ex.sets[menuSet]?.rest, setFallback(menuSet)) : null}
+        onRest={() => setRestSet(menuSet)} />
+      <RestSheet open={restSet !== null} scope="set" title={`série ${(restSet ?? 0) + 1}`} seconds={restSet !== null ? ex.sets[restSet]?.rest : undefined}
+        fallback={setFallback(restSet ?? 0)} onClose={() => setRestSet(null)}
+        onSave={seconds => { if (restSet !== null) update(s => setSetRest(s, index, restSet, seconds)); }} />
       <RestSheet open={restOpen} title={ex.name} seconds={ex.restSeconds} fallback={defaultRest} toPlan={canSavePlan}
         onClose={() => setRestOpen(false)} onSave={saveRest} />
       <Sheet title={ex.name} open={menu} onClose={close}>
@@ -492,9 +504,11 @@ const TREND_TONE: Record<SetTrend, string> = { up: 'text-success', same: 'text-f
  * V2: menu da série, aberto pelo número: até a falha (S5, só nas de trabalho) e uma nota curta, com a
  * mesma série da última vez para lembrar.
  */
-function SetMenu({ open, exName, index, set, prev, unit, onClose, onFailure, onNote }: {
+function SetMenu({ open, exName, index, set, prev, unit, restText, onClose, onFailure, onNote, onRest }: {
   open: boolean; exName: string; index: number; set: SessionSet | undefined; prev: { reps: number; weight: number } | undefined; unit: string;
-  onClose: () => void; onFailure: () => void; onNote: (note: string) => void;
+  /** T17: o descanso depois desta série, para o botão (null = sem descanso aqui, como no cardio). */
+  restText: string | null;
+  onClose: () => void; onFailure: () => void; onNote: (note: string) => void; onRest: () => void;
 }) {
   const [note, setNote] = useState('');
   useEffect(() => { if (open) setNote(set?.note ?? ''); }, [open, set?.note]);
@@ -509,6 +523,13 @@ function SetMenu({ open, exName, index, set, prev, unit, onClose, onFailure, onN
             className={`flex h-12 w-full items-center gap-3 rounded-xl px-3 text-left font-semibold ${set.failure ? 'bg-danger/15 text-danger' : 'bg-surface-2'}`}>
             <span className="flex size-7 items-center justify-center rounded-md bg-danger/15 text-sm font-black text-danger">F</span>
             {set.failure ? 'Desmarcar "até a falha"' : 'Marcar como até a falha'}
+          </button>
+        )}
+        {restText !== null && (
+          <button type="button" onClick={() => { onClose(); onRest(); }}
+            className="flex min-h-12 w-full items-center gap-3 rounded-xl bg-surface-2 px-3 text-left font-semibold">
+            <Icon name="relogio" className="size-6 text-muted" />
+            <span className="min-w-0 flex-1">Descanso depois desta série<span className="block text-sm font-normal text-muted">{set.rest !== undefined ? `${restText}, só neste treino` : restText}</span></span>
           </button>
         )}
         <label className="block text-sm font-semibold text-muted">Nota da série

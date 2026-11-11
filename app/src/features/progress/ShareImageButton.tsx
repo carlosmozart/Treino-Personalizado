@@ -4,6 +4,7 @@ import { workoutCard } from '../../domain/workout-card';
 import { shareImage } from '../../platform/share-image';
 import { useAppStore } from '../../store';
 import { ACCENTS } from '../../ui/theme';
+import { useVolumeOptions } from '../../hooks/use-volume-options';
 import { workoutCardBlob } from './workout-card-image';
 
 export const APP_NAME = 'Treino Personalizado';
@@ -12,6 +13,7 @@ export const APP_NAME = 'Treino Personalizado';
 export function ShareImageButton({ w, primary = false }: { w: Workout; primary?: boolean }) {
   const workouts = useAppStore(s => s.data?.workouts);
   const accentId = useAppStore(s => s.data?.settings.accent ?? 'azul');
+  const volume = useVolumeOptions();
   const [busy, setBusy] = useState(false);
   const [status, setStatus] = useState('');
   const share = async () => {
@@ -19,7 +21,7 @@ export function ShareImageButton({ w, primary = false }: { w: Workout; primary?:
     setStatus('');
     try {
       const accent = ACCENTS.find(a => a.id === accentId)?.hex ?? ACCENTS[0]!.hex;
-      const blob = await workoutCardBlob(workoutCard(workouts ?? [w], w), accent, APP_NAME);
+      const blob = await workoutCardBlob(workoutCard(workouts ?? [w], w, volume), accent, APP_NAME);
       const result = await shareImage(blob, `treino-${w.date}.png`, w.dayName?.trim() || 'Treino');
       if (result === 'saved') setStatus('Imagem salva nos downloads.');
     } catch {

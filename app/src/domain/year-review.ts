@@ -4,7 +4,7 @@ import { groupOf } from '../data/exercise-library';
 import { fromDateKey, type DateKey } from './dates';
 import type { AppData, Workout } from './model';
 import { recordKinds } from './strength';
-import { bestSet, workoutVolume, workSets } from './workouts';
+import { bestSet, volumeOptions, workoutVolume, workSets } from './workouts';
 
 /** O cartão do Início aparece de 1º de dezembro até o fim de janeiro (em janeiro, o ano anterior). */
 export function reviewYearFor(today: DateKey): number | null {
@@ -84,7 +84,8 @@ export function yearReview(data: Pick<AppData, 'workouts' | 'gamification' | 'pr
   const inYear = data.workouts.filter(w => w.date.startsWith(prefix));
   const days = new Set(inYear.map(w => w.date)).size;
   const minutes = inYear.reduce((n, w) => n + (w.durationMin ?? 0), 0);
-  const tons = round1(inYear.reduce((n, w) => n + workoutVolume(w), 0) / 1000);
+  const opts = volumeOptions(data);
+  const tons = round1(inYear.reduce((n, w) => n + workoutVolume(w, opts), 0) / 1000);
 
   // exercício assinatura e a parte do corpo mais treinada (séries por grupo)
   const byExercise = new Map<string, { name: string; sessions: number; sets: number }>();

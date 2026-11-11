@@ -152,6 +152,16 @@ function TodayCard({ card, onChoose }: { card: ReturnType<typeof todayCard>; onC
       </section>
     );
   }
+  if (card.kind === 'empty-plan') {
+    return (
+      <section className="rounded-2xl border border-primary bg-surface p-4">
+        <p className="text-xs font-semibold text-muted">{card.name}</p>
+        <h2 className="text-lg font-bold">Agora, os exercícios</h2>
+        <p className="mt-1 text-muted">Seu plano está criado e vazio. Em Plano, toque em "Adicionar exercício" em cada treino: dá para buscar pelo nome ou escolher pelo grupo muscular.</p>
+        <button type="button" onClick={() => setTab('plano')} className="mt-4 h-12 w-full rounded-xl bg-primary text-base font-bold text-white">Adicionar exercícios</button>
+      </section>
+    );
+  }
   if (card.kind === 'in-progress') {
     return (
       <section className="rounded-2xl border border-primary bg-surface p-4">

@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { DAY_KEYS } from '../../domain/ai-plan';
 import { isExerciseDone, nextOpenExercise, sessionProgress, sessionToWorkout, type ActiveSession } from '../../domain/session';
 import { workoutVolume } from '../../domain/workouts';
+import { useVolumeOptions } from '../../hooks/use-volume-options';
 import { updateMeta, updateSettings } from '../../domain/actions';
 import { Icon } from '../../ui/Icon';
 import { useNow } from '../../hooks/use-now';
@@ -28,7 +29,8 @@ export function ActiveWorkout({ session }: { session: ActiveSession }) {
   useWakeLock(keepScreenOn);
   const progress = sessionProgress(session);
   // T20: o volume do treino até agora, somando as séries marcadas
-  const liveVolume = useMemo(() => { const w = sessionToWorkout(session, new Date()); return w ? workoutVolume(w) : 0; }, [session]);
+  const volumeOpts = useVolumeOptions();
+  const liveVolume = useMemo(() => { const w = sessionToWorkout(session, new Date()); return w ? workoutVolume(w, volumeOpts) : 0; }, [session, volumeOpts]);
   const run = useAppStore(s => s.run);
   const focus = useAppStore(s => s.data?.settings.focusMode ?? false);
   const total = session.exercises.length;

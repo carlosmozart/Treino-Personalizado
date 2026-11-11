@@ -6,6 +6,8 @@ test('início: criar plano do zero, depois trocar por um modelo pelo cartão do 
   await page.goto('/');
   await page.getByRole('button', { name: 'Criar do zero ou com IA' }).click();
   await page.getByRole('button', { name: 'Criar do zero', exact: true }).click();
+  await page.getByRole('textbox', { name: 'Nome do plano' }).fill('Novo plano');
+  await page.getByRole('button', { name: 'Criar plano e adicionar exercícios' }).click();
   await expect(page.getByRole('heading', { name: 'Plano', level: 1 })).toBeVisible();
   await expect(page.getByText('Novo plano', { exact: true })).toBeVisible();
 

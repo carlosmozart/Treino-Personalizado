@@ -4,6 +4,7 @@ import { bestE1rm, weightForReps } from '../../domain/strength';
 import { NumberField } from '../../ui/NumberField';
 import { formatNumber } from '../../ui/format';
 import { useAppStore } from '../../store';
+import { useVolumeOptions } from '../../hooks/use-volume-options';
 import { LineChart } from '../../ui/LineChart';
 import { shortDate } from '../../ui/format';
 import type { Workout } from '../../domain/model';
@@ -21,6 +22,7 @@ const METRICS: Record<Metric, { label: string; unit: string }> = {
 
 export function ExerciseProgressCard({ initialKey }: { initialKey?: string }) {
   const workouts = useAppStore(s => s.data?.workouts) ?? NO_WORKOUTS;
+  const volumeOpts = useVolumeOptions();
   const list = exercisesInHistory(workouts);
   const [key, setKey] = useState(initialKey ?? '');
   const [metric, setMetric] = useState<Metric | null>(null);
@@ -40,7 +42,7 @@ export function ExerciseProgressCard({ initialKey }: { initialKey?: string }) {
     return r > 0 ? [{ date: workout.date, value: r }] : [];
   });
   const volumePts = cardio ? [] : sessionsOf(workouts, selected.key).flatMap(({ workout, entry }) => {
-    const v = Math.round(entryVolume(entry));
+    const v = Math.round(entryVolume(entry, volumeOpts, workout.date));
     return v > 0 ? [{ date: workout.date, value: v }] : [];
   });
   const weightPts = points.filter(p => p.value > 0);
