@@ -3,6 +3,16 @@ export interface ReleaseNote { version: string; date: string; items: string[] }
 
 export const RELEASE_NOTES: readonly ReleaseNote[] = [
   {
+    version: '3.25.0',
+    date: '2026-11',
+    items: [
+      'Criar um plano do zero agora é guiado: escolha os dias e se é semana fixa ou rotação, e os treinos já nascem com nome.',
+      'Adicionar exercício: escolha pelo grupo muscular e ponha vários de uma vez.',
+      'Aquecimento automático nos compostos (Perfil → Treino): barra, 40%, 60% e 80% até a carga do dia.',
+      'Descanso só de uma série, pelo número da série. E opções para contar aquecimento e peso do corpo no volume.'
+    ]
+  },
+  {
     version: '3.24.0',
     date: '2026-11',
     items: [

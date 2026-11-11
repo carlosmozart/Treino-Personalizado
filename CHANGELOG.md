@@ -6,6 +6,15 @@ Todas as mudanças relevantes do app ficam registradas aqui. Ao lançar uma nova
    atualizar o app instalado
 3. Adicione uma entrada aqui, nesse formato
 
+## [3.25.0] - 2026-11-10
+
+- Criar um plano do zero ficou guiado: o app pergunta o nome, em quais dias você treina e se cada dia tem o seu treino ou se é rotação A/B/C. Os treinos nascem vazios e com nome ("Treino A", "Treino B"…), e a tela Plano e o Início mostram o próximo passo. "Criar do zero" também aparece em Plano quando ainda não há plano.
+- "Adicionar exercício" no plano: dá para escolher pelo grupo muscular (Peito, Costas…) além de buscar pelo nome, e o painel fica aberto para pôr vários de uma vez; os que já estão no treino aparecem marcados. Dias de descanso deixam claro que adicionar um exercício os transforma em dia de treino.
+- Aquecimento automático (Perfil → Treino, desligado por padrão): nos exercícios compostos (supino, agachamento, terra, remada, leg press…), o treino abre com uma rampa até a carga de trabalho: barra × 10, 40% × 8, 60% × 5 e 80% × 3, arredondada às anilhas que você tem. Se a carga mudar no treino, a rampa ainda não feita acompanha; mexer no aquecimento à mão ou tirá-lo desliga a rampa daquele exercício.
+- Descanso só desta série: o número da série abre o menu com "Descanso depois desta série" (sem cronômetro ou um tempo próprio), só para o treino de hoje.
+- Perfil → Treino: contar o aquecimento no volume e contar o peso do corpo no volume de barra fixa e paralelas (pela pesagem do dia). Recordes, progressão, conquistas e o modo RPG não mudam.
+- Atualização do app: se você trocar de app enquanto a versão nova baixa, o instalador espera você voltar, em vez de não aparecer.
+
 ## [3.24.0] - 2026-11-09
 
 - Modo RPG, opcional, em Perfil → "Ligar o modo RPG": seus treinos viram a evolução de um personagem. Desligar não apaga nada, e ao religar tudo continua de onde parou.
