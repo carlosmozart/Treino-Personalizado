@@ -3,6 +3,16 @@ export interface ReleaseNote { version: string; date: string; items: string[] }
 
 export const RELEASE_NOTES: readonly ReleaseNote[] = [
   {
+    version: '3.28.0',
+    date: '2026-11',
+    items: [
+      'Desafios do mês no Progresso: três metas feitas para você, com XP e duas conquistas novas.',
+      'Na evolução do exercício: o seu nível de força e os recordes de 1 a 12 repetições.',
+      'Em Metas: o ritmo do seu peso nas últimas 3 semanas, comparado com a meta.',
+      'Treino salvo sozinho pode ser reaberto. E Menos movimento em Perfil → Aparência.'
+    ]
+  },
+  {
     version: '3.27.0',
     date: '2026-11',
     items: [

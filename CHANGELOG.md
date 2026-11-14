@@ -6,6 +6,16 @@ Todas as mudanças relevantes do app ficam registradas aqui. Ao lançar uma nova
    atualizar o app instalado
 3. Adicione uma entrada aqui, nesse formato
 
+## [3.28.0] - 2026-11-14
+
+- Desafios do mês, no Progresso: três metas feitas a partir dos seus últimos meses (treinos no mês e volume um pouco acima da sua média, e uma terceira que muda a cada mês: recordes, pesagens ou treinar os seis grupos principais). Cada desafio cumprido vale +150 XP, e há duas conquistas novas: Desafio Aceito e Mês Perfeito.
+- Nível de força, na evolução do exercício: de Iniciante a Elite no supino, agachamento, levantamento terra, desenvolvimento e remada com barra, pelo 1RM estimado dividido pelo peso do corpo, com quanto falta para o próximo nível.
+- Recordes por repetição, na evolução do exercício: a maior carga que você já fez para 1 a 12 repetições, com a data; onde não há marca, a estimativa pelo seu melhor 1RM.
+- Ritmo do peso, em Metas: a tendência das últimas 3 semanas em kg e em % por semana, e se está no ritmo saudável para a sua meta.
+- "Ainda treinando?" aparece em qualquer aba, não só na do treino. O treino salvo sozinho pode ser reaberto pelo resumo ou pelo histórico: as séries feitas voltam marcadas e as que faltavam voltam para fazer.
+- O troféu de recorde também aparece em cada série no histórico.
+- Menos movimento (Perfil → Aparência): sem animações, transições nem neve neste aparelho.
+
 ## [3.27.0] - 2026-11-14
 
 - Pausar o treino: "Pausar", embaixo do nome do treino. O relógio e o descanso param até "Continuar" (ou até marcar uma série), e o tempo pausado não conta na duração.
