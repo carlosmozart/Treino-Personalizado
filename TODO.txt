@@ -337,3 +337,26 @@ V17	Prancha e isometrias que começam sozinhas depois do descanso (3, 2, 1) e re
 V18	Imprimir o plano com as figuras dos exercícios (completa o M23)	Baixa
 V19	Para depois: Programas (blocos de 1 a 16 semanas com %1RM, RPE ou deload por semana) e Módulos (ligar e desligar partes do app)	Baixa
 V20	Relógios (interesse do Carlos em 08/11/2026): app para relógio que mostra a série atual, marca a série e conta o descanso no pulso, conversando com o app do celular. Começar pelo Wear OS (Android, Data Layer com o APK); Amazfit (Zepp OS) e Garmin (Connect IQ) depois. Projeto à parte: código nativo e teste em relógio de verdade	Média
+
+W. Ideias do openGym v1.4.5 (14/11/2026, commit 2d70e026e)
+Só a ideia; o código do openGym é AGPL: nada é copiado. A versão é quase toda relógio (Apple Watch, Wear OS, Garmin), sincronização com o relógio, servidor (treinadores e academias, login por provedor, biblioteca da comunidade, conectores para Claude e ChatGPT) e treinador com IA: fora daqui. Já tínhamos ou já estão anotados: resumo do mês (V4), retrospectiva (V6), calendário do advento (V5), apelidos (T16), pilha da máquina (T23), relógio (V20), Samsung Health (M50).
+#	Sugestão	Prioridade
+W1	Plano a partir de um treino feito: escolher um treino do histórico e os exercícios e séries viram um plano (ou um dia do plano) para ajustar; também no Plano vazio de quem já tem histórico	Alta
+W2	Check-in do dia antes do treino (desligado por padrão): sono, energia, dor e estresse de 1 a 5, tudo opcional. Num dia ruim, oferece ir mais leve (10% a menos nas séries que faltam, arredondado às anilhas, ou uma série a menos); esse treino fica fora da progressão	Alta
+W3	Pausar o treino: relógio, descanso e prancha param até "Continuar" (ou marcar uma série); o tempo pausado não conta na duração e a pausa sobrevive a recarregar	Média
+W4	Treino esquecido: depois de 45 min sem marcar nada (30/60/90 ou desligado), pergunta "Ainda treinando?"; sem resposta, encerra na última série + descanso, sem perder nada, e dá para reabrir	Média
+W5	Atualizador do APK com plano B: se o download pelo link da release falhar, tentar pelo endereço da API do GitHub (asset por id); manter a conferência do SHA-256	Média
+W6	Circuito, AMRAP, EMOM e Tabata: tipo de treino no plano e player em tela cheia (relógio grande, estação atual e próxima, bipes e 3-2-1); cada estação entra como série normal, com as rodadas e a pontuação do AMRAP	Média
+W7	Montar a sessão do dia pelos grupos: escolher grupos e 20/40/60 min, com os equipamentos de Perfil (M36), favoritos e o que já faz primeiro, deixando de fora o que treinou ontem (depende do M29)	Média
+W8	Troféu na hora do recorde (ao marcar a série, com vibração) e, antes da série, uma linha "faltam 2 reps para o recorde nesta carga" / "97% do seu melhor 1RM"; os dois desligáveis	Média
+W9	Deload sugerido: a cada 4/5/6/8 semanas ou quando os números caem duas semanas seguidas (e o check-in do W2 diz cansaço); hoje o M32 é só manual	Média
+W10	Atividades e recuperação no histórico: futebol, padel, corrida, sauna, alongamento, com duração; no calendário e no histórico; contam para a sequência só se a pessoa ligar	Baixa
+W11	Prévia antes de começar: o treino abre nos exercícios, séries e cargas, com "Começar" embaixo (opção)	Baixa
+W12	Próximo exercício sozinho no fim do descanso depois da última série (modo foco; desligado por padrão; superset espera a rodada)	Baixa
+W13	"Terminou cedo?": o próximo treino oferece começar pelos exercícios que ficaram para trás, uma vez	Baixa
+W14	Números iniciais para exercício novo escolhidos pela pessoa (ex.: 2 × 8 em vez de 3 × 10), no plano e no treino	Baixa
+W15	Aviso de fim do descanso com a próxima série ("Acabou o descanso: Supino, 80 kg × 8"), no aviso do APK	Baixa
+W16	Recordes por repetição no histórico do exercício: a maior carga para 1 a 12 reps, com a data, e em cinza o que o 1RM estimado diz ser possível	Baixa
+W17	Tamanho do texto em passos (menor a maior) com prévia, seguindo o do celular por padrão	Baixa
+W18	"Menos movimento" em Perfil → Aparência: desliga animações, neve e enfeites que se mexem neste aparelho	Baixa
+W19	Nível de resistência (1 a 30) na bicicleta, remo, elíptico e escada, como a inclinação da esteira; no histórico como "Nível 8" e no CSV	Baixa
