@@ -6,7 +6,7 @@ Todas as mudanças relevantes do app ficam registradas aqui. Ao lançar uma nova
    atualizar o app instalado
 3. Adicione uma entrada aqui, nesse formato
 
-## [3.26.0] - 2026-11-16
+## [3.26.0] - 2026-11-14
 
 - Travar a carga: no plano (caixa "Travar a carga" no exercício) ou no treino (menu ⋯ → "Travar a carga em 60 kg"). O treino abre sempre com essa carga e a progressão não sugere subir; o cartão mostra "Carga travada".
 - No treino, mudou algo do plano? O cartão do exercício pergunta "Salvar no plano" ou "Só hoje": ao pôr ou tirar uma série, ao digitar repetições fora da faixa do plano (dentro dela é progressão e não pergunta) e ao pôr ou tirar aquecimento. O plano agora guarda as séries de aquecimento de cada exercício, e o treino já abre com elas.
