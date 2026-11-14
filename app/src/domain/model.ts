@@ -270,6 +270,15 @@ export interface Settings {
   recordHints?: boolean;
   /** W18: menos movimento neste aparelho (sem animações, neve nem enfeites que se mexem). Ausente = desligado. */
   reduceMotion?: boolean;
+  /** W14: séries e repetições com que um exercício novo começa. Ausentes = 3 e 10. */
+  newExerciseSets?: number;
+  newExerciseReps?: number;
+  /** T16: outros nomes de cada exercício (chave: nome normalizado), usados na busca. */
+  aliases?: Record<string, string[]>;
+  /** W9: sugerir semana de deload a cada N semanas (0 ou ausente = só quando os números caem). */
+  deloadEvery?: number;
+  /** W9: sugerir deload quando as cargas caem ou o check-in anda ruim. Ausente = ligado. */
+  deloadSuggest?: boolean;
   /** M19: em que dia a semana começa (faixa da semana, meta semanal, gráficos). Ausente = segunda. */
   weekStart?: WeekStart;
   /** M32: primeiro dia da semana marcada como deload (treinos dela não viram base da progressão). */

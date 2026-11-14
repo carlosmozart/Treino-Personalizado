@@ -520,7 +520,7 @@ export function ExerciseCard({ session, index, alwaysOpen = false, onGoTo }: Pro
           }
           const group = guessGroup(base);
           // S6: tolerante a erro, acento, plural e abreviação; o mesmo grupo sobe entre os achados
-          const matches = searchNames(q, pool.names.filter(n => n !== ex.name && fits(n)), 12, pool.done, pool.favorites)
+          const matches = searchNames(q, pool.names.filter(n => n !== ex.name && fits(n)), 12, pool.done, pool.favorites, pool.aliases)
             .map((n, i) => ({ n, i: i - (groupOf(n) === group ? 0.5 : 0) }))
             .sort((a, b) => a.i - b.i).slice(0, 6).map(x => x.n);
           return (

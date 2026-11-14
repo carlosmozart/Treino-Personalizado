@@ -10,8 +10,9 @@ export function useSearchPool() {
   const workouts = useAppStore(s => s.data?.workouts);
   const favs = useAppStore(s => s.data?.settings.favorites);
   const custom = useAppStore(s => s.data?.settings.customExercises);
+  const aliases = useAppStore(s => s.data?.settings.aliases);
   return useMemo(() => {
     const names = custom?.length ? [...LIBRARY, ...custom.map(c => c.name)] : LIBRARY;
-    return { ...searchPool(names, workouts ?? []), favorites: new Set(favs ?? []) };
-  }, [workouts, favs, custom]);
+    return { ...searchPool(names, workouts ?? []), favorites: new Set(favs ?? []), aliases: aliases ?? {} };
+  }, [workouts, favs, custom, aliases]);
 }

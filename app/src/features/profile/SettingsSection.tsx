@@ -110,6 +110,24 @@ export function WorkoutSettingsFields() {
       <Toggle label="Abrir o treino numa prévia, com Começar embaixo" checked={settings.previewBeforeStart ?? false} onChange={v => set({ previewBeforeStart: v })} />
       <Toggle label="Ir ao próximo exercício quando o descanso da última série acabar" checked={settings.autoNextExercise ?? false} onChange={v => set({ autoNextExercise: v })} />
       <Toggle label="Oferecer os exercícios que ficaram para trás no treino anterior" checked={settings.offerLeftovers ?? true} onChange={v => set({ offerLeftovers: v })} />
+      {/* W14: com quanto um exercício novo começa */}
+      <div className="flex min-h-12 items-center justify-between gap-3">
+        <span className="font-semibold">Exercício novo começa com</span>
+        <span className="flex shrink-0 items-center gap-1 text-sm text-muted">
+          <span className="w-14"><NumberField label="Séries de exercício novo" value={settings.newExerciseSets ?? 3} onChange={n => { if (n >= 1 && n <= 20) set({ newExerciseSets: Math.round(n) }); }} /></span>
+          ×
+          <span className="w-14"><NumberField label="Repetições de exercício novo" value={settings.newExerciseReps ?? 10} onChange={n => { if (n >= 1 && n <= 100) set({ newExerciseReps: Math.round(n) }); }} /></span>
+        </span>
+      </div>
+      {/* W9: sugestão de semana de deload */}
+      <Toggle label="Sugerir deload quando as cargas caem ou o check-in anda ruim" checked={settings.deloadSuggest ?? true} onChange={v => set({ deloadSuggest: v })} />
+      <label className="flex min-h-12 items-center justify-between gap-3">
+        <span className="font-semibold">Sugerir deload a cada</span>
+        <select value={settings.deloadEvery ?? 0} onChange={e => set({ deloadEvery: Number(e.target.value) })} aria-label="Sugerir deload a cada"
+          className="h-11 shrink-0 rounded-xl border border-line bg-surface-2 px-2 text-base text-ink">
+          {[[0, 'Nunca'], [4, '4 semanas'], [5, '5 semanas'], [6, '6 semanas'], [8, '8 semanas']].map(([v, l]) => <option key={v} value={v}>{l}</option>)}
+        </select>
+      </label>
       {/* W4: treino esquecido aberto */}
       <label className="flex min-h-12 items-center justify-between gap-3">
         <span className="font-semibold">Perguntar "Ainda treinando?" depois de</span>

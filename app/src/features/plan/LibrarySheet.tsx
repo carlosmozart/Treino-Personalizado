@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { EQUIPMENT, MUSCLE_GROUPS, filterLibrary, groupOf, libraryEntries, type Equipment, type LibraryEntry } from '../../data/exercise-library';
 import { addCustomExercise, removeCustomExercise, toggleFavorite } from '../../domain/actions';
+import { setAliases } from '../../domain/exercise-merge';
 import { DAY_KEYS, type DayKey } from '../../domain/ai-plan';
 import { DAY_FULL_NAMES, MAX_EXERCISES_PER_DAY, type Plan } from '../../domain/model';
 import { addExercise, editPlan, newPlanExercise } from '../../domain/plan-edit';
@@ -64,7 +65,7 @@ export function LibrarySheet({ open, onClose, group: initialGroup }: { open: boo
 
   const custom = data?.settings.customExercises;
   const entries = useMemo(() => libraryEntries(custom ?? []), [custom]);
-  const list = useMemo(() => filterLibrary(entries, { query, group, equipment, mine }, pool.done, pool.favorites), [entries, query, group, equipment, mine, pool]);
+  const list = useMemo(() => filterLibrary(entries, { query, group, equipment, mine }, pool.done, pool.favorites, pool.aliases), [entries, query, group, equipment, mine, pool]);
   if (!data) return null;
   const plan = data.activePlanId ? data.plans[data.activePlanId] : undefined;
 
@@ -72,7 +73,7 @@ export function LibrarySheet({ open, onClose, group: initialGroup }: { open: boo
   const addTo = (entry: LibraryEntry, slot: { key: DayKey; label: string }) => {
     if (!plan) return;
     if (plan.days[slot.key].exercises.length >= MAX_EXERCISES_PER_DAY) { setMessage(`${slot.label} já tem ${MAX_EXERCISES_PER_DAY} exercícios.`); return; }
-    run((d, now) => editPlan(d, plan.id, p => addExercise(p, slot.key, newPlanExercise(entry.name)), now));
+    run((d, now) => editPlan(d, plan.id, p => addExercise(p, slot.key, newPlanExercise(entry.name, undefined, { sets: d.settings.newExerciseSets, reps: d.settings.newExerciseReps })), now));
     setMessage(`${entry.name} adicionado em ${slot.label.split(' · ')[0]}.`);
     setPicked(null);
   };
@@ -123,6 +124,7 @@ export function LibrarySheet({ open, onClose, group: initialGroup }: { open: boo
             <ExerciseIllustration name={picked.name} size="large" />
             <p className="text-muted">{picked.group} · {picked.equipment}{picked.custom ? ' · criado por você' : ''}</p>
           </div>
+          <AliasField name={picked.name} />
           <SheetAction onClick={() => run((d, now) => toggleFavorite(d, picked.name, now))}>
             <Icon name="trofeu" />{pool.favorites.has(normalizeExerciseName(picked.name)) ? 'Tirar dos favoritos' : 'Favoritar'}
           </SheetAction>
@@ -174,5 +176,26 @@ function CreateExercise({ open, onClose, onCreated }: { open: boolean; onClose: 
         <button type="submit" disabled={!trimmed || exists} className="h-12 w-full rounded-xl bg-primary font-bold text-white disabled:opacity-50">Criar</button>
       </form>
     </Sheet>
+  );
+}
+
+/** T16: outros nomes do exercício (separados por vírgula), usados na busca, na troca e na biblioteca. */
+function AliasField({ name }: { name: string }) {
+  const saved = useAppStore(s => s.data?.settings.aliases?.[normalizeExerciseName(name)]);
+  const run = useAppStore(s => s.run);
+  const [text, setText] = useState((saved ?? []).join(', '));
+  useEffect(() => setText((saved ?? []).join(', ')), [saved, name]);
+  const dirty = text.split(',').map(t => t.trim()).filter(Boolean).join(', ') !== (saved ?? []).join(', ');
+  return (
+    <div className="mt-3 px-1">
+      <label className="block text-sm font-semibold text-muted">Outros nomes (para a busca)
+        <input value={text} onChange={e => setText(e.target.value)} placeholder="Ex.: supino, bench" maxLength={300}
+          className="mt-1 h-12 w-full rounded-xl border border-line bg-surface-2 px-3 text-base text-ink" />
+      </label>
+      {dirty && (
+        <button type="button" onClick={() => run((d, now) => setAliases(d, name, text.split(','), now))}
+          className="mt-2 h-11 rounded-xl bg-primary px-4 font-bold text-white">Salvar os nomes</button>
+      )}
+    </div>
   );
 }

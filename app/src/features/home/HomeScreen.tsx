@@ -15,6 +15,7 @@ import { DayNoteSheet, reasonLabel } from './DayNoteSheet';
 import { MoveWorkoutSheet, moveDayLabel } from './MoveWorkoutSheet';
 import { undoMove } from '../../domain/reschedule';
 import { isDeloadDate, setDeloadWeek } from '../../domain/deload';
+import { DeloadSuggestionCard } from './DeloadSuggestionCard';
 import { toDateKey } from '../../domain/dates';
 import { PlanChooser, type ChooserMode } from '../plan/PlanChooser';
 import { formatNumber, plural, shortDate } from '../../ui/format';
@@ -51,6 +52,7 @@ export function HomeScreen() {
       {!planFirst && today}
       <YearReviewCard />
       <AdventSlot />
+      <DeloadSuggestionCard />
       <PlanSection onChoose={setChooser} />
       <RecapCards />
       <ProgressSection />

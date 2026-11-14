@@ -314,6 +314,9 @@ function DayCard({ plan, dayKey, today, edit, rotation }: { plan: Plan; dayKey: 
   const [dayMenu, setDayMenu] = useState(false);
   // R2: deslizar o exercício (esquerda remove com Desfazer, direita duplica)
   const swipe = useAppStore(s => s.data?.settings.swipeSets ?? true);
+  // W14: os números iniciais de exercício novo
+  const startSets = useAppStore(s => s.data?.settings.newExerciseSets);
+  const startReps = useAppStore(s => s.data?.settings.newExerciseReps);
   const [removed, setRemoved] = useState<{ at: number; ex: PlanExercise; timer: number } | null>(null);
   const removeWithUndo = (i: number) => {
     const ex = day.exercises[i];
@@ -386,7 +389,7 @@ function DayCard({ plan, dayKey, today, edit, rotation }: { plan: Plan; dayKey: 
 
       {/* vários de uma vez: o painel fica aberto até "Pronto" */}
       <AddExerciseSheet open={adding} dayName={slotName} existing={day.exercises.map(e => e.name)} full={full} onClose={() => setAdding(false)}
-        onAdd={name => { const ex = newPlanExercise(name); edit(p => addExercise(p, dayKey, ex)); setOpenId(ex.id); }} />
+        onAdd={name => { const ex = newPlanExercise(name, undefined, { sets: startSets, reps: startReps }); edit(p => addExercise(p, dayKey, ex)); setOpenId(ex.id); }} />
 
       <Sheet title={slotName} open={dayMenu} onClose={() => setDayMenu(false)}>
         <label className="block text-sm font-semibold text-muted">Nome do treino
@@ -582,7 +585,7 @@ function AddExerciseSheet({ open, dayName, existing, full, onClose, onAdd }: {
   const listId = useId();
   const q = query.trim().toLowerCase();
   const pool = useSearchPool();
-  const matches = q ? searchNames(q, pool.names, 8, pool.done, pool.favorites) : [];
+  const matches = q ? searchNames(q, pool.names, 8, pool.done, pool.favorites, pool.aliases) : [];
   const inGroup = !q && group ? libraryEntries(custom ?? []).filter(e => e.group === group).map(e => e.name) : [];
   const have = new Set(existing.map(normalizeExerciseName));
   const close = () => { setQuery(''); setGroup(null); setAdded([]); onClose(); };

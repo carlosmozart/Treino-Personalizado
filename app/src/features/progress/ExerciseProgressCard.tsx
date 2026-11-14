@@ -2,6 +2,8 @@ import { useState } from 'react';
 import { bodyWeightAt, entryVolume, exerciseProgress, exercisesInHistory, sessionsOf, workSets } from '../../domain/workouts';
 import { liftOf, repRecords, strengthLevel, LEVELS } from '../../domain/strength-levels';
 import { toDateKey } from '../../domain/dates';
+import { MergeExerciseButton } from './MergeExerciseSheet';
+import { normalizeExerciseName } from '../../domain/text';
 import { bestE1rm, weightForReps } from '../../domain/strength';
 import { NumberField } from '../../ui/NumberField';
 import { formatNumber } from '../../ui/format';
@@ -65,6 +67,8 @@ export function ExerciseProgressCard({ initialKey }: { initialKey?: string }) {
           {list.map(e => <option key={e.key} value={e.key}>{e.name} ({e.sessions})</option>)}
         </select>
       </label>
+      {/* V10: nomes duplicados do mesmo exercício */}
+      <MergeExerciseButton name={selected.name} onMerged={to => setKey(normalizeExerciseName(to))} />
       {!cardio && available.length > 1 && (
         <div role="group" aria-label="Medida do gráfico" className="mt-3 flex flex-wrap gap-1">
           {available.map(id => (

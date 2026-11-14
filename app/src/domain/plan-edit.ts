@@ -10,10 +10,13 @@ import { dayKeyOf } from './model';
 import { fromDateKey } from './dates';
 import type { ActionResult } from './actions';
 
-export function newPlanExercise(name: string, id = newId('ex')): PlanExercise {
+export function newPlanExercise(name: string, id = newId('ex'), start?: { sets?: number | undefined; reps?: number | undefined }): PlanExercise {
   const cardio = isCardioName(name);
+  // W14: os números com que a pessoa gosta de começar (Perfil → Treino)
+  const sets = Math.min(20, Math.max(1, Math.round(start?.sets ?? 3)));
+  const reps = Math.min(100, Math.max(1, Math.round(start?.reps ?? 10)));
   return {
-    id, name: name.trim(), mode: cardio ? 'cardio' : 'reps', sets: cardio ? 1 : 3, reps: 10, weight: 0,
+    id, name: name.trim(), mode: cardio ? 'cardio' : 'reps', sets: cardio ? 1 : sets, reps, weight: 0,
     minutes: cardio ? 20 : 0, km: 0, restSeconds: 90, optional: false, alternatives: []
   };
 }

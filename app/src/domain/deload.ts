@@ -7,7 +7,7 @@ import { key, touch } from './sync';
 import type { ActionResult } from './actions';
 
 /** A data cai na semana marcada como deload. */
-export function isDeloadDate(data: AppData, date: DateKey): boolean {
+export function isDeloadDate(data: Pick<AppData, 'settings'>, date: DateKey): boolean {
   const start = data.settings.deloadWeek;
   return !!start && date >= start && date <= addDays(start, 6);
 }

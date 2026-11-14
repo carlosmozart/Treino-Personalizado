@@ -36,18 +36,25 @@ function wordScore(q: string, w: string): number | null {
  * `done`: chaves dos exercícios que a pessoa já fez; sobem na frente dos parecidos, mas um erro de
  * digitação não passa um acerto.
  */
-export function searchNames(query: string, names: readonly string[], limit = 6, done?: ReadonlySet<string>, favorites?: ReadonlySet<string>): string[] {
+export function searchNames(query: string, names: readonly string[], limit = 6, done?: ReadonlySet<string>, favorites?: ReadonlySet<string>, aliases?: Readonly<Record<string, readonly string[]>>): string[] {
   const qs = words(query);
   if (!qs.length) return [];
   const scored: { n: string; score: number }[] = [];
   names.forEach((n, i) => {
     const ws = words(n);
-    let score = 0;
-    for (const q of qs) {
-      const best = Math.min(...ws.map(w => wordScore(q, w) ?? Infinity));
-      if (best === Infinity) return;
-      score += best;
+    // T16: o nome ou um dos outros nomes do exercício (o que casar melhor)
+    const forms = [ws, ...(aliases?.[normalizeExerciseName(n)] ?? []).map(words)];
+    let score = Infinity;
+    for (const f of forms) {
+      let s = 0;
+      for (const q of qs) {
+        const best = Math.min(...f.map(w => wordScore(q, w) ?? Infinity));
+        if (best === Infinity) { s = Infinity; break; }
+        s += best;
+      }
+      score = Math.min(score, s);
     }
+    if (score === Infinity) return;
     // nome que começa com a busca e nomes curtos sobem; empate fica na ordem da biblioteca
     if (!normalizeExerciseName(n).startsWith(normalizeExerciseName(query))) score += 0.5;
     if (done?.has(normalizeExerciseName(n))) score -= 0.75;

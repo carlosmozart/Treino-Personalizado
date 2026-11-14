@@ -220,10 +220,11 @@ function initialSets(data: AppData, name: string, mode: ExerciseMode, plan: Plan
   // M32: a carga sugerida vem dos treinos normais; na semana de deload, sem subir carga
   const last = lastSessionBefore(progressionWorkouts(data.workouts), key, date);
   const lastSets = last ? workSets(last.entry) : [];
-  const count = plan?.sets || lastSets.length || 3;
+  // W14: sem plano nem histórico, os números que a pessoa escolheu para exercício novo
+  const count = plan?.sets || lastSets.length || data.settings.newExerciseSets || 3;
   // faixa de reps: abre no começo (8 de 8–12); o topo é a meta. Linear: as reps fixas do plano
   const planReps = plan && mode === 'reps' ? (plan.linear ? repRange(plan).max : repRange(plan).min) : plan?.reps;
-  let reps = mode === 'time' ? (plan?.seconds ?? lastSets[0]?.reps ?? 30) : (planReps || lastSets[0]?.reps || 10);
+  let reps = mode === 'time' ? (plan?.seconds ?? lastSets[0]?.reps ?? 30) : (planReps || lastSets[0]?.reps || data.settings.newExerciseReps || 10);
   let weight = lastSets.length ? lastSets[lastSets.length - 1]!.weight : (plan?.weight ?? 0);
   const source = loadSourceOf(data.settings);
   if (source === 'plan' && plan) {

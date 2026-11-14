@@ -271,12 +271,12 @@ export interface LibraryFilter { query?: string; group?: string | null; equipmen
  * M46: lista da Biblioteca. Com busca, vale a ordem da busca tolerante (favoritos e já feitos na
  * frente); sem busca, favoritos primeiro e depois a ordem da biblioteca.
  */
-export function filterLibrary(entries: readonly LibraryEntry[], f: LibraryFilter, done?: ReadonlySet<string>, favorites?: ReadonlySet<string>): LibraryEntry[] {
+export function filterLibrary(entries: readonly LibraryEntry[], f: LibraryFilter, done?: ReadonlySet<string>, favorites?: ReadonlySet<string>, aliases?: Readonly<Record<string, readonly string[]>>): LibraryEntry[] {
   const pass = entries.filter(e => (!f.group || e.group === f.group) && (!f.equipment || e.equipment === f.equipment) && (!f.mine || e.custom));
   const q = f.query?.trim() ?? '';
   if (q) {
     const byName = new Map(pass.map(e => [e.name, e]));
-    return searchNames(q, pass.map(e => e.name), pass.length, done, favorites).map(n => byName.get(n)!);
+    return searchNames(q, pass.map(e => e.name), pass.length, done, favorites, aliases).map(n => byName.get(n)!);
   }
   const fav = (e: LibraryEntry) => (favorites?.has(normalizeExerciseName(e.name)) ? 0 : 1);
   return pass.map((e, i) => ({ e, i })).sort((a, b) => fav(a.e) - fav(b.e) || a.i - b.i).map(x => x.e);
