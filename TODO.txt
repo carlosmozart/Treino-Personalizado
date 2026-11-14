@@ -302,9 +302,9 @@ T17	✅ (10/11/2026: "Descanso depois desta série" no menu do número da série
 T18	✅ (08/11/2026: apaga sem perguntar, Desfazer por 6 s) Desfazer ao apagar uma pesagem	Baixa
 T19	✅ (08/11/2026: bloco largo nas Estatísticas, em t a partir de 1.000 kg) Total levantado: bloco no Progresso com a soma de toda a carga já levantada	Baixa
 T20	✅ (08/11/2026: no cabeçalho do treino, ao lado das séries) Volume do treino ao vivo no fim da barra de progresso, somando as séries marcadas	Baixa
-T21	Carga relativa ao peso do corpo: 1RM ou maior série como % do peso daquele dia, na evolução do exercício	Baixa
+T21	✅ (14/11/2026: "× peso do corpo" no gráfico da evolução do exercício (1RM estimado ÷ peso do dia)) Carga relativa ao peso do corpo: 1RM ou maior série como % do peso daquele dia, na evolução do exercício	Baixa
 T22	✅ (10/11/2026: Perfil → Treino; só o volume da tela, recordes e RPG sem mudança) Aquecimento no volume, como opção desligada por padrão (recordes continuam ignorando o aquecimento)	Baixa
-T23	Pilha de pesos da máquina: os pesos que o pino realmente escolhe, e a progressão e os botões de carga caem só neles	Baixa
+T23	✅ (14/11/2026: domain/stack.ts; "Pilha da máquina" no exercício do plano (lista ou 5-100/5); a carga sugerida cai na pilha e os botões viram ±1 pino) Pilha de pesos da máquina: os pesos que o pino realmente escolhe, e a progressão e os botões de carga caem só neles	Baixa
 
 U. Ajustes pedidos por usuários (01/11/2026)
 #	Sugestão	Prioridade
@@ -332,10 +332,10 @@ V10	✅ (14/11/2026: "Juntar com outro exercício" na evolução do exercício, 
 V11	✅ (08/11/2026) Tocar na aba em que já está volta ao topo da página	Baixa
 V12	✅ (08/11/2026: link no menu ⋯ do exercício, abre fora do app) "Ver no YouTube" no menu do exercício (busca nome + "execução"); só abre ao tocar	Baixa
 V13	✅ (10/11/2026: Perfil → Treino; pesagem do dia, assistidos fora) Contar o peso do corpo no volume de barra fixa e paralelas (opção; recordes e progressão não mudam)	Baixa
-V14	Tempo por exercício no histórico (gravar a hora de cada série marcada)	Baixa
+V14	✅ (14/11/2026: WorkoutSet.at gravado ao marcar; minutos do exercício no histórico (entryMinutes) e a hora na planilha) Tempo por exercício no histórico (gravar a hora de cada série marcada)	Baixa
 V15	Dica de recuperação no Início ("pernas ainda se recuperando de ontem"), depende do M29	Baixa
 V16	Avisos falados no descanso (próxima série, 10 segundos, acabou), voz do celular; nativo, junto com S14	Baixa
-V17	Prancha e isometrias que começam sozinhas depois do descanso (3, 2, 1) e registram o tempo planejado	Baixa
+V17	✅ (14/11/2026: features/workout/HoldTimer.tsx; "Começar a série" com 3-2-1, marca com o tempo planejado e começa o descanso; a próxima série por tempo começa sozinha no fim do descanso (Perfil → Treino desliga)) Prancha e isometrias que começam sozinhas depois do descanso (3, 2, 1) e registram o tempo planejado	Baixa
 V18	Imprimir o plano com as figuras dos exercícios (completa o M23)	Baixa
 V19	Para depois: Programas (blocos de 1 a 16 semanas com %1RM, RPE ou deload por semana) e Módulos (ligar e desligar partes do app)	Baixa
 V20	Relógios (interesse do Carlos em 08/11/2026): app para relógio que mostra a série atual, marca a série e conta o descanso no pulso, conversando com o app do celular. Começar pelo Wear OS (Android, Data Layer com o APK); Amazfit (Zepp OS) e Garmin (Connect IQ) depois. Projeto à parte: código nativo e teste em relógio de verdade	Média
@@ -361,4 +361,4 @@ W15	Aviso de fim do descanso com a próxima série ("Acabou o descanso: Supino, 
 W16	✅ (14/11/2026: tabela "Recordes por repetição" na evolução do exercício, com a estimativa em cinza) Recordes por repetição no histórico do exercício: a maior carga para 1 a 12 reps, com a data, e em cinza o que o 1RM estimado diz ser possível	Baixa
 W17	Tamanho do texto em passos (menor a maior) com prévia, seguindo o do celular por padrão	Baixa
 W18	✅ (14/11/2026: Perfil → Aparência; data-motion="reduce" corta animações e transições, e a neve some) "Menos movimento" em Perfil → Aparência: desliga animações, neve e enfeites que se mexem neste aparelho	Baixa
-W19	Nível de resistência (1 a 30) na bicicleta, remo, elíptico e escada, como a inclinação da esteira; no histórico como "Nível 8" e no CSV	Baixa
+W19	✅ (14/11/2026: nível de 1 a 30 na bicicleta, remo, elíptico e escada; abre no da última vez; no histórico e na planilha) Nível de resistência (1 a 30) na bicicleta, remo, elíptico e escada, como a inclinação da esteira; no histórico como "Nível 8" e no CSV	Baixa

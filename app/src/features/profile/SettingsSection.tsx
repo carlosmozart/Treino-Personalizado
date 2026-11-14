@@ -108,6 +108,7 @@ export function WorkoutSettingsFields() {
       <Toggle label="Troféu na série que bate um recorde" checked={settings.recordTrophies ?? true} onChange={v => set({ recordTrophies: v })} />
       <Toggle label="Mostrar quanto falta para o recorde na próxima série" checked={settings.recordHints ?? true} onChange={v => set({ recordHints: v })} />
       <Toggle label="Abrir o treino numa prévia, com Começar embaixo" checked={settings.previewBeforeStart ?? false} onChange={v => set({ previewBeforeStart: v })} />
+      <Toggle label="Prancha e isometrias começam sozinhas (3, 2, 1) depois do descanso" checked={settings.autoHold ?? true} onChange={v => set({ autoHold: v })} />
       <Toggle label="Ir ao próximo exercício quando o descanso da última série acabar" checked={settings.autoNextExercise ?? false} onChange={v => set({ autoNextExercise: v })} />
       <Toggle label="Oferecer os exercícios que ficaram para trás no treino anterior" checked={settings.offerLeftovers ?? true} onChange={v => set({ offerLeftovers: v })} />
       {/* W14: com quanto um exercício novo começa */}

@@ -4,6 +4,19 @@ import type { AppData, Workout, WorkoutEntry, WorkoutSet } from './model';
 import type { DateKey } from './dates';
 import { normalizeExerciseName } from './text';
 
+/**
+ * V14: minutos do exercício no treino, da primeira à última série marcada (mais uma série). Null
+ * sem pelo menos duas séries com a hora gravada.
+ */
+export function entryMinutes(entry: WorkoutEntry): number | null {
+  const times = entry.sets.map(s => (s.at ? Date.parse(s.at) : NaN)).filter(Number.isFinite).sort((a, b) => a - b);
+  if (times.length < 2) return null;
+  return Math.max(1, Math.round((times[times.length - 1]! - times[0]!) / 60000 + 1));
+}
+
+/** W19: cardio com nível de resistência (bicicleta, remo, elíptico, escada). */
+export const hasCardioLevel = (name: string) => /bicicleta|bike|ergometr|spinning|remo|eliptic|transport|escada|stair|simulador/i.test(name.normalize('NFD').replace(/[\u0300-\u036f]/g, ''));
+
 /** Segundos médios de execução de uma série, para estimar a duração quando o cronômetro falha. */
 export const SECONDS_PER_SET = 45;
 
@@ -78,7 +91,7 @@ export function bestSet(entry: WorkoutEntry): WorkoutSet | null {
 export function describeEntry(entry: WorkoutEntry): string {
   if (entry.mode === 'cardio') {
     const c = entry.cardio;
-    return c ? `${c.minutes}min${c.km ? ` · ${c.km}km` : ''}` : '--';
+    return c ? `${c.minutes}min${c.km ? ` · ${c.km}km` : ''}${c.level ? ` · nível ${c.level}` : ''}` : '--';
   }
   const sets = workSets(entry);
   if (!sets.length) return '--';

@@ -30,6 +30,7 @@ import { useSearchPool } from '../../hooks/use-search-pool';
 import { addSlot, canRemoveSlot, disableRotation, enableRotation, LETTERS, MAX_ROTATION_SLOTS, moveSlot, removeSlot, restartRotation, REST_SLOT, rotationLetter, rotationOrder, rotationSlots as rotationSlotsOf, rotationState, rotationTitle, setRotationPerWeek } from '../../domain/rotation';
 import { dayTitle, formatClock, formatNumber, plural } from '../../ui/format';
 import { RestSheet, restLabel } from '../../ui/RestSheet';
+import { formatStack, parseStack } from '../../domain/stack';
 
 const ALL_NAMES = [...new Set(Object.values(EXERCISE_LIBRARY).flat())];
 
@@ -426,7 +427,7 @@ function summary(ex: PlanExercise, defaultRest: number): string {
   const rest = ex.restSeconds === undefined || ex.restSeconds === defaultRest ? '' : ` · descanso ${ex.restSeconds === 0 ? 'sem cronômetro' : formatClock(ex.restSeconds)}`;
   if (ex.mode === 'time') return `${ex.sets} × ${ex.seconds ?? 30} s${rest}`;
   const { min, max } = repRange(ex);
-  const warm = ex.warmupSets ? ` · ${ex.warmupSets} aquec.` : '';
+  const warm = `${ex.warmupSets ? ` · ${ex.warmupSets} aquec.` : ''}${ex.stack?.length ? ' · pilha' : ''}`;
   return `${ex.sets} × ${min === max ? max : `${min}–${max}`}${ex.perSide ? ' por lado' : ''}${ex.weight ? ` · ${formatNumber(ex.weight)} kg` : ''}${ex.lockWeight ? ' (travada)' : ''}${warm}${rest}`;
 }
 
@@ -540,6 +541,7 @@ function ExerciseRow({ ex, open, first, last, swipe, superset, linkedToNext, onT
               <p className="col-span-2 self-end pb-1 text-xs text-faint">Descanso curto entre um lado e o outro; 0 = sem. No treino vira o botão "Trocar de lado".</p>
             </div>
           )}
+          {ex.mode === 'reps' && <StackField ex={ex} onChange={onChange} />}
           <div className="mt-2">
             <p className="text-xs font-semibold text-muted">Reservas (para trocar no treino)</p>
             {ex.alternatives.map((a, i) => (
@@ -641,3 +643,27 @@ function AddExerciseSheet({ open, dayName, existing, full, onClose, onAdd }: {
   );
 }
 
+
+/**
+ * T23: a pilha da máquina: os pesos que o pino escolhe ("5, 10, 15" ou "5-100/5"). Com ela, a
+ * carga sugerida e os botões de carga andam de pino em pino.
+ */
+function StackField({ ex, onChange }: { ex: PlanExercise; onChange: (patch: Partial<PlanExercise>) => void }) {
+  const [text, setText] = useState(ex.stack?.length ? ex.stack.join('; ').replace(/\./g, ',') : '');
+  const parsed = parseStack(text);
+  const saved = (ex.stack ?? []).join(';');
+  return (
+    <div className="mt-2">
+      <label className="block text-xs font-semibold text-muted">Pilha da máquina (kg)
+        <input value={text} onChange={e => setText(e.target.value)} placeholder="Ex.: 5-100/5 ou 7; 14; 21" aria-label={`Pilha da máquina de ${ex.name}`}
+          className="mt-1 h-11 w-full rounded-xl border border-line bg-surface-2 px-3 text-base text-ink" />
+      </label>
+      <p className="mt-1 text-xs text-faint">{parsed.length ? `${parsed.length} pesos: ${formatStack(parsed)}` : 'Opcional: os pesos que o pino escolhe, para a carga andar de pino em pino.'}</p>
+      {parsed.join(';') !== saved && (
+        <button type="button" onClick={() => onChange({ stack: parsed.length ? parsed : undefined })} className="mt-1 h-10 rounded-lg bg-surface-2 px-3 text-sm font-semibold">
+          {parsed.length ? 'Salvar a pilha' : 'Tirar a pilha'}
+        </button>
+      )}
+    </div>
+  );
+}

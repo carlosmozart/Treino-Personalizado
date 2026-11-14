@@ -79,7 +79,7 @@ describe('V2: nota em cada série', () => {
     expect(w.entries[0]!.sets.map(st => st.note)).toEqual(['pegada escorregou', undefined]);
     const csv = historyCsv([w]).split('\r\n');
     expect(csv[0]).toContain(';Nota;Nota da série');
-    expect(csv[1]!.endsWith(';pegada escorregou')).toBe(true);
+    expect(csv[1]!.endsWith(';pegada escorregou;;')).toBe(true); // depois vêm o nível e a hora
     expect(csv[2]!.endsWith(';')).toBe(true);
   });
 });

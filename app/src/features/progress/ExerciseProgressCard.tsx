@@ -16,9 +16,11 @@ import type { Workout } from '../../domain/model';
 const NO_WORKOUTS: Workout[] = [];
 
 /** Evolução por exercício: melhor carga (ou minutos) por sessão e a lista das sessões. */
-type Metric = 'e1rm' | 'weight' | 'reps' | 'volume';
+type Metric = 'e1rm' | 'weight' | 'reps' | 'volume' | 'rel';
 const METRICS: Record<Metric, { label: string; unit: string }> = {
   e1rm: { label: '1RM estimado', unit: 'kg' },
+  // T21: o 1RM estimado dividido pelo peso do corpo daquele dia
+  rel: { label: '× peso do corpo', unit: '×' },
   weight: { label: 'Melhor carga', unit: 'kg' },
   reps: { label: 'Mais reps', unit: 'reps' },
   volume: { label: 'Volume', unit: 'kg' }
@@ -51,7 +53,12 @@ export function ExerciseProgressCard({ initialKey }: { initialKey?: string }) {
     return v > 0 ? [{ date: workout.date, value: v }] : [];
   });
   const weightPts = points.filter(p => p.value > 0);
-  const series: Record<Metric, { date: string; value: number }[]> = { e1rm: e1rms, weight: weightPts, reps: repsPts, volume: volumePts };
+  const sortedWeighIns = profile ? [...profile.weighIns].sort((a, b) => a.date.localeCompare(b.date)) : [];
+  const relPts = profile && (sortedWeighIns.length || profile.weightKg) ? e1rms.flatMap(p => {
+    const body = bodyWeightAt({ weighIns: sortedWeighIns, weightKg: profile.weightKg }, p.date);
+    return body ? [{ date: p.date, value: Math.round((p.value / body) * 100) / 100 }] : [];
+  }) : [];
+  const series: Record<Metric, { date: string; value: number }[]> = { e1rm: e1rms, weight: weightPts, reps: repsPts, volume: volumePts, rel: relPts };
   const available = (Object.keys(METRICS) as Metric[]).filter(m => series[m].length > 0);
   // padrão: 1RM; sem carga (peso do corpo), as repetições
   const shown: Metric = metric && available.includes(metric) ? metric : (available[0] ?? 'weight');

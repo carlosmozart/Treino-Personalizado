@@ -4,7 +4,7 @@ import {
   addSet, afterSet, restAfterSet, resumeSession, setExerciseLock, setExerciseRest, setSetNote, setSetRest, SET_NOTE_MAX, supersetBlock, toggleSupersetWithNext, addWarmupSet, adjustWeights, removeWarmupSet, completeExercise, isExerciseDone, duplicateSet, insertSet, removeExerciseFromSession, removeSet, setNote, swapExercise, toggleFailure, toggleSet, updateCardio, updateSet,
   type ActiveSession, type SessionExercise, type SessionSet
 } from '../../domain/session';
-import { bestSet, lastSessionBefore, sessionsOf, suspiciousWeight, workSets } from '../../domain/workouts';
+import { bestSet, hasCardioLevel, lastSessionBefore, sessionsOf, suspiciousWeight, workSets } from '../../domain/workouts';
 import { useAppStore } from '../../store';
 import { Icon } from '../../ui/Icon';
 import { NumberField } from '../../ui/NumberField';
@@ -18,6 +18,7 @@ import { editPlan, lockPatch, removePlanExercise, repsPatch, setPlanExerciseRest
 import type { PlanExercise } from '../../domain/model';
 import { formatClock, formatNumber, relativeDate, shortDate } from '../../ui/format';
 import { useRestStore } from './rest-store';
+import { startHold } from './HoldTimer';
 import { PlateSheet } from './PlateSheet';
 import { ExerciseProgressCard } from '../progress/ExerciseProgressCard';
 import { SwipeRow } from '../../ui/SwipeRow';
@@ -178,7 +179,7 @@ export function ExerciseCard({ session, index, alwaysOpen = false, onGoTo }: Pro
     if (suspicious) { setCheck({ set: setIndex, weight, ...suspicious }); return; }
     // W3: marcar uma série continua um treino pausado
     if (!wasDone && session.pausedAt) { update(s => resumeSession(s, new Date())); useRestStore.getState().resume(); }
-    update(s => toggleSet(s, index, setIndex));
+    update(s => toggleSet(s, index, setIndex, new Date()));
     // W8: recorde na hora, com vibração
     if (!wasDone && showTrophies) {
       const marked = ex.sets.map((x, j) => (j === setIndex ? { ...x, done: true } : x));
@@ -247,6 +248,7 @@ export function ExerciseCard({ session, index, alwaysOpen = false, onGoTo }: Pro
             {group && <span className="rounded-full bg-surface-2 px-2 py-0.5 text-muted">{group}</span>}
             {ex.optional && <span className="rounded-full bg-surface-2 px-2 py-0.5 text-muted">Opcional</span>}
             {favorite && <span className="rounded-full bg-warning/15 px-2 py-0.5 text-warning">★ Favorito</span>}
+            {!!ex.stack?.length && <span className="rounded-full bg-surface-2 px-2 py-0.5 text-muted">Pilha da máquina</span>}
             {ex.lockWeight && <span className="flex items-center gap-1 rounded-full bg-surface-2 px-2 py-0.5 text-muted"><Icon name="cadeado" className="size-3.5" />Carga travada</span>}
             {block && (
               <span className="rounded-full bg-primary/15 px-2 py-0.5 text-info">
@@ -281,13 +283,19 @@ export function ExerciseCard({ session, index, alwaysOpen = false, onGoTo }: Pro
       </div>
 
       {ex.mode === 'cardio' && ex.cardio ? (
-        <div className="mt-3 grid grid-cols-[1fr_1fr_auto] items-end gap-2">
+        <div className={`mt-3 grid ${hasCardioLevel(ex.name) ? 'grid-cols-[1fr_1fr_1fr_auto]' : 'grid-cols-[1fr_1fr_auto]'} items-end gap-2`}>
           <label className="text-xs font-semibold text-muted">Minutos
             <NumberField label="Minutos" value={ex.cardio.minutes} onChange={v => update(s => updateCardio(s, index, { minutes: v }))} className="mt-1" />
           </label>
           <label className="text-xs font-semibold text-muted">Km
             <NumberField label="Quilômetros" decimal value={ex.cardio.km} onChange={v => update(s => updateCardio(s, index, { km: v }))} className="mt-1" />
           </label>
+          {/* W19: bicicleta, remo, elíptico: o nível de resistência */}
+          {hasCardioLevel(ex.name) && (
+            <label className="text-xs font-semibold text-muted">Nível
+              <NumberField label="Nível de resistência" value={ex.cardio.level ?? 0} onChange={v => update(s => updateCardio(s, index, { level: v }))} className="mt-1" />
+            </label>
+          )}
           <DoneButton done={ex.cardio.done} label={`Cardio de ${ex.name} feito`} onClick={() => update(s => updateCardio(s, index, { done: !ex.cardio!.done }))} />
         </div>
       ) : (
@@ -348,6 +356,17 @@ export function ExerciseCard({ session, index, alwaysOpen = false, onGoTo }: Pro
             </div>
           )}
           {/* T6: exercício por lado com descanso entre os lados: um toque começa a contagem curta */}
+          {/* V17: prancha e isometrias com cronômetro (3, 2, 1) */}
+          {ex.mode === 'time' && (() => {
+            const next = ex.sets.findIndex(x => !x.done);
+            if (next < 0) return null;
+            return (
+              <button type="button" onClick={() => startHold(session, index, next)}
+                className="mt-2 flex h-11 w-full items-center justify-center gap-2 rounded-lg bg-primary/10 text-sm font-bold text-primary">
+                <Icon name="continuar" className="size-4" />Começar a série {next + 1} ({ex.sets[next]!.reps} s)
+              </button>
+            );
+          })()}
           {ex.perSide && !!ex.sideRestSeconds && ex.sets.some(set => !set.done) && (
             <button type="button" onClick={() => useRestStore.getState().start(ex.sideRestSeconds!)}
               className="mt-2 h-10 w-full rounded-lg bg-surface-2 text-sm font-semibold text-muted">
@@ -358,7 +377,13 @@ export function ExerciseCard({ session, index, alwaysOpen = false, onGoTo }: Pro
           {(data?.settings.weightButtons ?? true) && ex.sets.some(set => !set.done) && !(isBodyweight(ex.name) && ex.sets.every(set => set.weight === 0)) && (
             <div className="mt-2 flex items-center gap-1" role="group" aria-label={`Ajustar a carga das séries não feitas de ${ex.name}`}>
               <span className="mr-1 text-xs font-semibold text-faint">Carga</span>
-              {ADJUSTS.map(d => (
+              {/* T23: com a pilha da máquina, um pino para baixo ou para cima */}
+              {ex.stack?.length ? ([-1, 1] as const).map(d => (
+                <button key={d} type="button" onClick={() => update(s => adjustWeights(s, index, d))} aria-label={d > 0 ? 'Um pino a mais' : 'Um pino a menos'}
+                  className="h-10 flex-1 rounded-lg bg-surface-2 text-sm font-bold text-muted active:bg-line">
+                  {d > 0 ? '+1 pino' : '−1 pino'}
+                </button>
+              )) : ADJUSTS.map(d => (
                 <button key={d} type="button" onClick={() => { update(s => adjustWeights(s, index, d)); if (d >= 10) run(markBigWeightJump); }}
                   className="h-10 flex-1 rounded-lg bg-surface-2 text-sm font-bold text-muted active:bg-line">
                   {d > 0 ? '+' : '−'}{formatNumber(Math.abs(d))}

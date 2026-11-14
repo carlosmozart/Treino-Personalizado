@@ -11,6 +11,7 @@ import { repRange, suggestProgression, type Progression } from './progression';
 import { rotationTitle } from './rotation';
 import { isDeloadDate, progressionWorkouts } from './deload';
 import { isCompound, warmupConfig, warmupRamp, type WarmupConfig } from './warmup';
+import { snapStack } from './stack';
 
 export interface SessionSet {
   reps: number;
@@ -25,6 +26,8 @@ export interface SessionSet {
   rest?: number;
   /** V8: aquecimento posto pela rampa automática (acompanha a carga de trabalho até ser editado). */
   auto?: true;
+  /** V14: hora em que foi marcada. */
+  at?: string;
 }
 
 export interface SessionExercise {
@@ -37,9 +40,12 @@ export interface SessionExercise {
   sets: SessionSet[];
   /** Meta em segundos por série (modo time). */
   seconds?: number;
-  cardio?: { minutes: number; km: number; done: boolean };
+  /** W19: `level` = nível de resistência (bicicleta, remo, elíptico). */
+  cardio?: { minutes: number; km: number; done: boolean; level?: number };
   note: string;
   restSeconds?: number;
+  /** T23: pesos da pilha da máquina (a carga anda de pino em pino). */
+  stack?: number[];
   tip?: string;
   alternatives: { name: string; mode: ExerciseMode }[];
   /** Nome original do plano quando trocado por uma reserva. */
@@ -205,7 +211,7 @@ const round1 = (n: number) => Math.round(n * 10) / 10;
 const roundKg = (n: number) => Math.round(n * 100) / 100;
 const clamp = (n: number, min: number, max: number) => Math.min(max, Math.max(min, n));
 
-type PlanTarget = Pick<PlanExercise, 'sets' | 'reps' | 'weight' | 'seconds' | 'repMin' | 'repMax' | 'increment' | 'lockWeight'> & { linear?: boolean };
+type PlanTarget = Pick<PlanExercise, 'sets' | 'reps' | 'weight' | 'seconds' | 'repMin' | 'repMax' | 'increment' | 'lockWeight' | 'stack'> & { linear?: boolean };
 
 /**
  * Séries iniciais de um exercício, conforme a fonte escolhida (M13):
@@ -237,10 +243,18 @@ function initialSets(data: AppData, name: string, mode: ExerciseMode, plan: Plan
     const sets = Array.from({ length: count }, () => ({ reps, weight, kind: 'work' as const, done: false }));
     return { sets };
   }
-  const progression = mode === 'reps' && plan && source === 'auto' && !isDeloadDate(data, date)
+  let progression = mode === 'reps' && plan && source === 'auto' && !isDeloadDate(data, date)
     ? suggestProgression(data.workouts, key, plan, date) ?? undefined
     : undefined;
   if (progression) ({ reps, weight } = progression);
+  // T23: com a pilha da máquina, a carga cai num peso que o pino escolhe (subir é o próximo pino)
+  if (plan?.stack?.length && weight > 0) {
+    const lastWeight = lastSets.length ? lastSets[lastSets.length - 1]!.weight : weight;
+    weight = progression?.kind === 'up' ? snapStack(lastWeight, plan.stack, 'up')
+      : progression?.kind === 'deload' ? snapStack(weight + 1e-6, plan.stack, 'down')
+      : snapStack(weight, plan.stack, 'near');
+    if (progression) progression = { ...progression, weight };
+  }
   const sets = Array.from({ length: count }, () => ({ reps, weight, kind: 'work' as const, done: false }));
   return progression?.reason ? { sets, progression } : { sets };
 }
@@ -268,8 +282,9 @@ function fromPlanExercise(data: AppData, ex: PlanExercise, date: DateKey, linear
     out.perSide = true;
     if (ex.sideRestSeconds) out.sideRestSeconds = ex.sideRestSeconds;
   }
-  if (ex.mode === 'cardio') out.cardio = { minutes: ex.minutes, km: ex.km, done: false };
+  if (ex.mode === 'cardio') out.cardio = { minutes: ex.minutes, km: ex.km, done: false, ...lastLevel(data, ex.name, date) };
   if (ex.lockWeight && ex.mode !== 'cardio') out.lockWeight = true;
+  if (ex.stack?.length && ex.mode !== 'cardio') out.stack = [...ex.stack];
   // aquecimento guardado no plano: metade da carga, 10 reps (como "Adicionar série de aquecimento")
   if (ex.warmupSets && ex.mode === 'reps') {
     let withWarmups: SessionExercise = out;
@@ -328,6 +343,12 @@ export function lightenSession(s: ActiveSession, kind: LightKind, settings: Pick
     return refreshAutoWarmup(moved);
   });
   return { ...s, exercises, light: kind };
+}
+
+/** W19: o nível de resistência da última vez, para o cardio abrir nele. */
+function lastLevel(data: AppData, name: string, date: DateKey): { level?: number } {
+  const level = lastSessionBefore(data.workouts, normalizeExerciseName(name), date)?.entry.cardio?.level;
+  return level ? { level } : {};
 }
 
 /** Maior carga das séries de trabalho: o alvo da rampa de aquecimento. */
@@ -410,7 +431,7 @@ export function addExerciseToSession(s: ActiveSession, data: AppData, name: stri
     slotId: `${EXTRA_PREFIX}${s.exercises.length}-${normalizeExerciseName(clean)}`, name: clean, key: normalizeExerciseName(clean), mode,
     optional: false, sets: initialSets(data, clean, mode, null, s.date).sets, note: '', alternatives: []
   };
-  if (mode === 'cardio') ex.cardio = { minutes: 20, km: 0, done: false };
+  if (mode === 'cardio') ex.cardio = { minutes: 20, km: 0, done: false, ...lastLevel(data, clean, s.date) };
   ex = withAutoWarmup(ex, data.settings);
   return { ...s, exercises: [...s.exercises, ex] };
 }
@@ -491,8 +512,12 @@ function mapSet(s: ActiveSession, exIndex: number, setIndex: number, fn: (set: S
   });
 }
 
-export function toggleSet(s: ActiveSession, exIndex: number, setIndex: number): ActiveSession {
-  return mapSet(s, exIndex, setIndex, set => ({ ...set, done: !set.done }));
+/** Marca ou desmarca a série; com `now`, grava a hora em que foi marcada (V14). */
+export function toggleSet(s: ActiveSession, exIndex: number, setIndex: number, now?: Date): ActiveSession {
+  return mapSet(s, exIndex, setIndex, set => {
+    if (set.done) { const { at: _a, ...rest } = set; return { ...rest, done: false }; }
+    return { ...set, done: true, ...(now ? { at: now.toISOString() } : {}) };
+  });
 }
 
 export function updateSet(s: ActiveSession, exIndex: number, setIndex: number, patch: Partial<Pick<SessionSet, 'reps' | 'weight' | 'kind'>>): ActiveSession {
@@ -615,15 +640,20 @@ export function completeExercise(s: ActiveSession, exIndex: number, done = true)
   }));
 }
 
-export function updateCardio(s: ActiveSession, exIndex: number, patch: Partial<{ minutes: number; km: number; done: boolean }>): ActiveSession {
-  return mapExercise(s, exIndex, ex => (ex.cardio ? {
-    ...ex,
-    cardio: {
-      minutes: patch.minutes !== undefined ? clamp(Math.round(patch.minutes), 0, 600) : ex.cardio.minutes,
-      km: patch.km !== undefined ? clamp(round1(patch.km), 0, 300) : ex.cardio.km,
-      done: patch.done ?? ex.cardio.done
-    }
-  } : ex));
+export function updateCardio(s: ActiveSession, exIndex: number, patch: Partial<{ minutes: number; km: number; done: boolean; level: number }>): ActiveSession {
+  return mapExercise(s, exIndex, ex => {
+    if (!ex.cardio) return ex;
+    const level = patch.level !== undefined ? clamp(Math.round(patch.level), 0, 30) : ex.cardio.level;
+    return {
+      ...ex,
+      cardio: {
+        minutes: patch.minutes !== undefined ? clamp(Math.round(patch.minutes), 0, 600) : ex.cardio.minutes,
+        km: patch.km !== undefined ? clamp(round1(patch.km), 0, 300) : ex.cardio.km,
+        done: patch.done ?? ex.cardio.done,
+        ...(level ? { level } : {})
+      }
+    };
+  });
 }
 
 export function setNote(s: ActiveSession, exIndex: number, note: string): ActiveSession {
@@ -639,7 +669,9 @@ export function adjustWeights(s: ActiveSession, exIndex: number, delta: number):
   return mapExercise(s, exIndex, ex => {
     if (!ex.sets.some(set => !set.done)) return ex;
     // V8: a rampa automática é refeita a partir da carga nova, não somada
-    const moved = ex.sets.map(set => (set.done || (set.kind === 'warmup' && set.auto) ? set : { ...set, weight: roundKg(Math.max(0, set.weight + delta)) }));
+    // T23: com a pilha da máquina, cada toque anda um pino (para cima ou para baixo)
+    const next = (w: number) => (ex.stack?.length ? snapStack(w, ex.stack, delta > 0 ? 'up' : 'down') : roundKg(Math.max(0, w + delta)));
+    const moved = ex.sets.map(set => (set.done || (set.kind === 'warmup' && set.auto) ? set : { ...set, weight: next(set.weight) }));
     return refreshAutoWarmup({ ...ex, sets: moved });
   });
 }
@@ -737,10 +769,10 @@ export function sessionToWorkout(s: ActiveSession, now: Date): Workout | null {
     const note = ex.note.trim();
     if (ex.mode === 'cardio') {
       if (!ex.cardio?.done) continue;
-      entries.push({ key: ex.key, name: ex.name, mode: 'cardio', sets: [], cardio: { minutes: ex.cardio.minutes, ...(ex.cardio.km ? { km: ex.cardio.km } : {}) }, ...(note ? { note } : {}) });
+      entries.push({ key: ex.key, name: ex.name, mode: 'cardio', sets: [], cardio: { minutes: ex.cardio.minutes, ...(ex.cardio.km ? { km: ex.cardio.km } : {}), ...(ex.cardio.level ? { level: ex.cardio.level } : {}) }, ...(note ? { note } : {}) });
       continue;
     }
-    const sets = ex.sets.filter(set => set.done).map(({ reps, weight, kind, failure, note }) => ({ reps, weight, kind, ...(failure ? { failure } : {}), ...(note ? { note } : {}) }));
+    const sets = ex.sets.filter(set => set.done).map(({ reps, weight, kind, failure, note, at }) => ({ reps, weight, kind, ...(failure ? { failure } : {}), ...(note ? { note } : {}), ...(at ? { at } : {}) }));
     if (sets.length) entries.push({ key: ex.key, name: ex.name, mode: ex.mode, sets, ...(note ? { note } : {}), ...(ex.perSide ? { perSide: true as const } : {}), ...(added(ex) ? { added: true as const } : {}) });
   }
   if (!entries.length) return null;

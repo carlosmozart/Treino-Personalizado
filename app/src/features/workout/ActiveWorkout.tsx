@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { DAY_KEYS } from '../../domain/ai-plan';
 import { activeMs, isExerciseDone, nextOpenExercise, pauseSession, resumeSession, sessionProgress, sessionToWorkout, type ActiveSession } from '../../domain/session';
 import { LeftoversNotice, WorkoutPreview } from './WorkoutExtras';
+import { HoldBar, nextHoldSet, startHold } from './HoldTimer';
 import { workoutVolume } from '../../domain/workouts';
 import { useVolumeOptions } from '../../hooks/use-volume-options';
 import { updateMeta, updateSettings } from '../../domain/actions';
@@ -63,6 +64,18 @@ export function ActiveWorkout({ session }: { session: ActiveSession }) {
     if (!ended || ended.seq <= seenRest.current) return;
     seenRest.current = ended.seq;
     const ex = ended.source === null ? undefined : session.exercises[ended.source];
+    // V17: prancha e isometrias: a próxima série (ou o próximo exercício por tempo) começa sozinha
+    if (ex?.mode === 'time' && (useAppStore.getState().data?.settings.autoHold ?? true)) {
+      const nextSet = nextHoldSet(session, ended.source!);
+      if (nextSet !== null) { startHold(session, ended.source!, nextSet); return; }
+      const nextEx = nextOpenExercise(session.exercises, ended.source!);
+      if (nextEx !== null) {
+        goTo(nextEx);
+        const first = nextHoldSet(session, nextEx);
+        if (first !== null) startHold(session, nextEx, first);
+        return;
+      }
+    }
     // T4: prancha concluída; W12 (opção): qualquer exercício concluído
     if (!ex || !isExerciseDone(ex) || (ex.mode !== 'time' && !useAppStore.getState().data?.settings.autoNextExercise)) return;
     const next = nextOpenExercise(session.exercises, ended.source!);
@@ -182,6 +195,7 @@ export function ActiveWorkout({ session }: { session: ActiveSession }) {
         onAdded={() => { if (focus) setCurrent(session.exercises.length); }} />
 
       <FinishSheet open={finishing} onClose={() => setFinishing(false)} session={session} />
+      <HoldBar session={session} />
 
       <SwitchSheet open={switching} onClose={() => setSwitching(false)} session={session} />
     </div>

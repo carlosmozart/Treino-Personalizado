@@ -161,7 +161,7 @@ export function updateExercise(plan: Plan, dayKey: DayKey, id: string, patch: Pa
       if (e.id !== id) return e;
       const next = { ...e, ...patch };
       // campos opcionais desligados saem do registro (exactOptionalPropertyTypes)
-      for (const k of ['lockWeight', 'warmupSets'] as const) if (next[k] === undefined || next[k] === 0) delete next[k];
+      for (const k of ['lockWeight', 'warmupSets', 'stack'] as const) if (next[k] === undefined || next[k] === 0) delete next[k];
       return next;
     })
   }));

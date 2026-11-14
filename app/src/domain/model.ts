@@ -21,6 +21,8 @@ export interface WorkoutSet {
   failure?: true;
   /** V2: nota curta da série ("pegada escorregou", "senti o ombro"). */
   note?: string;
+  /** V14: hora em que a série foi marcada (ISO). Ausente em séries antigas. */
+  at?: string;
 }
 
 export interface WorkoutEntry {
@@ -30,7 +32,8 @@ export interface WorkoutEntry {
   mode: ExerciseMode;
   /** Só séries feitas. Vazio em cardio. */
   sets: WorkoutSet[];
-  cardio?: { minutes: number; km?: number };
+  /** W19: `level` = nível de resistência (bicicleta, remo, elíptico), de 1 a 30. */
+  cardio?: { minutes: number; km?: number; level?: number };
   note?: string;
   /** Veio do formato antigo "3x10 · 40kg": as séries são uma reconstrução uniforme. */
   aggregated?: true;
@@ -107,6 +110,8 @@ export interface PlanExercise {
   lockWeight?: true | undefined;
   /** Séries de aquecimento com que o exercício começa (metade da carga, 10 reps). */
   warmupSets?: number | undefined;
+  /** T23: os pesos que a pilha da máquina tem (kg, em ordem); a carga anda de pino em pino. */
+  stack?: number[] | undefined;
 }
 
 export interface PlanDay {
@@ -279,6 +284,8 @@ export interface Settings {
   deloadEvery?: number;
   /** W9: sugerir deload quando as cargas caem ou o check-in anda ruim. Ausente = ligado. */
   deloadSuggest?: boolean;
+  /** V17: prancha e isometrias começam sozinhas (3, 2, 1) quando o descanso delas acaba. Ausente = ligado. */
+  autoHold?: boolean;
   /** M19: em que dia a semana começa (faixa da semana, meta semanal, gráficos). Ausente = segunda. */
   weekStart?: WeekStart;
   /** M32: primeiro dia da semana marcada como deload (treinos dela não viram base da progressão). */

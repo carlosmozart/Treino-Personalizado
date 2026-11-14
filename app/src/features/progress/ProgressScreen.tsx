@@ -10,7 +10,7 @@ import { fromDateKey } from '../../domain/dates';
 import type { Workout, WorkoutEntry } from '../../domain/model';
 import { heatmap, historyByMonth, muscleBalance, statsSummary, untrainedGroups, weeklyVolume, type HeatLevel } from '../../domain/stats';
 import { LibrarySheet } from '../plan/LibrarySheet';
-import { describeEntry, volumeOptions, workoutVolume } from '../../domain/workouts';
+import { describeEntry, entryMinutes, volumeOptions, workoutVolume } from '../../domain/workouts';
 import { useVolumeOptions } from '../../hooks/use-volume-options';
 import { useAppStore } from '../../store';
 import { useUiStore } from '../../store/ui-store';
@@ -242,7 +242,7 @@ function WorkoutItem({ w, open, onToggle, onDelete }: { w: Workout; open: boolea
                 <button type="button" onClick={() => setEditing(i)} aria-label={`Corrigir ${e.name}`}
                   className="flex min-h-11 w-full items-center justify-between gap-3 text-left text-sm">
                   <span className="min-w-0 truncate">{e.name}</span>
-                  <span className="flex shrink-0 items-center gap-2 text-muted">{describeEntry(e)}<Icon name="editar" className="size-4" /></span>
+                  <span className="flex shrink-0 items-center gap-2 text-muted">{describeEntry(e)}{entryMinutes(e) ? ` · ${entryMinutes(e)} min` : ''}<Icon name="editar" className="size-4" /></span>
                 </button>
                 <SetDetails w={w} entry={e} />
               </li>
