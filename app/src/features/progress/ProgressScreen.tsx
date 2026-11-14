@@ -1,5 +1,8 @@
 import { useState } from 'react';
 import { WeeklySetsCard } from './WeeklySetsCard';
+import { ReopenButton } from '../workout/WorkoutExtras';
+import { bestsBefore, recordLabel, trophiesFor } from '../../domain/set-records';
+import { ChallengesCard } from './ChallengesCard';
 import { previousWorkSets, setTrends, TREND_ARROW } from '../../domain/set-compare';
 import { YearReviewLinks } from '../year-review/YearReview';
 import { deleteWorkout } from '../../domain/actions';
@@ -78,6 +81,7 @@ function Stats() {
         <Heatmap />
       </section>
       <WeeklyVolume />
+      <ChallengesCard />
       <WeeklySetsCard />
       <ExerciseProgressCard />
       <section className="rounded-2xl border border-line bg-surface p-4">
@@ -190,17 +194,20 @@ function SetDetails({ w, entry }: { w: Workout; entry: WorkoutEntry }) {
   const compare = useAppStore(s => s.data?.settings.compareSets ?? true);
   if (entry.mode === 'cardio' || !workouts) return null;
   const trends = compare ? setTrends(previousWorkSets(workouts, entry.key, w), entry.sets, entry.mode) : [];
+  // W8: o troféu de cada série, como apareceu no treino
+  const trophies = trophiesFor(entry.sets.map(s => ({ ...s, done: true })), bestsBefore(workouts, entry.key, { id: w.id, date: w.date, ...(w.startedAt ? { startedAt: w.startedAt } : {}) }), entry.mode).kinds;
   const notes = entry.sets.map((s, i) => ({ i, note: s.note })).filter(n => n.note);
-  if (!trends.some(Boolean) && !notes.length) return null;
+  if (!trends.some(Boolean) && !notes.length && !trophies.some(k => k.length)) return null;
   const unit = entry.mode === 'time' ? 's' : '';
   return (
     <div className="-mt-1 mb-1 text-xs text-muted">
-      {trends.some(Boolean) && (
+      {(trends.some(Boolean) || trophies.some(k => k.length)) && (
         <p className="flex flex-wrap gap-x-2 gap-y-0.5">
           {entry.sets.map((s, i) => (
             <span key={i} className={s.kind === 'warmup' ? 'text-faint' : ''}>
               {formatNumber(s.weight)}×{s.reps}{unit}
               {trends[i] && <span className={`ml-0.5 font-black ${trends[i] === 'up' ? 'text-success' : trends[i] === 'down' ? 'text-warning' : 'text-faint'}`}>{TREND_ARROW[trends[i]]}</span>}
+              {!!trophies[i]?.length && <span role="img" aria-label={`recorde: ${recordLabel(trophies[i]!)}`} className="ml-0.5 inline-flex align-[-2px] text-warning"><Icon name="trofeu" className="size-3.5" /></span>}
             </span>
           ))}
         </p>
@@ -242,6 +249,7 @@ function WorkoutItem({ w, open, onToggle, onDelete }: { w: Workout; open: boolea
             ))}
           </ul>
           <div className="mt-3 flex flex-wrap items-center gap-2">
+            <ReopenButton w={w} />
             <RepeatButton w={w} />
             <ShareImageButton w={w} />
             <CopyTextButton w={w} />

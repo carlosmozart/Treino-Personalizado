@@ -376,6 +376,8 @@ function SeasonalChoice({ settings, set }: { settings: Settings; set: (patch: Pa
         <>
           <Toggle label="Cores da época (abóbora no Halloween, vermelho no Natal)" checked={settings.seasonalColors ?? true} onChange={v => set({ seasonalColors: v })} />
           <Toggle label="Também durante o treino (só um enfeite parado)" checked={settings.seasonalInWorkout ?? true} onChange={v => set({ seasonalInWorkout: v })} />
+          {/* W18: sem animações, neve nem enfeites que se mexem, neste aparelho */}
+          <Toggle label="Menos movimento (sem animações nem neve)" checked={settings.reduceMotion ?? false} onChange={v => set({ reduceMotion: v })} />
         </>
       )}
     </div>

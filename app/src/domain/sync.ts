@@ -94,6 +94,7 @@ function mergeGamification(ga: Gamification, gb: Gamification, checkinDates: Set
     checkinXP,
     waterBonus: union(ga.waterBonus, gb.waterBonus, max),
     streakBonuses: union(ga.streakBonuses, gb.streakBonuses, max),
+    ...(ga.challengeBonus || gb.challengeBonus ? { challengeBonus: union(ga.challengeBonus ?? {}, gb.challengeBonus ?? {}, max) } : {}),
     freeMealRewards: union(ga.freeMealRewards, gb.freeMealRewards, first),
     achievements: union(ga.achievements, gb.achievements, (p, q) => (p <= q ? p : q)),
     birthdayGreeted: union(ga.birthdayGreeted, gb.birthdayGreeted, first),

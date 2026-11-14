@@ -1,8 +1,12 @@
 // Partes do treino em andamento da 3.27.0: prévia antes de começar (W11), "Ainda treinando?" do
 // treino esquecido (W4) e "Terminou cedo?" com os exercícios que ficaram para trás (W13).
-import { useState } from 'react';
-import { addLeftovers, startFromPreview, type ActiveSession } from '../../domain/session';
+import { useEffect, useState } from 'react';
+import { addLeftovers, forgottenEnd, forgottenState, reopenSession, startFromPreview, type ActiveSession } from '../../domain/session';
+import type { Workout } from '../../domain/model';
+import { useNow } from '../../hooks/use-now';
 import { useAppStore } from '../../store';
+import { useUiStore } from '../../store/ui-store';
+import { useWorkoutUi } from './workout-ui';
 import { Sheet } from '../../ui/Sheet';
 import { formatNumber, plural, shortDate } from '../../ui/format';
 import { useRestStore } from './rest-store';
@@ -40,6 +44,53 @@ export function WorkoutPreview({ session }: { session: ActiveSession }) {
       </div>
     </section>
   );
+}
+
+/**
+ * W4: vigia o treino aberto em qualquer aba. Parado há N minutos, pergunta "Ainda treinando?";
+ * sem resposta em mais 5, salva sozinho (terminando na última mexida mais um descanso) e mostra o
+ * resumo na aba Treino.
+ */
+export function ForgottenWatcher() {
+  const session = useAppStore(s => s.session);
+  const settings = useAppStore(s => s.data?.settings);
+  const update = useAppStore(s => s.updateSession);
+  const finish = useAppStore(s => s.finishWorkout);
+  const now = useNow(5000, !!session);
+  const minutes = settings?.forgottenMinutes ?? 45;
+  const state = session ? forgottenState(session, new Date(now), minutes) : 'ok';
+  const finishAt = (at: Date) => {
+    if (!session) return;
+    const id = session.id;
+    if (finish(at, true) === 'saved') {
+      useRestStore.getState().stop();
+      useWorkoutUi.getState().showSummary(id);
+      useUiStore.getState().setTab('treino');
+    }
+  };
+  useEffect(() => {
+    if (state === 'finish' && session) finishAt(forgottenEnd(session, settings?.restSeconds ?? 90, new Date()));
+    // só reage quando o estado do treino esquecido muda
+  }, [state]);
+  if (!session) return null;
+  return (
+    <ForgottenSheet open={state === 'ask'} minutes={minutes}
+      onKeep={() => update(s => ({ ...s }))}
+      onFinish={() => finishAt(forgottenEnd(session, settings?.restSeconds ?? 90, new Date()))} />
+  );
+}
+
+/** W4: um treino salvo sozinho pode ser reaberto (as séries voltam marcadas). */
+export function ReopenButton({ w, className = '' }: { w: Workout; className?: string }) {
+  const data = useAppStore(s => s.data);
+  const running = useAppStore(s => !!s.session);
+  const open = useAppStore(s => s.openSession);
+  if (!data || !w.autoFinished || running) return null;
+  const reopen = () => {
+    const s = reopenSession(data, w, new Date());
+    if (s && open(s)) { useWorkoutUi.getState().showSummary(null); useUiStore.getState().setTab('treino'); }
+  };
+  return <button type="button" onClick={reopen} className={`h-11 rounded-xl bg-surface-2 px-4 font-semibold ${className}`}>Reabrir o treino</button>;
 }
 
 /** W4: o treino parado há muito tempo pergunta se continua. */

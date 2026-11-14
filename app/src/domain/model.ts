@@ -59,6 +59,8 @@ export interface Workout {
   form?: DailyForm;
   /** W13: exercícios do plano que ficaram sem nenhuma série feita (para oferecer no próximo). */
   skipped?: string[];
+  /** W4: salvo sozinho, depois de ficar esquecido aberto (dá para reabrir). */
+  autoFinished?: true;
 }
 
 /** W2: como o treino ficou mais leve: carga 10% menor ou uma série a menos por exercício. */
@@ -193,6 +195,8 @@ export interface Gamification {
   /** Bônus concedidos, com o XP de cada um (0 = herdado do app antigo, já contado na base). */
   waterBonus: Record<DateKey, number>;
   streakBonuses: Record<string, number>;
+  /** V7: XP dos desafios do mês cumpridos, por "2026-11:treinos". Ausente em dados antigos. */
+  challengeBonus?: Record<string, number>;
   freeMealRewards: Record<DateKey, true>;
   /** Conquista → data em que foi desbloqueada. */
   achievements: Record<string, string>;
@@ -264,6 +268,8 @@ export interface Settings {
   recordTrophies?: boolean;
   /** W8: linha "faltam 2 repetições para o recorde" antes da próxima série. Ausente = ligada. */
   recordHints?: boolean;
+  /** W18: menos movimento neste aparelho (sem animações, neve nem enfeites que se mexem). Ausente = desligado. */
+  reduceMotion?: boolean;
   /** M19: em que dia a semana começa (faixa da semana, meta semanal, gráficos). Ausente = segunda. */
   weekStart?: WeekStart;
   /** M32: primeiro dia da semana marcada como deload (treinos dela não viram base da progressão). */
@@ -394,5 +400,5 @@ const sumValues = (record: Record<string, number>) => Object.values(record).redu
 export function computeTotalXP(g: Gamification): number {
   return g.baseXP
     + Object.values(g.checkinXP).reduce((n, r) => n + r.amount, 0)
-    + sumValues(g.waterBonus) + sumValues(g.streakBonuses);
+    + sumValues(g.waterBonus) + sumValues(g.streakBonuses) + sumValues(g.challengeBonus ?? {});
 }

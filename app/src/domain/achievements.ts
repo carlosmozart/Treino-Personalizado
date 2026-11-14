@@ -2,7 +2,8 @@
 import { ACHIEVEMENTS } from '../data/achievements';
 import type { ActionResult } from './actions';
 import { toDateKey, type DateKey } from './dates';
-import type { AppData } from './model';
+import { computeTotalXP, type AppData } from './model';
+import { awardChallenges, CHALLENGE_XP } from './challenges';
 import { key, touch } from './sync';
 import { rpgOf } from './rpg';
 
@@ -27,15 +28,21 @@ export function achievementList(data: AppData): AchievementView[] {
 }
 
 /** Desbloqueia o que foi atingido; devolve os mesmos dados quando nada muda. */
-export function unlockAchievements(data: AppData, now: Date): ActionResult {
+export function unlockAchievements(input: AppData, now: Date): ActionResult {
+  // V7: desafios do mês cumpridos dão XP uma vez (antes das conquistas, que contam com eles)
+  const awarded = awardChallenges(input, now);
+  const data = awarded.done.length
+    ? { ...awarded.data, gamification: { ...awarded.data.gamification, totalXP: computeTotalXP(awarded.data.gamification) } }
+    : input;
+  const challengeEvents = awarded.done.map(c => ({ kind: 'challenge' as const, title: c.title, goal: c.goal, xp: CHALLENGE_XP }));
   const reached = ACHIEVEMENTS.filter(a => !data.gamification.achievements[a.id] && (!a.rpg || rpgOf(data).enabled) && a.current(data) >= a.target);
-  if (!reached.length) return { data, events: [] };
+  if (!reached.length) return { data, events: challengeEvents };
   const today = toDateKey(now);
   const achievements = { ...data.gamification.achievements };
   for (const a of reached) achievements[a.id] = today;
   return {
     data: { ...data, gamification: { ...data.gamification, achievements } },
-    events: reached.map(a => ({ kind: 'achievement' as const, name: a.name }))
+    events: [...challengeEvents, ...reached.map(a => ({ kind: 'achievement' as const, name: a.name }))]
   };
 }
 

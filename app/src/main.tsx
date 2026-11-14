@@ -29,6 +29,9 @@ const applyLook = () => {
   const settings = useAppStore.getState().data?.settings;
   if (!settings) return;
   const season = seasonColors(settings, useToday.getState().today);
+  // W18: menos movimento
+  if (settings.reduceMotion) document.documentElement.dataset.motion = 'reduce';
+  else delete document.documentElement.dataset.motion;
   const look = `${settings.accent ?? ''}|${season ?? ''}`;
   if (look === lastLook) return;
   lastLook = look;

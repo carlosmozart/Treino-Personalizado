@@ -80,6 +80,49 @@ export interface ActiveSession {
   lastActivityAt?: string;
   /** W11: aberto na prévia; "Começar" acerta o início para a hora do toque. */
   preview?: true;
+  /** W4: salvo sozinho (vai para o treino salvo, para poder reabrir). */
+  autoFinished?: true;
+}
+
+/**
+ * W4: reabre um treino salvo (o esquecido que foi salvo sozinho): as séries voltam marcadas, com o
+ * mesmo id, e ao concluir de novo ele substitui o salvo. O tempo entre o fim salvo e agora conta
+ * como pausa, para a duração não crescer com a parada.
+ */
+export function reopenSession(data: AppData, w: Workout, now: Date): ActiveSession | null {
+  if (!w.entries.length || !w.startedAt) return null;
+  const planExercises = Object.values(data.plans[w.planId ?? '']?.days ?? {}).flatMap(d => d.exercises);
+  const exercises = w.entries.map((entry, i): SessionExercise => {
+    const planEx = planExercises.find(p => normalizeExerciseName(p.name) === entry.key);
+    const ex: SessionExercise = {
+      slotId: planEx?.id ?? `reaberto-${i}`, name: entry.name, key: entry.key, mode: entry.mode, optional: false,
+      sets: entry.sets.map(({ reps, weight, kind, failure, note }) => ({ reps, weight, kind, done: true, ...(failure ? { failure } : {}), ...(note ? { note } : {}) })),
+      note: entry.note ?? '', alternatives: planEx?.alternatives ?? []
+    };
+    if (entry.mode === 'cardio') ex.cardio = { minutes: entry.cardio?.minutes ?? 20, km: entry.cardio?.km ?? 0, done: true };
+    if (entry.mode === 'time' && entry.sets[0]) ex.seconds = entry.sets[0].reps;
+    if (planEx?.restSeconds !== undefined) ex.restSeconds = planEx.restSeconds;
+    if (entry.perSide) ex.perSide = true;
+    // as séries do plano que não chegaram a ser feitas voltam, desmarcadas (cópia da última)
+    const work = ex.sets.filter(x => x.kind === 'work');
+    const last = work[work.length - 1];
+    if (planEx && entry.mode !== 'cardio' && last && planEx.sets > work.length) {
+      for (let k = work.length; k < Math.min(20, planEx.sets); k++) ex.sets.push({ reps: last.reps, weight: last.weight, kind: 'work', done: false });
+    }
+    return ex;
+  });
+  // os exercícios do plano que ficaram sem nenhuma série também voltam, no fim
+  const linear = data.plans[w.planId ?? '']?.progression === 'linear';
+  for (const name of w.skipped ?? []) {
+    const planEx = planExercises.find(p => normalizeExerciseName(p.name) === normalizeExerciseName(name));
+    if (planEx && !exercises.some(e => e.key === normalizeExerciseName(name))) exercises.push(fromPlanExercise(data, planEx, w.date, linear));
+  }
+  const ended = Date.parse(w.endedAt ?? w.startedAt);
+  return {
+    id: w.id, date: w.date, startedAt: w.startedAt, planId: w.planId ?? '', dayKey: w.dayKey ?? dayKeyOf(now), dayName: w.dayName ?? 'Treino',
+    exercises, pausedMs: Math.max(0, now.getTime() - ended), lastActivityAt: now.toISOString(),
+    ...(w.form ? { form: w.form } : {}), ...(w.light ? { light: w.light } : {})
+  };
 }
 
 /** W3: pausa o treino (o relógio para). */
@@ -712,7 +755,8 @@ export function sessionToWorkout(s: ActiveSession, now: Date): Workout | null {
     planId: s.planId, dayKey: s.dayKey, dayName: s.dayName, source: 'app', entries,
     ...(s.light ? { light: s.light } : {}),
     ...(s.form && Object.keys(s.form).length ? { form: s.form } : {}),
-    ...(skipped.length ? { skipped } : {})
+    ...(skipped.length ? { skipped } : {}),
+    ...(s.autoFinished ? { autoFinished: true as const } : {})
   };
 }
 

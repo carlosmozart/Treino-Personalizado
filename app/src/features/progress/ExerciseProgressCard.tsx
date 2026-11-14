@@ -1,5 +1,7 @@
 import { useState } from 'react';
-import { entryVolume, exerciseProgress, exercisesInHistory, sessionsOf, workSets } from '../../domain/workouts';
+import { bodyWeightAt, entryVolume, exerciseProgress, exercisesInHistory, sessionsOf, workSets } from '../../domain/workouts';
+import { liftOf, repRecords, strengthLevel, LEVELS } from '../../domain/strength-levels';
+import { toDateKey } from '../../domain/dates';
 import { bestE1rm, weightForReps } from '../../domain/strength';
 import { NumberField } from '../../ui/NumberField';
 import { formatNumber } from '../../ui/format';
@@ -23,6 +25,7 @@ const METRICS: Record<Metric, { label: string; unit: string }> = {
 export function ExerciseProgressCard({ initialKey }: { initialKey?: string }) {
   const workouts = useAppStore(s => s.data?.workouts) ?? NO_WORKOUTS;
   const volumeOpts = useVolumeOptions();
+  const profile = useAppStore(s => s.data?.profile);
   const list = exercisesInHistory(workouts);
   const [key, setKey] = useState(initialKey ?? '');
   const [metric, setMetric] = useState<Metric | null>(null);
@@ -86,6 +89,8 @@ export function ExerciseProgressCard({ initialKey }: { initialKey?: string }) {
           <p className="mt-1 text-xs text-faint">Estimativa pela fórmula de Epley, só com séries de até 12 repetições.</p>
         </div>
       )}
+      {best && <LevelLine name={selected.name} oneRm={best.value} profile={profile} />}
+      {!cardio && <RepRecordsTable workouts={workouts} exerciseKey={selected.key} />}
       <ul className="mt-3 divide-y divide-line text-sm">
         {[...points].reverse().slice(0, 10).map(p => (
           <li key={`${p.workoutId}-${p.date}`} className="flex justify-between gap-3 py-2">
@@ -95,5 +100,50 @@ export function ExerciseProgressCard({ initialKey }: { initialKey?: string }) {
         ))}
       </ul>
     </section>
+  );
+}
+
+/** V9: nível de força nos levantamentos principais, pelo 1RM estimado ÷ peso do corpo. */
+function LevelLine({ name, oneRm, profile }: { name: string; oneRm: number; profile: { weighIns: { date: string; weight: number }[]; weightKg: number | null; sex: import('../../domain/health').Sex } | undefined }) {
+  const lift = liftOf(name);
+  if (!lift || !profile) return null;
+  const body = bodyWeightAt({ weighIns: [...profile.weighIns].sort((a, b) => a.date.localeCompare(b.date)), weightKg: profile.weightKg }, toDateKey(new Date()));
+  if (!body) return <p className="mt-3 text-sm text-muted">Registre o seu peso para ver o nível de força neste exercício.</p>;
+  const v = strengthLevel(lift, oneRm, body, profile.sex);
+  if (!v) return null;
+  const step = LEVELS.indexOf(v.level);
+  return (
+    <div className="mt-3 rounded-xl bg-surface-2 p-3 text-sm" data-testid="nivel-de-forca">
+      <p><strong>Nível de força: {v.level}</strong> <span className="text-muted">({formatNumber(v.ratio)}× o peso do corpo)</span></p>
+      <div className="mt-2 grid grid-cols-5 gap-1" aria-hidden="true">
+        {LEVELS.map((l, i) => <span key={l} className={`h-1.5 rounded-full ${i <= step ? 'bg-primary' : 'bg-page'}`} />)}
+      </div>
+      {v.next && <p className="mt-1 text-muted">{v.next.level} a partir de {formatNumber(v.next.kg)} kg de 1RM estimado.</p>}
+      <p className="mt-1 text-xs text-faint">Referência geral para adultos{profile.sex ? '' : ' (sem o sexo no Perfil, usa a referência masculina)'}; varia com a idade e o tempo de treino.</p>
+    </div>
+  );
+}
+
+/** W16: a maior carga para 1 a 12 repetições; sem marca, em cinza, o que o 1RM estimado diz. */
+function RepRecordsTable({ workouts, exerciseKey }: { workouts: readonly Workout[]; exerciseKey: string }) {
+  const rows = repRecords(workouts, exerciseKey);
+  if (!rows.length) return null;
+  return (
+    <details className="mt-3 rounded-xl bg-surface-2 p-3 text-sm">
+      <summary className="cursor-pointer font-semibold">Recordes por repetição</summary>
+      <table className="mt-2 w-full tabular-nums">
+        <thead><tr className="text-left text-xs text-muted"><th className="font-semibold">Reps</th><th className="font-semibold">Carga</th><th className="font-semibold">Quando</th></tr></thead>
+        <tbody>
+          {rows.filter(r => r.weight !== null || r.estimate !== null).map(r => (
+            <tr key={r.reps} className="border-t border-line">
+              <td className="py-1">{r.reps}</td>
+              {r.weight !== null
+                ? <><td className="py-1 font-semibold">{formatNumber(r.weight)} kg</td><td className="py-1 text-muted">{shortDate(r.date!)}</td></>
+                : <><td className="py-1 text-faint">~{formatNumber(r.estimate ?? 0)} kg</td><td className="py-1 text-faint">estimado</td></>}
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </details>
   );
 }

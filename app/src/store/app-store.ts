@@ -44,7 +44,7 @@ export interface AppState {
   updateSession(change: (session: ActiveSession) => ActiveSession): void;
   discardWorkout(): void;
   /** `at`: a hora do fim (W4: o treino esquecido acaba na última série mais o descanso). */
-  finishWorkout(at?: Date): 'saved' | 'empty' | 'no-session';
+  finishWorkout(at?: Date, auto?: boolean): 'saved' | 'empty' | 'no-session';
   takeEvents(): RewardEvent[];
   /** Grava o que estiver pendente (ao sair do app, antes de exportar). */
   flush(): Promise<void>;
@@ -158,10 +158,13 @@ export function createAppStore(deps: AppStoreDeps) {
         sessionPersister.schedule(null);
       },
 
-      finishWorkout(at) {
-        const { data, session } = get();
-        if (!data || !session) return 'no-session';
+      finishWorkout(at, auto) {
+        const { data, session: open } = get();
+        if (!data || !open) return 'no-session';
         const t = at ?? now();
+        // W4: o salvo sozinho leva a marca (e pode ser reaberto); concluir de novo tira a marca
+        const { autoFinished: _a, ...rest } = open;
+        const session = auto ? { ...rest, autoFinished: true as const } : rest;
         const result = actions.finishWorkout(data, session, t);
         if (result.kind === 'empty') return 'empty';
         const unlocked = unlockAchievements(result.data, t);

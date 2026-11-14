@@ -3,6 +3,7 @@ import { levelInfo } from '../domain/gamification';
 import type { AppData } from '../domain/model';
 import { workoutVolume } from '../domain/workouts';
 import { rpgOf, rpgView } from '../domain/rpg';
+import { perfectMonths } from '../domain/challenges';
 
 export interface Achievement {
   id: string;
@@ -51,6 +52,9 @@ export const ACHIEVEMENTS: readonly Achievement[] = [
   { id: 'volume_30k', name: 'Kaioken x3', desc: 'Acumule 30.000 kg de volume levantado.', target: 30_000, current: volume },
   { id: 'volume_100k', name: 'Kaioken x10', desc: 'Acumule 100.000 kg de volume levantado.', target: 100_000, current: volume },
   { id: 'volume_1m', name: 'Super Saiyajin', desc: 'Acumule 1.000.000 kg de volume levantado.', target: 1_000_000, current: volume },
+  // V7: desafios do mês
+  { id: 'desafio_1', name: 'Desafio Aceito', desc: 'Cumpra um desafio do mês.', target: 1, current: d => Object.keys(d.gamification.challengeBonus ?? {}).length },
+  { id: 'desafio_mes', name: 'Mês Perfeito', desc: 'Cumpra os três desafios de um mês.', target: 1, current: d => perfectMonths(d.gamification.challengeBonus) },
   // modo RPG: as missões de troca de classe entram aqui
   { id: 'rpg_primeira_classe', name: 'Escolha do Caminho', desc: 'Modo RPG: escolha sua primeira classe.', target: 1, current: d => flag(rpgOf(d).path.length >= 1), rpg: true },
   { id: 'rpg_missao', name: 'Missão Cumprida', desc: 'Modo RPG: cumpra a missão de troca de classe.', target: 1, current: d => flag(rpgStages(d).some(s => s.mission?.done)), rpg: true },

@@ -50,7 +50,7 @@ test('metas: conquista do primeiro check-in e meta de peso com marcos', async ({
 
   await page.getByRole('button', { name: 'Progresso', exact: true }).click();
   await page.getByRole('tab', { name: 'Metas' }).click();
-  await expect(page.getByTestId('conquistas')).toHaveText('1/28');
+  await expect(page.getByTestId('conquistas')).toHaveText('1/30'); // 28 + as duas dos desafios do mês
   await page.getByRole('button', { name: 'Desbloqueadas' }).click();
   await expect(page.getByText('Primeiro Passo', { exact: true })).toBeVisible();
   await expect(page.getByText('Ganhando Ritmo')).toHaveCount(0);

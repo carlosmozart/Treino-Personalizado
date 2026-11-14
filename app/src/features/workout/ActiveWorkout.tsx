@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { DAY_KEYS } from '../../domain/ai-plan';
-import { activeMs, forgottenEnd, forgottenState, isExerciseDone, nextOpenExercise, pauseSession, resumeSession, sessionProgress, sessionToWorkout, type ActiveSession } from '../../domain/session';
-import { ForgottenSheet, LeftoversNotice, WorkoutPreview } from './WorkoutExtras';
+import { activeMs, isExerciseDone, nextOpenExercise, pauseSession, resumeSession, sessionProgress, sessionToWorkout, type ActiveSession } from '../../domain/session';
+import { LeftoversNotice, WorkoutPreview } from './WorkoutExtras';
 import { workoutVolume } from '../../domain/workouts';
 import { useVolumeOptions } from '../../hooks/use-volume-options';
 import { updateMeta, updateSettings } from '../../domain/actions';
@@ -47,25 +47,10 @@ export function ActiveWorkout({ session }: { session: ActiveSession }) {
   // W3: o relógio não conta as pausas
   const elapsed = activeMs(session, new Date(now)) / 1000;
   const update = useAppStore(s => s.updateSession);
-  const finishStore = useAppStore(s => s.finishWorkout);
-  const settings = useAppStore(s => s.data?.settings);
   const paused = !!session.pausedAt;
   const pause = () => { update(s => pauseSession(s, new Date())); useRestStore.getState().pause(); };
   const resume = () => { update(s => resumeSession(s, new Date())); useRestStore.getState().resume(); };
-  // W4: treino esquecido: pergunta depois de N minutos parado; sem resposta, salva sozinho
-  const forgottenMinutes = settings?.forgottenMinutes ?? 45;
-  const forgotten = forgottenState(session, new Date(now), forgottenMinutes);
-  const finishAt = (at: Date) => {
-    const id = session.id;
-    if (finishStore(at) === 'saved') {
-      useRestStore.getState().stop();
-      useWorkoutUi.getState().showSummary(id);
-    }
-  };
-  useEffect(() => {
-    if (forgotten === 'finish') finishAt(forgottenEnd(session, settings?.restSeconds ?? 90, new Date()));
-    // reage só à mudança de estado do treino esquecido
-  }, [forgotten]);
+
   const pct = progress.setsTotal ? (progress.setsDone / progress.setsTotal) * 100 : 0;
   const deload = useAppStore(s => (s.data ? isDeloadDate(s.data, session.date) : false));
   // T3: "Próximo" vai ao próximo exercício pendente; com todos feitos, segue a ordem
@@ -197,9 +182,7 @@ export function ActiveWorkout({ session }: { session: ActiveSession }) {
         onAdded={() => { if (focus) setCurrent(session.exercises.length); }} />
 
       <FinishSheet open={finishing} onClose={() => setFinishing(false)} session={session} />
-      <ForgottenSheet open={forgotten === 'ask'} minutes={forgottenMinutes}
-        onKeep={() => update(s => ({ ...s }))}
-        onFinish={() => finishAt(forgottenEnd(session, settings?.restSeconds ?? 90, new Date()))} />
+
       <SwitchSheet open={switching} onClose={() => setSwitching(false)} session={session} />
     </div>
   );

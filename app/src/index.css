@@ -93,3 +93,10 @@ body {
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation: none !important; transition: none !important; }
 }
+
+/* W18: menos movimento (Perfil → Aparência): nada se mexe; a neve e os bichos que andam somem */
+[data-motion='reduce'] *, [data-motion='reduce'] *::before, [data-motion='reduce'] *::after {
+  animation-duration: 0.001ms !important; animation-iteration-count: 1 !important;
+  transition-duration: 0.001ms !important; scroll-behavior: auto !important;
+}
+[data-motion='reduce'] .nt-snow, [data-motion='reduce'] .nt-flake { display: none !important; }

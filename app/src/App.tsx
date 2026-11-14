@@ -7,6 +7,7 @@ import { useUiStore } from './store/ui-store';
 import { useToday } from './hooks/use-today';
 import { useAppStore } from './store';
 import { WorkoutScreen } from './features/workout/WorkoutScreen';
+import { ForgottenWatcher } from './features/workout/WorkoutExtras';
 import { RestBar } from './features/workout/RestBar';
 import { HomeScreen } from './features/home/HomeScreen';
 import { PlanScreen } from './features/plan/PlanScreen';
@@ -48,6 +49,7 @@ export function App() {
       {status === 'ready' && <SeasonalLayer />}
       {status === 'ready' && <RpgLevelUp />}
       <RestBar />
+      {status === 'ready' && <ForgottenWatcher />}
       <Toaster />
       <ErrorNotice />
       <UpdateOffer />

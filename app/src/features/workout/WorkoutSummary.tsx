@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { ReopenButton } from './WorkoutExtras';
 import { DAY_FULL_NAMES, type Workout } from '../../domain/model';
 import { addedEntries, addEntriesToPlan, editPlan } from '../../domain/plan-edit';
 import { rotationLetter } from '../../domain/rotation';
@@ -28,6 +29,13 @@ export function WorkoutSummary({ id }: { id: string }) {
     <section aria-label="Resumo do treino" className="pt-6">
       <h1 className="text-3xl font-black">Treino salvo</h1>
       <p className="mt-1 text-muted">{workout.dayName}</p>
+      {/* W4: salvo sozinho depois de ficar esquecido aberto */}
+      {workout.autoFinished && (
+        <div role="note" className="mt-3 rounded-2xl border border-warning/60 bg-surface p-4 text-sm">
+          <p><span className="font-semibold">Salvo sozinho</span>: o treino ficou parado e terminou {workout.endedAt ? `às ${new Date(workout.endedAt).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}` : 'na última série'}, com a última série mais o descanso. Ainda estava treinando?</p>
+          <ReopenButton w={workout} className="mt-2" />
+        </div>
+      )}
       <dl className="mt-5 grid grid-cols-3 gap-2">
         <Stat label={estimated ? 'Duração (estimada)' : 'Duração'} value={minutes} />
         <Stat label="Volume" value={volume ? `${formatNumber(volume)} kg` : '—'} />

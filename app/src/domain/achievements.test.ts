@@ -17,7 +17,7 @@ test('lista com progresso limitado ao alvo', () => {
   data.workouts = [workout('2026-10-01', 'Supino', [[10, 100], [10, 100]])];
   const vol = achievementList(data).find(a => a.id === 'volume_10k')!;
   expect(vol).toMatchObject({ current: 2000, target: 10000, unlockedAt: null });
-  expect(achievementList(data)).toHaveLength(28);
+  expect(achievementList(data)).toHaveLength(30); // 28 + os dois dos desafios do mês (V7)
 });
 
 test('meta de peso nova parte do peso atual', () => {

@@ -1,5 +1,7 @@
 import { useState } from 'react';
 import { weeklyWeights } from '../../domain/home';
+import { weightPace } from '../../domain/weight-pace';
+import { toDateKey } from '../../domain/dates';
 import { MeasurementsCard } from './MeasurementsCard';
 import { achievementList, startWeightGoal } from '../../domain/achievements';
 import { logWeight, removeWeighIn } from '../../domain/actions';
@@ -139,6 +141,8 @@ function WeighInsCard() {
   const shown = all ? list : list.slice(0, 5);
   const target = profile.weightGoal?.targetWeight ?? profile.targetWeightKg ?? undefined;
   const weeks = weeklyWeights(profile.weighIns, weekStart);
+  // T15: tendência das últimas 3 semanas contra o ritmo da meta
+  const pace = weightPace(profile.weighIns, toDateKey(new Date()), profile.weightGoal);
   return (
     <section className="rounded-2xl border border-line bg-surface p-4">
       <h2 className="font-bold">Pesagens</h2>
@@ -163,6 +167,14 @@ function WeighInsCard() {
       {undoBar}
       {list.length > 5 && (
         <button type="button" onClick={() => setAll(!all)} className="mt-1 h-11 font-semibold text-primary">{all ? 'Mostrar menos' : `Ver todas (${list.length})`}</button>
+      )}
+      {pace && (
+        <p className="mt-3 rounded-xl bg-surface-2 p-3 text-sm" data-testid="ritmo-do-peso">
+          <span className="font-semibold">Ritmo das últimas 3 semanas: {pace.kgPerWeek > 0 ? '+' : pace.kgPerWeek < 0 ? '−' : ''}{formatNumber(Math.abs(pace.kgPerWeek))} kg por semana</span>
+          {' '}({pace.pctPerWeek > 0 ? '+' : pace.pctPerWeek < 0 ? '−' : ''}{formatNumber(Math.abs(pace.pctPerWeek))}% do peso) ·{' '}
+          <span className={`font-semibold ${pace.status === 'no ritmo' || pace.status === 'estável' ? 'text-success' : pace.status === 'rápido demais' ? 'text-warning' : 'text-muted'}`}>{pace.status}</span>
+          {pace.range && <span className="block text-xs text-muted">Ritmo saudável para a sua meta: {pace.range}.</span>}
+        </p>
       )}
       {/* M38: o peso do dia oscila; a média da semana mostra a tendência */}
       {weeks.length > 1 && (
