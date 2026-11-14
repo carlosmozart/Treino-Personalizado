@@ -6,6 +6,14 @@ Todas as mudanças relevantes do app ficam registradas aqui. Ao lançar uma nova
    atualizar o app instalado
 3. Adicione uma entrada aqui, nesse formato
 
+## [3.26.0] - 2026-11-16
+
+- Travar a carga: no plano (caixa "Travar a carga" no exercício) ou no treino (menu ⋯ → "Travar a carga em 60 kg"). O treino abre sempre com essa carga e a progressão não sugere subir; o cartão mostra "Carga travada".
+- No treino, mudou algo do plano? O cartão do exercício pergunta "Salvar no plano" ou "Só hoje": ao pôr ou tirar uma série, ao digitar repetições fora da faixa do plano (dentro dela é progressão e não pergunta) e ao pôr ou tirar aquecimento. O plano agora guarda as séries de aquecimento de cada exercício, e o treino já abre com elas.
+- "Tirar do treino" pergunta se é só de hoje ou do plano também.
+- Usar um treino que já fiz: em Plano, em Planos e em "Novo plano", escolha um treino do histórico e ele vira um plano novo (no dia da semana em que foi feito) ou um dia do plano atual, com a faixa de repetições que você fez e o aquecimento. O "Salvar no plano" do histórico também cria um plano novo.
+- Check-in do dia (Perfil → Treino, desligado por padrão): no começo do treino, sono, energia, dor muscular e estresse de 1 a 5, tudo opcional. Num dia puxado, o app oferece 10% a menos na carga das séries que faltam (arredondado às anilhas) ou uma série a menos em cada exercício. O treino fica no histórico como "mais leve" e não conta para a progressão.
+
 ## [3.25.0] - 2026-11-10
 
 - Criar um plano do zero ficou guiado: o app pergunta o nome, em quais dias você treina e se cada dia tem o seu treino ou se é rotação A/B/C. Os treinos nascem vazios e com nome ("Treino A", "Treino B"…), e a tela Plano e o Início mostram o próximo passo. "Criar do zero" também aparece em Plano quando ainda não há plano.

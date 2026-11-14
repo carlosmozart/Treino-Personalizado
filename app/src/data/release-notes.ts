@@ -3,6 +3,16 @@ export interface ReleaseNote { version: string; date: string; items: string[] }
 
 export const RELEASE_NOTES: readonly ReleaseNote[] = [
   {
+    version: '3.26.0',
+    date: '2026-11',
+    items: [
+      'Trave a carga de um exercício: o treino abre sempre com ela e a progressão não mexe.',
+      'Mudou séries, repetições ou aquecimento no treino? O app pergunta se salva no plano ou se é só hoje.',
+      'Use um treino que você já fez para criar um plano novo ou um dia do plano.',
+      'Check-in do dia (Perfil → Treino): num dia puxado, o app oferece um treino mais leve, fora da progressão.'
+    ]
+  },
+  {
     version: '3.25.0',
     date: '2026-11',
     items: [
