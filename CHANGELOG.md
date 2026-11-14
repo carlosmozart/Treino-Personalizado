@@ -6,6 +6,15 @@ Todas as mudanças relevantes do app ficam registradas aqui. Ao lançar uma nova
    atualizar o app instalado
 3. Adicione uma entrada aqui, nesse formato
 
+## [3.27.0] - 2026-11-14
+
+- Pausar o treino: "Pausar", embaixo do nome do treino. O relógio e o descanso param até "Continuar" (ou até marcar uma série), e o tempo pausado não conta na duração.
+- Treino esquecido aberto: depois de 45 minutos sem marcar nada, o app pergunta "Ainda treinando?". Sem resposta em 5 minutos, o treino é salvo sozinho, terminando na última série mais o descanso; nada se perde. O tempo muda em Perfil → Treino (30, 45, 60, 90 min ou nunca).
+- Recorde na hora: ao marcar uma série que bate um recorde (maior carga, mais repetições nesta carga ou melhor 1RM estimado), o celular vibra, a série ganha um troféu e o cartão diz qual recorde foi. Antes da próxima série, uma linha diz quanto falta ("Falta 1 repetição para o recorde com 60 kg"). As duas coisas desligam em Perfil → Treino.
+- "Terminou cedo da última vez?": se o treino anterior deixou exercícios do plano para trás, o próximo oferece, uma vez, começar por eles.
+- Opções novas em Perfil → Treino: abrir o treino numa prévia (exercícios, séries e cargas, com "Começar" embaixo) e ir sozinho ao próximo exercício quando o descanso da última série acaba.
+- Atualização do app: se o download da versão nova falhar, o app tenta de novo por outro endereço do GitHub; a conferência do arquivo continua a mesma.
+
 ## [3.26.0] - 2026-11-14
 
 - Travar a carga: no plano (caixa "Travar a carga" no exercício) ou no treino (menu ⋯ → "Travar a carga em 60 kg"). O treino abre sempre com essa carga e a progressão não sugere subir; o cartão mostra "Carga travada".

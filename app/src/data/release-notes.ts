@@ -3,6 +3,16 @@ export interface ReleaseNote { version: string; date: string; items: string[] }
 
 export const RELEASE_NOTES: readonly ReleaseNote[] = [
   {
+    version: '3.27.0',
+    date: '2026-11',
+    items: [
+      'Pausar o treino: o relógio e o descanso param, e a pausa não conta na duração.',
+      'Bateu um recorde? A série ganha um troféu na hora, e antes da próxima o app diz quanto falta.',
+      'Esqueceu o treino aberto? O app pergunta e, sem resposta, salva terminando na última série.',
+      'Terminou cedo? O próximo treino oferece os exercícios que ficaram para trás. E mais opções em Perfil → Treino.'
+    ]
+  },
+  {
     version: '3.26.0',
     date: '2026-11',
     items: [
