@@ -6,6 +6,15 @@ Todas as mudanças relevantes do app ficam registradas aqui. Ao lançar uma nova
    atualizar o app instalado
 3. Adicione uma entrada aqui, nesse formato
 
+## [3.29.0] - 2026-11-14
+
+- Montar o treino de hoje pelos grupos (aba Treino): escolha os grupos e 20, 40 ou 60 minutos, e o app escolhe os exercícios com o seu equipamento, os favoritos e os que você mais faz, com a carga da última vez. Se um grupo foi treinado ontem, o app avisa.
+- Deload sugerido: um cartão no Início ("Hora de uma semana leve?") quando as cargas caem duas semanas seguidas nos exercícios que você mais faz, quando o check-in do dia vem puxado, ou a cada 4, 5, 6 ou 8 semanas, se você escolher em Perfil → Treino. Marcar usa a semana de deload de sempre; "Agora não" esconde até a semana seguinte.
+- Exercício novo começa com as séries e repetições que você escolher (Perfil → Treino), no plano e no treino.
+- Outros nomes para os exercícios: na Biblioteca, dê apelidos ("bench", "supino") e a busca, a troca e a biblioteca passam a achar o exercício por eles.
+- Juntar dois nomes do mesmo exercício (Progresso → evolução do exercício → "Juntar com outro exercício"): o histórico, os recordes, os planos e os favoritos passam para o nome certo, com prévia e Desfazer; o nome antigo continua achando o exercício na busca.
+- Corrigido: a nova linha de Perfil deixava a tela mais larga que o celular.
+
 ## [3.28.0] - 2026-11-14
 
 - Desafios do mês, no Progresso: três metas feitas a partir dos seus últimos meses (treinos no mês e volume um pouco acima da sua média, e uma terceira que muda a cada mês: recordes, pesagens ou treinar os seis grupos principais). Cada desafio cumprido vale +150 XP, e há duas conquistas novas: Desafio Aceito e Mês Perfeito.

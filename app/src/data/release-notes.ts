@@ -3,6 +3,16 @@ export interface ReleaseNote { version: string; date: string; items: string[] }
 
 export const RELEASE_NOTES: readonly ReleaseNote[] = [
   {
+    version: '3.29.0',
+    date: '2026-11',
+    items: [
+      'Na aba Treino: monte o treino de hoje escolhendo os grupos e o tempo.',
+      'O app sugere uma semana de deload quando as cargas caem ou o cansaço aparece.',
+      'Dê outros nomes aos exercícios na Biblioteca, e junte nomes repetidos do mesmo exercício no Progresso.',
+      'Escolha com quantas séries e repetições um exercício novo começa (Perfil → Treino).'
+    ]
+  },
+  {
     version: '3.28.0',
     date: '2026-11',
     items: [
