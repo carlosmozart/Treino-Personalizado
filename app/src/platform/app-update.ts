@@ -81,7 +81,14 @@ export const useUpdate = create<UpdateState>((set, get) => ({
     set({ busy: true, offer: null, status: 'Baixando atualização…' });
     const listener = await p.addListener('downloadProgress', e => set({ status: e.percent >= 0 ? `Baixando atualização… ${e.percent}%` : 'Baixando atualização…' }));
     try {
-      await p.download({ url: info.url, sha256: info.sha256 });
+      try {
+        await p.download({ url: info.url, sha256: info.sha256 });
+      } catch (first) {
+        // W5: o link de download do GitHub falhou: tenta o mesmo arquivo pela API (o SHA-256 confere igual)
+        if (!info.apiUrl || code(first) !== 'DOWNLOAD_FAILED') throw first;
+        set({ status: 'Tentando baixar por outro caminho…' });
+        await p.download({ url: info.apiUrl, sha256: info.sha256 });
+      }
       // trocou de app no meio do download: o instalador abre quando voltar
       if (globalThis.document?.visibilityState === 'hidden') set({ status: 'Download conferido. Volte ao app para instalar.' });
       await whenVisible();

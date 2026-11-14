@@ -57,6 +57,8 @@ export interface Workout {
   light?: LightKind;
   /** W2: check-in do dia, respondido ao começar o treino. */
   form?: DailyForm;
+  /** W13: exercícios do plano que ficaram sem nenhuma série feita (para oferecer no próximo). */
+  skipped?: string[];
 }
 
 /** W2: como o treino ficou mais leve: carga 10% menor ou uma série a menos por exercício. */
@@ -250,6 +252,18 @@ export interface Settings {
   volumeBodyweight?: boolean;
   /** W2: check-in do dia (sono, energia, dor, estresse) ao começar o treino. Ausente = desligado. */
   dailyForm?: boolean;
+  /** W4: minutos sem marcar nada até perguntar "Ainda treinando?"; 0 = nunca. Ausente = 45. */
+  forgottenMinutes?: number;
+  /** W11: abrir o treino numa prévia, com "Começar" embaixo. Ausente = desligado. */
+  previewBeforeStart?: boolean;
+  /** W12: no fim do descanso depois da última série, ir ao próximo exercício. Ausente = desligado. */
+  autoNextExercise?: boolean;
+  /** W13: oferecer os exercícios que ficaram para trás no treino anterior. Ausente = ligado. */
+  offerLeftovers?: boolean;
+  /** W8: troféu na série que bate um recorde. Ausente = ligado. */
+  recordTrophies?: boolean;
+  /** W8: linha "faltam 2 repetições para o recorde" antes da próxima série. Ausente = ligada. */
+  recordHints?: boolean;
   /** M19: em que dia a semana começa (faixa da semana, meta semanal, gráficos). Ausente = segunda. */
   weekStart?: WeekStart;
   /** M32: primeiro dia da semana marcada como deload (treinos dela não viram base da progressão). */

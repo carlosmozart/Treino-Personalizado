@@ -72,6 +72,89 @@ export interface ActiveSession {
   form?: DailyForm;
   /** W2: treino de hoje mais leve (fica fora da progressão). */
   light?: LightKind;
+  /** W3: pausado desde (ISO). */
+  pausedAt?: string;
+  /** W3: tempo já pausado, em ms (não conta na duração). */
+  pausedMs?: number;
+  /** W4: última mexida no treino (ISO); ausente = o início. */
+  lastActivityAt?: string;
+  /** W11: aberto na prévia; "Começar" acerta o início para a hora do toque. */
+  preview?: true;
+}
+
+/** W3: pausa o treino (o relógio para). */
+export function pauseSession(s: ActiveSession, now: Date): ActiveSession {
+  return s.pausedAt || s.backdated ? s : { ...s, pausedAt: now.toISOString() };
+}
+
+/** W3: continua o treino; o tempo pausado fica de fora da duração. */
+export function resumeSession(s: ActiveSession, now: Date): ActiveSession {
+  if (!s.pausedAt) return s;
+  const { pausedAt, ...rest } = s;
+  const extra = Math.max(0, now.getTime() - Date.parse(pausedAt));
+  return { ...rest, pausedMs: (s.pausedMs ?? 0) + extra, lastActivityAt: now.toISOString() };
+}
+
+/** W3: tempo de treino em ms, sem as pausas. */
+export function activeMs(s: ActiveSession, now: Date): number {
+  const paused = (s.pausedMs ?? 0) + (s.pausedAt ? Math.max(0, now.getTime() - Date.parse(s.pausedAt)) : 0);
+  return Math.max(0, now.getTime() - Date.parse(s.startedAt) - paused);
+}
+
+/** W4: a última vez que a pessoa mexeu no treino (ou o início). */
+export const lastActivity = (s: ActiveSession): number => Date.parse(s.lastActivityAt ?? s.startedAt);
+
+/**
+ * W4: o treino esquecido aberto. 'ask' depois de `minutes` sem mexer; 'finish' depois de mais 5
+ * minutos sem resposta (só se há algo feito para salvar). Pausado, registrado depois ou na
+ * prévia, nunca.
+ */
+export function forgottenState(s: ActiveSession, now: Date, minutes: number): 'ok' | 'ask' | 'finish' {
+  if (!(minutes > 0) || s.pausedAt || s.backdated || s.preview) return 'ok';
+  const idle = now.getTime() - lastActivity(s);
+  if (idle < minutes * 60000) return 'ok';
+  const anyDone = s.exercises.some(ex => ex.sets.some(x => x.done) || ex.cardio?.done);
+  return idle >= (minutes + 5) * 60000 && anyDone ? 'finish' : 'ask';
+}
+
+/** W4: a hora em que o treino esquecido acabou de verdade: a última mexida mais um descanso. */
+export function forgottenEnd(s: ActiveSession, restSeconds: number, now: Date): Date {
+  return new Date(Math.min(now.getTime(), lastActivity(s) + Math.max(0, restSeconds) * 1000));
+}
+
+/** W11: sai da prévia; o relógio começa agora. */
+export function startFromPreview(s: ActiveSession, now: Date): ActiveSession {
+  if (!s.preview) return s;
+  const { preview: _p, ...rest } = s;
+  return { ...rest, startedAt: now.toISOString(), lastActivityAt: now.toISOString() };
+}
+
+/**
+ * W13: põe no começo do treino os exercícios que ficaram para trás da última vez (os que já estão
+ * nele ficam de fora). Com o plano, abrem como no plano; senão, com a carga da última vez.
+ */
+export function addLeftovers(s: ActiveSession, data: AppData, names: readonly string[]): ActiveSession {
+  const have = new Set(s.exercises.map(ex => ex.key));
+  const planEx = Object.values(data.plans[s.planId]?.days ?? {}).flatMap(d => d.exercises);
+  const linear = data.plans[s.planId]?.progression === 'linear';
+  const added: SessionExercise[] = [];
+  for (const name of names) {
+    const key = normalizeExerciseName(name);
+    if (!key || have.has(key)) continue;
+    have.add(key);
+    const fromPlan = planEx.find(p => normalizeExerciseName(p.name) === key);
+    const slotId = `sobra-${added.length}-${key}`;
+    if (fromPlan) {
+      added.push({ ...fromPlanExercise(data, fromPlan, s.date, linear), slotId });
+      continue;
+    }
+    const mode: ExerciseMode = isCardioName(name) ? 'cardio' : 'reps';
+    const ex: SessionExercise = { slotId, name, key, mode, optional: false, sets: initialSets(data, name, mode, null, s.date).sets, note: '', alternatives: [] };
+    if (mode === 'cardio') ex.cardio = { minutes: 20, km: 0, done: false };
+    added.push(ex);
+  }
+  if (!added.length || s.exercises.length + added.length > 30) return s;
+  return { ...s, exercises: [...added, ...s.exercises] };
 }
 
 const round1 = (n: number) => Math.round(n * 10) / 10;
@@ -617,16 +700,19 @@ export function sessionToWorkout(s: ActiveSession, now: Date): Workout | null {
     if (sets.length) entries.push({ key: ex.key, name: ex.name, mode: ex.mode, sets, ...(note ? { note } : {}), ...(ex.perSide ? { perSide: true as const } : {}), ...(added(ex) ? { added: true as const } : {}) });
   }
   if (!entries.length) return null;
-  // M15: treino passado usa a duração informada; senão, o relógio do início até agora
-  const durationMin = s.backdated ? s.backdated.durationMin : Math.max(0, Math.round((now.getTime() - Date.parse(s.startedAt)) / 60000));
+  // M15: treino passado usa a duração informada; senão, o relógio do início até agora, sem as pausas (W3)
+  const durationMin = s.backdated ? s.backdated.durationMin : Math.round(activeMs(s, now) / 60000);
   const endedAt = s.backdated ? new Date(Date.parse(s.startedAt) + durationMin * 60000).toISOString() : now.toISOString();
+  // W13: exercícios do plano sem nenhuma série feita (os opcionais não contam)
+  const skipped = s.planId ? s.exercises.filter(ex => !ex.optional && !ex.sets.some(x => x.done) && !ex.cardio?.done).map(ex => ex.name) : [];
   return {
     id: s.id, date: s.date, startedAt: s.startedAt, endedAt,
     // sessões esquecidas abertas (mais de 5 h) não registram uma duração absurda
     ...(durationMin > 0 && durationMin <= 300 ? { durationMin } : {}),
     planId: s.planId, dayKey: s.dayKey, dayName: s.dayName, source: 'app', entries,
     ...(s.light ? { light: s.light } : {}),
-    ...(s.form && Object.keys(s.form).length ? { form: s.form } : {})
+    ...(s.form && Object.keys(s.form).length ? { form: s.form } : {}),
+    ...(skipped.length ? { skipped } : {})
   };
 }
 

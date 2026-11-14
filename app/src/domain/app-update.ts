@@ -3,6 +3,8 @@
 
 export const RELEASES_URL = 'https://api.github.com/repos/carlosmozart/Treino-Personalizado/releases/latest';
 export const DOWNLOAD_PREFIX = 'https://github.com/carlosmozart/Treino-Personalizado/releases/download/';
+/** W5: o mesmo arquivo pela API do GitHub, quando o link de download falha. */
+export const API_ASSET_PREFIX = 'https://api.github.com/repos/carlosmozart/Treino-Personalizado/releases/assets/';
 // Consulta toda vez que o app abre ou volta à tela; a folga de 2 min só evita repetir ao alternar
 // entre apps no treino (a API do GitHub aceita 60 consultas/h por IP).
 export const CHECK_INTERVAL_MS = 2 * 60 * 1000;
@@ -18,19 +20,20 @@ export function compareVersions(a: string, b: string): number {
   return 0;
 }
 
-export interface ReleaseInfo { version: string; url: string; sha256: string; size: number; notes: string }
+export interface ReleaseInfo { version: string; url: string; sha256: string; size: number; notes: string; apiUrl?: string }
 
 /** Versão, APK e SHA-256 (do campo digest do arquivo ou da linha "SHA-256:" das notas). */
 export function parseRelease(release: unknown, prefix = DOWNLOAD_PREFIX): ReleaseInfo | null {
   if (!release || typeof release !== 'object') return null;
   const r = release as { draft?: boolean; prerelease?: boolean; tag_name?: string; body?: string; assets?: unknown[] };
   if (r.draft || r.prerelease || !r.tag_name) return null;
-  const apk = (r.assets ?? []).map(a => a as { name?: string; browser_download_url?: string; digest?: string; size?: number })
+  const apk = (r.assets ?? []).map(a => a as { name?: string; browser_download_url?: string; url?: string; digest?: string; size?: number })
     .find(a => /\.apk$/i.test(a.name ?? '') && (a.browser_download_url ?? '').startsWith(prefix));
   if (!apk) return null;
   const sha = (/^sha256:([0-9a-f]{64})$/i.exec(apk.digest ?? '') ?? /SHA-256:\s*`?([0-9a-f]{64})/i.exec(r.body ?? ''))?.[1];
   if (!sha) return null;
-  return { version: r.tag_name.replace(/^v/i, ''), url: apk.browser_download_url!, sha256: sha.toLowerCase(), size: apk.size ?? 0, notes: r.body ?? '' };
+  const api = apk.url && apk.url.startsWith(API_ASSET_PREFIX) && /^\d+$/.test(apk.url.slice(API_ASSET_PREFIX.length)) ? { apiUrl: apk.url } : {};
+  return { version: r.tag_name.replace(/^v/i, ''), url: apk.browser_download_url!, sha256: sha.toLowerCase(), size: apk.size ?? 0, notes: r.body ?? '', ...api };
 }
 
 /** Há versão mais nova para oferecer? */

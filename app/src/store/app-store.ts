@@ -43,7 +43,8 @@ export interface AppState {
   openSession(session: ActiveSession): boolean;
   updateSession(change: (session: ActiveSession) => ActiveSession): void;
   discardWorkout(): void;
-  finishWorkout(): 'saved' | 'empty' | 'no-session';
+  /** `at`: a hora do fim (W4: o treino esquecido acaba na última série mais o descanso). */
+  finishWorkout(at?: Date): 'saved' | 'empty' | 'no-session';
   takeEvents(): RewardEvent[];
   /** Grava o que estiver pendente (ao sair do app, antes de exportar). */
   flush(): Promise<void>;
@@ -114,8 +115,10 @@ export function createAppStore(deps: AppStoreDeps) {
       startWorkout(planId, dayKey) {
         const { data } = get();
         if (!data) return false;
-        const session = startSession(data, planId, dayKey, now(), makeId());
-        if (!session) return false;
+        const started = startSession(data, planId, dayKey, now(), makeId());
+        if (!started) return false;
+        // W11: com a prévia ligada, o treino abre nela e o relógio começa no "Começar"
+        const session = data.settings.previewBeforeStart ? { ...started, preview: true as const } : started;
         set({ session });
         sessionPersister.schedule(session);
         return true;
@@ -142,8 +145,10 @@ export function createAppStore(deps: AppStoreDeps) {
       updateSession(change) {
         const { session } = get();
         if (!session) return;
-        const next = change(session);
-        if (next === session) return;
+        const changed = change(session);
+        if (changed === session) return;
+        // W4: qualquer mexida no treino conta como atividade
+        const next = { ...changed, lastActivityAt: now().toISOString() };
         set({ session: next });
         sessionPersister.schedule(next);
       },
@@ -153,10 +158,10 @@ export function createAppStore(deps: AppStoreDeps) {
         sessionPersister.schedule(null);
       },
 
-      finishWorkout() {
+      finishWorkout(at) {
         const { data, session } = get();
         if (!data || !session) return 'no-session';
-        const t = now();
+        const t = at ?? now();
         const result = actions.finishWorkout(data, session, t);
         if (result.kind === 'empty') return 'empty';
         const unlocked = unlockAchievements(result.data, t);

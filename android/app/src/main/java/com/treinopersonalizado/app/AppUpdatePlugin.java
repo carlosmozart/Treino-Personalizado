@@ -28,6 +28,9 @@ public class AppUpdatePlugin extends Plugin {
     // Só aceita releases deste repositório; o redirecionamento seguinte é https -> https.
     static final String ALLOWED_PREFIX =
         "https://github.com/carlosmozart/Treino-Personalizado/releases/download/";
+    // W5: o mesmo arquivo pela API do GitHub (asset por id), quando o link acima falha.
+    static final String API_PREFIX =
+        "https://api.github.com/repos/carlosmozart/Treino-Personalizado/releases/assets/";
     static final String FILE_NAME = "treino-update.apk";
     private static final long MIN_APK_BYTES = 100_000L;
 
@@ -35,7 +38,8 @@ public class AppUpdatePlugin extends Plugin {
     public void download(PluginCall call) {
         String url = call.getString("url", "");
         String expected = call.getString("sha256", "").trim().toLowerCase(Locale.ROOT);
-        if (!url.startsWith(ALLOWED_PREFIX) || !url.endsWith(".apk")) {
+        boolean viaApi = url.startsWith(API_PREFIX) && url.substring(API_PREFIX.length()).matches("[0-9]+");
+        if (!viaApi && (!url.startsWith(ALLOWED_PREFIX) || !url.endsWith(".apk"))) {
             call.reject("Endereço de atualização não permitido.", "BAD_URL");
             return;
         }
@@ -52,6 +56,8 @@ public class AppUpdatePlugin extends Plugin {
                 conn.setInstanceFollowRedirects(true);
                 conn.setConnectTimeout(15000);
                 conn.setReadTimeout(30000);
+                // pela API, o arquivo vem com este Accept (redireciona para o mesmo download)
+                if (viaApi) conn.setRequestProperty("Accept", "application/octet-stream");
                 if (conn.getResponseCode() != 200) throw new Exception("HTTP " + conn.getResponseCode());
                 if (!"https".equals(conn.getURL().getProtocol())) throw new Exception("Redirecionamento inseguro.");
 

@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { DAY_KEYS } from '../../domain/ai-plan';
-import { isExerciseDone, nextOpenExercise, sessionProgress, sessionToWorkout, type ActiveSession } from '../../domain/session';
+import { activeMs, forgottenEnd, forgottenState, isExerciseDone, nextOpenExercise, pauseSession, resumeSession, sessionProgress, sessionToWorkout, type ActiveSession } from '../../domain/session';
+import { ForgottenSheet, LeftoversNotice, WorkoutPreview } from './WorkoutExtras';
 import { workoutVolume } from '../../domain/workouts';
 import { useVolumeOptions } from '../../hooks/use-volume-options';
 import { updateMeta, updateSettings } from '../../domain/actions';
@@ -43,7 +44,28 @@ export function ActiveWorkout({ session }: { session: ActiveSession }) {
     if (focus) { setCurrent(i); return; }
     document.getElementById(`exercicio-${i}`)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   };
-  const elapsed = (now - Date.parse(session.startedAt)) / 1000;
+  // W3: o relógio não conta as pausas
+  const elapsed = activeMs(session, new Date(now)) / 1000;
+  const update = useAppStore(s => s.updateSession);
+  const finishStore = useAppStore(s => s.finishWorkout);
+  const settings = useAppStore(s => s.data?.settings);
+  const paused = !!session.pausedAt;
+  const pause = () => { update(s => pauseSession(s, new Date())); useRestStore.getState().pause(); };
+  const resume = () => { update(s => resumeSession(s, new Date())); useRestStore.getState().resume(); };
+  // W4: treino esquecido: pergunta depois de N minutos parado; sem resposta, salva sozinho
+  const forgottenMinutes = settings?.forgottenMinutes ?? 45;
+  const forgotten = forgottenState(session, new Date(now), forgottenMinutes);
+  const finishAt = (at: Date) => {
+    const id = session.id;
+    if (finishStore(at) === 'saved') {
+      useRestStore.getState().stop();
+      useWorkoutUi.getState().showSummary(id);
+    }
+  };
+  useEffect(() => {
+    if (forgotten === 'finish') finishAt(forgottenEnd(session, settings?.restSeconds ?? 90, new Date()));
+    // reage só à mudança de estado do treino esquecido
+  }, [forgotten]);
   const pct = progress.setsTotal ? (progress.setsDone / progress.setsTotal) * 100 : 0;
   const deload = useAppStore(s => (s.data ? isDeloadDate(s.data, session.date) : false));
   // T3: "Próximo" vai ao próximo exercício pendente; com todos feitos, segue a ordem
@@ -56,11 +78,14 @@ export function ActiveWorkout({ session }: { session: ActiveSession }) {
     if (!ended || ended.seq <= seenRest.current) return;
     seenRest.current = ended.seq;
     const ex = ended.source === null ? undefined : session.exercises[ended.source];
-    if (!ex || ex.mode !== 'time' || !isExerciseDone(ex)) return;
+    // T4: prancha concluída; W12 (opção): qualquer exercício concluído
+    if (!ex || !isExerciseDone(ex) || (ex.mode !== 'time' && !useAppStore.getState().data?.settings.autoNextExercise)) return;
     const next = nextOpenExercise(session.exercises, ended.source!);
     if (next !== null) goTo(next);
     // só reage a um descanso novo; a sessão e o modo são lidos no momento em que ele termina
   }, [ended]);
+
+  if (session.preview) return <WorkoutPreview session={session} />;
 
   return (
     <div>
@@ -70,7 +95,7 @@ export function ActiveWorkout({ session }: { session: ActiveSession }) {
           <div className="min-w-0 flex-1">
             <h1 className="truncate text-xl font-black">{session.dayName || 'Treino'}</h1>
             <p className="text-sm text-muted tabular-nums">
-              {session.backdated ? `Treino de ${shortDate(session.date)} · ${session.backdated.durationMin} min` : formatClock(elapsed)} · {progress.setsDone}/{progress.setsTotal} séries{liveVolume > 0 ? ` · ${formatNumber(liveVolume)} kg` : ''}{deload ? ' · deload' : ''}
+              {session.backdated ? `Treino de ${shortDate(session.date)} · ${session.backdated.durationMin} min` : `${paused ? 'Pausado · ' : ''}${formatClock(elapsed)}`} · {progress.setsDone}/{progress.setsTotal} séries{liveVolume > 0 ? ` · ${formatNumber(liveVolume)} kg` : ''}{deload ? ' · deload' : ''}
             </p>
           </div>
           <button type="button" onClick={() => setSettingsOpen(true)} aria-label="Ajustes do treino"
@@ -109,11 +134,28 @@ export function ActiveWorkout({ session }: { session: ActiveSession }) {
             );
           })}
         </ol>
-        <button type="button" onClick={() => setSwitching(true)} className="mt-1 h-9 text-sm font-semibold text-muted">
-          Trocar ou cancelar treino
-        </button>
+        <div className="mt-1 flex items-center gap-4">
+          {/* W3: pausar o relógio e o descanso */}
+          {!session.backdated && (
+            <button type="button" onClick={paused ? resume : pause} aria-label={paused ? 'Continuar o treino' : 'Pausar o treino'}
+              className="flex h-9 items-center gap-1 text-sm font-semibold text-muted">
+              <Icon name={paused ? 'continuar' : 'pausar'} className="size-4" />{paused ? 'Continuar' : 'Pausar'}
+            </button>
+          )}
+          <button type="button" onClick={() => setSwitching(true)} className="h-9 text-sm font-semibold text-muted">
+            Trocar ou cancelar treino
+          </button>
+        </div>
       </header>
 
+      {/* W3: pausado: relógio e descanso parados até continuar (ou marcar uma série) */}
+      {paused && (
+        <section aria-label="Treino pausado" className="mt-3 flex items-center gap-3 rounded-2xl border border-warning/60 bg-surface p-4">
+          <p className="flex-1 text-sm"><span className="block font-bold">Treino pausado</span>O relógio e o descanso estão parados.</p>
+          <button type="button" onClick={resume} className="h-11 rounded-xl bg-primary px-4 font-bold text-white">Continuar</button>
+        </section>
+      )}
+      <LeftoversNotice session={session} />
       <ProgressionNotice session={session} />
       <WeighInNotice session={session} />
       <DailyFormNotice session={session} />
@@ -155,6 +197,9 @@ export function ActiveWorkout({ session }: { session: ActiveSession }) {
         onAdded={() => { if (focus) setCurrent(session.exercises.length); }} />
 
       <FinishSheet open={finishing} onClose={() => setFinishing(false)} session={session} />
+      <ForgottenSheet open={forgotten === 'ask'} minutes={forgottenMinutes}
+        onKeep={() => update(s => ({ ...s }))}
+        onFinish={() => finishAt(forgottenEnd(session, settings?.restSeconds ?? 90, new Date()))} />
       <SwitchSheet open={switching} onClose={() => setSwitching(false)} session={session} />
     </div>
   );

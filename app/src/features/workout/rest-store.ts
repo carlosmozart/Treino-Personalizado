@@ -8,6 +8,10 @@ interface RestState {
   source: number | null;
   /** T4: o último descanso que chegou ao fim (o tempo acabou ou "Pular"); `seq` muda a cada um. */
   ended: { source: number | null; seq: number } | null;
+  /** W3: descanso parado com o treino pausado: os ms que faltavam. */
+  pausedLeft: number | null;
+  pause(now?: number): void;
+  resume(now?: number): void;
   start(seconds: number, now?: number, source?: number | null): void;
   add(seconds: number, now?: number): void;
   /** Para sem avisar ninguém (treino cancelado ou concluído). */
@@ -21,14 +25,26 @@ export const useRestStore = create<RestState>((set, get) => ({
   total: 0,
   source: null,
   ended: null,
-  start: (seconds, now = Date.now(), source = null) => { primeRestSound(); set({ endsAt: now + seconds * 1000, total: seconds, source }); },
+  pausedLeft: null,
+  start: (seconds, now = Date.now(), source = null) => { primeRestSound(); set({ endsAt: now + seconds * 1000, total: seconds, source, pausedLeft: null }); },
+  // sem fim marcado, o alarme do Android é cancelado; ao continuar, é marcado de novo
+  pause: (now = Date.now()) => {
+    const { endsAt } = get();
+    if (endsAt === null) return;
+    set({ endsAt: null, pausedLeft: Math.max(1000, endsAt - now) });
+  },
+  resume: (now = Date.now()) => {
+    const { pausedLeft } = get();
+    if (pausedLeft === null) return;
+    set({ endsAt: now + pausedLeft, pausedLeft: null });
+  },
   add: (seconds, now = Date.now()) => {
     const { endsAt, total } = get();
     if (endsAt === null) return;
     const next = Math.max(now, endsAt + seconds * 1000);
     set({ endsAt: next, total: Math.max(1, total + seconds) });
   },
-  stop: () => set({ endsAt: null, total: 0, source: null }),
+  stop: () => set({ endsAt: null, total: 0, source: null, pausedLeft: null }),
   finish: () => {
     const { endsAt, source, ended } = get();
     if (endsAt === null) return;

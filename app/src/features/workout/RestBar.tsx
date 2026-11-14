@@ -11,6 +11,7 @@ export function RestBar() {
   const total = useRestStore(s => s.total);
   const add = useRestStore(s => s.add);
   const finish = useRestStore(s => s.finish);
+  const pausedLeft = useRestStore(s => s.pausedLeft);
   const now = useNow(250, endsAt !== null);
   const remaining = endsAt === null ? 0 : Math.ceil((endsAt - now) / 1000);
 
@@ -23,6 +24,15 @@ export function RestBar() {
     finish();
   }, [endsAt, remaining, finish]);
 
+  if (endsAt === null && pausedLeft !== null) {
+    return (
+      <div role="timer" aria-label="Descanso pausado" className="fixed inset-x-0 bottom-[calc(4rem+env(safe-area-inset-bottom))] z-30 px-3 pb-2">
+        <div className="mx-auto flex max-w-xl items-center gap-2 rounded-2xl border border-line bg-surface-2 px-4 py-2 shadow-xl">
+          <p className="flex-1 text-sm font-semibold text-muted">Descanso pausado · {formatClock(Math.ceil(pausedLeft / 1000))}</p>
+        </div>
+      </div>
+    );
+  }
   if (endsAt === null) return null;
   const pct = total ? Math.min(100, Math.max(0, (remaining / total) * 100)) : 0;
   return (

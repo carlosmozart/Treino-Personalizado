@@ -104,6 +104,20 @@ export function WorkoutSettingsFields() {
       <LoadSourceChoice value={loadSourceOf(settings)} onChange={v => set({ loadSource: v, autoProgression: v === 'auto' })} />
       <Toggle label="Deslizar para apagar (esquerda) ou copiar (direita) séries e exercícios do plano" checked={settings.swipeSets ?? true} onChange={v => set({ swipeSets: v })} />
       <Toggle label="Comparar cada série com a última vez (↑ = ↓)" checked={settings.compareSets ?? true} onChange={v => set({ compareSets: v })} />
+      {/* W8: recorde na hora e quanto falta */}
+      <Toggle label="Troféu na série que bate um recorde" checked={settings.recordTrophies ?? true} onChange={v => set({ recordTrophies: v })} />
+      <Toggle label="Mostrar quanto falta para o recorde na próxima série" checked={settings.recordHints ?? true} onChange={v => set({ recordHints: v })} />
+      <Toggle label="Abrir o treino numa prévia, com Começar embaixo" checked={settings.previewBeforeStart ?? false} onChange={v => set({ previewBeforeStart: v })} />
+      <Toggle label="Ir ao próximo exercício quando o descanso da última série acabar" checked={settings.autoNextExercise ?? false} onChange={v => set({ autoNextExercise: v })} />
+      <Toggle label="Oferecer os exercícios que ficaram para trás no treino anterior" checked={settings.offerLeftovers ?? true} onChange={v => set({ offerLeftovers: v })} />
+      {/* W4: treino esquecido aberto */}
+      <label className="flex min-h-12 items-center justify-between gap-3">
+        <span className="font-semibold">Perguntar "Ainda treinando?" depois de</span>
+        <select value={settings.forgottenMinutes ?? 45} onChange={e => set({ forgottenMinutes: Number(e.target.value) })} aria-label="Perguntar se ainda está treinando depois de"
+          className="h-11 shrink-0 rounded-xl border border-line bg-surface-2 px-2 text-base text-ink">
+          {[[30, '30 min'], [45, '45 min'], [60, '60 min'], [90, '90 min'], [0, 'Nunca']].map(([v, l]) => <option key={v} value={v}>{l}</option>)}
+        </select>
+      </label>
       <Toggle label="Botões de ajuste de carga no treino" checked={settings.weightButtons ?? true} onChange={v => set({ weightButtons: v })} />
       <Toggle label="Manter a tela ligada no treino" checked={settings.keepScreenOn ?? true} onChange={v => set({ keepScreenOn: v })} />
       <Toggle label="Pedir o peso do dia ao começar o treino" checked={settings.weighBeforeWorkout ?? false} onChange={v => set({ weighBeforeWorkout: v })} />

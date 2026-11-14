@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { SWAP_EQUIPMENT, fitsEquipment, groupOf, guessGroup, swapSuggestions } from '../../data/exercise-library';
 import {
-  addSet, afterSet, restAfterSet, setExerciseLock, setExerciseRest, setSetNote, setSetRest, SET_NOTE_MAX, supersetBlock, toggleSupersetWithNext, addWarmupSet, adjustWeights, removeWarmupSet, completeExercise, isExerciseDone, duplicateSet, insertSet, removeExerciseFromSession, removeSet, setNote, swapExercise, toggleFailure, toggleSet, updateCardio, updateSet,
+  addSet, afterSet, restAfterSet, resumeSession, setExerciseLock, setExerciseRest, setSetNote, setSetRest, SET_NOTE_MAX, supersetBlock, toggleSupersetWithNext, addWarmupSet, adjustWeights, removeWarmupSet, completeExercise, isExerciseDone, duplicateSet, insertSet, removeExerciseFromSession, removeSet, setNote, swapExercise, toggleFailure, toggleSet, updateCardio, updateSet,
   type ActiveSession, type SessionExercise, type SessionSet
 } from '../../domain/session';
 import { bestSet, lastSessionBefore, sessionsOf, suspiciousWeight, workSets } from '../../domain/workouts';
@@ -13,6 +13,7 @@ import { markBigWeightJump, toggleFavorite, updateSettings } from '../../domain/
 import { Sheet, SheetAction } from '../../ui/Sheet';
 import { RestSheet, restLabel } from '../../ui/RestSheet';
 import { previousWorkSets, setTrends, TREND_ARROW, trendLabel, type SetTrend } from '../../domain/set-compare';
+import { bestsBefore, recordHint, recordLabel, trophiesFor } from '../../domain/set-records';
 import { editPlan, lockPatch, removePlanExercise, repsPatch, setPlanExerciseRest, setsPatch, updateExercise, warmupPatch } from '../../domain/plan-edit';
 import type { PlanExercise } from '../../domain/model';
 import { formatClock, formatNumber, relativeDate, shortDate } from '../../ui/format';
@@ -79,6 +80,15 @@ export function ExerciseCard({ session, index, alwaysOpen = false, onGoTo }: Pro
   const prevSets = useMemo(() => (compare && data ? previousWorkSets(data.workouts, ex.key, { date: session.date, id: session.id, startedAt: session.startedAt }) : null),
     [compare, data, ex.key, session.date, session.id, session.startedAt]);
   const trends = setTrends(prevSets, ex.sets, ex.mode);
+  // W8: troféu na série que bate um recorde, e quanto falta na próxima
+  const showTrophies = data?.settings.recordTrophies ?? true;
+  const showHints = data?.settings.recordHints ?? true;
+  const baseBests = useMemo(() => (data && (showTrophies || showHints) ? bestsBefore(data.workouts, ex.key, session) : null),
+    [data, showTrophies, showHints, ex.key, session.id, session.date, session.startedAt]);
+  const trophies = trophiesFor(ex.sets, baseBests, ex.mode);
+  const nextWork = ex.sets.find(x => x.kind === 'work' && !x.done);
+  const hint = showHints && nextWork ? recordHint(nextWork, trophies.after, ex.mode) : null;
+  const [justRecord, setJustRecord] = useState<string | null>(null);
   const defaultRest = data?.settings.restSeconds ?? 90;
   // o descanso de uma série sem escolha própria: o de aquecimento (T6) ou o do exercício
   const setFallback = (i: number) => {
@@ -166,7 +176,19 @@ export function ExerciseCard({ session, index, alwaysOpen = false, onGoTo }: Pro
     // carga com um dígito a mais vira recorde falso e achata o gráfico: confere antes
     const suspicious = !wasDone && !confirmed && data ? suspiciousWeight(data.workouts, ex.key, weight) : null;
     if (suspicious) { setCheck({ set: setIndex, weight, ...suspicious }); return; }
+    // W3: marcar uma série continua um treino pausado
+    if (!wasDone && session.pausedAt) { update(s => resumeSession(s, new Date())); useRestStore.getState().resume(); }
     update(s => toggleSet(s, index, setIndex));
+    // W8: recorde na hora, com vibração
+    if (!wasDone && showTrophies) {
+      const marked = ex.sets.map((x, j) => (j === setIndex ? { ...x, done: true } : x));
+      const kinds = trophiesFor(marked, baseBests, ex.mode).kinds[setIndex] ?? [];
+      if (kinds.length) {
+        if (typeof navigator.vibrate === 'function') navigator.vibrate([0, 60, 50, 60, 50, 120]);
+        setJustRecord(`Recorde: ${recordLabel(kinds)}!`);
+        window.setTimeout(() => setJustRecord(null), 5000);
+      }
+    }
     const settings = data?.settings;
     if (wasDone) return;
     // M17: no meio de um superset não há descanso: vai direto para o parceiro
@@ -250,6 +272,11 @@ export function ExerciseCard({ session, index, alwaysOpen = false, onGoTo }: Pro
               {ex.progression.reason}
             </p>
           )}
+          {justRecord ? (
+            <p role="status" className="mt-1 flex items-start gap-1 text-sm font-bold text-warning"><Icon name="trofeu" className="mt-0.5 size-4 shrink-0" />{justRecord}</p>
+          ) : hint && (
+            <p className="mt-1 flex items-start gap-1 text-sm text-muted"><Icon name="trofeu" className="mt-0.5 size-4 shrink-0 text-warning" /><span data-testid="dica-recorde">{hint}</span></p>
+          )}
         </div>
       </div>
 
@@ -288,6 +315,10 @@ export function ExerciseCard({ session, index, alwaysOpen = false, onGoTo }: Pro
                     {trend && prev && (
                       <span role="img" aria-label={`Série ${i + 1}: ${trendLabel(trend, prev, ex.mode)}`}
                         className={`pointer-events-none absolute -right-1.5 -top-0.5 text-sm font-black leading-none ${TREND_TONE[trend]}`}>{TREND_ARROW[trend]}</span>
+                    )}
+                    {showTrophies && !!trophies.kinds[i]?.length && (
+                      <span role="img" aria-label={`Série ${i + 1}: recorde (${recordLabel(trophies.kinds[i]!)})`}
+                        className="pointer-events-none absolute -bottom-0.5 -right-1.5 text-warning"><Icon name="trofeu" className="size-4" /></span>
                     )}
                   </div>
                   <NumberField label={`Carga da série ${i + 1}`} decimal value={set.weight} onChange={v => update(s => updateSet(s, index, i, { weight: v }))} />
