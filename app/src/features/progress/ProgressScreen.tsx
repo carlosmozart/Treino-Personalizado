@@ -213,7 +213,7 @@ function SetDetails({ w, entry }: { w: Workout; entry: WorkoutEntry }) {
 function WorkoutItem({ w, open, onToggle, onDelete }: { w: Workout; open: boolean; onToggle: () => void; onDelete: () => void }) {
   const [editing, setEditing] = useState<number | null>(null);
   const volume = workoutVolume(w, useVolumeOptions());
-  const meta = [plural(w.entries.length, 'exercício', 'exercícios'), w.durationMin ? `${w.durationMin} min` : '', volume ? `${formatNumber(volume)} kg` : '', w.deload ? 'deload' : ''].filter(Boolean).join(' · ');
+  const meta = [plural(w.entries.length, 'exercício', 'exercícios'), w.durationMin ? `${w.durationMin} min` : '', volume ? `${formatNumber(volume)} kg` : '', w.deload ? 'deload' : '', w.light ? 'mais leve' : ''].filter(Boolean).join(' · ');
   return (
     <li className="rounded-2xl border border-line bg-surface">
       <button type="button" onClick={onToggle} aria-expanded={open} className="flex min-h-14 w-full items-center gap-3 px-4 py-2 text-left">

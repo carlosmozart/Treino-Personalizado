@@ -14,6 +14,7 @@ const PATHS = {
   nota: 'M5 4h10l4 4v12H5zM9 12h6M9 16h4',
   dica: 'M9 18h6m-5 3h4M12 3a6 6 0 00-3.5 10.9V16h7v-2.1A6 6 0 0012 3z',
   relogio: 'M12 7v5l3 2M12 21a9 9 0 100-18 9 9 0 000 18z',
+  cadeado: 'M7 11V8a5 5 0 0110 0v3M6 11h12a1 1 0 011 1v8a1 1 0 01-1 1H6a1 1 0 01-1-1v-8a1 1 0 011-1z',
   trofeu: 'M8 4h8v5a4 4 0 01-8 0zM8 6H5a3 3 0 003 4m8-4h3a3 3 0 01-3 4M12 13v4m-4 3h8',
   subir: 'M6 15l6-6 6 6',
   descer: 'M6 9l6 6 6-6',

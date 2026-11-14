@@ -11,6 +11,7 @@ import {
 import { EXERCISE_LIBRARY, MUSCLE_GROUPS, libraryEntries } from '../../data/exercise-library';
 import { normalizeExerciseName } from '../../domain/text';
 import { ScratchPlanSheet } from './ScratchPlanSheet';
+import { FromWorkoutSheet } from '../progress/SaveToPlanSheet';
 import { useAppStore } from '../../store';
 import { Icon } from '../../ui/Icon';
 import { ExerciseThumb } from '../../ui/ExerciseIllustration';
@@ -42,6 +43,7 @@ export function PlanScreen() {
   const [reviewOpen, setReviewOpen] = useState(false);
   const [templatesOpen, setTemplatesOpen] = useState(false);
   const [scratchOpen, setScratchOpen] = useState(false);
+  const [fromWorkoutOpen, setFromWorkoutOpen] = useState(false);
   const plan = data?.activePlanId ? data.plans[data.activePlanId] : undefined;
 
   if (!data) return null;
@@ -61,6 +63,12 @@ export function PlanScreen() {
           <button type="button" onClick={() => setScratchOpen(true)} className="mt-2 h-12 w-full rounded-xl bg-surface-2 text-base font-bold">
             Criar do zero
           </button>
+          {/* W1: quem já tem histórico (app antigo, treino livre) aproveita um treino feito */}
+          {data.workouts.length > 0 && (
+            <button type="button" onClick={() => setFromWorkoutOpen(true)} className="mt-2 h-12 w-full rounded-xl bg-surface-2 text-base font-bold">
+              Usar um treino que já fiz
+            </button>
+          )}
           <button type="button" onClick={() => setAiOpen('convert')} className="mt-2 h-12 w-full rounded-xl text-base font-semibold text-primary">
             Já tenho um treino feito em IA
           </button>
@@ -69,6 +77,7 @@ export function PlanScreen() {
         <AiPlanSheet key="ai" open={!!aiOpen} initialKind={aiOpen || 'new'} onClose={() => setAiOpen(false)} />
         <TemplateSheet key="modelos" open={templatesOpen} onClose={() => setTemplatesOpen(false)} />
         <ScratchPlanSheet key="do-zero" open={scratchOpen} onClose={() => setScratchOpen(false)} />
+        <FromWorkoutSheet key="de-um-treino" open={fromWorkoutOpen} onClose={() => setFromWorkoutOpen(false)} />
       </>
     );
   }
@@ -196,6 +205,11 @@ export function PlanScreen() {
         <SheetAction onClick={() => { setPlansOpen(false); setScratchOpen(true); }}>
           <Icon name="mais" /> Novo plano do zero
         </SheetAction>
+        {data.workouts.length > 0 && (
+          <SheetAction onClick={() => { setPlansOpen(false); setFromWorkoutOpen(true); }}>
+            <Icon name="mais" /> Novo plano a partir de um treino feito
+          </SheetAction>
+        )}
         <SheetAction onClick={() => { setPlansOpen(false); setTemplatesOpen(true); }}>
           <Icon name="mais" /> Novo plano a partir de um modelo
         </SheetAction>
@@ -203,6 +217,7 @@ export function PlanScreen() {
       <AiPlanSheet key="ai" open={!!aiOpen} initialKind={aiOpen || 'new'} onClose={() => setAiOpen(false)} />
       <TemplateSheet key="modelos" open={templatesOpen} onClose={() => setTemplatesOpen(false)} />
       <ScratchPlanSheet key="do-zero" open={scratchOpen} onClose={() => setScratchOpen(false)} />
+      <FromWorkoutSheet key="de-um-treino" open={fromWorkoutOpen} onClose={() => setFromWorkoutOpen(false)} />
     </>
   );
 }
@@ -408,7 +423,8 @@ function summary(ex: PlanExercise, defaultRest: number): string {
   const rest = ex.restSeconds === undefined || ex.restSeconds === defaultRest ? '' : ` · descanso ${ex.restSeconds === 0 ? 'sem cronômetro' : formatClock(ex.restSeconds)}`;
   if (ex.mode === 'time') return `${ex.sets} × ${ex.seconds ?? 30} s${rest}`;
   const { min, max } = repRange(ex);
-  return `${ex.sets} × ${min === max ? max : `${min}–${max}`}${ex.perSide ? ' por lado' : ''}${ex.weight ? ` · ${formatNumber(ex.weight)} kg` : ''}${rest}`;
+  const warm = ex.warmupSets ? ` · ${ex.warmupSets} aquec.` : '';
+  return `${ex.sets} × ${min === max ? max : `${min}–${max}`}${ex.perSide ? ' por lado' : ''}${ex.weight ? ` · ${formatNumber(ex.weight)} kg` : ''}${ex.lockWeight ? ' (travada)' : ''}${warm}${rest}`;
 }
 
 interface RowProps {
@@ -497,6 +513,18 @@ function ExerciseRow({ ex, open, first, last, swipe, superset, linkedToNext, onT
             <input type="checkbox" checked={ex.optional} onChange={e => onChange({ optional: e.target.checked })} className="size-5 accent-[var(--color-primary)]" />
             <span className="text-sm font-semibold">Exercício opcional</span>
           </label>
+          {ex.mode !== 'cardio' && (
+            <label className="flex min-h-11 items-center gap-3">
+              <input type="checkbox" checked={!!ex.lockWeight} onChange={e => onChange(e.target.checked ? { lockWeight: true } : { lockWeight: undefined })} className="size-5 accent-[var(--color-primary)]" />
+              <span className="text-sm font-semibold">Travar a carga <span className="font-normal text-muted">(o treino abre com a carga acima e a progressão não muda)</span></span>
+            </label>
+          )}
+          {ex.mode === 'reps' && (
+            <div className="grid grid-cols-3 gap-2">
+              {field('Aquecimento (séries)', ex.warmupSets ?? 0, n => onChange({ warmupSets: Math.max(0, Math.min(5, Math.round(n))) }))}
+              <p className="col-span-2 self-end pb-1 text-xs text-faint">Séries de aquecimento no começo, com metade da carga e 10 repetições.</p>
+            </div>
+          )}
           {ex.mode === 'reps' && (
             <label className="flex min-h-11 items-center gap-3">
               <input type="checkbox" checked={!!ex.perSide} onChange={e => onChange({ perSide: e.target.checked })} className="size-5 accent-[var(--color-primary)]" />

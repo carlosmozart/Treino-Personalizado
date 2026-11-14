@@ -4,7 +4,7 @@ import type { DayKey } from './ai-plan';
 import type { DateKey } from './dates';
 import { toDateKey } from './dates';
 import { normalizeExerciseName } from './text';
-import { dayKeyOf, loadSourceOf, type AppData, type ExerciseMode, type PlanExercise, type SetKind, type Settings, type Workout, type WorkoutEntry } from './model';
+import { dayKeyOf, loadSourceOf, type AppData, type DailyForm, type ExerciseMode, type LightKind, type PlanExercise, type SetKind, type Settings, type Workout, type WorkoutEntry } from './model';
 import { lastSessionBefore, workSets } from './workouts';
 import { isCardioName } from '../data/exercise-library';
 import { repRange, suggestProgression, type Progression } from './progression';
@@ -54,6 +54,8 @@ export interface SessionExercise {
   sideRestSeconds?: number;
   /** V8: como arredondar a rampa de aquecimento automático deste exercício. */
   autoWarmup?: WarmupConfig;
+  /** Carga travada no plano: a progressão não mexe nela. */
+  lockWeight?: true;
 }
 
 export interface ActiveSession {
@@ -66,6 +68,10 @@ export interface ActiveSession {
   exercises: SessionExercise[];
   /** M15: treino de um dia passado, registrado depois; a duração é a informada, não o relógio. */
   backdated?: { durationMin: number };
+  /** W2: check-in do dia, respondido ao começar. */
+  form?: DailyForm;
+  /** W2: treino de hoje mais leve (fica fora da progressão). */
+  light?: LightKind;
 }
 
 const round1 = (n: number) => Math.round(n * 10) / 10;
@@ -73,7 +79,7 @@ const round1 = (n: number) => Math.round(n * 10) / 10;
 const roundKg = (n: number) => Math.round(n * 100) / 100;
 const clamp = (n: number, min: number, max: number) => Math.min(max, Math.max(min, n));
 
-type PlanTarget = Pick<PlanExercise, 'sets' | 'reps' | 'weight' | 'seconds' | 'repMin' | 'repMax' | 'increment'> & { linear?: boolean };
+type PlanTarget = Pick<PlanExercise, 'sets' | 'reps' | 'weight' | 'seconds' | 'repMin' | 'repMax' | 'increment' | 'lockWeight'> & { linear?: boolean };
 
 /**
  * Séries iniciais de um exercício, conforme a fonte escolhida (M13):
@@ -97,6 +103,12 @@ function initialSets(data: AppData, name: string, mode: ExerciseMode, plan: Plan
   if (source === 'plan' && plan) {
     weight = plan.weight;
     if (mode === 'reps') reps = planReps ?? reps;
+  }
+  // carga travada: a do plano (ou, sem ela, a da última vez), e a progressão não sugere subir
+  if (plan?.lockWeight) {
+    if (plan.weight > 0) weight = plan.weight;
+    const sets = Array.from({ length: count }, () => ({ reps, weight, kind: 'work' as const, done: false }));
+    return { sets };
   }
   const progression = mode === 'reps' && plan && source === 'auto' && !isDeloadDate(data, date)
     ? suggestProgression(data.workouts, key, plan, date) ?? undefined
@@ -130,7 +142,65 @@ function fromPlanExercise(data: AppData, ex: PlanExercise, date: DateKey, linear
     if (ex.sideRestSeconds) out.sideRestSeconds = ex.sideRestSeconds;
   }
   if (ex.mode === 'cardio') out.cardio = { minutes: ex.minutes, km: ex.km, done: false };
+  if (ex.lockWeight && ex.mode !== 'cardio') out.lockWeight = true;
+  // aquecimento guardado no plano: metade da carga, 10 reps (como "Adicionar série de aquecimento")
+  if (ex.warmupSets && ex.mode === 'reps') {
+    let withWarmups: SessionExercise = out;
+    for (let i = 0; i < Math.min(5, ex.warmupSets); i++) withWarmups = warmupInto(withWarmups);
+    return withWarmups;
+  }
   return withAutoWarmup(out, data.settings);
+}
+
+/** Uma série de aquecimento antes das de trabalho: metade da carga da primeira, 10 reps. */
+function warmupInto(ex: SessionExercise): SessionExercise {
+  if (ex.mode === 'cardio' || ex.sets.length >= 20) return ex;
+  const firstWork = ex.sets.find(x => x.kind === 'work');
+  const at = ex.sets.filter(x => x.kind === 'warmup').length;
+  const weight = Math.round(((firstWork?.weight ?? 0) / 2) * 2) / 2;
+  const sets = [...ex.sets];
+  sets.splice(at, 0, { reps: 10, weight, kind: 'warmup', done: false });
+  return { ...ex, sets };
+}
+
+/** W2: o check-in do dia fica na sessão (e vai para o treino salvo). */
+export function setSessionForm(s: ActiveSession, form: DailyForm): ActiveSession {
+  const clean: DailyForm = {};
+  for (const k of ['sono', 'energia', 'dor', 'estresse'] as const) {
+    const v = form[k];
+    if (v !== undefined && v >= 1 && v <= 5) clean[k] = Math.round(v);
+  }
+  return { ...s, form: clean };
+}
+
+/**
+ * W2: treino de hoje mais leve. 'carga': 10% a menos nas séries de trabalho ainda não feitas,
+ * arredondado para baixo ao passo da carga (anilhas aos pares na barra); 'series': uma série de
+ * trabalho a menos por exercício (a última ainda não feita, se sobrar pelo menos uma).
+ */
+export function lightenSession(s: ActiveSession, kind: LightKind, settings: Pick<Settings, 'barWeight' | 'plates'>): ActiveSession {
+  if (s.light) return s;
+  const exercises = s.exercises.map(ex => {
+    if (ex.mode === 'cardio') return ex;
+    if (kind === 'series') {
+      const work = ex.sets.filter(x => x.kind === 'work');
+      if (work.length < 2) return ex;
+      const i = ex.sets.map((x, j) => (x.kind === 'work' && !x.done ? j : -1)).filter(j => j >= 0).pop();
+      return i === undefined ? ex : { ...ex, sets: ex.sets.filter((_, j) => j !== i) };
+    }
+    const { bar, step } = warmupConfig(ex.name, settings);
+    const lighter = (kg: number) => {
+      if (kg <= 0) return kg;
+      const target = kg * 0.9;
+      const st = bar === null && kg < 20 ? 0.5 : step;
+      const base = bar ?? 0;
+      const out = target <= base ? Math.min(kg, base) : base + Math.floor((target - base) / st + 1e-9) * st;
+      return roundKg(out);
+    };
+    const moved = { ...ex, sets: ex.sets.map(x => (x.kind === 'work' && !x.done ? { ...x, weight: lighter(x.weight) } : x)) };
+    return refreshAutoWarmup(moved);
+  });
+  return { ...s, exercises, light: kind };
 }
 
 /** Maior carga das séries de trabalho: o alvo da rampa de aquecimento. */
@@ -258,6 +328,15 @@ export function repeatSession(data: AppData, workout: Workout, now: Date, id: st
   };
 }
 
+/** Trava ou destrava a carga do exercício neste treino (a sugestão da progressão some ao travar). */
+export function setExerciseLock(s: ActiveSession, index: number, on: boolean): ActiveSession {
+  return mapExercise(s, index, ex => {
+    if (!!ex.lockWeight === on) return ex;
+    const { lockWeight: _l, progression: _p, ...rest } = ex;
+    return on ? { ...rest, lockWeight: true } : (ex.progression ? { ...rest, progression: ex.progression } : rest);
+  });
+}
+
 /** Descanso só deste exercício no treino: `undefined` volta ao padrão, 0 = sem cronômetro. */
 export function setExerciseRest(s: ActiveSession, index: number, seconds: number | undefined): ActiveSession {
   return mapExercise(s, index, ex => {
@@ -329,15 +408,7 @@ export function addSet(s: ActiveSession, exIndex: number): ActiveSession {
  * 10 reps. Fica fora de volume, recordes, 1RM e progressão (só séries de trabalho contam).
  */
 export function addWarmupSet(s: ActiveSession, exIndex: number): ActiveSession {
-  return mapExercise(s, exIndex, ex => {
-    if (ex.mode === 'cardio' || ex.sets.length >= 20) return ex;
-    const firstWork = ex.sets.find(x => x.kind === 'work');
-    const at = ex.sets.filter(x => x.kind === 'warmup').length;
-    const weight = Math.round(((firstWork?.weight ?? 0) / 2) * 2) / 2;
-    const sets = [...ex.sets];
-    sets.splice(at, 0, { reps: 10, weight, kind: 'warmup', done: false });
-    return { ...ex, sets };
-  });
+  return mapExercise(s, exIndex, warmupInto);
 }
 
 /** Remove a última série de aquecimento. */
@@ -553,7 +624,9 @@ export function sessionToWorkout(s: ActiveSession, now: Date): Workout | null {
     id: s.id, date: s.date, startedAt: s.startedAt, endedAt,
     // sessões esquecidas abertas (mais de 5 h) não registram uma duração absurda
     ...(durationMin > 0 && durationMin <= 300 ? { durationMin } : {}),
-    planId: s.planId, dayKey: s.dayKey, dayName: s.dayName, source: 'app', entries
+    planId: s.planId, dayKey: s.dayKey, dayName: s.dayName, source: 'app', entries,
+    ...(s.light ? { light: s.light } : {}),
+    ...(s.form && Object.keys(s.form).length ? { form: s.form } : {})
   };
 }
 

@@ -12,9 +12,9 @@ export function isDeloadDate(data: AppData, date: DateKey): boolean {
   return !!start && date >= start && date <= addDays(start, 6);
 }
 
-/** Os treinos que contam para a progressão: todos menos os de deload. */
+/** Os treinos que contam para a progressão: todos menos os de deload e os feitos mais leves (W2). */
 export const progressionWorkouts = (workouts: readonly Workout[]): readonly Workout[] =>
-  (workouts.some(w => w.deload) ? workouts.filter(w => !w.deload) : workouts);
+  (workouts.some(w => w.deload || w.light) ? workouts.filter(w => !w.deload && !w.light) : workouts);
 
 /** Marca (ou desmarca) a semana atual como deload, junto com os treinos já feitos nela. */
 export function setDeloadWeek(data: AppData, on: boolean, now: Date): ActionResult {

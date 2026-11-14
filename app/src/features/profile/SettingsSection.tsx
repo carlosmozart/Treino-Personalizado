@@ -107,6 +107,8 @@ export function WorkoutSettingsFields() {
       <Toggle label="Botões de ajuste de carga no treino" checked={settings.weightButtons ?? true} onChange={v => set({ weightButtons: v })} />
       <Toggle label="Manter a tela ligada no treino" checked={settings.keepScreenOn ?? true} onChange={v => set({ keepScreenOn: v })} />
       <Toggle label="Pedir o peso do dia ao começar o treino" checked={settings.weighBeforeWorkout ?? false} onChange={v => set({ weighBeforeWorkout: v })} />
+      {/* W2: sono, energia, dor e estresse; num dia puxado, oferece ir mais leve */}
+      <Toggle label="Check-in do dia ao começar o treino (sono, energia, dor, estresse)" checked={settings.dailyForm ?? false} onChange={v => set({ dailyForm: v })} />
       <Toggle label="Mostrar ilustrações dos exercícios" checked={settings.showIllustrations ?? true} onChange={v => set({ showIllustrations: v })} />
       {(settings.showIllustrations ?? true) && (
         <div className="py-2">

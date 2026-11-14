@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { SWAP_EQUIPMENT, fitsEquipment, groupOf, guessGroup, swapSuggestions } from '../../data/exercise-library';
 import {
-  addSet, afterSet, restAfterSet, setExerciseRest, setSetNote, setSetRest, SET_NOTE_MAX, supersetBlock, toggleSupersetWithNext, addWarmupSet, adjustWeights, removeWarmupSet, completeExercise, isExerciseDone, duplicateSet, insertSet, removeExerciseFromSession, removeSet, setNote, swapExercise, toggleFailure, toggleSet, updateCardio, updateSet,
+  addSet, afterSet, restAfterSet, setExerciseLock, setExerciseRest, setSetNote, setSetRest, SET_NOTE_MAX, supersetBlock, toggleSupersetWithNext, addWarmupSet, adjustWeights, removeWarmupSet, completeExercise, isExerciseDone, duplicateSet, insertSet, removeExerciseFromSession, removeSet, setNote, swapExercise, toggleFailure, toggleSet, updateCardio, updateSet,
   type ActiveSession, type SessionExercise, type SessionSet
 } from '../../domain/session';
 import { bestSet, lastSessionBefore, sessionsOf, suspiciousWeight, workSets } from '../../domain/workouts';
@@ -13,7 +13,8 @@ import { markBigWeightJump, toggleFavorite, updateSettings } from '../../domain/
 import { Sheet, SheetAction } from '../../ui/Sheet';
 import { RestSheet, restLabel } from '../../ui/RestSheet';
 import { previousWorkSets, setTrends, TREND_ARROW, trendLabel, type SetTrend } from '../../domain/set-compare';
-import { editPlan, setPlanExerciseRest } from '../../domain/plan-edit';
+import { editPlan, lockPatch, removePlanExercise, repsPatch, setPlanExerciseRest, setsPatch, updateExercise, warmupPatch } from '../../domain/plan-edit';
+import type { PlanExercise } from '../../domain/model';
 import { formatClock, formatNumber, relativeDate, shortDate } from '../../ui/format';
 import { useRestStore } from './rest-store';
 import { PlateSheet } from './PlateSheet';
@@ -87,6 +88,42 @@ export function ExerciseCard({ session, index, alwaysOpen = false, onGoTo }: Pro
   // o descanso pode ir para o plano quando o exercício é o do plano (não trocado nem acrescentado)
   const planSlot = data?.plans[session.planId]?.days[session.dayKey]?.exercises.find(p => p.id === ex.slotId);
   const canSavePlan = !!planSlot && !ex.swappedFrom;
+  // pergunta "Salvar no plano?" depois de mudar séries, aquecimento ou reps fora da faixa
+  const [ask, setAsk] = useState<{ text: string; patch: Partial<PlanExercise> } | null>(null);
+  const [removing, setRemoving] = useState(false);
+  const savePlan = (patch: Partial<PlanExercise>) => {
+    if (planSlot) run((d, now) => editPlan(d, session.planId, p => updateExercise(p, session.dayKey, planSlot.id, patch), now));
+  };
+  const plural = (n: number, one: string, many: string) => `${n} ${n === 1 ? one : many}`;
+  /** Aplica a mudança e, se o exercício é o do plano, pergunta se ela vale para o plano também. */
+  const changeSets = (fn: (s: ActiveSession) => ActiveSession, what: 'series' | 'aquecimento') => {
+    const next = fn(session).exercises[index];
+    update(fn);
+    if (!canSavePlan || !planSlot || !next || next.mode === 'cardio') return;
+    if (what === 'series') {
+      const n = next.sets.filter(x => x.kind === 'work').length;
+      const patch = setsPatch(planSlot, n);
+      setAsk(patch ? { text: `Salvar ${plural(n, 'série', 'séries')} no plano (hoje o plano tem ${planSlot.sets})?`, patch } : null);
+    } else {
+      const n = next.sets.filter(x => x.kind === 'warmup' && !x.auto).length;
+      const patch = warmupPatch(planSlot, n);
+      setAsk(patch ? { text: n ? `Começar ${ex.name} sempre com ${plural(n, 'série', 'séries')} de aquecimento?` : 'Tirar o aquecimento do plano também?', patch } : null);
+    }
+  };
+  const commitReps = (setIndex: number) => {
+    const set = ex.sets[setIndex];
+    if (!canSavePlan || !planSlot || !set || set.kind !== 'work' || ex.mode !== 'reps') return;
+    const patch = repsPatch(planSlot, set.reps);
+    if (!patch) return;
+    const text = patch.repMin !== undefined ? `Salvar a faixa de ${patch.repMin} a ${patch.repMax} repetições no plano?` : `Salvar ${patch.reps} repetições no plano?`;
+    setAsk({ text, patch });
+  };
+  const topWeight = Math.max(0, ...ex.sets.filter(x => x.kind === 'work').map(x => x.weight));
+  const toggleLock = () => {
+    const on = !ex.lockWeight;
+    update(s => setExerciseLock(s, index, on));
+    if (planSlot && canSavePlan) savePlan(lockPatch(on, on ? topWeight : undefined));
+  };
   const saveRest = (seconds: number | undefined, toPlan: boolean) => {
     update(s => setExerciseRest(s, index, seconds));
     if (toPlan && planSlot) run((d, now) => editPlan(d, session.planId, p => setPlanExerciseRest(p, session.dayKey, planSlot.id, seconds), now));
@@ -103,7 +140,7 @@ export function ExerciseCard({ session, index, alwaysOpen = false, onGoTo }: Pro
     const set = ex.sets[i];
     if (!set || ex.sets.length <= 1) return;
     if (removed) clearTimeout(removed.timer);
-    update(s => removeSet(s, index, i));
+    changeSets(s => removeSet(s, index, i), set.kind === 'warmup' ? 'aquecimento' : 'series');
     setRemoved({ at: i, set, timer: window.setTimeout(() => setRemoved(null), 5000) });
   };
   const undoRemove = () => {
@@ -111,6 +148,7 @@ export function ExerciseCard({ session, index, alwaysOpen = false, onGoTo }: Pro
     clearTimeout(removed.timer);
     update(s => insertSet(s, index, removed.at, removed.set));
     setRemoved(null);
+    setAsk(null);
   };
   // R6: "há 3 dias"; tocar mostra a data
   const [showDate, setShowDate] = useState(false);
@@ -187,6 +225,7 @@ export function ExerciseCard({ session, index, alwaysOpen = false, onGoTo }: Pro
             {group && <span className="rounded-full bg-surface-2 px-2 py-0.5 text-muted">{group}</span>}
             {ex.optional && <span className="rounded-full bg-surface-2 px-2 py-0.5 text-muted">Opcional</span>}
             {favorite && <span className="rounded-full bg-warning/15 px-2 py-0.5 text-warning">★ Favorito</span>}
+            {ex.lockWeight && <span className="flex items-center gap-1 rounded-full bg-surface-2 px-2 py-0.5 text-muted"><Icon name="cadeado" className="size-3.5" />Carga travada</span>}
             {block && (
               <span className="rounded-full bg-primary/15 px-2 py-0.5 text-info">
                 Superset {index - block.start + 1}/{block.end - block.start + 1} · com {session.exercises.slice(block.start, block.end + 1).filter((_, i) => i + block.start !== index).map(e => e.name).join(', ')}
@@ -235,7 +274,7 @@ export function ExerciseCard({ session, index, alwaysOpen = false, onGoTo }: Pro
               const trend = set.done ? trends[i] : null;
               const prev = trend ? prevSets?.[ex.sets.slice(0, i).filter(s => s.kind === 'work').length] : undefined;
               return (
-                <SwipeRow key={i} enabled={swipe} onCopy={() => update(s => duplicateSet(s, index, i))}
+                <SwipeRow key={i} enabled={swipe} onCopy={() => changeSets(s => duplicateSet(s, index, i), set.kind === 'warmup' ? 'aquecimento' : 'series')}
                   {...(ex.sets.length > 1 ? { onDelete: () => removeWithUndo(i) } : {})}
                   className={`grid grid-cols-[2rem_1fr_1fr_2.75rem] items-center gap-x-2 gap-y-0.5 rounded-xl ${set.done ? 'bg-success/10' : ''}`}>
                   {/* V2: o número abre o menu da série (até a falha e nota); V1: a seta contra a última vez */}
@@ -252,7 +291,7 @@ export function ExerciseCard({ session, index, alwaysOpen = false, onGoTo }: Pro
                     )}
                   </div>
                   <NumberField label={`Carga da série ${i + 1}`} decimal value={set.weight} onChange={v => update(s => updateSet(s, index, i, { weight: v }))} />
-                  <NumberField label={`${unit} da série ${i + 1}`} value={set.reps} onChange={v => update(s => updateSet(s, index, i, { reps: v }))} />
+                  <NumberField label={`${unit} da série ${i + 1}`} value={set.reps} onChange={v => update(s => updateSet(s, index, i, { reps: v }))} onCommit={() => commitReps(i)} />
                   <DoneButton done={set.done} label={`Série ${i + 1} feita`} onClick={() => toggle(i)} />
                   {set.note && (
                     <button type="button" onClick={() => setMenuSet(i)} aria-label={`Nota da série ${i + 1}: ${set.note}. Mudar`}
@@ -266,6 +305,15 @@ export function ExerciseCard({ session, index, alwaysOpen = false, onGoTo }: Pro
             <div role="status" className="mt-2 flex items-center justify-between gap-2 rounded-xl bg-surface-2 px-3 py-1 text-sm">
               <span>Série apagada.</span>
               <button type="button" onClick={undoRemove} className="h-10 px-2 font-bold text-info">Desfazer</button>
+            </div>
+          )}
+          {ask && (
+            <div role="group" aria-label="Salvar no plano" className="mt-2 rounded-xl border border-primary/50 bg-primary/5 p-3 text-sm">
+              <p className="font-semibold">{ask.text}</p>
+              <div className="mt-2 flex gap-2">
+                <button type="button" onClick={() => { savePlan(ask.patch); setAsk(null); }} className="h-10 flex-1 rounded-lg bg-primary font-bold text-white">Salvar no plano</button>
+                <button type="button" onClick={() => setAsk(null)} className="h-10 flex-1 rounded-lg bg-surface-2 font-semibold">Só hoje</button>
+              </div>
             </div>
           )}
           {/* T6: exercício por lado com descanso entre os lados: um toque começa a contagem curta */}
@@ -308,6 +356,16 @@ export function ExerciseCard({ session, index, alwaysOpen = false, onGoTo }: Pro
       <RestSheet open={restSet !== null} scope="set" title={`série ${(restSet ?? 0) + 1}`} seconds={restSet !== null ? ex.sets[restSet]?.rest : undefined}
         fallback={setFallback(restSet ?? 0)} onClose={() => setRestSet(null)}
         onSave={seconds => { if (restSet !== null) update(s => setSetRest(s, index, restSet, seconds)); }} />
+      <Sheet title={`Tirar ${ex.name}`} open={removing} onClose={() => setRemoving(false)}>
+        <p className="px-1 pb-2 text-sm text-muted">Só do treino de hoje, ou do plano também (os próximos treinos não terão {ex.name})?</p>
+        <SheetAction onClick={() => { setRemoving(false); update(s => removeExerciseFromSession(s, index)); }}><Icon name="lixo" />Só do treino de hoje</SheetAction>
+        <SheetAction tone="danger" onClick={() => {
+          setRemoving(false);
+          const slot = planSlot;
+          update(s => removeExerciseFromSession(s, index));
+          if (slot) run((d, now) => editPlan(d, session.planId, p => removePlanExercise(p, session.dayKey, slot.id), now));
+        }}><Icon name="lixo" />Do treino e do plano</SheetAction>
+      </Sheet>
       <RestSheet open={restOpen} title={ex.name} seconds={ex.restSeconds} fallback={defaultRest} toPlan={canSavePlan}
         onClose={() => setRestOpen(false)} onSave={saveRest} />
       <Sheet title={ex.name} open={menu} onClose={close}>
@@ -315,14 +373,17 @@ export function ExerciseCard({ session, index, alwaysOpen = false, onGoTo }: Pro
           <SheetAction onClick={() => { update(s => completeExercise(s, index, !done)); close(); }}>
             <Icon name="check" />{done ? 'Desmarcar todas as séries' : 'Marcar todas as séries'}
           </SheetAction>
-          <SheetAction onClick={() => { update(s => addSet(s, index)); close(); }}><Icon name="mais" />Adicionar série</SheetAction>
-          <SheetAction onClick={() => { update(s => addWarmupSet(s, index)); close(); }}><Icon name="mais" />Adicionar série de aquecimento</SheetAction>
+          <SheetAction onClick={() => { changeSets(s => addSet(s, index), 'series'); close(); }}><Icon name="mais" />Adicionar série</SheetAction>
+          <SheetAction onClick={() => { changeSets(s => addWarmupSet(s, index), 'aquecimento'); close(); }}><Icon name="mais" />Adicionar série de aquecimento</SheetAction>
           {ex.sets.some(x => x.kind === 'warmup') && (
-            <SheetAction onClick={() => { update(s => removeWarmupSet(s, index)); close(); }}><Icon name="menos" />Remover aquecimento</SheetAction>
+            <SheetAction onClick={() => { changeSets(s => removeWarmupSet(s, index), 'aquecimento'); close(); }}><Icon name="menos" />Remover aquecimento</SheetAction>
           )}
           {ex.sets.length > 1 && (
-            <SheetAction onClick={() => { update(s => removeSet(s, index, ex.sets.length - 1)); close(); }}><Icon name="menos" />Remover última série</SheetAction>
+            <SheetAction onClick={() => { changeSets(s => removeSet(s, index, ex.sets.length - 1), ex.sets[ex.sets.length - 1]?.kind === 'warmup' ? 'aquecimento' : 'series'); close(); }}><Icon name="menos" />Remover última série</SheetAction>
           )}
+          <SheetAction onClick={() => { toggleLock(); close(); }}>
+            <Icon name="cadeado" />{ex.lockWeight ? 'Destravar a carga' : `Travar a carga${topWeight ? ` em ${formatNumber(topWeight)} kg` : ''}`}
+          </SheetAction>
         </>}
         {ex.mode === 'reps' && isBarbell(ex.name) && (
           <SheetAction onClick={() => { close(); setPlatesOpen(true); }}><Icon name="treino" />Anilhas na barra</SheetAction>
@@ -354,8 +415,11 @@ export function ExerciseCard({ session, index, alwaysOpen = false, onGoTo }: Pro
         {session.exercises.length > 1 && (
           <SheetAction tone="danger" onClick={() => {
             if (ex.sets.some(x => x.done) && !confirm(`Tirar ${ex.name} do treino? As séries marcadas dele não serão salvas.`)) return;
-            close(); update(s => removeExerciseFromSession(s, index));
-          }}><Icon name="lixo" />Tirar do treino de hoje</SheetAction>
+            close();
+            // exercício do plano: pergunta se sai do plano também
+            if (canSavePlan) setRemoving(true);
+            else update(s => removeExerciseFromSession(s, index));
+          }}><Icon name="lixo" />Tirar do treino</SheetAction>
         )}
         <SheetAction onClick={() => { setNoteOpen(o => !o); close(); }}><Icon name="nota" />{noteOpen ? 'Esconder observação' : 'Observação'}</SheetAction>
         {hasIllustration(ex.name) && (

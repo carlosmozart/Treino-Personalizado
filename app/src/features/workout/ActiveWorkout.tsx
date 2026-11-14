@@ -16,6 +16,7 @@ import { useWorkoutUi } from './workout-ui';
 import { WorkoutSettingsFields } from '../profile/SettingsSection';
 import { AddToWorkoutSheet } from './AddToWorkoutSheet';
 import { WeighInNotice } from './WeighInNotice';
+import { DailyFormNotice } from './DailyFormNotice';
 import { isDeloadDate } from '../../domain/deload';
 
 export function ActiveWorkout({ session }: { session: ActiveSession }) {
@@ -115,6 +116,7 @@ export function ActiveWorkout({ session }: { session: ActiveSession }) {
 
       <ProgressionNotice session={session} />
       <WeighInNotice session={session} />
+      <DailyFormNotice session={session} />
       {session.exercises.length === 0 && (
         <p className="mt-4 rounded-2xl border border-line bg-surface p-4 text-muted">Treino livre: adicione os exercícios que for fazer. Ele entra no histórico como qualquer treino.</p>
       )}

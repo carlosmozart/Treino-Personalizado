@@ -6,6 +6,8 @@ import { MAX_EXERCISES_PER_DAY, type AppData, type Plan, type PlanDay, type Plan
 import { normalizeExerciseName } from './text';
 import { key, tombstone, touch } from './sync';
 import { isCardioName } from '../data/exercise-library';
+import { dayKeyOf } from './model';
+import { fromDateKey } from './dates';
 import type { ActionResult } from './actions';
 
 export function newPlanExercise(name: string, id = newId('ex')): PlanExercise {
@@ -63,7 +65,66 @@ export function entryToPlanExercise(e: WorkoutEntry, id: string = newId('ex')): 
   if (e.mode === 'cardio') return { ...ex, mode: 'cardio', sets: 1, reps: 0, minutes: e.cardio?.minutes ?? 20, km: e.cardio?.km ?? 0 };
   const top = sets.reduce((b, s) => (!b || s.weight > b.weight || (s.weight === b.weight && s.reps > b.reps) ? s : b), sets[0]);
   if (e.mode === 'time') return { ...ex, mode: 'time', sets: Math.max(1, sets.length), reps: 0, seconds: top?.reps ?? 30, weight: top?.weight ?? 0 };
-  return { ...ex, mode: 'reps', sets: Math.max(1, sets.length), reps: top?.reps ?? 10, weight: top?.weight ?? 0, ...(e.perSide ? { perSide: true } : {}) };
+  const warmups = e.sets.filter(s => s.kind === 'warmup').length;
+  // W1: repetições diferentes entre as séries viram a faixa (8, 10, 12 → 8–12)
+  const reps = sets.map(s => s.reps).filter(r => r > 0);
+  const range = reps.length && Math.min(...reps) !== Math.max(...reps) ? { repMin: Math.min(...reps), repMax: Math.max(...reps) } : {};
+  return {
+    ...ex, mode: 'reps', sets: Math.max(1, sets.length), reps: top?.reps ?? 10, weight: top?.weight ?? 0, ...range,
+    ...(e.perSide ? { perSide: true } : {}), ...(warmups ? { warmupSets: Math.min(5, warmups) } : {})
+  };
+}
+
+/**
+ * W1: um plano novo com o treino feito no dia da semana em que foi feito (nome do plano e do dia
+ * vêm do treino). Para ajustar depois no Plano.
+ */
+export function planFromWorkout(w: Workout, id: string, today: string, makeId: () => string = () => newId('ex')): Plan {
+  const name = w.dayName?.trim() || 'Meu treino';
+  const plan = blankPlan(id, today, name === 'Treino livre' ? 'Meu treino' : name);
+  const day = dayKeyOf(fromDateKey(w.date));
+  const built = workoutToPlanDay(w, makeId);
+  return { ...plan, days: { ...plan.days, [day]: { ...built, name: built.name === 'Treino livre' ? 'Treino A' : built.name } } };
+}
+
+// ---- Durante o treino: o que mudou em relação ao plano (pergunta "Salvar no plano?") ----
+
+/** Número de séries de trabalho diferente do plano: o que gravar. */
+export function setsPatch(ex: Pick<PlanExercise, 'sets'>, workSets: number): Pick<PlanExercise, 'sets'> | null {
+  const n = Math.max(1, Math.min(20, Math.round(workSets)));
+  return n === ex.sets ? null : { sets: n };
+}
+
+/**
+ * Repetições fora da faixa do plano: a faixa cresce até elas (8–12 e 15 → 8–15). Dentro da faixa
+ * é a progressão andando, e não há o que perguntar.
+ */
+export function repsPatch(ex: Pick<PlanExercise, 'reps' | 'repMin' | 'repMax'>, reps: number): Pick<PlanExercise, 'reps' | 'repMin' | 'repMax'> | null {
+  const r = Math.round(reps);
+  if (!(r > 0)) return null;
+  const min = ex.repMin && ex.repMin > 0 ? ex.repMin : ex.reps;
+  const max = ex.repMax && ex.repMax >= min ? ex.repMax : Math.max(min, ex.reps);
+  if (r >= min && r <= max) return null;
+  // reps fixas (sem faixa): troca o número
+  if (min === max && !ex.repMin && !ex.repMax) return { reps: r };
+  const lo = Math.min(min, r), hi = Math.max(max, r);
+  return { reps: hi, repMin: lo, repMax: hi };
+}
+
+/** Séries de aquecimento diferentes das do plano. */
+export function warmupPatch(ex: Pick<PlanExercise, 'warmupSets'>, warmups: number): Pick<PlanExercise, 'warmupSets'> | null {
+  const n = Math.max(0, Math.min(5, Math.round(warmups)));
+  return n === (ex.warmupSets ?? 0) ? null : { warmupSets: n };
+}
+
+/** Trava (com a carga dada) ou destrava a carga do exercício no plano. */
+export function lockPatch(lock: boolean, weight?: number): Partial<PlanExercise> {
+  return lock ? { lockWeight: true, ...(weight !== undefined ? { weight } : {}) } : { lockWeight: undefined };
+}
+
+/** Tira um exercício do dia do plano pelo id. */
+export function removePlanExercise(plan: Plan, dayKey: DayKey, id: string): Plan {
+  return mapDay(plan, dayKey, day => ({ ...day, exercises: day.exercises.filter(e => e.id !== id) }));
 }
 
 /** M33: um treino feito vira um dia do plano, exercício por exercício (entryToPlanExercise). */
@@ -91,7 +152,16 @@ export function addEntriesToPlan(plan: Plan, w: Workout, keys: readonly string[]
 }
 
 export function updateExercise(plan: Plan, dayKey: DayKey, id: string, patch: Partial<Omit<PlanExercise, 'id'>>): Plan {
-  return mapDay(plan, dayKey, day => ({ ...day, exercises: day.exercises.map(e => (e.id === id ? { ...e, ...patch } : e)) }));
+  return mapDay(plan, dayKey, day => ({
+    ...day,
+    exercises: day.exercises.map(e => {
+      if (e.id !== id) return e;
+      const next = { ...e, ...patch };
+      // campos opcionais desligados saem do registro (exactOptionalPropertyTypes)
+      for (const k of ['lockWeight', 'warmupSets'] as const) if (next[k] === undefined || next[k] === 0) delete next[k];
+      return next;
+    })
+  }));
 }
 
 /** Descanso do exercício no plano: `undefined` = o padrão do app, 0 = sem cronômetro. */

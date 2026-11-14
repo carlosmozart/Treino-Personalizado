@@ -53,7 +53,20 @@ export interface Workout {
   entries: WorkoutEntry[];
   /** M32: feito numa semana de deload: fica no histórico, mas não vira base da progressão. */
   deload?: true;
+  /** W2: treino feito mais leve depois de um check-in ruim; também fica fora da progressão. */
+  light?: LightKind;
+  /** W2: check-in do dia, respondido ao começar o treino. */
+  form?: DailyForm;
 }
+
+/** W2: como o treino ficou mais leve: carga 10% menor ou uma série a menos por exercício. */
+export type LightKind = 'carga' | 'series';
+
+/**
+ * W2: check-in do dia, de 1 a 5, tudo opcional. Sono e energia: 5 é ótimo. Dor muscular e
+ * estresse: 5 é muito (ruim).
+ */
+export interface DailyForm { sono?: number; energia?: number; dor?: number; estresse?: number }
 
 export interface PlanExercise {
   id: string;
@@ -86,6 +99,10 @@ export interface PlanExercise {
   tip?: string;
   optional: boolean;
   alternatives: { name: string; mode: ExerciseMode }[];
+  /** Carga travada: o treino abre com esta carga e a progressão não a muda. */
+  lockWeight?: true | undefined;
+  /** Séries de aquecimento com que o exercício começa (metade da carga, 10 reps). */
+  warmupSets?: number | undefined;
 }
 
 export interface PlanDay {
@@ -231,6 +248,8 @@ export interface Settings {
   volumeWarmup?: boolean;
   /** V13: peso do corpo no volume de barra fixa e paralelas. Ausente = não. */
   volumeBodyweight?: boolean;
+  /** W2: check-in do dia (sono, energia, dor, estresse) ao começar o treino. Ausente = desligado. */
+  dailyForm?: boolean;
   /** M19: em que dia a semana começa (faixa da semana, meta semanal, gráficos). Ausente = segunda. */
   weekStart?: WeekStart;
   /** M32: primeiro dia da semana marcada como deload (treinos dela não viram base da progressão). */
