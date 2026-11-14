@@ -3,6 +3,16 @@ export interface ReleaseNote { version: string; date: string; items: string[] }
 
 export const RELEASE_NOTES: readonly ReleaseNote[] = [
   {
+    version: '3.30.0',
+    date: '2026-11',
+    items: [
+      'Prancha com cronômetro: 3, 2, 1, conta o tempo e marca a série sozinha.',
+      'O histórico mostra quantos minutos cada exercício levou.',
+      'Pilha da máquina no plano: a carga anda de pino em pino.',
+      'Nível na bicicleta, remo e elíptico; e a carga em relação ao seu peso no Progresso.'
+    ]
+  },
+  {
     version: '3.29.0',
     date: '2026-11',
     items: [

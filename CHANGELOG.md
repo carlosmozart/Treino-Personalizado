@@ -6,6 +6,14 @@ Todas as mudanças relevantes do app ficam registradas aqui. Ao lançar uma nova
    atualizar o app instalado
 3. Adicione uma entrada aqui, nesse formato
 
+## [3.30.0] - 2026-11-14
+
+- Cronômetro da prancha e das isometrias: "Começar a série" conta 3, 2, 1 e o tempo da série; no fim, a série é marcada com o tempo planejado e o descanso começa. Quando o descanso acaba, a próxima série por tempo começa sozinha (Perfil → Treino desliga). "Terminar" marca com o tempo que você fez.
+- Tempo por exercício: o app guarda a hora de cada série marcada, e o histórico mostra quantos minutos cada exercício levou. A planilha ganha a coluna Hora.
+- Pilha da máquina: no exercício do plano, diga os pesos que o pino escolhe ("5-100/5" ou "7; 14; 21"). A carga sugerida cai num peso da pilha (subir é o próximo pino) e os botões de carga viram "−1 pino" e "+1 pino".
+- Nível de resistência na bicicleta, no remo, no elíptico e na escada: anotado no treino, abre no da última vez e aparece no histórico ("25min · nível 8") e na planilha.
+- Carga relativa: na evolução do exercício, o gráfico "× peso do corpo" mostra o 1RM estimado dividido pelo seu peso naquele dia.
+
 ## [3.29.0] - 2026-11-14
 
 - Montar o treino de hoje pelos grupos (aba Treino): escolha os grupos e 20, 40 ou 60 minutos, e o app escolhe os exercícios com o seu equipamento, os favoritos e os que você mais faz, com a carga da última vez. Se um grupo foi treinado ontem, o app avisa.
