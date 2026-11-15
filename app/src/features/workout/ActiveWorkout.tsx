@@ -110,9 +110,7 @@ export function ActiveWorkout({ session }: { session: ActiveSession }) {
             Concluir
           </button>
         </div>
-        <div className="mt-2 h-1.5 rounded-full bg-surface-2" aria-hidden="true">
-          <div className="h-1.5 rounded-full bg-success transition-[width]" style={{ width: `${pct}%` }} />
-        </div>
+        <SetTicks session={session} pct={pct} />
         {/* S1: um número por exercício, preenchido conforme avança; toque leva até ele */}
         <ol aria-label="Exercícios do treino" className="-mx-1 mt-2 flex gap-1.5 overflow-x-auto px-1 pb-1">
           {session.exercises.map((ex, i) => {
@@ -316,5 +314,32 @@ function ProgressionNotice({ session }: { session: ActiveSession }) {
         <button type="button" onClick={() => dismiss(true)} className="h-11 rounded-xl bg-surface-2 px-4 font-semibold">Prefiro repetir a última carga</button>
       </div>
     </section>
+  );
+}
+
+/** Até quantas séries a barra mostra uma marca por série; acima disso, a barra contínua. */
+const MAX_TICKS = 40;
+
+/**
+ * A barra do treino com uma marca por série (o cardio é uma marca): feita em verde, aquecimento em
+ * tom de atenção. Dá para contar quantas faltam sem abrir os exercícios.
+ */
+function SetTicks({ session, pct }: { session: ActiveSession; pct: number }) {
+  const ticks = session.exercises.flatMap(ex => (ex.mode === 'cardio'
+    ? [{ done: !!ex.cardio?.done, warmup: false }]
+    : ex.sets.map(s => ({ done: s.done, warmup: s.kind === 'warmup' }))));
+  if (!ticks.length || ticks.length > MAX_TICKS) {
+    return (
+      <div className="mt-2 h-1.5 rounded-full bg-surface-2" aria-hidden="true">
+        <div className="h-1.5 rounded-full bg-success transition-[width]" style={{ width: `${pct}%` }} />
+      </div>
+    );
+  }
+  return (
+    <div className="mt-2 flex h-1.5 gap-0.5" aria-hidden="true" data-testid="marcas-de-series">
+      {ticks.map((t, i) => (
+        <span key={i} className={`h-full flex-1 rounded-sm ${t.done ? (t.warmup ? 'bg-success/60' : 'bg-success') : t.warmup ? 'bg-warning/30' : 'bg-surface-2'}`} />
+      ))}
+    </div>
   );
 }

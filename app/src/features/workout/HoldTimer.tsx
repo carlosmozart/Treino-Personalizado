@@ -8,6 +8,7 @@ import { useNow } from '../../hooks/use-now';
 import { useAppStore } from '../../store';
 import { formatClock } from '../../ui/format';
 import { restAlert, useRestStore } from './rest-store';
+import { ProgressRing } from '../../ui/ProgressRing';
 
 export const COUNTDOWN_SECONDS = 3;
 
@@ -83,10 +84,13 @@ export function HoldBar({ session }: { session: ActiveSession }) {
   const elapsed = counting ? 0 : Math.max(0, Math.round((now - hold.holdStart) / 1000));
   return (
     <div role="timer" aria-label={`Cronômetro de ${e.name}`} className="fixed inset-x-0 bottom-[calc(4rem+env(safe-area-inset-bottom))] z-30 px-3 pb-2">
-      <div className="mx-auto flex max-w-xl items-center gap-2 rounded-2xl border border-primary bg-surface-2 pl-4 pr-1 shadow-xl">
-        <div className="min-w-0 flex-1 py-2">
+      <div className="mx-auto flex max-w-xl items-center gap-2 rounded-2xl border border-primary bg-surface-2 py-1.5 pl-2 pr-1 shadow-xl">
+        <ProgressRing size={60} tone={counting ? 'warning' : 'primary'}
+          fraction={counting ? left / COUNTDOWN_SECONDS : left / hold.seconds}
+          label={counting ? (left > 0 ? `${left}` : 'Já!') : formatClock(left)} />
+        <div className="min-w-0 flex-1">
           <p className="truncate text-xs font-semibold text-muted">{e.name} · série {hold.set + 1}</p>
-          <p className="text-2xl font-black tabular-nums" aria-live="polite">{counting ? (left > 0 ? `${left}…` : 'Já!') : formatClock(left)}</p>
+          <p className="text-sm font-semibold" aria-live="polite">{counting ? (left > 0 ? `${left}…` : 'Já!') : `${formatClock(left)} para acabar`}</p>
         </div>
         {!counting && (
           <button type="button" onClick={() => finish(Math.max(1, elapsed))} className="h-11 rounded-xl bg-primary px-3 text-sm font-bold text-white">Terminar ({elapsed} s)</button>
