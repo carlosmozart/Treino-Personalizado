@@ -54,6 +54,7 @@ test('outros nomes na busca e números de exercício novo (T16, W14)', async ({ 
   page.on('console', msg => { if (msg.type() === 'error') errors.push(msg.text()); });
   await page.goto('/');
   await page.getByRole('button', { name: 'Perfil', exact: true }).click();
+  await page.getByRole('button', { name: /^Carga e progressão/ }).click();
   await page.getByRole('textbox', { name: 'Séries de exercício novo' }).fill('2');
   await page.getByRole('textbox', { name: 'Repetições de exercício novo' }).fill('8');
   // com o teclado aberto a barra de abas some: sai do campo

@@ -14,7 +14,8 @@ import { useAppStore } from '../../store';
 import { NumberField } from '../../ui/NumberField';
 import { DurationWheel } from '../../ui/DurationWheel';
 import { ACCENTS } from '../../ui/theme';
-import { plural } from '../../ui/format';
+import { formatClock, plural } from '../../ui/format';
+import { Icon } from '../../ui/Icon';
 import { Card, INPUT } from './ProfileScreen';
 import { AlarmSettings } from './AlarmSettings';
 import { UpdateControls } from './UpdateOffer';
@@ -37,9 +38,12 @@ export function SettingsSection() {
     <>
       <Card title="Treino">
         <WorkoutSettingsFields />
-        <AlarmSettings />
-        {notificationsAvailable() && <ReminderToggle on={!!settings.trainingReminders} set={set} />}
-        <WeekStartChoice value={settings.weekStart ?? 'seg'} onChange={v => set({ weekStart: v })} />
+        <SettingsGroup id="avisos" title="Avisos e semana"
+          summary={`Semana começa ${(settings.weekStart ?? 'seg') === 'dom' ? 'no domingo' : 'na segunda'}${notificationsAvailable() ? ` · lembrete ${settings.trainingReminders ? 'ligado' : 'desligado'}` : ''}`}>
+          <AlarmSettings />
+          {notificationsAvailable() && <ReminderToggle on={!!settings.trainingReminders} set={set} />}
+          <WeekStartChoice value={settings.weekStart ?? 'seg'} onChange={v => set({ weekStart: v })} />
+        </SettingsGroup>
       </Card>
       <Card title="Aparência">
         <ThemeChoice value={settings.theme ?? 'system'} onChange={v => set({ theme: v })} />
@@ -66,97 +70,161 @@ export function SettingsSection() {
       <Card title="Sobre">
         <p className="text-sm text-muted">Versão {__APP_VERSION__}. Ilustrações dos exercícios: Everkinetic (CC BY-SA 4.0), detalhes em Créditos e licenças.</p>
         <UpdateControls />
-        <WhatsNewButton />
-        <CreditsButton />
-        <ErrorLogButton />
+        {/* os atalhos lado a lado, com espaço entre eles (antes saíam grudados) */}
+        <div className="flex flex-wrap gap-x-5 gap-y-1">
+          <WhatsNewButton />
+          <CreditsButton />
+          <ErrorLogButton />
+        </div>
       </Card>
     </>
   );
 }
 
+const OPEN_KEY = 'tp-ajustes-abertos';
+const loadOpen = (): string[] => { try { const v: unknown = JSON.parse(localStorage.getItem(OPEN_KEY) ?? '[]'); return Array.isArray(v) ? v.filter((x): x is string => typeof x === 'string') : []; } catch { return []; } };
+const saveOpen = (ids: string[]) => { try { localStorage.setItem(OPEN_KEY, JSON.stringify(ids)); } catch { /* sem armazenamento: abre fechado da próxima vez */ } };
+
+/**
+ * X5: um bloco de ajustes que abre e fecha. Fechado, mostra só o título e um resumo de como está;
+ * o que a pessoa deixou aberto fica aberto neste aparelho.
+ */
+export function SettingsGroup({ id, title, summary, children, startOpen = false }: { id: string; title: string; summary: string; children: React.ReactNode; startOpen?: boolean }) {
+  const [open, setOpen] = useState(() => startOpen || loadOpen().includes(id));
+  const toggle = () => {
+    const next = !open;
+    setOpen(next);
+    const ids = loadOpen().filter(x => x !== id);
+    saveOpen(next ? [...ids, id] : ids);
+  };
+  return (
+    <section className="border-t border-line first:border-t-0">
+      <h3>
+        <button type="button" onClick={toggle} aria-expanded={open} aria-controls={`ajustes-${id}`}
+          className="flex min-h-14 w-full items-center gap-3 py-2 text-left">
+          <span className="min-w-0 flex-1">
+            <span className="block font-bold">{title}</span>
+            {!open && <span className="block truncate text-sm text-muted">{summary}</span>}
+          </span>
+          <Icon name={open ? 'subir' : 'descer'} className="size-5 shrink-0 text-faint" />
+        </button>
+      </h3>
+      {open && <div id={`ajustes-${id}`} className="pb-3">{children}</div>}
+    </section>
+  );
+}
+
+const onOff = (labels: [boolean, string][]) => {
+  const on = labels.filter(([v]) => v).map(([, l]) => l);
+  return on.length ? on.join(', ') : 'tudo desligado';
+};
+
 /**
  * Ajustes do treino em si: aparecem em Perfil → Treino e no painel aberto durante o treino (R5),
- * para mudar descanso, som ou o gesto sem sair da sessão.
+ * para mudar descanso, som ou o gesto sem sair da sessão. X5: em blocos (Descanso, Carga e
+ * progressão, Durante o treino, Recordes e volume, Ilustrações); `openFirst` abre o Descanso.
  */
-export function WorkoutSettingsFields() {
+export function WorkoutSettingsFields({ openFirst = false }: { openFirst?: boolean }) {
   const settings = useAppStore(s => s.data?.settings);
   const run = useAppStore(s => s.run);
   if (!settings) return null;
   const set = (patch: Partial<Settings>) => run((d, t) => updateSettings(d, patch, t));
   const toggle = (k: 'restAutoStart' | 'restSound' | 'restVibrate', label: string) =>
     <Toggle label={label} checked={settings[k]} onChange={v => set({ [k]: v })} />;
+  const source = LOAD_SOURCES.find(o => o.id === loadSourceOf(settings))?.label ?? '';
+  const during: boolean[] = [settings.swipeSets ?? true, settings.compareSets ?? true, settings.previewBeforeStart ?? false, settings.autoHold ?? true,
+    settings.autoNextExercise ?? false, settings.offerLeftovers ?? true, settings.keepScreenOn ?? true, settings.weighBeforeWorkout ?? false, settings.dailyForm ?? false];
   return (
     <>
-      <div>
-        <p className="text-sm font-semibold text-muted">Descanso padrão</p>
-        {/* R3: roda de minutos e segundos; o domínio mantém o descanso entre 15 s e 10 min */}
-        <DurationWheel label="Descanso padrão" seconds={settings.restSeconds} min={15} max={600} onChange={n => set({ restSeconds: n })} />
-      </div>
-      <WarmupRestChoice value={settings.warmupRest} onChange={v => set({ warmupRest: v })} />
-      {/* V8: rampa nos compostos (barra × 10, 40%, 60%, 80%), que acompanha a carga do dia */}
-      <Toggle label="Aquecimento automático nos exercícios compostos (supino, agachamento, terra, remada…)" checked={settings.autoWarmup ?? false} onChange={v => set({ autoWarmup: v })} />
-      {/* T22 e V13: só a conta do volume; recordes e progressão não mudam */}
-      <Toggle label="Contar o aquecimento no volume" checked={settings.volumeWarmup ?? false} onChange={v => set({ volumeWarmup: v })} />
-      <Toggle label="Contar o peso do corpo no volume de barra fixa e paralelas" checked={settings.volumeBodyweight ?? false} onChange={v => set({ volumeBodyweight: v })} />
-      {toggle('restAutoStart', 'Iniciar o descanso ao marcar a série')}
-      {toggle('restSound', 'Som no fim do descanso')}
-      {toggle('restVibrate', 'Vibrar no fim do descanso')}
-      <LoadSourceChoice value={loadSourceOf(settings)} onChange={v => set({ loadSource: v, autoProgression: v === 'auto' })} />
-      <Toggle label="Deslizar para apagar (esquerda) ou copiar (direita) séries e exercícios do plano" checked={settings.swipeSets ?? true} onChange={v => set({ swipeSets: v })} />
-      <Toggle label="Comparar cada série com a última vez (↑ = ↓)" checked={settings.compareSets ?? true} onChange={v => set({ compareSets: v })} />
-      {/* W8: recorde na hora e quanto falta */}
-      <Toggle label="Troféu na série que bate um recorde" checked={settings.recordTrophies ?? true} onChange={v => set({ recordTrophies: v })} />
-      <Toggle label="Mostrar quanto falta para o recorde na próxima série" checked={settings.recordHints ?? true} onChange={v => set({ recordHints: v })} />
-      <Toggle label="Abrir o treino numa prévia, com Começar embaixo" checked={settings.previewBeforeStart ?? false} onChange={v => set({ previewBeforeStart: v })} />
-      <Toggle label="Prancha e isometrias começam sozinhas (3, 2, 1) depois do descanso" checked={settings.autoHold ?? true} onChange={v => set({ autoHold: v })} />
-      <Toggle label="Ir ao próximo exercício quando o descanso da última série acabar" checked={settings.autoNextExercise ?? false} onChange={v => set({ autoNextExercise: v })} />
-      <Toggle label="Oferecer os exercícios que ficaram para trás no treino anterior" checked={settings.offerLeftovers ?? true} onChange={v => set({ offerLeftovers: v })} />
-      {/* W14: com quanto um exercício novo começa */}
-      <div className="flex min-h-12 items-center justify-between gap-3">
-        <span className="font-semibold">Exercício novo começa com</span>
-        <span className="flex shrink-0 items-center gap-1 text-sm text-muted">
-          <span className="w-14"><NumberField label="Séries de exercício novo" value={settings.newExerciseSets ?? 3} onChange={n => { if (n >= 1 && n <= 20) set({ newExerciseSets: Math.round(n) }); }} /></span>
-          ×
-          <span className="w-14"><NumberField label="Repetições de exercício novo" value={settings.newExerciseReps ?? 10} onChange={n => { if (n >= 1 && n <= 100) set({ newExerciseReps: Math.round(n) }); }} /></span>
-        </span>
-      </div>
-      {/* W9: sugestão de semana de deload */}
-      <Toggle label="Sugerir deload quando as cargas caem ou o check-in anda ruim" checked={settings.deloadSuggest ?? true} onChange={v => set({ deloadSuggest: v })} />
-      <label className="flex min-h-12 items-center justify-between gap-3">
-        <span className="font-semibold">Sugerir deload a cada</span>
-        <select value={settings.deloadEvery ?? 0} onChange={e => set({ deloadEvery: Number(e.target.value) })} aria-label="Sugerir deload a cada"
-          className="h-11 shrink-0 rounded-xl border border-line bg-surface-2 px-2 text-base text-ink">
-          {[[0, 'Nunca'], [4, '4 semanas'], [5, '5 semanas'], [6, '6 semanas'], [8, '8 semanas']].map(([v, l]) => <option key={v} value={v}>{l}</option>)}
-        </select>
-      </label>
-      {/* W4: treino esquecido aberto */}
-      <label className="flex min-h-12 items-center justify-between gap-3">
-        <span className="font-semibold">Perguntar "Ainda treinando?" depois de</span>
-        <select value={settings.forgottenMinutes ?? 45} onChange={e => set({ forgottenMinutes: Number(e.target.value) })} aria-label="Perguntar se ainda está treinando depois de"
-          className="h-11 shrink-0 rounded-xl border border-line bg-surface-2 px-2 text-base text-ink">
-          {[[30, '30 min'], [45, '45 min'], [60, '60 min'], [90, '90 min'], [0, 'Nunca']].map(([v, l]) => <option key={v} value={v}>{l}</option>)}
-        </select>
-      </label>
-      <Toggle label="Botões de ajuste de carga no treino" checked={settings.weightButtons ?? true} onChange={v => set({ weightButtons: v })} />
-      <Toggle label="Manter a tela ligada no treino" checked={settings.keepScreenOn ?? true} onChange={v => set({ keepScreenOn: v })} />
-      <Toggle label="Pedir o peso do dia ao começar o treino" checked={settings.weighBeforeWorkout ?? false} onChange={v => set({ weighBeforeWorkout: v })} />
-      {/* W2: sono, energia, dor e estresse; num dia puxado, oferece ir mais leve */}
-      <Toggle label="Check-in do dia ao começar o treino (sono, energia, dor, estresse)" checked={settings.dailyForm ?? false} onChange={v => set({ dailyForm: v })} />
-      <Toggle label="Mostrar ilustrações dos exercícios" checked={settings.showIllustrations ?? true} onChange={v => set({ showIllustrations: v })} />
-      {(settings.showIllustrations ?? true) && (
-        <div className="py-2">
-          <p className="text-sm font-semibold text-muted">Tamanho da ilustração</p>
-          <div role="radiogroup" aria-label="Tamanho da ilustração" className="mt-1 grid grid-cols-3 gap-1 rounded-xl bg-surface-2 p-1">
-            {([['small', 'Pequena'], ['medium', 'Média'], ['large', 'Grande']] as const).map(([id, label]) => {
-              const on = (settings.illustrationSize ?? 'medium') === id;
-              return (
-                <button key={id} type="button" role="radio" aria-checked={on} onClick={() => set({ illustrationSize: id })}
-                  className={`min-h-11 rounded-lg text-sm font-semibold ${on ? 'bg-primary text-white' : 'text-muted'}`}>{label}</button>
-              );
-            })}
-          </div>
+      <SettingsGroup id="descanso" title="Descanso" startOpen={openFirst}
+        summary={`${formatClock(settings.restSeconds)} · ${onOff([[settings.restAutoStart, 'começa sozinho'], [settings.restSound, 'som'], [settings.restVibrate, 'vibra']])}`}>
+        <div>
+          <p className="text-sm font-semibold text-muted">Descanso padrão</p>
+          {/* R3: roda de minutos e segundos; o domínio mantém o descanso entre 15 s e 10 min */}
+          <DurationWheel label="Descanso padrão" seconds={settings.restSeconds} min={15} max={600} onChange={n => set({ restSeconds: n })} />
         </div>
-      )}
+        <WarmupRestChoice value={settings.warmupRest} onChange={v => set({ warmupRest: v })} />
+        {toggle('restAutoStart', 'Iniciar o descanso ao marcar a série')}
+        {toggle('restSound', 'Som no fim do descanso')}
+        {toggle('restVibrate', 'Vibrar no fim do descanso')}
+      </SettingsGroup>
+
+      <SettingsGroup id="carga" title="Carga e progressão"
+        summary={`${source}${settings.autoWarmup ? ' · aquecimento automático' : ''} · exercício novo ${settings.newExerciseSets ?? 3} × ${settings.newExerciseReps ?? 10}`}>
+        <LoadSourceChoice value={loadSourceOf(settings)} onChange={v => set({ loadSource: v, autoProgression: v === 'auto' })} />
+        {/* V8: rampa nos compostos (barra × 10, 40%, 60%, 80%), que acompanha a carga do dia */}
+        <Toggle label="Aquecimento automático nos exercícios compostos (supino, agachamento, terra, remada…)" checked={settings.autoWarmup ?? false} onChange={v => set({ autoWarmup: v })} />
+        <Toggle label="Botões de ajuste de carga no treino" checked={settings.weightButtons ?? true} onChange={v => set({ weightButtons: v })} />
+        {/* W14: com quanto um exercício novo começa */}
+        <div className="flex min-h-12 items-center justify-between gap-3">
+          <span className="font-semibold">Exercício novo começa com</span>
+          <span className="flex shrink-0 items-center gap-1 text-sm text-muted">
+            <span className="w-14"><NumberField label="Séries de exercício novo" value={settings.newExerciseSets ?? 3} onChange={n => { if (n >= 1 && n <= 20) set({ newExerciseSets: Math.round(n) }); }} /></span>
+            ×
+            <span className="w-14"><NumberField label="Repetições de exercício novo" value={settings.newExerciseReps ?? 10} onChange={n => { if (n >= 1 && n <= 100) set({ newExerciseReps: Math.round(n) }); }} /></span>
+          </span>
+        </div>
+        {/* W9: sugestão de semana de deload */}
+        <Toggle label="Sugerir deload quando as cargas caem ou o check-in anda ruim" checked={settings.deloadSuggest ?? true} onChange={v => set({ deloadSuggest: v })} />
+        <label className="flex min-h-12 items-center justify-between gap-3">
+          <span className="font-semibold">Sugerir deload a cada</span>
+          <select value={settings.deloadEvery ?? 0} onChange={e => set({ deloadEvery: Number(e.target.value) })} aria-label="Sugerir deload a cada"
+            className="h-11 shrink-0 rounded-xl border border-line bg-surface-2 px-2 text-base text-ink">
+            {[[0, 'Nunca'], [4, '4 semanas'], [5, '5 semanas'], [6, '6 semanas'], [8, '8 semanas']].map(([v, l]) => <option key={v} value={v}>{l}</option>)}
+          </select>
+        </label>
+      </SettingsGroup>
+
+      <SettingsGroup id="durante" title="Durante o treino"
+        summary={`${during.filter(Boolean).length} de ${during.length} ligados · "Ainda treinando?" ${settings.forgottenMinutes === 0 ? 'nunca' : `em ${settings.forgottenMinutes ?? 45} min`}`}>
+        <Toggle label="Deslizar para apagar (esquerda) ou copiar (direita) séries e exercícios do plano" checked={settings.swipeSets ?? true} onChange={v => set({ swipeSets: v })} />
+        <Toggle label="Comparar cada série com a última vez (↑ = ↓)" checked={settings.compareSets ?? true} onChange={v => set({ compareSets: v })} />
+        <Toggle label="Abrir o treino numa prévia, com Começar embaixo" checked={settings.previewBeforeStart ?? false} onChange={v => set({ previewBeforeStart: v })} />
+        <Toggle label="Prancha e isometrias começam sozinhas (3, 2, 1) depois do descanso" checked={settings.autoHold ?? true} onChange={v => set({ autoHold: v })} />
+        <Toggle label="Ir ao próximo exercício quando o descanso da última série acabar" checked={settings.autoNextExercise ?? false} onChange={v => set({ autoNextExercise: v })} />
+        <Toggle label="Oferecer os exercícios que ficaram para trás no treino anterior" checked={settings.offerLeftovers ?? true} onChange={v => set({ offerLeftovers: v })} />
+        {/* W4: treino esquecido aberto */}
+        <label className="flex min-h-12 items-center justify-between gap-3">
+          <span className="font-semibold">Perguntar "Ainda treinando?" depois de</span>
+          <select value={settings.forgottenMinutes ?? 45} onChange={e => set({ forgottenMinutes: Number(e.target.value) })} aria-label="Perguntar se ainda está treinando depois de"
+            className="h-11 shrink-0 rounded-xl border border-line bg-surface-2 px-2 text-base text-ink">
+            {[[30, '30 min'], [45, '45 min'], [60, '60 min'], [90, '90 min'], [0, 'Nunca']].map(([v, l]) => <option key={v} value={v}>{l}</option>)}
+          </select>
+        </label>
+        <Toggle label="Manter a tela ligada no treino" checked={settings.keepScreenOn ?? true} onChange={v => set({ keepScreenOn: v })} />
+        <Toggle label="Pedir o peso do dia ao começar o treino" checked={settings.weighBeforeWorkout ?? false} onChange={v => set({ weighBeforeWorkout: v })} />
+        {/* W2: sono, energia, dor e estresse; num dia puxado, oferece ir mais leve */}
+        <Toggle label="Check-in do dia ao começar o treino (sono, energia, dor, estresse)" checked={settings.dailyForm ?? false} onChange={v => set({ dailyForm: v })} />
+      </SettingsGroup>
+
+      <SettingsGroup id="recordes" title="Recordes e volume"
+        summary={onOff([[settings.recordTrophies ?? true, 'troféu no recorde'], [settings.recordHints ?? true, 'quanto falta'], [settings.volumeWarmup ?? false, 'aquecimento no volume'], [settings.volumeBodyweight ?? false, 'peso do corpo no volume']])}>
+        {/* W8: recorde na hora e quanto falta */}
+        <Toggle label="Troféu na série que bate um recorde" checked={settings.recordTrophies ?? true} onChange={v => set({ recordTrophies: v })} />
+        <Toggle label="Mostrar quanto falta para o recorde na próxima série" checked={settings.recordHints ?? true} onChange={v => set({ recordHints: v })} />
+        {/* T22 e V13: só a conta do volume; recordes e progressão não mudam */}
+        <Toggle label="Contar o aquecimento no volume" checked={settings.volumeWarmup ?? false} onChange={v => set({ volumeWarmup: v })} />
+        <Toggle label="Contar o peso do corpo no volume de barra fixa e paralelas" checked={settings.volumeBodyweight ?? false} onChange={v => set({ volumeBodyweight: v })} />
+      </SettingsGroup>
+
+      <SettingsGroup id="ilustracoes" title="Ilustrações"
+        summary={(settings.showIllustrations ?? true) ? `No treino, tamanho ${{ small: 'pequeno', medium: 'médio', large: 'grande' }[settings.illustrationSize ?? 'medium']}` : 'Escondidas'}>
+        <Toggle label="Mostrar ilustrações dos exercícios" checked={settings.showIllustrations ?? true} onChange={v => set({ showIllustrations: v })} />
+        {(settings.showIllustrations ?? true) && (
+          <div className="py-2">
+            <p className="text-sm font-semibold text-muted">Tamanho da ilustração</p>
+            <div role="radiogroup" aria-label="Tamanho da ilustração" className="mt-1 grid grid-cols-3 gap-1 rounded-xl bg-surface-2 p-1">
+              {([['small', 'Pequena'], ['medium', 'Média'], ['large', 'Grande']] as const).map(([id, label]) => {
+                const on = (settings.illustrationSize ?? 'medium') === id;
+                return (
+                  <button key={id} type="button" role="radio" aria-checked={on} onClick={() => set({ illustrationSize: id })}
+                    className={`min-h-11 rounded-lg text-sm font-semibold ${on ? 'bg-primary text-white' : 'text-muted'}`}>{label}</button>
+                );
+              })}
+            </div>
+          </div>
+        )}
+      </SettingsGroup>
     </>
   );
 }

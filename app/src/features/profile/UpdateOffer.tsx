@@ -37,3 +37,33 @@ export function UpdateControls() {
     </div>
   );
 }
+
+/**
+ * X7: o download da atualização aparece em qualquer aba, no alto da tela, com o quanto já veio;
+ * se falhar, o motivo fica até a pessoa fechar. Antes só dava para acompanhar em Perfil → Sobre.
+ */
+export function UpdateBanner() {
+  const phase = useUpdate(s => s.phase);
+  const percent = useUpdate(s => s.percent);
+  const status = useUpdate(s => s.status);
+  const close = useUpdate(s => s.closeNotice);
+  if (phase === 'idle' || !status) return null;
+  const failed = phase === 'failed';
+  return (
+    <div className="pointer-events-none fixed inset-x-0 top-[env(safe-area-inset-top)] z-50 mx-auto max-w-xl px-3 pt-2">
+      <div role={failed ? 'alert' : 'status'} data-testid="aviso-da-atualizacao"
+        className={`pointer-events-auto overflow-hidden rounded-2xl border bg-surface-2 shadow-xl ${failed ? 'border-danger/50' : 'border-line'}`}>
+        <div className="flex items-center gap-3 px-4 py-2.5">
+          <p className="min-w-0 flex-1 text-sm font-semibold">{status}</p>
+          {failed && <button type="button" onClick={close} className="h-10 shrink-0 rounded-xl bg-surface px-3 text-sm font-bold">Fechar</button>}
+        </div>
+        {phase === 'downloading' && (
+          <div role="progressbar" aria-label="Download da atualização" aria-valuemin={0} aria-valuemax={100} {...(percent !== null ? { 'aria-valuenow': percent } : {})}
+            className="h-1 bg-surface">
+            <div className={`h-1 bg-primary ${percent === null ? 'w-1/3 animate-pulse' : ''}`} style={percent === null ? undefined : { width: `${percent}%` }} />
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}

@@ -166,6 +166,7 @@ test('semana começando no domingo, semana de deload e repetições por lado (M1
   await page.getByRole('button', { name: 'Usar Superior / Inferior 4×' }).click();
 
   await page.getByRole('button', { name: 'Perfil', exact: true }).click();
+  await page.getByRole('button', { name: /^Avisos e semana/ }).click();
   await page.getByRole('radiogroup', { name: 'A semana começa na' }).getByRole('radio', { name: 'Domingo' }).click();
   await page.getByRole('button', { name: 'Início', exact: true }).click();
   const week = page.getByRole('region', { name: 'Esta semana' });

@@ -29,7 +29,8 @@ export function ActiveWorkout({ session }: { session: ActiveSession }) {
   const [adding, setAdding] = useState(session.exercises.length === 0);
   const [switching, setSwitching] = useState(false);
   const keepScreenOn = useAppStore(s => s.data?.settings.keepScreenOn ?? true);
-  useWakeLock(keepScreenOn);
+  // X10: pausado ou ainda na prévia, a tela pode apagar
+  useWakeLock(keepScreenOn && !session.pausedAt && !session.preview);
   const progress = sessionProgress(session);
   // T20: o volume do treino até agora, somando as séries marcadas
   const volumeOpts = useVolumeOptions();
@@ -160,7 +161,7 @@ export function ActiveWorkout({ session }: { session: ActiveSession }) {
       )}
       {/* R5: descanso, som, gesto e carga sem sair do treino */}
       <Sheet title="Ajustes do treino" open={settingsOpen} onClose={() => setSettingsOpen(false)}>
-        <div className="px-1 pb-3"><WorkoutSettingsFields /></div>
+        <div className="px-1 pb-3"><WorkoutSettingsFields openFirst /></div>
       </Sheet>
 
       {focus && total > 0 ? (

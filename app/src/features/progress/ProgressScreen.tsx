@@ -1,4 +1,6 @@
-import { useState } from 'react';
+import { Fragment, useState, type ReactNode } from 'react';
+import { visibleCards, type ProgressCardId } from '../../domain/progress-layout';
+import { ProgressLayoutSheet, useProgressLayout } from './ProgressLayoutSheet';
 import { WeeklySetsCard } from './WeeklySetsCard';
 import { ReopenButton } from '../workout/WorkoutExtras';
 import { bestsBefore, recordLabel, trophiesFor } from '../../domain/set-records';
@@ -57,16 +59,28 @@ export function ProgressScreen() {
 function Stats() {
   const data = useAppStore(s => s.data);
   const now = new Date(useNow(60_000));
-  const [libraryGroup, setLibraryGroup] = useState<string | null>(null);
+  const [layout, setLayout] = useProgressLayout();
+  const [organizing, setOrganizing] = useState(false);
   if (!data) return null;
   const s = statsSummary(data, now);
-  const balance = muscleBalance(data, now);
-  const untrained = untrainedGroups(data, now);
-  const max = balance[0]?.sets ?? 1;
   const w = s.weight30d;
   // T19: tudo o que já foi levantado (carga × repetições das séries de trabalho)
   const opts = volumeOptions(data);
   const lifted = data.workouts.reduce((n, x) => n + workoutVolume(x, opts), 0);
+  const cards: Record<ProgressCardId, ReactNode> = {
+    calor: (
+      <section className="rounded-2xl border border-line bg-surface p-4">
+        <h2 className="font-bold">Últimos 6 meses</h2>
+        <Heatmap />
+      </section>
+    ),
+    volume: <WeeklyVolume />,
+    desafios: <ChallengesCard />,
+    series: <WeeklySetsCard />,
+    exercicio: <ExerciseProgressCard />,
+    grupos: <GroupsCard />
+  };
+  const hidden = layout.hidden.length;
   return (
     <div className="mt-4 space-y-4">
       <div className="grid grid-cols-2 gap-3">
@@ -76,46 +90,57 @@ function Stats() {
         <Block label="Peso em 30 dias" value={w === null ? '—' : `${w > 0 ? '+' : ''}${formatNumber(w)} kg`} />
         <Block label="Total levantado" wide value={liftedText(lifted)} hint={lifted ? `em ${plural(s.totalWorkouts, 'treino', 'treinos')}, desde o primeiro` : 'some a carga × repetições de todas as séries'} />
       </div>
-      <section className="rounded-2xl border border-line bg-surface p-4">
-        <h2 className="font-bold">Últimos 6 meses</h2>
-        <Heatmap />
-      </section>
-      <WeeklyVolume />
-      <ChallengesCard />
-      <WeeklySetsCard />
-      <ExerciseProgressCard />
-      <section className="rounded-2xl border border-line bg-surface p-4">
-        <h2 className="font-bold">Séries por grupo (30 dias)</h2>
-        {balance.length === 0 ? <p className="mt-2 text-sm text-muted">Sem séries registradas no período.</p> : (
-          <ul className="mt-3 space-y-1">
-            {balance.map(g => (
-              <li key={g.group}>
-                {/* T8: tocar abre a Biblioteca com os exercícios do grupo */}
-                <button type="button" onClick={() => setLibraryGroup(g.group)} aria-label={`${g.group}: ${plural(g.sets, 'série', 'séries')}. Ver exercícios`}
-                  className="grid min-h-9 w-full grid-cols-[6rem_1fr_2.5rem] items-center gap-2 text-left text-sm">
-                  <span className="font-semibold">{g.group}</span>
-                  <span className="h-3 rounded-full bg-surface-2"><span className="block h-3 rounded-full bg-primary" style={{ width: `${(g.sets / max) * 100}%` }} /></span>
-                  <span className="text-right text-muted">{g.sets}</span>
-                </button>
-              </li>
-            ))}
-          </ul>
-        )}
-        {untrained.length > 0 && (
-          <div className="mt-3">
-            <p className="text-sm font-semibold text-muted">Sem treino no período</p>
-            <div className="mt-1 flex flex-wrap gap-2">
-              {untrained.map(g => (
-                <button key={g} type="button" onClick={() => setLibraryGroup(g)} aria-label={`${g}: sem treino. Ver exercícios`}
-                  className="h-10 rounded-full border border-dashed border-line px-3 text-sm font-semibold text-muted">{g}</button>
-              ))}
-            </div>
-          </div>
-        )}
-        <LibrarySheet open={libraryGroup !== null} group={libraryGroup} onClose={() => setLibraryGroup(null)} />
-      </section>
+      {/* X6: a pessoa escolhe os cartões e a ordem */}
+      {visibleCards(layout).map(id => <Fragment key={id}>{cards[id]}</Fragment>)}
       <YearReviewLinks />
+      <button type="button" onClick={() => setOrganizing(true)}
+        className="flex min-h-12 w-full items-center justify-center gap-2 rounded-xl border border-line px-4 font-semibold text-muted">
+        <Icon name="ajustes" className="size-5" />Organizar esta tela{hidden > 0 ? ` (${plural(hidden, 'cartão escondido', 'cartões escondidos')})` : ''}
+      </button>
+      <ProgressLayoutSheet open={organizing} layout={layout} onChange={setLayout} onClose={() => setOrganizing(false)} />
     </div>
+  );
+}
+
+/** Séries por grupo muscular nos últimos 30 dias; tocar abre a Biblioteca no grupo (T8). */
+function GroupsCard() {
+  const data = useAppStore(s => s.data);
+  const now = new Date(useNow(60_000));
+  const [libraryGroup, setLibraryGroup] = useState<string | null>(null);
+  if (!data) return null;
+  const balance = muscleBalance(data, now);
+  const untrained = untrainedGroups(data, now);
+  const max = balance[0]?.sets ?? 1;
+  return (
+    <section className="rounded-2xl border border-line bg-surface p-4">
+      <h2 className="font-bold">Séries por grupo (30 dias)</h2>
+      {balance.length === 0 ? <p className="mt-2 text-sm text-muted">Sem séries registradas no período.</p> : (
+        <ul className="mt-3 space-y-1">
+          {balance.map(g => (
+            <li key={g.group}>
+              <button type="button" onClick={() => setLibraryGroup(g.group)} aria-label={`${g.group}: ${plural(g.sets, 'série', 'séries')}. Ver exercícios`}
+                className="grid min-h-9 w-full grid-cols-[6rem_1fr_2.5rem] items-center gap-2 text-left text-sm">
+                <span className="font-semibold">{g.group}</span>
+                <span className="h-3 rounded-full bg-surface-2"><span className="block h-3 rounded-full bg-primary" style={{ width: `${(g.sets / max) * 100}%` }} /></span>
+                <span className="text-right text-muted">{g.sets}</span>
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
+      {untrained.length > 0 && (
+        <div className="mt-3">
+          <p className="text-sm font-semibold text-muted">Sem treino no período</p>
+          <div className="mt-1 flex flex-wrap gap-2">
+            {untrained.map(g => (
+              <button key={g} type="button" onClick={() => setLibraryGroup(g)} aria-label={`${g}: sem treino. Ver exercícios`}
+                className="h-10 rounded-full border border-dashed border-line px-3 text-sm font-semibold text-muted">{g}</button>
+            ))}
+          </div>
+        </div>
+      )}
+      <LibrarySheet open={libraryGroup !== null} group={libraryGroup} onClose={() => setLibraryGroup(null)} />
+    </section>
   );
 }
 

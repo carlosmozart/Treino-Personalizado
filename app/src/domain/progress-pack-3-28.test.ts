@@ -16,7 +16,7 @@ describe('V7: desafios do mês', () => {
   it('sem histórico: 8 treinos, todos os grupos ou recordes conforme o mês', () => {
     const list = monthChallenges(sampleData(), '2026-11');
     expect(list.map(c => c.id)).toEqual(['treinos', 'grupos', 'recordes']);
-    expect(list[0]).toMatchObject({ target: 8, current: 0, done: false, goal: '8 treinos em novembro', key: '2026-11:treinos' });
+    expect(list[0]).toMatchObject({ target: 8, current: 0, done: false, goal: '8 dias de treino em novembro', key: '2026-11:treinos' });
   });
 
   it('com histórico: um pouco acima da média dos meses anteriores', () => {
@@ -35,7 +35,7 @@ describe('V7: desafios do mês', () => {
     const first = unlockAchievements(d, new Date(2026, 10, 9));
     expect(first.data.gamification.challengeBonus).toEqual({ '2026-11:treinos': CHALLENGE_XP });
     expect(first.data.gamification.totalXP).toBe(computeTotalXP(d.gamification) + CHALLENGE_XP);
-    expect(first.events).toContainEqual({ kind: 'challenge', title: 'Constância', goal: '8 treinos em novembro', xp: CHALLENGE_XP });
+    expect(first.events).toContainEqual({ kind: 'challenge', title: 'Constância', goal: '8 dias de treino em novembro', xp: CHALLENGE_XP });
     expect(first.events).toContainEqual({ kind: 'achievement', name: 'Desafio Aceito' });
     expect(awardChallenges(first.data, new Date(2026, 10, 10)).done).toEqual([]);
     // a junção de dois aparelhos não soma duas vezes

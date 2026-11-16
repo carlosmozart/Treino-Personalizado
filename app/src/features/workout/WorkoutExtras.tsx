@@ -1,7 +1,7 @@
 // Partes do treino em andamento da 3.27.0: prévia antes de começar (W11), "Ainda treinando?" do
 // treino esquecido (W4) e "Terminou cedo?" com os exercícios que ficaram para trás (W13).
 import { useEffect, useState } from 'react';
-import { addLeftovers, forgottenEnd, forgottenState, reopenSession, startFromPreview, type ActiveSession } from '../../domain/session';
+import { addLeftovers, canReopen, forgottenEnd, forgottenState, reopenSession, startFromPreview, type ActiveSession } from '../../domain/session';
 import type { Workout } from '../../domain/model';
 import { useNow } from '../../hooks/use-now';
 import { useAppStore } from '../../store';
@@ -85,7 +85,7 @@ export function ReopenButton({ w, className = '' }: { w: Workout; className?: st
   const data = useAppStore(s => s.data);
   const running = useAppStore(s => !!s.session);
   const open = useAppStore(s => s.openSession);
-  if (!data || !w.autoFinished || running) return null;
+  if (!data || running || !canReopen(w, new Date())) return null;
   const reopen = () => {
     const s = reopenSession(data, w, new Date());
     if (s && open(s)) { useWorkoutUi.getState().showSummary(null); useUiStore.getState().setTab('treino'); }

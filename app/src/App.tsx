@@ -1,7 +1,7 @@
 import { TabBar, TAB_LABELS } from './ui/TabBar';
 import { Toaster } from './ui/Toaster';
 import { ErrorNotice } from './ui/ErrorNotice';
-import { UpdateOffer } from './features/profile/UpdateOffer';
+import { UpdateBanner, UpdateOffer } from './features/profile/UpdateOffer';
 import { WhatsNew } from './features/profile/WhatsNew';
 import { useUiStore } from './store/ui-store';
 import { useToday } from './hooks/use-today';
@@ -53,6 +53,7 @@ export function App() {
       <Toaster />
       <ErrorNotice />
       <UpdateOffer />
+      <UpdateBanner />
       <WhatsNew />
       <TabBar />
     </div>

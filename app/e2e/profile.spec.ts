@@ -16,6 +16,7 @@ test('perfil: dados, saúde, configurações e backup de ida e volta', async ({ 
   await page.getByRole('textbox', { name: 'Altura em cm' }).fill('165');
   await expect(page.getByText(/Para todos os cálculos, preencha: peso/)).toBeVisible();
 
+  await page.getByRole('button', { name: /^Ilustrações/ }).click();
   await page.getByRole('switch', { name: 'Mostrar ilustrações dos exercícios' }).uncheck();
   await page.getByRole('button', { name: 'Saiba mais' }).click();
   await expect(page.getByText(/não separa gordura de músculo/)).toBeVisible();

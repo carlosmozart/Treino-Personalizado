@@ -98,6 +98,9 @@ export function setsPatch(ex: Pick<PlanExercise, 'sets'>, workSets: number): Pic
   return n === ex.sets ? null : { sets: n };
 }
 
+/** Com repetições fixas no plano, a partir de quantas de diferença o treino pergunta. */
+export const FIXED_REPS_TOLERANCE = 3;
+
 /**
  * Repetições fora da faixa do plano: a faixa cresce até elas (8–12 e 15 → 8–15). Dentro da faixa
  * é a progressão andando, e não há o que perguntar.
@@ -108,8 +111,9 @@ export function repsPatch(ex: Pick<PlanExercise, 'reps' | 'repMin' | 'repMax'>, 
   const min = ex.repMin && ex.repMin > 0 ? ex.repMin : ex.reps;
   const max = ex.repMax && ex.repMax >= min ? ex.repMax : Math.max(min, ex.reps);
   if (r >= min && r <= max) return null;
-  // reps fixas (sem faixa): troca o número
-  if (min === max && !ex.repMin && !ex.repMax) return { reps: r };
+  // reps fixas (sem faixa): uma ou duas a mais ou a menos é o dia a dia (falhou no fim, sobrou
+  // fôlego); só vale perguntar quando a diferença é de 3 ou mais
+  if (min === max && !ex.repMin && !ex.repMax) return Math.abs(r - min) >= FIXED_REPS_TOLERANCE ? { reps: r } : null;
   const lo = Math.min(min, r), hi = Math.max(max, r);
   return { reps: hi, repMin: lo, repMax: hi };
 }

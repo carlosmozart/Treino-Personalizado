@@ -45,8 +45,11 @@ describe('salvar no plano', () => {
     expect(repsPatch(ex, 10)).toBeNull();
     expect(repsPatch(ex, 15)).toEqual({ reps: 15, repMin: 8, repMax: 15 });
     expect(repsPatch(ex, 6)).toEqual({ reps: 12, repMin: 6, repMax: 12 });
-    // reps fixas: troca o número
-    expect(repsPatch({ reps: 10 }, 12)).toEqual({ reps: 12 });
+    // reps fixas: uma ou duas de diferença é o dia a dia; a partir de 3, troca o número
+    expect(repsPatch({ reps: 10 }, 11)).toBeNull();
+    expect(repsPatch({ reps: 10 }, 8)).toBeNull();
+    expect(repsPatch({ reps: 10 }, 13)).toEqual({ reps: 13 });
+    expect(repsPatch({ reps: 10 }, 7)).toEqual({ reps: 7 });
     expect(repsPatch({ reps: 10 }, 0)).toBeNull();
   });
 

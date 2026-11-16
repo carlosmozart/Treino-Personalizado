@@ -46,6 +46,7 @@ test('prévia antes de começar, recorde na hora com quanto falta, e pausar o tr
   await page.clock.setFixedTime(new Date(2026, 10, 23, 18));
   await page.reload();
   await page.getByRole('button', { name: 'Perfil', exact: true }).click();
+  await page.getByRole('button', { name: /^Durante o treino/ }).click();
   await page.getByRole('switch', { name: 'Abrir o treino numa prévia, com Começar embaixo' }).check();
   await page.getByRole('button', { name: 'Início', exact: true }).click();
   await page.getByRole('button', { name: /^Começar / }).first().click();

@@ -66,6 +66,7 @@ test('setas contra a última vez (V1) e nota em cada série (V2), no treino e no
 
   // a opção desliga as setas
   await page.getByRole('button', { name: 'Perfil', exact: true }).click();
+  await page.getByRole('button', { name: /^Durante o treino/ }).click();
   await page.getByRole('switch', { name: /^Comparar cada série com a última vez/ }).uncheck();
   await page.getByRole('button', { name: 'Progresso', exact: true }).click();
   await page.getByRole('tab', { name: 'Histórico' }).click();

@@ -1,5 +1,6 @@
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
+import { ErrorBoundary } from './ui/ErrorBoundary';
 import { App } from './App';
 import { isNative } from './platform/platform';
 import { flushOnHide, syncController, useAppStore } from './store';
@@ -62,7 +63,9 @@ if (canAutoBackup()) {
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <App />
+    <ErrorBoundary>
+      <App />
+    </ErrorBoundary>
   </StrictMode>
 );
 

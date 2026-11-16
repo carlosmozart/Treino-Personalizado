@@ -130,6 +130,7 @@ test('equilíbrio muscular abre a Biblioteca no grupo (T8), histórico em CSV (T
   expect(download.suggestedFilename()).toMatch(/^treino-historico-\d{4}-\d{2}-\d{2}\.csv$/);
   await expect(page.getByRole('status').filter({ hasText: 'Histórico exportado: 1 treino' })).toBeVisible();
 
+  await page.getByRole('button', { name: /^Descanso/ }).click();
   const warmup = page.getByRole('radiogroup', { name: 'Descanso depois do aquecimento' });
   await warmup.getByRole('radio', { name: 'Sem' }).click();
   await expect(warmup.getByRole('radio', { name: 'Sem' })).toHaveAttribute('aria-checked', 'true');

@@ -426,7 +426,7 @@ export function ExerciseCard({ session, index, alwaysOpen = false, onGoTo }: Pro
         onClose={() => setRestOpen(false)} onSave={saveRest} />
       <Sheet title={ex.name} open={menu} onClose={close}>
         {ex.mode !== 'cardio' && <>
-          <SheetAction onClick={() => { update(s => completeExercise(s, index, !done)); close(); }}>
+          <SheetAction onClick={() => { update(s => completeExercise(s, index, !done, new Date())); close(); }}>
             <Icon name="check" />{done ? 'Desmarcar todas as séries' : 'Marcar todas as séries'}
           </SheetAction>
           <SheetAction onClick={() => { changeSets(s => addSet(s, index), 'series'); close(); }}><Icon name="mais" />Adicionar série</SheetAction>
@@ -437,9 +437,12 @@ export function ExerciseCard({ session, index, alwaysOpen = false, onGoTo }: Pro
           {ex.sets.length > 1 && (
             <SheetAction onClick={() => { changeSets(s => removeSet(s, index, ex.sets.length - 1), ex.sets[ex.sets.length - 1]?.kind === 'warmup' ? 'aquecimento' : 'series'); close(); }}><Icon name="menos" />Remover última série</SheetAction>
           )}
-          <SheetAction onClick={() => { toggleLock(); close(); }}>
-            <Icon name="cadeado" />{ex.lockWeight ? 'Destravar a carga' : `Travar a carga${topWeight ? ` em ${formatNumber(topWeight)} kg` : ''}`}
-          </SheetAction>
+          {/* X8: a trava vive no plano; no treino livre e no exercício trocado não teria efeito */}
+          {(canSavePlan || ex.lockWeight) && (
+            <SheetAction onClick={() => { toggleLock(); close(); }}>
+              <Icon name="cadeado" />{ex.lockWeight ? 'Destravar a carga' : `Travar a carga${topWeight ? ` em ${formatNumber(topWeight)} kg` : ''}`}
+            </SheetAction>
+          )}
         </>}
         {ex.mode === 'reps' && isBarbell(ex.name) && (
           <SheetAction onClick={() => { close(); setPlatesOpen(true); }}><Icon name="treino" />Anilhas na barra</SheetAction>

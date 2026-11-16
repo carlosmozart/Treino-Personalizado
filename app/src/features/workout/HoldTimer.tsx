@@ -12,18 +12,39 @@ import { ProgressRing } from '../../ui/ProgressRing';
 
 export const COUNTDOWN_SECONDS = 3;
 
+interface Hold {
+  /** O treino e o exercício em que o cronômetro começou: ele só vale para eles. */
+  sessionId: string;
+  exKey: string;
+  ex: number; set: number; seconds: number; phase: 'countdown' | 'hold'; endsAt: number; holdStart: number;
+}
+
 interface HoldState {
-  hold: { ex: number; set: number; seconds: number; phase: 'countdown' | 'hold'; endsAt: number; holdStart: number } | null;
-  start(ex: number, set: number, seconds: number, now?: number): void;
+  hold: Hold | null;
+  start(target: Pick<Hold, 'sessionId' | 'exKey' | 'ex' | 'set' | 'seconds'>, now?: number): void;
   stop(): void;
 }
 
 export const useHoldStore = create<HoldState>(set => ({
   hold: null,
-  start: (ex, setIndex, seconds, now = Date.now()) =>
-    set({ hold: { ex, set: setIndex, seconds: Math.max(1, Math.round(seconds)), phase: 'countdown', endsAt: now + COUNTDOWN_SECONDS * 1000, holdStart: 0 } }),
+  start: (target, now = Date.now()) =>
+    set({ hold: { ...target, seconds: Math.max(1, Math.round(target.seconds)), phase: 'countdown', endsAt: now + COUNTDOWN_SECONDS * 1000, holdStart: 0 } }),
   stop: () => set({ hold: null })
 }));
+
+/** O cronômetro ainda vale para este treino? (mesmo treino, mesmo exercício no lugar, sem pausa) */
+export function holdIsValid(hold: Pick<Hold, 'sessionId' | 'exKey' | 'ex' | 'set'>, session: ActiveSession | null): boolean {
+  if (!session || session.id !== hold.sessionId || session.pausedAt) return false;
+  const e = session.exercises[hold.ex];
+  return !!e && e.key === hold.exKey && e.mode === 'time' && !!e.sets[hold.set] && !e.sets[hold.set]!.done;
+}
+
+// O cronômetro não sobrevive ao treino: concluir, cancelar, trocar de treino, pausar ou tirar o
+// exercício encerra a contagem. Antes, um cronômetro esquecido marcava uma série do treino seguinte.
+useAppStore.subscribe(state => {
+  const { hold, stop } = useHoldStore.getState();
+  if (hold && !holdIsValid(hold, state.session)) stop();
+});
 
 /** A próxima série por tempo ainda não feita do exercício (ou null). */
 export function nextHoldSet(s: ActiveSession, ex: number): number | null {
@@ -37,8 +58,9 @@ export function nextHoldSet(s: ActiveSession, ex: number): number | null {
 export function startHold(s: ActiveSession, ex: number, set: number): void {
   const e = s.exercises[ex];
   if (!e || e.mode !== 'time' || !e.sets[set]) return;
+  if (s.pausedAt) return;
   useRestStore.getState().stop();
-  useHoldStore.getState().start(ex, set, e.sets[set]!.reps || e.seconds || 30);
+  useHoldStore.getState().start({ sessionId: s.id, exKey: e.key, ex, set, seconds: e.sets[set]!.reps || e.seconds || 30 });
 }
 
 /** A barra do cronômetro, acima da barra de abas (no lugar da do descanso). */
@@ -68,6 +90,7 @@ export function HoldBar({ session }: { session: ActiveSession }) {
 
   useEffect(() => {
     if (!hold) return;
+    if (!holdIsValid(hold, session)) { stop(); return; }
     if (hold.phase === 'countdown' && now >= hold.endsAt) {
       useHoldStore.setState({ hold: { ...hold, phase: 'hold', holdStart: hold.endsAt, endsAt: hold.endsAt + hold.seconds * 1000 } });
       if (settings?.restVibrate && typeof navigator.vibrate === 'function') navigator.vibrate(150);
@@ -76,9 +99,8 @@ export function HoldBar({ session }: { session: ActiveSession }) {
     }
   }, [now, hold]);
 
-  if (!hold) return null;
-  const e = session.exercises[hold.ex];
-  if (!e) return null;
+  if (!hold || !holdIsValid(hold, session)) return null;
+  const e = session.exercises[hold.ex]!;
   const counting = hold.phase === 'countdown';
   const left = Math.max(0, Math.ceil((hold.endsAt - now) / 1000));
   const elapsed = counting ? 0 : Math.max(0, Math.round((now - hold.holdStart) / 1000));

@@ -47,7 +47,7 @@ test('desafios do mês, nível de força, recordes por repetição e ritmo do pe
   const challenges = page.getByRole('region', { name: 'Desafios do mês' });
   await expect(challenges.getByRole('heading', { name: 'Desafios de novembro' })).toBeVisible();
   await expect(challenges.getByRole('listitem')).toHaveCount(3);
-  await expect(challenges).toContainText('8 treinos em novembro');
+  await expect(challenges).toContainText('8 dias de treino em novembro');
   await challenges.screenshot({ path: 'test-results/desafios-do-mes.png' });
 
   // 80 × 10 com 80,9 kg de corpo: 1RM ~107 kg = 1,32×: Intermediário

@@ -72,7 +72,9 @@ test('aquecimento automático, descanso só desta série e o aquecimento no volu
   await page.clock.setFixedTime(new Date(2026, 10, 9, 18)); // segunda
   await page.goto('/');
   await page.getByRole('button', { name: 'Perfil', exact: true }).click();
+  await page.getByRole('button', { name: /^Carga e progressão/ }).click();
   await page.getByRole('switch', { name: /^Aquecimento automático/ }).check();
+  await page.getByRole('button', { name: /^Recordes e volume/ }).click();
   await page.getByRole('switch', { name: 'Contar o aquecimento no volume' }).check();
   const monday = await scratchPlan(page, ['Supino Reto (Barra)']);
   // o último adicionado fica aberto para ajustar

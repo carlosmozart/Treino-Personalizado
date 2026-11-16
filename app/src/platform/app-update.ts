@@ -20,8 +20,19 @@ export const updatesAvailable = () => plugin() !== null;
 
 const LAST_CHECK_KEY = 'vigor-update-last-check';
 
+/**
+ * X7: em que ponto a atualização está, para o aviso que aparece em qualquer aba: baixando,
+ * esperando a pessoa voltar ao app, abrindo o instalador ou com falha.
+ */
+export type UpdatePhase = 'idle' | 'downloading' | 'waiting' | 'installing' | 'failed';
+
 interface UpdateState {
   status: string;
+  phase: UpdatePhase;
+  /** Quanto do download já veio (0 a 100); `null` quando o servidor não diz o tamanho. */
+  percent: number | null;
+  /** Fecha o aviso de falha (o texto continua em Perfil → Sobre). */
+  closeNotice(): void;
   offer: ReleaseInfo | null;
   busy: boolean;
   check(manual: boolean): Promise<void>;
@@ -51,6 +62,8 @@ const code = (e: unknown) => (e && typeof e === 'object' && 'code' in e ? String
 
 export const useUpdate = create<UpdateState>((set, get) => ({
   status: '',
+  phase: 'idle',
+  percent: null,
   offer: null,
   busy: false,
 
@@ -78,25 +91,27 @@ export const useUpdate = create<UpdateState>((set, get) => ({
   async install(info) {
     const p = plugin();
     if (!p || get().busy) return;
-    set({ busy: true, offer: null, status: 'Baixando atualização…' });
-    const listener = await p.addListener('downloadProgress', e => set({ status: e.percent >= 0 ? `Baixando atualização… ${e.percent}%` : 'Baixando atualização…' }));
+    set({ busy: true, offer: null, status: 'Baixando atualização…', phase: 'downloading', percent: null });
+    const listener = await p.addListener('downloadProgress', e => set(e.percent >= 0
+      ? { status: `Baixando atualização… ${e.percent}%`, percent: Math.min(100, Math.round(e.percent)) }
+      : { status: 'Baixando atualização…', percent: null }));
     try {
       try {
         await p.download({ url: info.url, sha256: info.sha256 });
       } catch (first) {
         // W5: o link de download do GitHub falhou: tenta o mesmo arquivo pela API (o SHA-256 confere igual)
         if (!info.apiUrl || code(first) !== 'DOWNLOAD_FAILED') throw first;
-        set({ status: 'Tentando baixar por outro caminho…' });
+        set({ status: 'Tentando baixar por outro caminho…', percent: null });
         await p.download({ url: info.apiUrl, sha256: info.sha256 });
       }
       // trocou de app no meio do download: o instalador abre quando voltar
-      if (globalThis.document?.visibilityState === 'hidden') set({ status: 'Download conferido. Volte ao app para instalar.' });
+      if (globalThis.document?.visibilityState === 'hidden') set({ status: 'Download conferido. Volte ao app para instalar.', phase: 'waiting' });
       await whenVisible();
-      set({ status: 'Download conferido. Abrindo o instalador…' });
+      set({ status: 'Download conferido. Abrindo o instalador…', phase: 'installing' });
       await p.install();
-      set({ status: '' });
+      set({ status: '', phase: 'idle', percent: null });
     } catch (e) {
-      set({ status: code(e) === 'NEEDS_PERMISSION'
+      set({ phase: 'failed', percent: null, status: code(e) === 'NEEDS_PERMISSION'
         ? 'Libere "instalar apps desconhecidos" para este app e toque em "Procurar atualização" de novo.'
         : `A atualização falhou: ${errMsg(e)}` });
     } finally {
@@ -105,5 +120,6 @@ export const useUpdate = create<UpdateState>((set, get) => ({
     }
   },
 
-  dismiss: () => set({ offer: null })
+  dismiss: () => set({ offer: null }),
+  closeNotice: () => { if (get().phase === 'failed') set({ phase: 'idle' }); }
 }));

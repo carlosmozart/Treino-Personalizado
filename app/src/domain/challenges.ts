@@ -1,5 +1,5 @@
 // V7: desafios do mês. Três metas ajustadas ao histórico de cada pessoa (nada de meta igual para
-// todo mundo): treinos no mês e volume um pouco acima da média dos três meses anteriores, e uma
+// todo mundo): dias de treino no mês e volume um pouco acima da média dos três meses anteriores, e uma
 // terceira que muda a cada mês (recordes, pesagens ou todos os grupos). O progresso sai do
 // histórico; só o bônus de XP de um desafio cumprido fica gravado (gamification.challengeBonus),
 // para não ser dado duas vezes.
@@ -55,9 +55,11 @@ export function monthChallenges(data: Pick<AppData, 'workouts' | 'profile' | 'se
   const add = (id: ChallengeId, title: string, goal: string, target: number, current: number) =>
     out.push({ id, title, goal, target, current, done: current >= target, key: `${month}:${id}` });
 
-  const avgWorkouts = avg(ws => ws.length);
-  const treinos = before.length ? clamp(Math.round(avgWorkouts * 1.1), 4, 26) : 8;
-  add('treinos', 'Constância', `${treinos} treinos em ${name}`, treinos, here.length);
+  // X11: conta dias com treino (dois treinos no mesmo dia valem um), como a sequência e a meta da semana
+  const days = (ws: typeof here) => new Set(ws.map(w => w.date)).size;
+  const avgDays = avg(days);
+  const treinos = before.length ? clamp(Math.round(avgDays * 1.1), 4, 26) : 8;
+  add('treinos', 'Constância', `${treinos} dias de treino em ${name}`, treinos, days(here));
 
   const avgVolume = avg(ws => ws.reduce((n, w) => n + workoutVolume(w), 0));
   const third = (['recordes', 'pesagens', 'grupos'] as const)[Number(month.slice(5, 7)) % 3]!;

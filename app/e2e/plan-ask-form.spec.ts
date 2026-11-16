@@ -80,6 +80,7 @@ test('check-in do dia num dia puxado: mais leve, fora da progressão; depois o t
   await page.clock.setFixedTime(new Date(2026, 10, 16, 18)); // segunda
   await page.goto('/');
   await page.getByRole('button', { name: 'Perfil', exact: true }).click();
+  await page.getByRole('button', { name: /^Durante o treino/ }).click();
   await page.getByRole('switch', { name: /^Check-in do dia ao começar o treino/ }).check();
   await scratchPlan(page, ['Supino Reto (Barra)'], '60');
   await startToday(page);

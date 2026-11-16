@@ -131,6 +131,20 @@ export function reopenSession(data: AppData, w: Workout, now: Date): ActiveSessi
   };
 }
 
+/** X9: até quando um treino salvo sozinho ainda pode ser reaberto depois do fim, fora do dia dele. */
+export const REOPEN_HOURS = 12;
+
+/**
+ * X9: o treino salvo sozinho pode ser reaberto no dia dele, ou até 12 horas depois do fim (o
+ * treino que passou da meia-noite). Depois disso é histórico: corrige-se pelo Progresso.
+ */
+export function canReopen(w: Workout, now: Date): boolean {
+  if (!w.autoFinished || !w.startedAt || !w.entries.length) return false;
+  if (w.date === toDateKey(now)) return true;
+  const since = now.getTime() - Date.parse(w.endedAt ?? w.startedAt);
+  return since >= 0 && since < REOPEN_HOURS * 3_600_000;
+}
+
 /** W3: pausa o treino (o relógio para). */
 export function pauseSession(s: ActiveSession, now: Date): ActiveSession {
   return s.pausedAt || s.backdated ? s : { ...s, pausedAt: now.toISOString() };
@@ -334,6 +348,8 @@ export function lightenSession(s: ActiveSession, kind: LightKind, settings: Pick
     const lighter = (kg: number) => {
       if (kg <= 0) return kg;
       const target = kg * 0.9;
+      // X11: na máquina com pilha (T23), o pino logo abaixo dos 90% (ou o mais leve da pilha)
+      if (ex.stack?.length) return Math.min(kg, [...ex.stack].reverse().find(w => w <= target + 1e-9) ?? ex.stack[0]!);
       const st = bar === null && kg < 20 ? 0.5 : step;
       const base = bar ?? 0;
       const out = target <= base ? Math.min(kg, base) : base + Math.floor((target - base) / st + 1e-9) * st;
@@ -632,10 +648,15 @@ export function insertSet(s: ActiveSession, exIndex: number, setIndex: number, s
 }
 
 /** Concluir pelo botão do exercício marca todas as séries (ou o cardio). */
-export function completeExercise(s: ActiveSession, exIndex: number, done = true): ActiveSession {
+export function completeExercise(s: ActiveSession, exIndex: number, done = true, now?: Date): ActiveSession {
+  // X11: as séries marcadas de uma vez levam a hora (V14); as que já estavam feitas mantêm a delas
+  const stamp = (set: SessionSet): SessionSet => {
+    if (!done) { const { at: _a, ...rest } = set; return { ...rest, done: false }; }
+    return set.done ? set : { ...set, done: true, ...(now ? { at: now.toISOString() } : {}) };
+  };
   return mapExercise(s, exIndex, ex => ({
     ...ex,
-    sets: ex.sets.map(set => ({ ...set, done })),
+    sets: ex.sets.map(stamp),
     ...(ex.cardio ? { cardio: { ...ex.cardio, done } } : {})
   }));
 }

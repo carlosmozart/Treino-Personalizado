@@ -93,9 +93,9 @@ export function ExerciseProgressCard({ initialKey }: { initialKey?: string }) {
           <p><strong>1RM estimado: {formatNumber(best.value)} kg</strong> <span className="text-muted">({formatNumber(best.set.weight)} kg × {best.set.reps} em {shortDate(best.date)})</span></p>
           <div className="mt-2 flex items-center gap-2">
             <span className="text-muted">Para</span>
-            <NumberField label="Repetições para a calculadora" value={reps} onChange={n => setReps(Math.min(12, Math.max(1, Math.round(n))))} className="w-16" />
+            <span className="w-16 shrink-0"><NumberField label="Repetições para a calculadora" value={reps} onChange={n => setReps(Math.min(12, Math.max(1, Math.round(n))))} /></span>
             <span className="text-muted">reps:</span>
-            <strong>{formatNumber(weightForReps(best.value, reps))} kg</strong>
+            <strong className="whitespace-nowrap">{formatNumber(weightForReps(best.value, reps))} kg</strong>
           </div>
           <p className="mt-1 text-xs text-faint">Estimativa pela fórmula de Epley, só com séries de até 12 repetições.</p>
         </div>

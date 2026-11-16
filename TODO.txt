@@ -362,3 +362,23 @@ W16	✅ (14/11/2026: tabela "Recordes por repetição" na evolução do exercíc
 W17	Tamanho do texto em passos (menor a maior) com prévia, seguindo o do celular por padrão	Baixa
 W18	✅ (14/11/2026: Perfil → Aparência; data-motion="reduce" corta animações e transições, e a neve some) "Menos movimento" em Perfil → Aparência: desliga animações, neve e enfeites que se mexem neste aparelho	Baixa
 W19	✅ (14/11/2026: nível de 1 a 30 na bicicleta, remo, elíptico e escada; abre no da última vez; no histórico e na planilha) Nível de resistência (1 a 30) na bicicleta, remo, elíptico e escada, como a inclinação da esteira; no histórico como "Nível 8" e no CSV	Baixa
+
+
+X. Análise do projeto (16/11/2026): erros e melhorias
+Medidas, leitura do código das versões 3.25 a 3.30 e capturas de todas as abas no tamanho do celular. O teste instável do onboarding do app 2.x no CI sai com o P8 (arquivar o app antigo).
+#	Item	Prioridade
+X1	✅ (16/11/2026: o cronômetro leva o id do treino e o exercício; concluir, cancelar, trocar, pausar ou marcar a série encerra a contagem) Cronômetro da prancha sobrevivia ao treino e marcava sozinho uma série do treino seguinte	Alta
+X2	✅ (16/11/2026: ui/ErrorBoundary.tsx em volta do app, com "Tentar de novo" e "Recarregar"; o erro vai para o registro) Tela em branco quando um componente quebra ao desenhar	Alta
+X3	✅ (16/11/2026: com repetições fixas no plano, só pergunta com 3 ou mais de diferença) "Salvar no plano?" aparecia a cada série com 1 repetição a mais ou a menos	Alta
+X4	✅ (16/11/2026) Perfil → Sobre: "Novidades" e "Créditos e licenças" grudados; calculadora de 1RM com o campo largo demais e o resultado quebrado em duas linhas	Média
+X5	✅ (16/11/2026: Perfil → Treino em seis blocos que abrem e fecham, cada um com um resumo de como está: Descanso, Carga e progressão, Durante o treino, Recordes e volume, Ilustrações, Avisos e semana; o que fica aberto é lembrado no aparelho; o Perfil caiu de 6,5 para 4,5 telas; no painel do treino o Descanso já abre) Perfil longo demais (6,5 telas; 25 chaves em Treino numa lista só): dividir em blocos que abrem e fecham (Descanso, Carga e progressão, Durante o treino, Recordes e avisos) ou pôr busca	Alta
+X6	✅ (parte do Progresso, 16/11/2026: botão "Organizar esta tela" no fim de Estatísticas abre um painel para esconder, mostrar e reordenar os seis cartões; fica guardado no aparelho, com "Voltar ao padrão". O Plano continua como estava) Progresso e Plano com quase 4 telas: deixar recolher ou reordenar os cartões do Progresso	Média
+X7	✅ (16/11/2026: aviso no alto da tela em qualquer aba, com a porcentagem e uma barra; a falha fica até tocar em Fechar. Só conferido no navegador e em teste, não num APK) Atualizador sem retorno fora de Perfil → Sobre: mostrar o progresso do download onde a pessoa estiver	Média
+X8	✅ (16/11/2026: a opção só aparece quando o exercício é o do plano) "Travar a carga" aparece no treino livre e em exercício trocado, onde não tem efeito: esconder	Baixa
+X9	✅ (16/11/2026: vale no dia do treino ou até 12 horas depois do fim, para o treino que passou da meia-noite) "Reabrir o treino" fica para sempre nos treinos salvos sozinhos: limitar ao mesmo dia	Baixa
+X10	✅ (16/11/2026: pausado ou na prévia, a tela pode apagar) Tela continua ligada com o treino pausado ou na prévia: soltar a tela ligada nesses casos	Baixa
+X11	✅ (16/11/2026: marcar todas grava a hora das séries que faltavam; o treino mais leve desce para um pino da pilha; o desafio de constância conta dias de treino e o texto virou "N dias de treino em <mês>") "Marcar todas as séries" não grava a hora das séries (V14); o treino mais leve (W2) não usa a pilha da máquina (T23); os desafios contam treinos, não dias	Baixa
+X12	Script único de lançamento (versão em 6 arquivos, data, novidades) e release-readiness conferindo o app novo, não o 2.x	Média
+X13	ESLint com as regras de hooks do React; dividir session.ts (837 linhas), ExerciseCard.tsx (672) e PlanScreen.tsx (669)	Média
+X14	Pacote único de 760 KB (233 KB comprimido): carregar Progresso, modo RPG e telas de IA sob demanda na versão web	Baixa
+X15	Apelidos, favoritos e exercícios próprios ficam dentro dos ajustes (na junção de dois aparelhos vence o último a gravar): separar antes da nuvem	Baixa
