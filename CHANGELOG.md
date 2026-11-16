@@ -6,6 +6,21 @@ Todas as mudanças relevantes do app ficam registradas aqui. Ao lançar uma nova
    atualizar o app instalado
 3. Adicione uma entrada aqui, nesse formato
 
+## [3.31.0] - 2026-11-16
+
+- Perfil → Treino em blocos que abrem e fecham (Descanso, Carga e progressão, Durante o treino, Recordes e volume, Ilustrações, Avisos e semana). Fechado, cada bloco mostra um resumo de como está; o que você deixa aberto fica aberto no aparelho. O Perfil ficou cerca de um terço mais curto.
+- Progresso → Estatísticas: "Organizar esta tela" esconde, mostra e reordena os cartões (Últimos 6 meses, Volume semanal, Desafios, Séries da semana, Evolução por exercício, Séries por grupo). Fica guardado no aparelho, com "Voltar ao padrão".
+- Atualização do app: o download aparece no alto da tela em qualquer aba, com a porcentagem; se falhar, o motivo fica até você fechar.
+- Descanso e cronômetro da prancha com um anel que esvazia, e a barra do treino com uma marca por série.
+- Corrigido: o cronômetro da prancha continuava contando depois de concluir, cancelar ou trocar o treino e podia marcar uma série no treino seguinte. Agora ele vale só para o treino e o exercício em que começou, e pausar o treino também encerra a contagem.
+- Corrigido: uma tela que quebrava ao desenhar deixava o app em branco. Agora aparece o erro, com "Tentar de novo" e "Recarregar o app".
+- "Salvar no plano?" não pergunta mais a cada série com 1 repetição a mais ou a menos: com repetições fixas no plano, só com 3 ou mais de diferença.
+- "Travar a carga" só aparece quando o exercício é o do plano (no treino livre e no exercício trocado não tinha efeito).
+- "Reabrir o treino" (o treino salvo sozinho) vale no dia do treino ou até 12 horas depois do fim.
+- Com o treino pausado ou na prévia, a tela pode apagar.
+- "Marcar todas as séries" grava a hora das séries; o treino mais leve desce para um pino da pilha da máquina; o desafio de constância conta dias de treino (dois treinos no mesmo dia valem um).
+- Perfil → Sobre: "Novidades" e "Créditos e licenças" separados; a calculadora de 1RM cabe numa linha.
+
 ## [3.30.0] - 2026-11-14
 
 - Cronômetro da prancha e das isometrias: "Começar a série" conta 3, 2, 1 e o tempo da série; no fim, a série é marcada com o tempo planejado e o descanso começa. Quando o descanso acaba, a próxima série por tempo começa sozinha (Perfil → Treino desliga). "Terminar" marca com o tempo que você fez.

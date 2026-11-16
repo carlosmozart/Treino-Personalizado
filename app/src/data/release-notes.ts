@@ -3,6 +3,17 @@ export interface ReleaseNote { version: string; date: string; items: string[] }
 
 export const RELEASE_NOTES: readonly ReleaseNote[] = [
   {
+    version: '3.31.0',
+    date: '2026-11',
+    items: [
+      'Perfil mais curto: os ajustes do treino ficaram em blocos que abrem e fecham.',
+      'Progresso: "Organizar esta tela" esconde e reordena os cartões.',
+      'A atualização do app mostra o download em qualquer aba.',
+      'Descanso com anel, e a barra do treino com uma marca por série.',
+      'Corrigido: o cronômetro da prancha não passa mais de um treino para o outro.'
+    ]
+  },
+  {
     version: '3.30.0',
     date: '2026-11',
     items: [
