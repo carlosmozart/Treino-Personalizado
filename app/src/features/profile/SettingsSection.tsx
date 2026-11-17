@@ -1,3 +1,4 @@
+import { TEXT_SCALES, textScaleOf } from '../../domain/text-scale';
 import { useRef, useState } from 'react';
 import { updateMeta, updateSettings } from '../../domain/actions';
 import { buildBackup, readBackup } from '../../domain/backup';
@@ -43,10 +44,27 @@ export function SettingsSection() {
           <AlarmSettings />
           {notificationsAvailable() && <ReminderToggle on={!!settings.trainingReminders} set={set} />}
           <WeekStartChoice value={settings.weekStart ?? 'seg'} onChange={v => set({ weekStart: v })} />
+          {/* W10 */}
+          <Toggle label="Dia com atividade registrada (corrida, futebol…) não quebra a sequência" checked={settings.activitiesKeepStreak ?? false} onChange={v => set({ activitiesKeepStreak: v })} />
         </SettingsGroup>
       </Card>
       <Card title="Aparência">
         <ThemeChoice value={settings.theme ?? 'system'} onChange={v => set({ theme: v })} />
+        {/* W17: tamanho do texto em passos; a tela toda muda na hora, e a frase abaixo serve de prévia */}
+        <p className="mt-3 text-sm font-semibold text-muted">Tamanho do texto</p>
+        <div role="radiogroup" aria-label="Tamanho do texto" className="mt-1 grid grid-cols-4 gap-1 rounded-xl bg-surface-2 p-1">
+          {TEXT_SCALES.map(t => {
+            const on = textScaleOf(settings) === t.id;
+            return (
+              <button key={t.id} type="button" role="radio" aria-checked={on} onClick={() => set({ textScale: t.id })}
+                className={`min-h-11 rounded-lg px-1 text-sm font-semibold ${on ? 'bg-primary text-white' : 'text-muted'}`}>{t.label}</button>
+            );
+          })}
+        </div>
+        <p className="mt-2 rounded-xl bg-surface-2 px-3 py-2" data-testid="previa-do-texto">
+          <span className="block font-bold">Supino Reto · 80 kg × 8</span>
+          <span className="block text-sm text-muted">É assim que o texto fica no treino. "Padrão" segue o tamanho do seu celular.</span>
+        </p>
         {/* M25: cor de destaque */}
         <p className="mt-3 text-sm font-semibold text-muted">Cor de destaque</p>
         <div role="radiogroup" aria-label="Cor de destaque" className="mt-1 flex flex-wrap gap-2">

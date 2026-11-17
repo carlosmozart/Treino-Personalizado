@@ -2,6 +2,7 @@
 // Trabalham sobre um rascunho já copiado pela ação e registram eventos para a interface
 // mostrar — nenhuma regra daqui exibe nada.
 import { calculateStreak } from './streak';
+import { activityKeepsStreak } from './activities';
 import { addDays, toDateKey, weekStartOf, type DateKey } from './dates';
 import { longestRestRun, maxRestGap } from './rotation';
 import {
@@ -45,7 +46,8 @@ export function streakOf(data: AppData, now: Date): number {
   const plan = data.activePlanId ? data.plans[data.activePlanId] : undefined;
   const isCheckedIn = (key: string) => !!data.checkins[key];
   // S8: dia com nota (doente, viajando...) conta como descanso
-  const noted = (date: Date) => !!data.dayNotes?.[toDateKey(date)];
+  // W10: com o ajuste ligado, dia com atividade (corrida, futebol...) também
+  const noted = (date: Date) => !!data.dayNotes?.[toDateKey(date)] || activityKeepsStreak(data, toDateKey(date));
   if (plan?.rotation) {
     // T14: um descanso maior na volta também não quebra a sequência
     const gap = maxRestGap(plan.rotation.perWeek, longestRestRun(plan));

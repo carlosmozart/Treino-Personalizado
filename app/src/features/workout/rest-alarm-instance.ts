@@ -4,13 +4,16 @@ import { startRestAlarm } from '../../platform/rest-alarm';
 import { useErrorLog } from '../../platform/error-log';
 import { useAppStore } from '../../store';
 import { useRestStore } from './rest-store';
+import { restAlarmBody } from '../../domain/next-set';
 
 const settings = () => useAppStore.getState().data?.settings;
 
 export const restAlarm = notificationsAvailable()
   ? startRestAlarm({
     subscribe: listener => useRestStore.subscribe((s, p) => listener(s.endsAt, p.endsAt)),
-    schedule: at => scheduleRestAlarm(at, settings()?.restSound ?? true, settings()?.restVibrate ?? true),
+    // W15: o aviso diz a próxima série ("Próxima: Supino Reto, 80 kg × 8")
+    schedule: at => scheduleRestAlarm(at, settings()?.restSound ?? true, settings()?.restVibrate ?? true,
+      restAlarmBody(useAppStore.getState().session, useRestStore.getState().source)),
     cancel: cancelRestAlarm,
     enabled: () => { const s = settings(); return !!s && (s.restSound || s.restVibrate); },
     onError: e => useErrorLog.getState().report(e, 'Alarme do descanso')

@@ -55,7 +55,7 @@ export async function exactAlarmAllowed(openSettings: boolean): Promise<boolean>
  * Agenda (ou reagenda) o aviso de fim do descanso. 'exact' toca na hora; 'inexact' (sem a
  * permissão de alarme exato do Android 12+) pode atrasar; null não agendou.
  */
-export async function scheduleRestAlarm(at: Date, sound: boolean, vibrate: boolean): Promise<'exact' | 'inexact' | null> {
+export async function scheduleRestAlarm(at: Date, sound: boolean, vibrate: boolean, body = 'Bora para a próxima série!'): Promise<'exact' | 'inexact' | null> {
   const p = plugin();
   if (!p || at.getTime() <= Date.now()) return null;
   if (!(await ensureNotificationPermission(false))) return null;
@@ -64,7 +64,8 @@ export async function scheduleRestAlarm(at: Date, sound: boolean, vibrate: boole
     notifications: [{
       id: REST_NOTIFICATION_ID,
       title: 'Descanso concluído',
-      body: 'Bora para a próxima série!',
+      // W15: o aviso diz a próxima série
+      body,
       channelId: restChannelId(sound, vibrate),
       extra: { type: 'rest-finished' },
       schedule: { at, allowWhileIdle: true },

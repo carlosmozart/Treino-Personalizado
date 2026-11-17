@@ -1,3 +1,4 @@
+import { activityLabel, durationText } from '../../domain/activities';
 import { useState } from 'react';
 import { RecapCards } from './RecapCards';
 import { WeeklySetsHomeLine } from '../progress/WeeklySetsCard';
@@ -108,12 +109,16 @@ function WeekStrip() {
         {days.map(d => {
           // S8: dia passado (ou hoje) sem treino aceita uma nota com o motivo
           const canNote = !d.trained && !d.future;
-          const label = `${DAY_FULL_NAMES[d.dayKey]} ${d.dayOfMonth}${d.trained ? ', treinou' : d.note ? `, ${reasonLabel(d.note.reason).toLowerCase()}` : d.planned && !d.future ? ', não treinou' : ''}${d.moved === 'out' ? ', treino remarcado' : d.moved === 'in' ? ', treino remarcado para este dia' : ''}${d.today ? ', hoje' : ''}`;
+          const label = `${DAY_FULL_NAMES[d.dayKey]} ${d.dayOfMonth}${d.trained ? ', treinou' : d.note ? `, ${reasonLabel(d.note.reason).toLowerCase()}` : d.planned && !d.future ? ', não treinou' : ''}${d.activities.length ? `, ${d.activities.map(a => activityLabel(a).toLowerCase()).join(' e ')}` : ''}${d.moved === 'out' ? ', treino remarcado' : d.moved === 'in' ? ', treino remarcado para este dia' : ''}${d.today ? ', hoje' : ''}`;
           const body = (
             <>
               <span className={`text-xs font-semibold ${d.today ? 'text-ink' : 'text-faint'}`}>{d.letter}</span>
               <span className={`text-base font-bold tabular-nums ${d.today ? 'text-ink' : 'text-muted'}`}>{d.dayOfMonth}</span>
-              <span aria-hidden="true" className={`size-2 rounded-full ${d.trained ? 'bg-success' : d.note ? 'bg-info' : d.planned ? 'border border-line' : 'bg-transparent'}`} />
+              {/* W10: dia com atividade (corrida, sauna...) ganha uma marca à parte, ao lado da do treino */}
+              <span aria-hidden="true" className="flex h-2 items-center gap-0.5">
+                <span className={`size-2 rounded-full ${d.trained ? 'bg-success' : d.note ? 'bg-info' : d.planned ? 'border border-line' : 'bg-transparent'}`} />
+                {d.activities.length > 0 && <span className="size-2 rounded-full bg-warning" />}
+              </span>
             </>
           );
           return (
@@ -128,6 +133,11 @@ function WeekStrip() {
           );
         })}
       </ol>
+      {days.some(d => d.activities.length) && (
+        <p className="mt-2 px-1 text-xs text-muted" data-testid="atividades-da-semana">
+          {days.filter(d => d.activities.length).map(d => `${DAY_FULL_NAMES[d.dayKey]}: ${d.activities.map(a => `${activityLabel(a).toLowerCase()} (${durationText(a.minutes)})`).join(', ')}`).join(' · ')}
+        </p>
+      )}
       {days.some(d => d.note) && (
         <p className="mt-2 px-1 text-xs text-muted">
           {days.filter(d => d.note).map(d => `${DAY_FULL_NAMES[d.dayKey]}: ${reasonLabel(d.note!.reason).toLowerCase()}${d.note!.text ? ` (${d.note!.text})` : ''}`).join(' · ')}

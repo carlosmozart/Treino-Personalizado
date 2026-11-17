@@ -1,3 +1,4 @@
+import { collapseKey, useCollapsedDays, type CollapsedDays } from './plan-collapse';
 import { useId, useState } from 'react';
 import { DAY_KEYS, type DayKey } from '../../domain/ai-plan';
 import { addPlan, setActivePlan } from '../../domain/actions';
@@ -46,6 +47,8 @@ export function PlanScreen() {
   const [scratchOpen, setScratchOpen] = useState(false);
   const [fromWorkoutOpen, setFromWorkoutOpen] = useState(false);
   const plan = data?.activePlanId ? data.plans[data.activePlanId] : undefined;
+  // X6: dias recolhidos, neste aparelho
+  const collapsed = useCollapsedDays();
 
   if (!data) return null;
   if (!plan) {
@@ -135,12 +138,23 @@ export function PlanScreen() {
           Toque em <span className="font-semibold">Adicionar exercício</span> {plan.rotation ? 'no Treino A' : 'em cada treino'}. Dá para buscar pelo nome ou escolher pelo grupo muscular, e pôr vários de uma vez. Séries, repetições e carga se ajustam tocando no exercício.
         </p>
       )}
-      <div className="mt-4 space-y-3">
+      {/* X6: recolher ou abrir todos os treinos de uma vez */}
+      {(() => {
+        const ids = DAY_KEYS.filter(k => plan.days[k].exercises.length > 0).map(k => collapseKey(plan.id, k));
+        if (ids.length < 2) return null;
+        const all = ids.every(id => collapsed.has(id));
+        return (
+          <button type="button" onClick={() => collapsed.setAll(ids, !all)} className="mt-2 flex min-h-11 items-center gap-1 text-sm font-semibold text-muted">
+            <Icon name={all ? 'descer' : 'subir'} className="size-4" />{all ? 'Abrir todos os treinos' : 'Recolher todos os treinos'}
+          </button>
+        );
+      })()}
+      <div className="mt-2 space-y-3">
         {plan.rotation
           ? rotationCards(plan).map(({ key, letter, ...rest }) => (
-              <DayCard key={key} plan={plan} dayKey={key} today={false} edit={edit} rotation={{ letter, next: 'next' in rest ? rest.next : '' }} />
+              <DayCard key={key} plan={plan} dayKey={key} today={false} edit={edit} collapsed={collapsed} rotation={{ letter, next: 'next' in rest ? rest.next : '' }} />
             ))
-          : DAY_KEYS.map(k => <DayCard key={k} plan={plan} dayKey={k} today={k === today} edit={edit} />)}
+          : DAY_KEYS.map(k => <DayCard key={k} plan={plan} dayKey={k} today={k === today} edit={edit} collapsed={collapsed} />)}
       </div>
 
       <Sheet title="Planos" open={plansOpen} onClose={() => setPlansOpen(false)}>
@@ -304,7 +318,7 @@ function RotationOrder({ plan, edit, nextIndex }: { plan: Plan; edit: Edit; next
   );
 }
 
-function DayCard({ plan, dayKey, today, edit, rotation }: { plan: Plan; dayKey: DayKey; today: boolean; edit: Edit; rotation?: { letter: string; next?: string } }) {
+function DayCard({ plan, dayKey, today, edit, rotation, collapsed }: { plan: Plan; dayKey: DayKey; today: boolean; edit: Edit; rotation?: { letter: string; next?: string }; collapsed: CollapsedDays }) {
   const day = plan.days[dayKey];
   const { title, optional } = dayTitle(day, dayKey);
   const rest = day.exercises.length === 0;
@@ -337,10 +351,15 @@ function DayCard({ plan, dayKey, today, edit, rotation }: { plan: Plan; dayKey: 
   // na rotação o espaço é "Treino B" (vazio: "Treino novo"), não o dia da semana
   const slotName = rotation ? (rotation.letter ? `Treino ${rotation.letter}` : rotation.next ? `Treino ${rotation.next}` : 'Treino novo') : DAY_FULL_NAMES[dayKey];
   const tags = [slotName, today ? 'Hoje' : '', optional && !rest && !rotation ? 'Opcional' : ''].filter(Boolean).join(' · ');
+  // X6: o dia de descanso ocupa uma linha só; o treino pode ser recolhido (fica o título e a contagem)
+  const compactRest = rest && !waiting;
+  const foldId = collapseKey(plan.id, dayKey);
+  const folded = !rest && collapsed.has(foldId);
+  const addLabel = full ? `Limite de ${MAX_EXERCISES_PER_DAY} exercícios` : rest && !waiting ? 'Adicionar exercício (vira dia de treino)' : 'Adicionar exercício';
 
   return (
-    <article aria-label={slotName} className={`rounded-2xl border bg-surface p-4 ${today ? 'border-primary' : waiting ? 'border-dashed border-primary/60' : 'border-line'}`}>
-      <div className="flex items-start gap-2">
+    <article aria-label={slotName} className={`rounded-2xl border bg-surface ${compactRest ? 'px-4 py-2' : 'p-4'} ${today ? 'border-primary' : waiting ? 'border-dashed border-primary/60' : 'border-line'}`}>
+      <div className={`flex gap-2 ${compactRest ? 'items-center' : 'items-start'}`}>
         <div className="min-w-0 flex-1">
           <p className="text-xs font-semibold text-muted">{tags}</p>
           <h2 className="text-lg font-bold leading-snug">
@@ -349,15 +368,28 @@ function DayCard({ plan, dayKey, today, edit, rotation }: { plan: Plan; dayKey: 
               : title.replace(new RegExp(`^${DAY_FULL_NAMES[dayKey]}:\\s*`, 'i'), '') || title}
           </h2>
           {!rest && day.focus && <p className="text-sm text-muted">{day.focus}</p>}
+          {folded && <p className="text-sm text-muted" data-testid="treino-recolhido">{plural(day.exercises.length, 'exercício', 'exercícios')}</p>}
           {waiting && <p className="text-sm text-muted">{rotation ? 'Adicione exercícios para criar este treino.' : 'Ainda sem exercícios.'}</p>}
         </div>
+        {compactRest && (
+          <button type="button" disabled={full} onClick={() => setAdding(true)} aria-label={addLabel}
+            className="flex h-11 shrink-0 items-center gap-1 rounded-xl border border-dashed border-line px-3 text-sm font-semibold text-muted">
+            <Icon name="mais" className="size-4" />Exercício
+          </button>
+        )}
+        {!rest && (
+          <button type="button" onClick={() => collapsed.toggle(foldId)} aria-expanded={!folded} aria-label={`${folded ? 'Abrir' : 'Recolher'} ${slotName}`}
+            className="flex size-11 shrink-0 items-center justify-center rounded-full text-muted">
+            <Icon name={folded ? 'descer' : 'subir'} className="size-5" />
+          </button>
+        )}
         <button type="button" onClick={() => setDayMenu(true)} aria-label={`Editar ${slotName}`}
           className="flex size-11 shrink-0 items-center justify-center rounded-full text-muted">
           <Icon name="editar" />
         </button>
       </div>
 
-      {!rest && (
+      {!rest && !folded && (
         <ul className="mt-3 divide-y divide-line">
           {day.exercises.map((ex, i) => (
             <ExerciseRow key={ex.id} ex={ex} open={openId === ex.id} first={i === 0} last={i === day.exercises.length - 1} swipe={swipe}
@@ -383,10 +415,12 @@ function DayCard({ plan, dayKey, today, edit, rotation }: { plan: Plan; dayKey: 
         </div>
       )}
 
-      <button type="button" disabled={full} onClick={() => setAdding(true)}
-        className={`mt-3 flex h-11 w-full items-center justify-center gap-2 rounded-xl font-semibold disabled:opacity-50 ${waiting ? 'bg-primary text-white' : 'border border-dashed border-line text-muted'}`}>
-        <Icon name="mais" className="size-5" /> {full ? `Limite de ${MAX_EXERCISES_PER_DAY} exercícios` : rest && !waiting ? 'Adicionar exercício (vira dia de treino)' : 'Adicionar exercício'}
-      </button>
+      {!compactRest && !folded && (
+        <button type="button" disabled={full} onClick={() => setAdding(true)}
+          className={`mt-3 flex h-11 w-full items-center justify-center gap-2 rounded-xl font-semibold disabled:opacity-50 ${waiting ? 'bg-primary text-white' : 'border border-dashed border-line text-muted'}`}>
+          <Icon name="mais" className="size-5" /> {addLabel}
+        </button>
+      )}
 
       {/* vários de uma vez: o painel fica aberto até "Pronto" */}
       <AddExerciseSheet open={adding} dayName={slotName} existing={day.exercises.map(e => e.name)} full={full} onClose={() => setAdding(false)}

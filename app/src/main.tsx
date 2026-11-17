@@ -15,6 +15,7 @@ import { dailyCheck } from './domain/actions';
 import { autoSaveBackupFile, canAutoBackup } from './platform/backup-file';
 import { applyAccent, applySeason, applyTheme, SEASON_ACCENT, watchSystemTheme } from './ui/theme';
 import { seasonColors } from './domain/seasonal';
+import { textPercent } from './domain/text-scale';
 import './index.css';
 
 installGlobalErrorHandlers();
@@ -33,6 +34,9 @@ const applyLook = () => {
   // W18: menos movimento
   if (settings.reduceMotion) document.documentElement.dataset.motion = 'reduce';
   else delete document.documentElement.dataset.motion;
+  // W17: tamanho do texto (o app mede quase tudo em rem)
+  const size = `${(16 * textPercent(settings)) / 100}px`;
+  if (document.documentElement.style.fontSize !== size) document.documentElement.style.fontSize = size;
   const look = `${settings.accent ?? ''}|${season ?? ''}`;
   if (look === lastLook) return;
   lastLook = look;

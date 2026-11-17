@@ -46,6 +46,9 @@ export function isAppData(v: unknown): v is AppData {
   if (!isObj(checkins) || !Object.keys(checkins).every(isDate)) return false;
   if (!isObj(water) || !Object.entries(water).every(([d, ml]) => isDate(d) && isNum(ml))) return false;
   if (!isObj(gamification) || !isNum(gamification.totalXP)) return false;
+  // W10: atividades (ausentes em backups antigos)
+  const { activities } = v;
+  if (activities !== undefined && !(isObj(activities) && Object.values(activities).every(a => isObj(a) && isStr(a.id) && isDate(a.date) && isStr(a.kind) && isNum(a.minutes)))) return false;
   if (!isObj(settings) || !isNum(settings.restSeconds)) return false;
   // carimbos de sincronização: ausentes em backups antigos da 3.0 (completados ao ler)
   const { sync } = v;

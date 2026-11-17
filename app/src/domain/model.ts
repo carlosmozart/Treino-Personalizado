@@ -155,6 +155,19 @@ export type Measurements = Partial<Record<MeasureKey, number>>;
 
 export type DayNoteReason = 'doente' | 'viajando' | 'lesao' | 'outro';
 
+/** W10: atividade ou recuperação fora da musculação. */
+export type ActivityKind = 'corrida' | 'caminhada' | 'bicicleta' | 'futebol' | 'padel' | 'natacao' | 'luta' | 'danca'
+  | 'alongamento' | 'yoga' | 'sauna' | 'massagem' | 'outra';
+
+export interface Activity {
+  id: string;
+  date: DateKey;
+  kind: ActivityKind;
+  minutes: number;
+  /** Nome livre (em "Outra") ou uma observação curta. */
+  note?: string;
+}
+
 export interface DayNote {
   reason: DayNoteReason;
   text?: string;
@@ -275,6 +288,10 @@ export interface Settings {
   recordHints?: boolean;
   /** W18: menos movimento neste aparelho (sem animações, neve nem enfeites que se mexem). Ausente = desligado. */
   reduceMotion?: boolean;
+  /** W17: tamanho do texto ('menor', 'padrao', 'maior', 'grande'). Ausente = padrão. */
+  textScale?: 'menor' | 'padrao' | 'maior' | 'grande';
+  /** W10: dia com atividade registrada não quebra a sequência. Ausente = desligado. */
+  activitiesKeepStreak?: boolean;
   /** W14: séries e repetições com que um exercício novo começa. Ausentes = 3 e 10. */
   newExerciseSets?: number;
   newExerciseReps?: number;
@@ -349,6 +366,8 @@ export interface AppData {
   measurements?: Record<DateKey, Measurements>;
   /** S8: motivo de um dia sem treino; o dia não quebra a sequência. Ausente em dados antigos. */
   dayNotes?: Record<DateKey, DayNote>;
+  /** W10: atividades e recuperação, por id. Ausente quando não há nenhuma. */
+  activities?: Record<string, Activity>;
   /** M19: treinos remarcados, por data. Ausente em dados antigos. */
   moves?: Record<DateKey, DayMove>;
   gamification: Gamification;

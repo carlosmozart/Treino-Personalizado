@@ -23,6 +23,8 @@ import { GoalsView } from './GoalsView';
 import { EntryEditor } from './EntryEditor';
 import { ExerciseProgressCard } from './ExerciseProgressCard';
 import { PastWorkoutButton } from './PastWorkoutSheet';
+import { ActivityButton, ActivityItem } from './ActivitySheet';
+import { activitiesByMonth } from '../../domain/activities';
 import { CopyTextButton } from './CopyTextButton';
 import { ShareImageButton } from './ShareImageButton';
 import { WorkoutMoreActions } from './WorkoutMoreActions';
@@ -181,31 +183,52 @@ function Heatmap() {
 
 function History() {
   const workouts = useAppStore(s => s.data?.workouts) ?? NO_WORKOUTS;
+  const allActivities = useAppStore(s => s.data?.activities);
   const run = useAppStore(s => s.run);
   const [open, setOpen] = useState<string | null>(null);
-  const groups = historyByMonth(workouts);
-  if (!groups.length) {
+  // W10: as atividades entram no mês delas, depois dos treinos (um mês pode ter só atividades)
+  const activities = activitiesByMonth({ ...(allActivities ? { activities: allActivities } : {}) });
+  const byMonth = new Map(historyByMonth(workouts).map(g => [g.month, g.workouts]));
+  const months = [...new Set([...byMonth.keys(), ...activities.keys()])].sort().reverse();
+  if (!months.length) {
     return (
       <div className="mt-6 space-y-3">
         <p className="rounded-2xl border border-line bg-surface p-4 text-muted">Nenhum treino registrado ainda. Os treinos concluídos aparecem aqui.</p>
         <PastWorkoutButton />
+        <ActivityButton />
       </div>
     );
   }
   return (
     <div className="mt-4 space-y-5">
-      <PastWorkoutButton />
-      {groups.map(g => (
-        <section key={g.month}>
-          <h2 className="text-sm font-bold text-muted">{monthTitle(g.month)} · {plural(g.workouts.length, 'treino', 'treinos')}</h2>
-          <ul className="mt-2 space-y-2">
-            {g.workouts.map(w => (
-              <WorkoutItem key={w.id} w={w} open={open === w.id} onToggle={() => setOpen(open === w.id ? null : w.id)}
-                onDelete={() => { if (confirm(`Apagar o treino de ${shortDate(w.date)}?`)) run((d, now) => deleteWorkout(d, w.id, now)); }} />
-            ))}
-          </ul>
-        </section>
-      ))}
+      <div className="space-y-2">
+        <PastWorkoutButton />
+        <ActivityButton />
+      </div>
+      {months.map(month => {
+        const ws = byMonth.get(month) ?? [];
+        const acts = activities.get(month) ?? [];
+        return (
+          <section key={month}>
+            <h2 className="text-sm font-bold text-muted">
+              {monthTitle(month)} · {plural(ws.length, 'treino', 'treinos')}{acts.length ? ` · ${plural(acts.length, 'atividade', 'atividades')}` : ''}
+            </h2>
+            {ws.length > 0 && (
+              <ul className="mt-2 space-y-2">
+                {ws.map(w => (
+                  <WorkoutItem key={w.id} w={w} open={open === w.id} onToggle={() => setOpen(open === w.id ? null : w.id)}
+                    onDelete={() => { if (confirm(`Apagar o treino de ${shortDate(w.date)}?`)) run((d, now) => deleteWorkout(d, w.id, now)); }} />
+                ))}
+              </ul>
+            )}
+            {acts.length > 0 && (
+              <ul aria-label={`Atividades de ${monthTitle(month)}`} className="mt-2 space-y-2">
+                {acts.map(a => <ActivityItem key={a.id} a={a} />)}
+              </ul>
+            )}
+          </section>
+        );
+      })}
     </div>
   );
 }

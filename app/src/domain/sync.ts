@@ -12,6 +12,7 @@ export const key = {
   dayNote: (date: string): SyncKey => `daynote:${date}`,
   measure: (date: string): SyncKey => `measure:${date}`,
   move: (date: string): SyncKey => `move:${date}`,
+  activity: (id: string): SyncKey => `activity:${id}`,
   profile: 'profile' as SyncKey,
   settings: 'settings' as SyncKey,
   activePlan: 'activePlan' as SyncKey,
@@ -43,6 +44,7 @@ export function stampAll(data: AppData, now: Date): AppData {
   Object.keys(data.dayNotes ?? {}).forEach(d => add(key.dayNote(d)));
   Object.keys(data.measurements ?? {}).forEach(d => add(key.measure(d)));
   Object.keys(data.moves ?? {}).forEach(d => add(key.move(d)));
+  Object.keys(data.activities ?? {}).forEach(id => add(key.activity(id)));
   [key.profile, key.settings, key.activePlan].forEach(add);
   if (data.rpg) add(key.rpg);
   return { ...data, sync: { changed, deleted: { ...data.sync.deleted } } };
@@ -128,6 +130,7 @@ export function mergeAppData(local: AppData, remote: AppData): AppData {
   const dayNotes = mergeRecords(key.dayNote, local.dayNotes ?? {}, remote.dayNotes ?? {}, a, b, deleted);
   const measurements = mergeRecords(key.measure, local.measurements ?? {}, remote.measurements ?? {}, a, b, deleted);
   const moves = mergeRecords(key.move, local.moves ?? {}, remote.moves ?? {}, a, b, deleted);
+  const activities = mergeRecords(key.activity, local.activities ?? {}, remote.activities ?? {}, a, b, deleted);
 
   const rpg = !local.rpg ? remote.rpg : !remote.rpg ? local.rpg : newer(a.stamp(key.rpg), b.stamp(key.rpg)) ? local.rpg : remote.rpg;
   const whole = <K extends 'profile' | 'settings'>(k: SyncKey, field: K): AppData[K] =>
@@ -153,6 +156,7 @@ export function mergeAppData(local: AppData, remote: AppData): AppData {
     ...(Object.keys(dayNotes).length ? { dayNotes } : {}),
     ...(Object.keys(measurements).length ? { measurements } : {}),
     ...(Object.keys(moves).length ? { moves } : {}),
+    ...(Object.keys(activities).length ? { activities } : {}),
     gamification: mergeGamification(local.gamification, remote.gamification, new Set(Object.keys(checkins))),
     ...(rpg ? { rpg } : {}),
     settings: whole(key.settings, 'settings'),
