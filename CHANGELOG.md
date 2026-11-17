@@ -6,6 +6,13 @@ Todas as mudanças relevantes do app ficam registradas aqui. Ao lançar uma nova
    atualizar o app instalado
 3. Adicione uma entrada aqui, nesse formato
 
+## [3.32.0] - 2026-11-16
+
+- Atividades e recuperação: em Progresso → Histórico, "Registrar atividade ou recuperação" guarda corrida, futebol, padel, natação, alongamento, sauna e outras, com o dia e a duração. Elas aparecem no histórico e na semana do Início. Não contam como treino nem dão XP; em Perfil → Treino → Avisos e semana dá para ligar "dia com atividade não quebra a sequência".
+- Tamanho do texto: Perfil → Aparência tem quatro passos (Menor, Padrão, Maior, Bem maior), com uma prévia. Texto, botões e espaços mudam juntos.
+- O aviso de fim do descanso diz a próxima série ("Próxima: Supino Reto, 80 kg × 8") ou avisa que era a última.
+- Plano mais curto: o dia de descanso ocupa uma linha, cada treino pode ser recolhido (fica o título e quantos exercícios) e há "Recolher todos os treinos". O que você recolhe fica assim no aparelho.
+
 ## [3.31.1] - 2026-11-16
 
 - Tema de Natal revisado para dezembro: no dia 25 o Início abre com "Feliz Natal!" e no dia 31 com o seu ano em números (treinos, toneladas e a maior sequência).

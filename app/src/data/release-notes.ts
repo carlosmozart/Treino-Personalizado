@@ -3,6 +3,16 @@ export interface ReleaseNote { version: string; date: string; items: string[] }
 
 export const RELEASE_NOTES: readonly ReleaseNote[] = [
   {
+    version: '3.32.0',
+    date: '2026-11',
+    items: [
+      'Registre corrida, futebol, sauna e outras atividades no Histórico; elas aparecem na semana do Início.',
+      'Tamanho do texto em quatro passos, em Perfil → Aparência.',
+      'O aviso de fim do descanso diz qual é a próxima série.',
+      'Plano mais curto: descanso numa linha e treinos que recolhem.'
+    ]
+  },
+  {
     version: '3.31.1',
     date: '2026-11',
     items: [
