@@ -6,6 +6,15 @@ Todas as mudanças relevantes do app ficam registradas aqui. Ao lançar uma nova
    atualizar o app instalado
 3. Adicione uma entrada aqui, nesse formato
 
+## [3.31.1] - 2026-11-16
+
+- Tema de Natal revisado para dezembro: no dia 25 o Início abre com "Feliz Natal!" e no dia 31 com o seu ano em números (treinos, toneladas e a maior sequência).
+- O gatinho de gorro aparece bem no tema claro (era branco sobre fundo claro).
+- O balão do presente e do gatinho quebra linha em vez de sair da tela.
+- No treino, o presente (e a abóbora, no Halloween) só espia por trás da barra de abas e sai enquanto a barra do descanso está na tela, em vez de ficar meio coberto ou em cima do cartão.
+- O azevinho rola com a página e não cobre mais o canto dos cartões; no calendário do advento, a marca das portas que ficaram esperando ficou visível.
+- Perfil → Aparência avisa quando a cor de destaque está trocada pelas cores do tema de época.
+
 ## [3.31.0] - 2026-11-16
 
 - Perfil → Treino em blocos que abrem e fecham (Descanso, Carga e progressão, Durante o treino, Recordes e volume, Ilustrações, Avisos e semana). Fechado, cada bloco mostra um resumo de como está; o que você deixa aberto fica aberto no aparelho. O Perfil ficou cerca de um terço mais curto.

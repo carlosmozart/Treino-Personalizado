@@ -3,6 +3,14 @@ export interface ReleaseNote { version: string; date: string; items: string[] }
 
 export const RELEASE_NOTES: readonly ReleaseNote[] = [
   {
+    version: '3.31.1',
+    date: '2026-11',
+    items: [
+      'Tema de Natal revisado: gatinho visível no tema claro e enfeites que não cobrem mais os cartões.',
+      'Cartões de Feliz Natal no dia 25 e do seu ano em números no dia 31.'
+    ]
+  },
+  {
     version: '3.31.0',
     date: '2026-11',
     items: [
