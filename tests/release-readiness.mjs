@@ -118,4 +118,10 @@ assert.equal(webManifest.orientation, 'portrait', 'Manifest precisa manter orien
   assert.ok(!/text-\[[5-8]px\]/.test(html + (await Promise.all(uiFiles.map(read))).join('')), 'Fontes abaixo de 9px prejudicam a leitura no celular.');
 }
 
-console.log(`Prontidão de release validada: v${appVersion}.`);
+// X12: o app novo (app/) é o que vai no APK: a versão dele tem de estar igual nos dois package.json,
+// nos dois lockfiles, no build.gradle (nome e código), no CHANGELOG, nas novidades e na página de convite.
+const { checkRelease } = await import('../scripts/release-check.mjs');
+const release = await checkRelease(root);
+assert.deepEqual(release.problems, [], `Versão ${release.version} do app novo fora do lugar.`);
+
+console.log(`Prontidão de release validada: app novo v${release.version} (app antigo v${appVersion}).`);
