@@ -1,14 +1,14 @@
 import { useEffect, useMemo, useState } from 'react';
-import { SWAP_EQUIPMENT, fitsEquipment, groupOf, guessGroup, swapSuggestions } from '../../data/exercise-library';
+import { groupOf } from '../../data/exercise-library';
 import {
-  addSet, afterSet, restAfterSet, resumeSession, setExerciseLock, setExerciseRest, setSetNote, setSetRest, SET_NOTE_MAX, supersetBlock, toggleSupersetWithNext, addWarmupSet, adjustWeights, removeWarmupSet, completeExercise, isExerciseDone, duplicateSet, insertSet, removeExerciseFromSession, removeSet, setNote, swapExercise, toggleFailure, toggleSet, updateCardio, updateSet,
+  addSet, afterSet, restAfterSet, resumeSession, setExerciseLock, setExerciseRest, setSetNote, setSetRest, SET_NOTE_MAX, supersetBlock, toggleSupersetWithNext, addWarmupSet, adjustWeights, removeWarmupSet, completeExercise, isExerciseDone, duplicateSet, insertSet, removeExerciseFromSession, removeSet, setNote, toggleFailure, toggleSet, updateCardio, updateSet,
   type ActiveSession, type SessionExercise, type SessionSet
 } from '../../domain/session';
 import { bestSet, hasCardioLevel, lastSessionBefore, sessionsOf, suspiciousWeight, workSets } from '../../domain/workouts';
 import { useAppStore } from '../../store';
 import { Icon } from '../../ui/Icon';
 import { NumberField } from '../../ui/NumberField';
-import { ExerciseIllustration, ExerciseThumb, hasIllustration } from '../../ui/ExerciseIllustration';
+import { ExerciseIllustration, hasIllustration } from '../../ui/ExerciseIllustration';
 import { markBigWeightJump, toggleFavorite, updateSettings } from '../../domain/actions';
 import { Sheet, SheetAction } from '../../ui/Sheet';
 import { RestSheet, restLabel } from '../../ui/RestSheet';
@@ -22,10 +22,10 @@ import { startHold } from './HoldTimer';
 import { PlateSheet } from './PlateSheet';
 import { ExerciseProgressCard } from '../progress/ExerciseProgressCard';
 import { SwipeRow } from '../../ui/SwipeRow';
-import { searchNames } from '../../domain/search';
 import { useSearchPool } from '../../hooks/use-search-pool';
 import { isBarbell } from '../../domain/plates';
 import { isBodyweight } from '../../domain/progression';
+import { SwapSheet } from './SwapSheet';
 
 const ADJUSTS = [-5, -0.5, 0.5, 5, 10] as const;
 
@@ -85,6 +85,7 @@ export function ExerciseCard({ session, index, alwaysOpen = false, onGoTo }: Pro
   const showTrophies = data?.settings.recordTrophies ?? true;
   const showHints = data?.settings.recordHints ?? true;
   const baseBests = useMemo(() => (data && (showTrophies || showHints) ? bestsBefore(data.workouts, ex.key, session) : null),
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- de propósito: os recordes de antes do treino não mudam a cada série marcada
     [data, showTrophies, showHints, ex.key, session.id, session.date, session.startedAt]);
   const trophies = trophiesFor(ex.sets, baseBests, ex.mode);
   const nextWork = ex.sets.find(x => x.kind === 'work' && !x.done);
@@ -142,7 +143,6 @@ export function ExerciseCard({ session, index, alwaysOpen = false, onGoTo }: Pro
   const block = supersetBlock(session.exercises, index);
   // S6 + openGym 1.4.1: a busca põe primeiro o que você já fez (e acha nomes digitados à mão)
   const pool = useSearchPool();
-  const available = data?.settings.availableEquipment ?? [];
   const favorite = pool.favorites.has(ex.key);
   // R2: série apagada fica alguns segundos para desfazer
   const [removed, setRemoved] = useState<{ at: number; set: SessionSet; timer: number } | null>(null);
@@ -169,7 +169,6 @@ export function ExerciseCard({ session, index, alwaysOpen = false, onGoTo }: Pro
   const unit = ex.mode === 'time' ? 'Seg' : ex.perSide ? 'Reps/lado' : 'Reps';
 
   const [check, setCheck] = useState<{ set: number; weight: number; max: number; suggestion: number | null } | null>(null);
-  const [query, setQuery] = useState('');
 
   function toggle(setIndex: number, confirmed = false) {
     const wasDone = ex.sets[setIndex]?.done;
@@ -499,69 +498,7 @@ export function ExerciseCard({ session, index, alwaysOpen = false, onGoTo }: Pro
         {historyOpen && <ExerciseProgressCard initialKey={ex.key} />}
       </Sheet>
 
-      <Sheet title="Trocar por" open={swapOpen} onClose={() => setSwapOpen(false)}>
-        {[...(ex.swappedFrom ? [{ name: ex.swappedFrom, mode: 'reps' as const }] : []), ...ex.alternatives]
-          .filter(a => a.name !== ex.name)
-          .map(a => (
-            <SheetAction key={a.name} onClick={() => { if (data) update(s => swapExercise(s, data, index, a.name)); setSwapOpen(false); }}>
-              <ExerciseThumb name={a.name} />{a.name}{a.name === ex.swappedFrom ? ' (original)' : ''}
-            </SheetAction>
-          ))}
-        {(ex.alternatives.length > 0 || ex.swappedFrom) && <p className="mt-3 px-3 text-xs font-semibold text-faint">Ou qualquer exercício:</p>}
-        <input value={query} onChange={e => setQuery(e.target.value)} placeholder="Buscar ou digitar o nome" aria-label="Buscar exercício para trocar"
-          className="mt-2 h-12 w-full rounded-xl border border-line bg-surface-2 px-3 text-base text-ink" />
-        {/* M36: só o que a academia (ou a casa) tem; fica salvo para as próximas trocas */}
-        <div role="group" aria-label="Equipamento que você tem" className="-mx-1 mt-2 flex gap-2 overflow-x-auto px-1 pb-1 [scrollbar-width:none]">
-          {SWAP_EQUIPMENT.map(eq => {
-            const on = available.includes(eq);
-            return (
-              <button key={eq} type="button" aria-pressed={on}
-                onClick={() => run((d, now) => {
-                  // lê o que está gravado agora: dois toques rápidos não se sobrescrevem
-                  const cur = d.settings.availableEquipment ?? [];
-                  return updateSettings(d, { availableEquipment: cur.includes(eq) ? cur.filter(x => x !== eq) : [...cur, eq] }, now);
-                })}
-                className={`h-9 shrink-0 rounded-full border px-3 text-sm font-semibold ${on ? 'border-primary bg-primary/10 text-ink' : 'border-line text-muted'}`}>
-                {eq}
-              </button>
-            );
-          })}
-        </div>
-        <p className="px-1 text-xs text-faint">{available.length ? 'Mostrando só o que usa o equipamento marcado.' : 'Marque o que você tem aqui para ver só o que dá para fazer.'}</p>
-        {(() => {
-          const q = query.trim().toLowerCase();
-          const fits = (n: string) => fitsEquipment(n, available, data?.settings.customExercises);
-          const pick = (name: string) => { if (data) update(s => swapExercise(s, data, index, name)); setSwapOpen(false); setQuery(''); };
-          // S3: sem busca, o que faz sentido no treino de hoje: mesmo grupo, sem repetir exercício do
-          // treino, o mesmo movimento primeiro
-          const base = ex.swappedFrom ?? ex.name;
-          if (!q) {
-            const today = session.exercises.filter((_, i) => i !== index).map(e => e.name);
-            const { group: g, names: same } = swapSuggestions(base, today, [ex.name, ...ex.alternatives.map(a => a.name)], 6, pool.favorites, fits);
-            if (!same.length) return available.length ? <p className="mt-3 px-3 text-sm text-muted">Nada do mesmo grupo com esse equipamento. Busque pelo nome ou desmarque um filtro.</p> : null;
-            return (
-              <>
-                <p className="mt-3 px-3 text-xs font-semibold text-faint">Para o treino de hoje ({g}), sem repetir exercício:</p>
-                {same.map(n => <SheetAction key={n} onClick={() => pick(n)}><ExerciseThumb name={n} />{n}</SheetAction>)}
-              </>
-            );
-          }
-          const group = guessGroup(base);
-          // S6: tolerante a erro, acento, plural e abreviação; o mesmo grupo sobe entre os achados
-          const matches = searchNames(q, pool.names.filter(n => n !== ex.name && fits(n)), 12, pool.done, pool.favorites, pool.aliases)
-            .map((n, i) => ({ n, i: i - (groupOf(n) === group ? 0.5 : 0) }))
-            .sort((a, b) => a.i - b.i).slice(0, 6).map(x => x.n);
-          return (
-            <>
-              {matches.map(n => <SheetAction key={n} onClick={() => pick(n)}><ExerciseThumb name={n} />{n}</SheetAction>)}
-              {!matches.some(n => n.toLowerCase() === q) && (
-                <SheetAction onClick={() => pick(query)}><Icon name="mais" />Usar “{query.trim()}”</SheetAction>
-              )}
-            </>
-          );
-        })()}
-        <p className="mt-2 px-3 text-sm text-faint">A troca vale só para este treino; o plano continua igual.</p>
-      </Sheet>
+      <SwapSheet session={session} index={index} open={swapOpen} onClose={() => setSwapOpen(false)} />
 
       <Sheet title="Conferir a carga" open={check !== null} onClose={() => setCheck(null)}>
         {check && (
@@ -673,3 +610,4 @@ function SetMenu({ open, exName, index, set, prev, unit, restText, onClose, onFa
 
 /** V12: busca no YouTube pelo nome do exercício + "execução". */
 export const youtubeSearch = (name: string) => `https://www.youtube.com/results?search_query=${encodeURIComponent(`${name} execução`)}`;
+

@@ -82,6 +82,7 @@ export function ActiveWorkout({ session }: { session: ActiveSession }) {
     const next = nextOpenExercise(session.exercises, ended.source!);
     if (next !== null) goTo(next);
     // só reage a um descanso novo; a sessão e o modo são lidos no momento em que ele termina
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- de propósito: só reage ao fim de um descanso
   }, [ended]);
 
   if (session.preview) return <WorkoutPreview session={session} />;

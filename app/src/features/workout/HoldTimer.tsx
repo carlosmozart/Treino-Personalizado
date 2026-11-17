@@ -97,6 +97,7 @@ export function HoldBar({ session }: { session: ActiveSession }) {
     } else if (hold.phase === 'hold' && now >= hold.endsAt) {
       finish(hold.seconds);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- de propósito: só anda com o relógio e com a contagem
   }, [now, hold]);
 
   if (!hold || !holdIsValid(hold, session)) return null;

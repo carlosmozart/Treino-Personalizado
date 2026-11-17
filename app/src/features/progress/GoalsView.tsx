@@ -16,10 +16,10 @@ import { formatNumber, shortDate } from '../../ui/format';
 /** Meta de peso com marcos e conquistas. */
 export function GoalsView() {
   const data = useAppStore(s => s.data);
+  const [filter, setFilter] = useState<'all' | 'done' | 'todo'>('all');
   if (!data) return null;
   const list = achievementList(data);
   const unlocked = list.filter(a => a.unlockedAt).length;
-  const [filter, setFilter] = useState<'all' | 'done' | 'todo'>('all');
   const ordered = [...list].filter(a => filter === 'all' || (filter === 'done') === !!a.unlockedAt).sort((a, b) => Number(!!b.unlockedAt) - Number(!!a.unlockedAt) || b.current / b.target - a.current / a.target);
   return (
     <div className="mt-4 space-y-4">

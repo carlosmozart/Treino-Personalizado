@@ -71,6 +71,7 @@ export function ForgottenWatcher() {
   useEffect(() => {
     if (state === 'finish' && session) finishAt(forgottenEnd(session, settings?.restSeconds ?? 90, new Date()));
     // só reage quando o estado do treino esquecido muda
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- de propósito: só reage quando o estado do treino esquecido muda
   }, [state]);
   if (!session) return null;
   return (

@@ -9,7 +9,7 @@ import { normalizeExerciseName } from './text';
 export interface MergePreview { workouts: number; sets: number; plans: number }
 
 /** O que muda ao juntar `from` em `to`. */
-export function mergePreview(data: Pick<AppData, 'workouts' | 'plans'>, from: string, to: string): MergePreview {
+export function mergePreview(data: Pick<AppData, 'workouts' | 'plans'>, from: string, _to?: string): MergePreview {
   const k = normalizeExerciseName(from);
   let workouts = 0, sets = 0;
   for (const w of data.workouts) {

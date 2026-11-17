@@ -57,6 +57,10 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      # X13: regras de hooks do React e erros comuns (oxlint; o typescript-eslint ainda não aceita o TypeScript 7)
+      - name: Lint
+        run: npm run lint
+
       - name: Typecheck and build
         run: npm run build
 

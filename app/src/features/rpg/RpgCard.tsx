@@ -18,6 +18,7 @@ const int = (n: number) => Math.round(n).toLocaleString('pt-BR');
 export function useRpgView(): RpgView | null {
   const data = useAppStore(s => s.data);
   const today = useToday(s => s.today);
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- `today` está aqui para recalcular na virada do dia
   return useMemo(() => (data ? rpgView(data, new Date()) : null), [data, today]);
 }
 

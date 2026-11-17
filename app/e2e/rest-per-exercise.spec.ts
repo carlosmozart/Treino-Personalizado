@@ -13,7 +13,7 @@ test('descanso por exercício: no cartão do treino, guardado no plano, e reps n
   const card = page.getByRole('article').first();
   const name = (await card.getAttribute('aria-label'))!;
   // o descanso fica à vista no cartão; um toque abre a escolha
-  await card.getByRole('button', { name: new RegExp(`^Descanso de .*: .*\. Mudar$`) }).click();
+  await card.getByRole('button', { name: new RegExp(`^Descanso de .*: .*\\. Mudar$`) }).click();
   await page.getByRole('radio', { name: 'Próprio' }).click();
   await page.getByRole('listbox', { name: 'Descanso deste exercício: minutos' }).getByRole('option', { name: '2' }).click();
   await page.getByRole('listbox', { name: 'Descanso deste exercício: segundos' }).getByRole('option', { name: '30' }).click();
