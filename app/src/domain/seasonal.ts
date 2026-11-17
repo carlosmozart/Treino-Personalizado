@@ -84,6 +84,37 @@ export const XMAS_CAT_LINES = ['Miau! Feliz Natal!', 'Ho ho miau!', 'Prrr… cad
 export const pickLine = <T extends readonly string[]>(lines: T, n: number): T[number] =>
   lines[Math.abs(Math.floor(n)) % lines.length]!;
 
+// ---------------------------------------------------------------- dias de festa
+
+export interface HolidayCard { id: 'natal' | 'ano-novo'; title: string; text: string }
+
+/**
+ * O cartão do dia de festa no Início: 25 de dezembro (Feliz Natal) e 31 de dezembro (o ano que
+ * termina, com os números do histórico). Nos outros dias, nada.
+ */
+export function holidayCard(date: DateKey, n: YearNumbers): HolidayCard | null {
+  const md = date.slice(5);
+  const workouts = n.workouts === 1 ? '1 treino' : `${n.workouts} treinos`;
+  if (md === '12-25') {
+    return {
+      id: 'natal', title: 'Feliz Natal! 🎄',
+      text: n.workouts
+        ? `Hoje é dia de descansar sem culpa: você já fez ${workouts} em ${n.year}. Se bater a vontade, uma caminhada depois do almoço cai bem.`
+        : 'Hoje é dia de descansar sem culpa. Se bater a vontade, uma caminhada depois do almoço cai bem.'
+    };
+  }
+  if (md === '12-31') {
+    const streak = n.longestStreak ? ` e chegou a ${n.longestStreak} ${n.longestStreak === 1 ? 'dia' : 'dias'} de sequência` : '';
+    return {
+      id: 'ano-novo', title: `Adeus, ${n.year}! 🎆`,
+      text: n.workouts
+        ? `Você fez ${workouts}${n.tons ? `, levantou ${tonsText(n.tons)}` : ''}${streak}. Que ${n.year + 1} venha com mais. Feliz Ano Novo!`
+        : `${n.year + 1} começa amanhã, e o primeiro treino do ano pode ser seu. Feliz Ano Novo!`
+    };
+  }
+  return null;
+}
+
 // ---------------------------------------------------------------- calendário do advento
 
 /** Dia do calendário do advento (1 a 24 de dezembro), ou null fora dele. */

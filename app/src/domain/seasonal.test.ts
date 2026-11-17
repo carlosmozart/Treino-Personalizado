@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { CAT_LINES, halloweenColors, halloweenInWorkout, halloweenOn, isHalloweenWindow, pickLine, PUMPKIN_LINES, pumpkinAvailable, seasonalPref } from './seasonal';
+import { CAT_LINES, holidayCard, halloweenColors, halloweenInWorkout, halloweenOn, isHalloweenWindow, pickLine, PUMPKIN_LINES, pumpkinAvailable, seasonalPref } from './seasonal';
 import {
   activeSeason, adventDay, adventDoors, canOpenDoor, giftAvailable, GIFT_LINES, seasonColors, seasonInWorkout, seasonOf, XMAS_CAT_LINES, yearNumbers
 } from './seasonal';
@@ -103,5 +103,24 @@ describe('Natal (V5)', () => {
     expect(giftAvailable('2026-12-10', '2026-12-10')).toBe(false);
     expect(pickLine(GIFT_LINES, 0)).toBe(GIFT_LINES[0]);
     expect(XMAS_CAT_LINES[0]).toBe('Miau! Feliz Natal!');
+  });
+});
+
+describe('dias de festa', () => {
+  const n = { year: 2026, workouts: 120, tons: 85.5, longestStreak: 9 };
+  it('25 de dezembro: Feliz Natal, com os treinos do ano', () => {
+    const c = holidayCard('2026-12-25', n)!;
+    expect(c.id).toBe('natal');
+    expect(c.text).toContain('120 treinos em 2026');
+    expect(holidayCard('2026-12-25', { ...n, workouts: 0 })!.text).not.toContain('treinos');
+  });
+  it('31 de dezembro: o ano em números; sem histórico, um convite', () => {
+    const c = holidayCard('2026-12-31', n)!;
+    expect(c.title).toBe('Adeus, 2026! 🎆');
+    expect(c.text).toBe('Você fez 120 treinos, levantou 85,5 toneladas e chegou a 9 dias de sequência. Que 2027 venha com mais. Feliz Ano Novo!');
+    expect(holidayCard('2026-12-31', { year: 2026, workouts: 0, tons: 0, longestStreak: 0 })!.text).toContain('2027 começa amanhã');
+  });
+  it('nos outros dias, nada', () => {
+    for (const d of ['2026-12-24', '2026-12-26', '2026-12-30', '2027-01-01', '2026-06-25']) expect(holidayCard(d, n)).toBeNull();
   });
 });

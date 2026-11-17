@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { RecapCards } from './RecapCards';
 import { WeeklySetsHomeLine } from '../progress/WeeklySetsCard';
 import { YearReviewCard } from '../year-review/YearReview';
-import { AdventSlot } from '../seasonal/SeasonalLayer';
+import { AdventSlot, HolidaySlot } from '../seasonal/SeasonalLayer';
 import { addWater, toggleCheckin } from '../../domain/actions';
 import { progressCard, todayCard, waterCard, weekStrip, weightCard, type WeightCard as WeightData } from '../../domain/home';
 import { useAppStore } from '../../store';
@@ -45,6 +45,8 @@ export function HomeScreen() {
         <p className="text-muted">{greeting(now)}{name ? `, ${name}` : ''}</p>
         <h1 className="text-3xl font-black tracking-tight">Início</h1>
       </header>
+      {/* no dia da festa, o cartão vem antes de tudo */}
+      <HolidaySlot />
       {planFirst && today}
       <IosInstallNotice />
       <HomeNotices />

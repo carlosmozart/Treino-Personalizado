@@ -7,7 +7,7 @@ import { useReducedMotion } from '../../hooks/use-reduced-motion';
 import type { Tab } from '../../store/ui-store';
 import { WitchCat } from './halloween-art';
 import { FairyLights, Gift, Holly, Sleigh, Snowman } from './natal-art';
-import { Bubble, TabBarCat } from './seasonal-shared';
+import { Bubble, TabBarCat, WorkoutCharm } from './seasonal-shared';
 import './halloween.css';
 import './natal.css';
 
@@ -21,16 +21,13 @@ export default function Natal({ mode, tab, today }: { mode: NatalMode; tab: Tab;
   const top = mode === 'summary' || (mode === 'full' && (tab === 'inicio' || tab === 'progresso'));
   return (
     <>
+      {/* o azevinho fica no alto da página e rola com ela, para não cobrir o canto dos cartões */}
       {mode === 'full' && (
-        <div data-testid="natal" className="pointer-events-none fixed right-0 top-[env(safe-area-inset-top)] z-30">
+        <div data-testid="natal" className="pointer-events-none absolute right-0 top-[env(safe-area-inset-top)] z-10">
           <Holly size={64} />
         </div>
       )}
-      {mode === 'workout' && (
-        <div className="pointer-events-none fixed inset-x-0 z-20 mx-auto max-w-xl" style={{ bottom: 'calc(4rem + env(safe-area-inset-bottom) - 4px)' }}>
-          <span data-testid="natal" className="absolute bottom-0 left-3"><Gift size={26} /></span>
-        </div>
-      )}
+      {mode === 'workout' && <WorkoutCharm testId="natal"><Gift size={26} /></WorkoutCharm>}
       {mode === 'full' && !reduced && <Snowfall />}
       {mode === 'full' && tab === 'inicio' && <HiddenGift today={today} />}
       {mode === 'full' && <TabBarCat label="Gatinho de gorro" lines={XMAS_CAT_LINES} hat="noel" />}

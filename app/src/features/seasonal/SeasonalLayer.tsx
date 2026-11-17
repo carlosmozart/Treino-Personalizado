@@ -1,5 +1,5 @@
 import { lazy, Suspense } from 'react';
-import { activeSeason, adventDay, seasonInWorkout } from '../../domain/seasonal';
+import { activeSeason, adventDay, holidayCard, seasonInWorkout, yearNumbers } from '../../domain/seasonal';
 import { useToday } from '../../hooks/use-today';
 import { useAppStore } from '../../store';
 import { useUiStore } from '../../store/ui-store';
@@ -38,5 +38,20 @@ export function AdventSlot() {
     <Suspense fallback={null}>
       <AdventCalendar today={today} />
     </Suspense>
+  );
+}
+
+/** Cartão do dia de festa no Início (25 e 31 de dezembro), com o tema de Natal ligado. */
+export function HolidaySlot() {
+  const data = useAppStore(s => s.data);
+  const today = useToday(s => s.today);
+  if (!data || activeSeason(data.settings, today) !== 'natal') return null;
+  const card = holidayCard(today, yearNumbers(data, Number(today.slice(0, 4))));
+  if (!card) return null;
+  return (
+    <section aria-label={card.id === 'natal' ? 'Feliz Natal' : 'Feliz Ano Novo'} className="rounded-2xl border border-primary/50 bg-surface p-4">
+      <h2 className="text-lg font-bold">{card.title}</h2>
+      <p className="mt-1 text-muted">{card.text}</p>
+    </section>
   );
 }

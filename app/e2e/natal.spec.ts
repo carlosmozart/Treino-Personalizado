@@ -1,6 +1,7 @@
 import { expect, test } from '@playwright/test';
 
 test('Natal: cores, azevinho, gatinho de gorro, presente escondido e calendário do advento', async ({ page }) => {
+  test.slow(); // esperas reais (neve, trenó): com a máquina ocupada passava dos 30 s
   const errors: string[] = [];
   page.on('console', msg => { if (msg.type() === 'error') errors.push(msg.text()); });
   await page.clock.setFixedTime(new Date(2026, 11, 8, 19));
@@ -36,6 +37,20 @@ test('Natal: cores, azevinho, gatinho de gorro, presente escondido e calendário
   await expect(page.getByRole('status').filter({ hasText: '🎁' })).toBeVisible();
   await page.screenshot({ path: 'test-results/natal-presente.png' });
 
+  // o balão quebra linha em vez de sair da tela, mesmo com a frase mais comprida
+  const bubble = await page.getByRole('status').filter({ hasText: '🎁' }).boundingBox();
+  const width = page.viewportSize()!.width;
+  expect(bubble!.x).toBeGreaterThanOrEqual(0);
+  expect(bubble!.x + bubble!.width).toBeLessThanOrEqual(width);
+  expect(bubble!.width).toBeLessThanOrEqual(19 * 16 + 1);
+
+  // Perfil avisa que a cor de destaque está trocada pela do tema
+  await page.getByRole('button', { name: 'Perfil', exact: true }).click();
+  await expect(page.getByTestId('cor-da-epoca')).toContainText('A sua cor volta quando o tema acabar');
+  await page.getByRole('switch', { name: /^Cores da época/ }).uncheck();
+  await expect(page.getByTestId('cor-da-epoca')).toHaveCount(0);
+  await page.getByRole('switch', { name: /^Cores da época/ }).check();
+
   await page.getByRole('button', { name: 'Progresso', exact: true }).click();
   await page.evaluate(() => window.scrollTo(0, 0));
   await page.waitForTimeout(4200);
@@ -48,8 +63,13 @@ test('Natal: cores, azevinho, gatinho de gorro, presente escondido e calendário
   await page.getByRole('button', { name: /^Começar / }).first().click();
   await expect(page.getByTestId('natal')).toBeVisible();
   await expect(page.getByRole('button', { name: 'Gatinho de gorro' })).toHaveCount(0);
+  await page.screenshot({ path: 'test-results/natal-treino.png' });
   await page.getByRole('article').first().getByRole('button', { name: 'Série 1 feita' }).click();
+  // a barra do descanso ocupa o lugar do presente: ele sai e volta depois
+  await expect(page.getByRole('timer', { name: 'Descanso' })).toBeVisible();
+  await expect(page.getByTestId('natal')).toHaveCount(0);
   await page.getByRole('button', { name: 'Pular' }).click();
+  await expect(page.getByTestId('natal')).toBeVisible();
   await page.getByRole('button', { name: 'Concluir' }).click();
   await page.getByRole('button', { name: /Finalizar/ }).click();
   await expect(page.getByRole('heading', { name: 'Treino salvo' })).toBeVisible();
@@ -66,10 +86,22 @@ test('Natal no escuro, e depois do dia 24 o calendário sai mas o tema fica até
   await page.waitForTimeout(2500);
   await page.screenshot({ path: 'test-results/natal-escuro.png' });
 
+  // dia 25: o calendário sai e entra o cartão de Feliz Natal
+  await page.clock.setFixedTime(new Date(2026, 11, 25, 10));
+  await page.reload();
+  await expect(page.getByRole('region', { name: 'Feliz Natal' })).toContainText('descansar sem culpa');
+  await expect(page.getByRole('region', { name: 'Calendário do advento' })).toHaveCount(0);
+  await page.getByRole('region', { name: 'Feliz Natal' }).scrollIntoViewIfNeeded();
+  await page.screenshot({ path: 'test-results/natal-dia25.png' });
+
   await page.clock.setFixedTime(new Date(2026, 11, 26, 10));
   await page.reload();
   await expect(page.getByTestId('natal')).toBeVisible();
   await expect(page.getByRole('region', { name: 'Calendário do advento' })).toHaveCount(0);
+  await expect(page.getByRole('region', { name: 'Feliz Natal' })).toHaveCount(0);
+  await page.clock.setFixedTime(new Date(2026, 11, 31, 10));
+  await page.reload();
+  await expect(page.getByRole('region', { name: 'Feliz Ano Novo' })).toContainText('Feliz Ano Novo!');
   await page.clock.setFixedTime(new Date(2027, 0, 2, 10));
   await page.reload();
   await expect(page.getByRole('heading', { name: 'Início' })).toBeVisible();

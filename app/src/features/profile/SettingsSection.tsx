@@ -25,7 +25,7 @@ import { encryptBackup } from '../../domain/backup-crypto';
 import { ensureNotificationPermission, notificationsAvailable } from '../../platform/notifications';
 import { resyncReminders } from '../plan/reminders-sync';
 import { parseTrainingTime } from '../../domain/reminders';
-import { activeSeason, seasonalPref, type SeasonalPref } from '../../domain/seasonal';
+import { activeSeason, seasonalPref, seasonColors, type SeasonalPref } from '../../domain/seasonal';
 
 /** Configurações agrupadas (O19): treino, dados e backup, conta, sobre. */
 export function SettingsSection() {
@@ -60,6 +60,11 @@ export function SettingsSection() {
             );
           })}
         </div>
+        {seasonColors(settings, toDateKey(new Date())) && (
+          <p data-testid="cor-da-epoca" className="mt-2 text-xs text-faint">
+            Agora o app está com as cores do tema de época. A sua cor volta quando o tema acabar; para usá-la já, desligue "Cores da época" logo abaixo.
+          </p>
+        )}
         <SeasonalChoice settings={settings} set={set} />
         <Toggle label="Resumo da semana e do mês no Início" checked={settings.recaps ?? true} onChange={v => set({ recaps: v })} />
       </Card>

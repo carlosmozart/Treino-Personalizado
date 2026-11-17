@@ -6,7 +6,7 @@ import { CAT_LINES, pickLine, PUMPKIN_LINES, pumpkinAvailable } from '../../doma
 import { useReducedMotion } from '../../hooks/use-reduced-motion';
 import type { Tab } from '../../store/ui-store';
 import { Bat, BroomCat, Candy, Cobweb, Moon, Pumpkin, Spider, WitchCat } from './halloween-art';
-import { Bubble, TabBarCat } from './seasonal-shared';
+import { Bubble, TabBarCat, WorkoutCharm } from './seasonal-shared';
 import './halloween.css';
 
 export type HalloweenMode = 'full' | 'workout' | 'summary';
@@ -28,11 +28,7 @@ export default function Halloween({ mode, tab, today }: { mode: HalloweenMode; t
         </div>
       )}
       {/* no treino, uma abóbora parada sentada na barra de abas, longe dos botões da sessão */}
-      {mode === 'workout' && (
-        <div className="pointer-events-none fixed inset-x-0 z-20 mx-auto max-w-xl" style={{ bottom: 'calc(4rem + env(safe-area-inset-bottom) - 4px)' }}>
-          <span data-testid="halloween" className="absolute bottom-0 left-3"><Pumpkin size={30} /></span>
-        </div>
-      )}
+      {mode === 'workout' && <WorkoutCharm testId="halloween"><Pumpkin size={30} /></WorkoutCharm>}
       {mode === 'full' && <SpiderDrop active={tab === 'inicio'} />}
       {mode === 'full' && !reduced && <Bats />}
       {mode === 'full' && tab === 'inicio' && <HiddenPumpkin today={today} />}

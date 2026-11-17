@@ -66,7 +66,7 @@ export default function AdventCalendar({ today }: { today: DateKey }) {
                     isOpen ? 'bg-surface-2 text-muted' : locked ? 'bg-surface-2/60 text-faint' : 'bg-primary text-white'
                   } ${n === day ? 'ring-2 ring-[var(--color-warning)]' : ''}`}>
                   {isOpen ? '✓' : n}
-                  {missed && <span aria-hidden="true" className="absolute right-1 top-1 size-1.5 rounded-full bg-warning" />}
+                  {missed && <span aria-hidden="true" className="absolute right-1 top-1 size-2 rounded-full bg-white" />}
                 </button>
               </li>
             );
