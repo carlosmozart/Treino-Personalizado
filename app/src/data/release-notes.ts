@@ -3,6 +3,15 @@ export interface ReleaseNote { version: string; date: string; items: string[] }
 
 export const RELEASE_NOTES: readonly ReleaseNote[] = [
   {
+    version: '3.33.0',
+    date: '2026-11',
+    items: [
+      'Registre atividades direto da semana no Início.',
+      'Com o texto grande, o nome do treino aparece em duas linhas.',
+      'O app abre mais leve: as telas carregam quando você usa.'
+    ]
+  },
+  {
     version: '3.32.0',
     date: '2026-11',
     items: [

@@ -6,6 +6,14 @@ Todas as mudanças relevantes do app ficam registradas aqui. Ao lançar uma nova
    atualizar o app instalado
 3. Adicione uma entrada aqui, nesse formato
 
+## [3.33.0] - 2026-11-17
+
+- "Registrar atividade ou recuperação" também na semana do Início, sem precisar ir ao Histórico.
+- Com o texto grande, o nome do treino no alto da tela aparece em até duas linhas, em vez de cortar logo no começo.
+- O app abre mais leve: Plano, Progresso, Perfil, a montagem com IA e a animação do modo RPG carregam quando são usados. Na versão web, o carregamento inicial ficou cerca de um terço menor.
+- Preparação para a cópia na nuvem: favoritos, exercícios próprios e outros nomes de exercício passam a ser juntados um a um entre dois aparelhos, em vez de um aparelho apagar os do outro.
+- Por dentro: verificação automática das regras do React e os arquivos maiores do treino e do Plano divididos em partes menores, sem mudar nada no uso.
+
 ## [3.32.0] - 2026-11-16
 
 - Atividades e recuperação: em Progresso → Histórico, "Registrar atividade ou recuperação" guarda corrida, futebol, padel, natação, alongamento, sauna e outras, com o dia e a duração. Elas aparecem no histórico e na semana do Início. Não contam como treino nem dão XP; em Perfil → Treino → Avisos e semana dá para ligar "dia com atividade não quebra a sequência".
