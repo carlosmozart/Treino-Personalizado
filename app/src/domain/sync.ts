@@ -1,7 +1,8 @@
 // Dados prontos para sincronizar: carimbo de alteração por registro, registro de exclusões e a
 // junção de duas cópias (dois aparelhos, ou aparelho e nuvem). Vale para qualquer nuvem escolhida
 // (servidor próprio ou Firebase): o transporte muda, a junção é esta.
-import { computeTotalXP, type AppData, type Gamification, type SyncKey } from './model';
+import { computeTotalXP, type AppData, type Gamification, type Settings, type SyncKey } from './model';
+import { normalizeExerciseName } from './text';
 
 export const key = {
   workout: (id: string): SyncKey => `workout:${id}`,
@@ -13,6 +14,10 @@ export const key = {
   measure: (date: string): SyncKey => `measure:${date}`,
   move: (date: string): SyncKey => `move:${date}`,
   activity: (id: string): SyncKey => `activity:${id}`,
+  // X15: itens da biblioteca pessoal, que moram nos ajustes mas juntam um a um
+  favorite: (k: string): SyncKey => `favorite:${k}`,
+  custom: (k: string): SyncKey => `custom:${k}`,
+  alias: (k: string): SyncKey => `alias:${k}`,
   profile: 'profile' as SyncKey,
   settings: 'settings' as SyncKey,
   activePlan: 'activePlan' as SyncKey,
@@ -31,6 +36,26 @@ export function tombstone(draft: AppData, k: SyncKey, now: Date): void {
   delete draft.sync.changed[k];
 }
 
+const favoriteRecords = (s: Settings) => Object.fromEntries((s.favorites ?? []).map(k => [k, k]));
+const customRecords = (s: Settings) => Object.fromEntries((s.customExercises ?? []).map(c => [normalizeExerciseName(c.name), c]));
+const aliasRecords = (s: Settings) => s.aliases ?? {};
+
+/**
+ * X15: favoritos, exercícios próprios e outros nomes ficam nos ajustes, mas cada item tem o seu
+ * carimbo. Chame depois de mudar os ajustes: carimba o que entrou ou mudou e marca o que saiu.
+ */
+export function touchLibrary(draft: AppData, before: Settings, after: Settings, now: Date): void {
+  const diff = (prefix: (k: string) => SyncKey, x: Record<string, unknown>, y: Record<string, unknown>) => {
+    for (const k of new Set([...Object.keys(x), ...Object.keys(y)])) {
+      if (!(k in y)) tombstone(draft, prefix(k), now);
+      else if (!(k in x) || JSON.stringify(x[k]) !== JSON.stringify(y[k])) touch(draft, prefix(k), now);
+    }
+  };
+  if (before.favorites !== after.favorites) diff(key.favorite, favoriteRecords(before), favoriteRecords(after));
+  if (before.customExercises !== after.customExercises) diff(key.custom, customRecords(before), customRecords(after));
+  if (before.aliases !== after.aliases) diff(key.alias, aliasRecords(before), aliasRecords(after));
+}
+
 /** Carimba todos os registros existentes (dados migrados ou criados antes dos carimbos). */
 export function stampAll(data: AppData, now: Date): AppData {
   const iso = now.toISOString();
@@ -45,6 +70,9 @@ export function stampAll(data: AppData, now: Date): AppData {
   Object.keys(data.measurements ?? {}).forEach(d => add(key.measure(d)));
   Object.keys(data.moves ?? {}).forEach(d => add(key.move(d)));
   Object.keys(data.activities ?? {}).forEach(id => add(key.activity(id)));
+  Object.keys(favoriteRecords(data.settings)).forEach(k => add(key.favorite(k)));
+  Object.keys(customRecords(data.settings)).forEach(k => add(key.custom(k)));
+  Object.keys(aliasRecords(data.settings)).forEach(k => add(key.alias(k)));
   [key.profile, key.settings, key.activePlan].forEach(add);
   if (data.rpg) add(key.rpg);
   return { ...data, sync: { changed, deleted: { ...data.sync.deleted } } };
@@ -136,6 +164,15 @@ export function mergeAppData(local: AppData, remote: AppData): AppData {
   const whole = <K extends 'profile' | 'settings'>(k: SyncKey, field: K): AppData[K] =>
     (newer(a.stamp(k), b.stamp(k)) ? local[field] : remote[field]);
   const profile = { ...whole(key.profile, 'profile'), weighIns };
+  // X15: os ajustes vêm inteiros do lado mais recente, mas favoritos, exercícios próprios e outros
+  // nomes juntam item a item (antes, o aparelho que gravou por último apagava os do outro)
+  const settings = { ...whole(key.settings, 'settings') };
+  const favorites = Object.keys(mergeRecords(key.favorite, favoriteRecords(local.settings), favoriteRecords(remote.settings), a, b, deleted));
+  const customExercises = Object.values(mergeRecords(key.custom, customRecords(local.settings), customRecords(remote.settings), a, b, deleted));
+  const aliases = mergeRecords(key.alias, aliasRecords(local.settings), aliasRecords(remote.settings), a, b, deleted);
+  if (favorites.length) settings.favorites = favorites; else delete settings.favorites;
+  if (customExercises.length) settings.customExercises = customExercises; else delete settings.customExercises;
+  if (Object.keys(aliases).length) settings.aliases = aliases; else delete settings.aliases;
   const latest = weighIns[weighIns.length - 1];
   if (latest) profile.weightKg = latest.weight;
   let activePlanId = newer(a.stamp(key.activePlan), b.stamp(key.activePlan)) ? local.activePlanId : remote.activePlanId;
@@ -159,7 +196,7 @@ export function mergeAppData(local: AppData, remote: AppData): AppData {
     ...(Object.keys(activities).length ? { activities } : {}),
     gamification: mergeGamification(local.gamification, remote.gamification, new Set(Object.keys(checkins))),
     ...(rpg ? { rpg } : {}),
-    settings: whole(key.settings, 'settings'),
+    settings,
     sync: { changed, deleted },
     meta: {
       ...local.meta,

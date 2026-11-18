@@ -9,7 +9,7 @@ import { checkBirthday, checkWaterGoal, grantCheckin, revokeCheckin, type Reward
 import { sessionProgress, sessionToWorkout, type ActiveSession } from './session';
 import { bestSet } from './workouts';
 import { bestE1rm, recordKinds } from './strength';
-import { key, tombstone, touch } from './sync';
+import { key, tombstone, touch, touchLibrary } from './sync';
 import { isDeloadDate } from './deload';
 import { normalizeExerciseName } from './text';
 
@@ -298,6 +298,7 @@ export function updateSettings(data: AppData, patch: Partial<Settings>, now: Dat
   settings.restSeconds = Math.min(600, Math.max(15, Math.round(settings.restSeconds)));
   const draft = { ...data, settings, sync: cloneSync(data) };
   touch(draft, key.settings, now);
+  touchLibrary(draft, data.settings, settings, now);
   return { data: draft, events: [] };
 }
 

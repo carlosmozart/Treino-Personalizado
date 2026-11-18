@@ -17,7 +17,7 @@ import { DurationWheel } from '../../ui/DurationWheel';
 import { ACCENTS } from '../../ui/theme';
 import { formatClock, plural } from '../../ui/format';
 import { Icon } from '../../ui/Icon';
-import { Card, INPUT } from './ProfileScreen';
+import { Card, INPUT } from './profile-ui';
 import { AlarmSettings } from './AlarmSettings';
 import { UpdateControls } from './UpdateOffer';
 import { WhatsNewButton } from './WhatsNew';

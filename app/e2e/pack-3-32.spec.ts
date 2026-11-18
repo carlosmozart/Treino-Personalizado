@@ -97,6 +97,8 @@ test('Plano: descanso numa linha e treinos que recolhem (X6)', async ({ page }) 
   await page.getByRole('button', { name: 'Escolher um modelo' }).click();
   await page.getByRole('button', { name: 'Usar Em casa 3×' }).click();
   await page.getByRole('button', { name: 'Plano', exact: true }).click();
+  // a tela do Plano baixa sob demanda (X14): espera chegar antes de medir
+  await expect(page.getByRole('article', { name: 'Segunda' })).toBeVisible();
   const height = () => page.evaluate(() => document.documentElement.scrollHeight);
   const open = await height();
 

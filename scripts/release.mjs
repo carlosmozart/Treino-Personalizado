@@ -10,7 +10,7 @@
 // CHANGELOG.md e a entrada da versão no topo de app/src/data/release-notes.ts. O resto (os dois
 // package.json, os dois package-lock.json, o build.gradle e a página de convite) o script faz.
 //
-// O commit de lançamento nunca leva a linha "license" dos package.json: ela fica só na máquina
+// O commit de lançamento nunca leva a linha "license" dos package.json e dos lockfiles: ela fica só na máquina
 // até os dois sócios confirmarem a licença.
 import { execFileSync, spawnSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
@@ -23,8 +23,9 @@ import { checkRelease, longDate, readVersions, VERSION_RE, versionCodeOf } from 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const RELEASE_FILES = ['CHANGELOG.md', 'android/app/build.gradle', 'app/package-lock.json', 'app/package.json',
   'app/src/data/release-notes.ts', 'package-lock.json', 'package.json', 'site/convite/index.html'];
-const LICENSE_FILES = ['package.json', 'app/package.json'];
-const LICENSE_LINE = /^[ \t]*"license":[^\n]*\r?\n/m;
+// o npm copia a licença do package.json para o lockfile: os dois entram sem ela
+const LICENSE_FILES = ['package.json', 'app/package.json', 'package-lock.json', 'app/package-lock.json'];
+const LICENSE_LINE = /^[ \t]*"license": "AGPL[^\n]*\r?\n/gm;
 const WORKFLOW = 'android-release-apk.yml';
 
 const args = process.argv.slice(2);
@@ -105,7 +106,7 @@ function commit() {
     git('update-index', '--cacheinfo', `100644,${hash},${file}`);
   }
   const staged = git('diff', '--cached');
-  if (/^\+.*"license"/m.test(staged)) fail('a linha da licença ia entrar no commit. Nada foi commitado; rode "git reset" para desfazer a preparação.');
+  if (/^\+.*"license": "AGPL/m.test(staged)) fail('a linha da licença ia entrar no commit. Nada foi commitado; rode "git reset" para desfazer a preparação.');
   if (!staged) fail('não há nada para commitar: a versão já foi commitada?');
   const trailer = value('trailer');
   const message = `release: ${version} — ${title}${trailer ? `\n\n${trailer}` : ''}`;

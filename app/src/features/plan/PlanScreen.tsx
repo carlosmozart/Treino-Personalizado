@@ -1,39 +1,25 @@
-import { collapseKey, useCollapsedDays, type CollapsedDays } from './plan-collapse';
-import { useId, useState } from 'react';
-import { DAY_KEYS, type DayKey } from '../../domain/ai-plan';
+import { collapseKey, useCollapsedDays } from './plan-collapse';
+import { Suspense, useState } from 'react';
+import { DAY_KEYS } from '../../domain/ai-plan';
 import { addPlan, setActivePlan } from '../../domain/actions';
 import { toDateKey } from '../../domain/dates';
 import { newId } from '../../domain/ids';
-import { DAY_FULL_NAMES, MAX_EXERCISES_PER_DAY, dayKeyOf, trainingDaysPerWeek, type Plan, type PlanExercise } from '../../domain/model';
-import {
-  addAlternative, addExercise, duplicateExercise, insertExercise, clearDay, isPlannedEmpty, deletePlan, duplicatePlan, editPlan, moveExercise, newPlanExercise, optionalHint,
-  removeAlternative, removeExercise, setPlanExerciseRest, updateDay, updateExercise
-} from '../../domain/plan-edit';
-import { EXERCISE_LIBRARY, MUSCLE_GROUPS, libraryEntries } from '../../data/exercise-library';
-import { normalizeExerciseName } from '../../domain/text';
+import { dayKeyOf, trainingDaysPerWeek, type Plan } from '../../domain/model';
+import { deletePlan, duplicatePlan, editPlan } from '../../domain/plan-edit';
 import { ScratchPlanSheet } from './ScratchPlanSheet';
 import { FromWorkoutSheet } from '../progress/SaveToPlanSheet';
 import { useAppStore } from '../../store';
 import { Icon } from '../../ui/Icon';
-import { ExerciseThumb } from '../../ui/ExerciseIllustration';
-import { AiPlanSheet } from './AiPlanSheet';
 import { LibrarySheet } from './LibrarySheet';
-import { AiReviewSheet } from './AiReviewSheet';
+import { LazyAiPlanSheet, LazyAiReviewSheet } from './lazy-sheets';
+import { useOpenedOnce } from '../../hooks/use-opened-once';
 import { TemplateSheet } from './TemplateSheet';
 import { PlanFileActions } from './PlanFileActions';
-import { NumberField } from '../../ui/NumberField';
-import { INCREMENTS, editRange, rangeFields, repRange, settleRange } from '../../domain/progression';
 import { Sheet, SheetAction } from '../../ui/Sheet';
-import { SwipeRow } from '../../ui/SwipeRow';
-import { searchNames } from '../../domain/search';
-import { supersetBlock, toggleSupersetWithNext } from '../../domain/session';
-import { useSearchPool } from '../../hooks/use-search-pool';
-import { addSlot, canRemoveSlot, disableRotation, enableRotation, LETTERS, MAX_ROTATION_SLOTS, moveSlot, removeSlot, restartRotation, REST_SLOT, rotationLetter, rotationOrder, rotationSlots as rotationSlotsOf, rotationState, rotationTitle, setRotationPerWeek } from '../../domain/rotation';
-import { dayTitle, formatClock, formatNumber, plural } from '../../ui/format';
-import { RestSheet, restLabel } from '../../ui/RestSheet';
-import { formatStack, parseStack } from '../../domain/stack';
-
-const ALL_NAMES = [...new Set(Object.values(EXERCISE_LIBRARY).flat())];
+import { disableRotation, enableRotation } from '../../domain/rotation';
+import { plural } from '../../ui/format';
+import { rotationCards, RotationPanel } from './PlanRotation';
+import { DayCard } from './PlanDayCard';
 
 /** Plano em cartões por dia, com descanso explícito e edição no próprio cartão (N10, O25). */
 export function PlanScreen() {
@@ -43,6 +29,9 @@ export function PlanScreen() {
   const [aiOpen, setAiOpen] = useState<false | 'new' | 'convert'>(false);
   const [libraryOpen, setLibraryOpen] = useState(false);
   const [reviewOpen, setReviewOpen] = useState(false);
+  // X14: os painéis de IA baixam na primeira vez que abrem
+  const aiLoaded = useOpenedOnce(!!aiOpen);
+  const reviewLoaded = useOpenedOnce(reviewOpen);
   const [templatesOpen, setTemplatesOpen] = useState(false);
   const [scratchOpen, setScratchOpen] = useState(false);
   const [fromWorkoutOpen, setFromWorkoutOpen] = useState(false);
@@ -78,7 +67,7 @@ export function PlanScreen() {
           </button>
         </section>
         {/* mesma chave nos dois retornos: o painel continua aberto quando o plano criado vira o ativo */}
-        <AiPlanSheet key="ai" open={!!aiOpen} initialKind={aiOpen || 'new'} onClose={() => setAiOpen(false)} />
+        {aiLoaded && <Suspense key="ai" fallback={null}><LazyAiPlanSheet open={!!aiOpen} initialKind={aiOpen || 'new'} onClose={() => setAiOpen(false)} /></Suspense>}
         <TemplateSheet key="modelos" open={templatesOpen} onClose={() => setTemplatesOpen(false)} />
         <ScratchPlanSheet key="do-zero" open={scratchOpen} onClose={() => setScratchOpen(false)} />
         <FromWorkoutSheet key="de-um-treino" open={fromWorkoutOpen} onClose={() => setFromWorkoutOpen(false)} />
@@ -109,7 +98,7 @@ export function PlanScreen() {
         </div>
       </div>
       <LibrarySheet open={libraryOpen} onClose={() => setLibraryOpen(false)} />
-      <AiReviewSheet open={reviewOpen} onClose={() => setReviewOpen(false)} />
+      {reviewLoaded && <Suspense fallback={null}><LazyAiReviewSheet open={reviewOpen} onClose={() => setReviewOpen(false)} /></Suspense>}
       <div role="radiogroup" aria-label="Como o plano anda" className="mt-3 grid grid-cols-2 gap-1 rounded-xl bg-surface-2 p-1">
         {([['week', 'Semana fixa'], ['rotation', 'Rotação A/B/C']] as const).map(([mode, label]) => {
           const on = (mode === 'rotation') === !!plan.rotation;
@@ -229,7 +218,7 @@ export function PlanScreen() {
           <Icon name="mais" /> Novo plano a partir de um modelo
         </SheetAction>
       </Sheet>
-      <AiPlanSheet key="ai" open={!!aiOpen} initialKind={aiOpen || 'new'} onClose={() => setAiOpen(false)} />
+      {aiLoaded && <Suspense key="ai" fallback={null}><LazyAiPlanSheet open={!!aiOpen} initialKind={aiOpen || 'new'} onClose={() => setAiOpen(false)} /></Suspense>}
       <TemplateSheet key="modelos" open={templatesOpen} onClose={() => setTemplatesOpen(false)} />
       <ScratchPlanSheet key="do-zero" open={scratchOpen} onClose={() => setScratchOpen(false)} />
       <FromWorkoutSheet key="de-um-treino" open={fromWorkoutOpen} onClose={() => setFromWorkoutOpen(false)} />
@@ -237,467 +226,4 @@ export function PlanScreen() {
   );
 }
 
-type Edit = (fn: (p: Plan) => Plan) => void;
 
-/** Treinos da rotação pela letra e, no fim, um vazio para criar o próximo treino (máximo 7). */
-function rotationCards(plan: Plan) {
-  const order = rotationOrder(plan);
-  const empty = DAY_KEYS.find(k => !order.includes(k));
-  return [
-    ...order.map(key => ({ key, letter: rotationLetter(plan, key) })),
-    // o espaço vazio já leva a letra que vai ganhar (o próximo da volta)
-    ...(empty ? [{ key: empty, letter: '', next: LETTERS[order.length] ?? '' }] : [])
-  ];
-}
-
-/** Rotação (R1): meta por semana, onde está a volta e recomeçar do A. */
-function RotationPanel({ plan, edit }: { plan: Plan; edit: Edit }) {
-  const workouts = useAppStore(s => s.data?.workouts);
-  const rot = rotationState(plan, workouts ?? [], toDateKey(new Date()));
-  if (!plan.rotation) return null;
-  return (
-    <section className="mt-3 rounded-2xl border border-line bg-surface p-4">
-      <p className="text-sm text-muted">
-        O próximo treino é o seguinte ao último feito, em qualquer dia da semana.
-        {rot ? ` Próximo: treino ${rotationLetter(plan, rot.next)} (${rot.done} de ${rot.total} da volta).` : ' Adicione exercícios a um treino para começar.'}
-      </p>
-      {rot && <RotationOrder plan={plan} edit={edit} nextIndex={rot.nextIndex} />}
-      <div className="mt-3 flex items-end gap-3">
-        <label className="w-32 text-xs font-semibold text-muted">Treinos por semana
-          <NumberField label="Meta de treinos por semana" value={plan.rotation.perWeek} onChange={n => { if (n >= 1 && n <= 7) edit(p => setRotationPerWeek(p, n)); }} className="mt-1" />
-        </label>
-        <button type="button" disabled={!rot || rot.done === 0} onClick={() => { if (confirm('Recomeçar a rotação pelo treino A?')) edit(p => restartRotation(p, new Date())); }}
-          className="h-11 rounded-xl bg-surface-2 px-4 font-semibold disabled:opacity-40">
-          Recomeçar do A
-        </button>
-      </div>
-      <p className="mt-2 text-xs text-faint">A meta vale para a semana, o XP e a sequência. Com os lembretes ligados (Perfil → Treino), o aviso diz qual é o próximo treino e para quando a meta da semana é cumprida.</p>
-    </section>
-  );
-}
-
-/**
- * T14: a volta em ordem, com dias de descanso e treinos repetidos (A, B, descanso, C, B…). Um
- * treino só sai da volta se aparecer outra vez; para tirar de vez, esvazie o treino.
- */
-function RotationOrder({ plan, edit, nextIndex }: { plan: Plan; edit: Edit; nextIndex: number }) {
-  const slots = rotationSlotsOf(plan);
-  const full = slots.length >= MAX_ROTATION_SLOTS;
-  const label = (s: (typeof slots)[number]) => (s === REST_SLOT ? 'Descanso' : `${rotationLetter(plan, s)} · ${rotationTitle(plan, s)}`);
-  return (
-    <div className="mt-3">
-      <p className="text-sm font-semibold text-muted">Ordem da volta</p>
-      <ol aria-label="Ordem da volta" className="mt-1 space-y-1">
-        {slots.map((s, i) => {
-          const place = `${i + 1}º da volta`;
-          return (
-            <li key={`${i}-${s}`} className="flex items-center rounded-xl bg-surface-2 pl-3">
-              <span className={`min-w-0 flex-1 truncate text-sm font-semibold ${s === REST_SLOT ? 'text-muted' : ''}`}>
-                {i + 1}. {label(s)}{i === nextIndex ? <span className="text-primary"> · próximo</span> : null}
-              </span>
-              <button type="button" disabled={i === 0} onClick={() => edit(p => moveSlot(p, i, -1))} aria-label={`Subir o ${place}`}
-                className="flex size-11 shrink-0 items-center justify-center text-muted disabled:opacity-30"><Icon name="subir" /></button>
-              <button type="button" disabled={i === slots.length - 1} onClick={() => edit(p => moveSlot(p, i, 1))} aria-label={`Descer o ${place}`}
-                className="flex size-11 shrink-0 items-center justify-center text-muted disabled:opacity-30"><Icon name="descer" /></button>
-              <button type="button" disabled={!canRemoveSlot(plan, i)} onClick={() => edit(p => removeSlot(p, i))} aria-label={`Tirar o ${place}`}
-                className="flex size-11 shrink-0 items-center justify-center text-muted disabled:opacity-30"><Icon name="fechar" /></button>
-            </li>
-          );
-        })}
-      </ol>
-      <div className="mt-2 flex flex-wrap gap-2">
-        <button type="button" disabled={full} onClick={() => edit(p => addSlot(p, REST_SLOT))}
-          className="h-11 rounded-xl bg-surface-2 px-3 text-sm font-semibold disabled:opacity-40">+ Descanso</button>
-        {rotationOrder(plan).map(k => (
-          <button key={k} type="button" disabled={full} onClick={() => edit(p => addSlot(p, k))} aria-label={`Repetir o treino ${rotationLetter(plan, k)} na volta`}
-            className="h-11 rounded-xl bg-surface-2 px-3 text-sm font-semibold disabled:opacity-40">+ {rotationLetter(plan, k)}</button>
-        ))}
-      </div>
-      <p className="mt-1 text-xs text-faint">O descanso vale pelos dias seguintes ao treino anterior; treinar nele não atrapalha, o app só passa para o próximo. Para tirar um treino de vez, esvazie-o abaixo.</p>
-    </div>
-  );
-}
-
-function DayCard({ plan, dayKey, today, edit, rotation, collapsed }: { plan: Plan; dayKey: DayKey; today: boolean; edit: Edit; rotation?: { letter: string; next?: string }; collapsed: CollapsedDays }) {
-  const day = plan.days[dayKey];
-  const { title, optional } = dayTitle(day, dayKey);
-  const rest = day.exercises.length === 0;
-  // dia escolhido para treinar, ainda sem exercícios (plano do zero) ou o próximo treino da rotação
-  const waiting = rest && (rotation ? true : isPlannedEmpty(day));
-  const [openId, setOpenId] = useState<string | null>(null);
-  const [adding, setAdding] = useState(false);
-  const [dayMenu, setDayMenu] = useState(false);
-  // R2: deslizar o exercício (esquerda remove com Desfazer, direita duplica)
-  const swipe = useAppStore(s => s.data?.settings.swipeSets ?? true);
-  // W14: os números iniciais de exercício novo
-  const startSets = useAppStore(s => s.data?.settings.newExerciseSets);
-  const startReps = useAppStore(s => s.data?.settings.newExerciseReps);
-  const [removed, setRemoved] = useState<{ at: number; ex: PlanExercise; timer: number } | null>(null);
-  const removeWithUndo = (i: number) => {
-    const ex = day.exercises[i];
-    if (!ex) return;
-    if (removed) clearTimeout(removed.timer);
-    if (openId === ex.id) setOpenId(null);
-    edit(p => removeExercise(p, dayKey, ex.id));
-    setRemoved({ at: i, ex, timer: window.setTimeout(() => setRemoved(null), 5000) });
-  };
-  const undoRemove = () => {
-    if (!removed) return;
-    clearTimeout(removed.timer);
-    edit(p => insertExercise(p, dayKey, removed.at, removed.ex));
-    setRemoved(null);
-  };
-  const full = day.exercises.length >= MAX_EXERCISES_PER_DAY;
-  // na rotação o espaço é "Treino B" (vazio: "Treino novo"), não o dia da semana
-  const slotName = rotation ? (rotation.letter ? `Treino ${rotation.letter}` : rotation.next ? `Treino ${rotation.next}` : 'Treino novo') : DAY_FULL_NAMES[dayKey];
-  const tags = [slotName, today ? 'Hoje' : '', optional && !rest && !rotation ? 'Opcional' : ''].filter(Boolean).join(' · ');
-  // X6: o dia de descanso ocupa uma linha só; o treino pode ser recolhido (fica o título e a contagem)
-  const compactRest = rest && !waiting;
-  const foldId = collapseKey(plan.id, dayKey);
-  const folded = !rest && collapsed.has(foldId);
-  const addLabel = full ? `Limite de ${MAX_EXERCISES_PER_DAY} exercícios` : rest && !waiting ? 'Adicionar exercício (vira dia de treino)' : 'Adicionar exercício';
-
-  return (
-    <article aria-label={slotName} className={`rounded-2xl border bg-surface ${compactRest ? 'px-4 py-2' : 'p-4'} ${today ? 'border-primary' : waiting ? 'border-dashed border-primary/60' : 'border-line'}`}>
-      <div className={`flex gap-2 ${compactRest ? 'items-center' : 'items-start'}`}>
-        <div className="min-w-0 flex-1">
-          <p className="text-xs font-semibold text-muted">{tags}</p>
-          <h2 className="text-lg font-bold leading-snug">
-            {rest ? (rotation ? (day.name.trim() || 'Novo treino da rotação') : waiting ? title : 'Descanso')
-              : rotation ? rotationTitle(plan, dayKey)
-              : title.replace(new RegExp(`^${DAY_FULL_NAMES[dayKey]}:\\s*`, 'i'), '') || title}
-          </h2>
-          {!rest && day.focus && <p className="text-sm text-muted">{day.focus}</p>}
-          {folded && <p className="text-sm text-muted" data-testid="treino-recolhido">{plural(day.exercises.length, 'exercício', 'exercícios')}</p>}
-          {waiting && <p className="text-sm text-muted">{rotation ? 'Adicione exercícios para criar este treino.' : 'Ainda sem exercícios.'}</p>}
-        </div>
-        {compactRest && (
-          <button type="button" disabled={full} onClick={() => setAdding(true)} aria-label={addLabel}
-            className="flex h-11 shrink-0 items-center gap-1 rounded-xl border border-dashed border-line px-3 text-sm font-semibold text-muted">
-            <Icon name="mais" className="size-4" />Exercício
-          </button>
-        )}
-        {!rest && (
-          <button type="button" onClick={() => collapsed.toggle(foldId)} aria-expanded={!folded} aria-label={`${folded ? 'Abrir' : 'Recolher'} ${slotName}`}
-            className="flex size-11 shrink-0 items-center justify-center rounded-full text-muted">
-            <Icon name={folded ? 'descer' : 'subir'} className="size-5" />
-          </button>
-        )}
-        <button type="button" onClick={() => setDayMenu(true)} aria-label={`Editar ${slotName}`}
-          className="flex size-11 shrink-0 items-center justify-center rounded-full text-muted">
-          <Icon name="editar" />
-        </button>
-      </div>
-
-      {!rest && !folded && (
-        <ul className="mt-3 divide-y divide-line">
-          {day.exercises.map((ex, i) => (
-            <ExerciseRow key={ex.id} ex={ex} open={openId === ex.id} first={i === 0} last={i === day.exercises.length - 1} swipe={swipe}
-              onSwipeRemove={() => removeWithUndo(i)}
-              superset={(() => { const b = supersetBlock(day.exercises, i); return b ? { pos: i - b.start + 1, size: b.end - b.start + 1 } : null; })()}
-              linkedToNext={!!ex.superset && ex.superset === day.exercises[i + 1]?.superset}
-              onToggleSuperset={() => edit(p => ({ ...p, days: { ...p.days, [dayKey]: { ...p.days[dayKey], exercises: toggleSupersetWithNext(p.days[dayKey].exercises, i, () => newId('ss')) } } }))}
-              onDuplicate={() => edit(p => duplicateExercise(p, dayKey, ex.id, newId('ex')))}
-              onToggle={() => setOpenId(openId === ex.id ? null : ex.id)}
-              onRest={seconds => edit(p => setPlanExerciseRest(p, dayKey, ex.id, seconds))}
-              onChange={patch => edit(p => updateExercise(p, dayKey, ex.id, patch))}
-              onMove={delta => edit(p => moveExercise(p, dayKey, ex.id, delta))}
-              onRemove={() => { setOpenId(null); edit(p => removeExercise(p, dayKey, ex.id)); }}
-              onAddAlt={name => edit(p => addAlternative(p, dayKey, ex.id, name))}
-              onRemoveAlt={i => edit(p => removeAlternative(p, dayKey, ex.id, i))} />
-          ))}
-        </ul>
-      )}
-      {removed && (
-        <div role="status" className="mt-2 flex items-center justify-between gap-2 rounded-xl bg-surface-2 px-3 py-1 text-sm">
-          <span className="min-w-0 truncate">{removed.ex.name} removido.</span>
-          <button type="button" onClick={undoRemove} className="h-10 shrink-0 px-2 font-bold text-info">Desfazer</button>
-        </div>
-      )}
-
-      {!compactRest && !folded && (
-        <button type="button" disabled={full} onClick={() => setAdding(true)}
-          className={`mt-3 flex h-11 w-full items-center justify-center gap-2 rounded-xl font-semibold disabled:opacity-50 ${waiting ? 'bg-primary text-white' : 'border border-dashed border-line text-muted'}`}>
-          <Icon name="mais" className="size-5" /> {addLabel}
-        </button>
-      )}
-
-      {/* vários de uma vez: o painel fica aberto até "Pronto" */}
-      <AddExerciseSheet open={adding} dayName={slotName} existing={day.exercises.map(e => e.name)} full={full} onClose={() => setAdding(false)}
-        onAdd={name => { const ex = newPlanExercise(name, undefined, { sets: startSets, reps: startReps }); edit(p => addExercise(p, dayKey, ex)); setOpenId(ex.id); }} />
-
-      <Sheet title={slotName} open={dayMenu} onClose={() => setDayMenu(false)}>
-        <label className="block text-sm font-semibold text-muted">Nome do treino
-          <input value={day.name} placeholder={slotName} onChange={e => edit(p => updateDay(p, dayKey, { name: e.target.value }))}
-            className="mt-1 h-12 w-full rounded-xl border border-line bg-surface-2 px-3 text-base text-ink" />
-        </label>
-        <label className="mt-3 block text-sm font-semibold text-muted">Foco
-          <input value={day.focus} placeholder="Ex.: peito e tríceps" onChange={e => edit(p => updateDay(p, dayKey, { focus: e.target.value }))}
-            className="mt-1 h-12 w-full rounded-xl border border-line bg-surface-2 px-3 text-base text-ink" />
-        </label>
-        <label className="mt-3 flex min-h-12 items-center gap-3">
-          <input type="checkbox" checked={day.optional} className="size-6 accent-[var(--color-primary)]"
-            onChange={e => edit(p => updateDay(p, dayKey, { optional: e.target.checked }))} />
-          <span className="font-semibold">Dia opcional</span>
-        </label>
-        <p className="text-sm text-muted">{optionalHint(day.optional)}</p>
-        {!rest && (
-          <div className="mt-3">
-            <SheetAction tone="danger" onClick={() => {
-              if (confirm(rotation ? `Esvaziar ${slotName}? Os exercícios serão removidos e ele sai da rotação.` : `Transformar ${DAY_FULL_NAMES[dayKey]} em descanso? Os exercícios do dia serão removidos.`)) { edit(p => clearDay(p, dayKey)); setDayMenu(false); }
-            }}>
-              <Icon name="lixo" /> {rotation ? 'Esvaziar treino' : 'Transformar em descanso'}
-            </SheetAction>
-          </div>
-        )}
-      </Sheet>
-    </article>
-  );
-}
-
-/** Resumo do exercício recolhido; o descanso só aparece quando é diferente do padrão do app. */
-function summary(ex: PlanExercise, defaultRest: number): string {
-  if (ex.mode === 'cardio') return `${ex.minutes} min${ex.km ? ` · ${formatNumber(ex.km)} km` : ''}`;
-  const rest = ex.restSeconds === undefined || ex.restSeconds === defaultRest ? '' : ` · descanso ${ex.restSeconds === 0 ? 'sem cronômetro' : formatClock(ex.restSeconds)}`;
-  if (ex.mode === 'time') return `${ex.sets} × ${ex.seconds ?? 30} s${rest}`;
-  const { min, max } = repRange(ex);
-  const warm = `${ex.warmupSets ? ` · ${ex.warmupSets} aquec.` : ''}${ex.stack?.length ? ' · pilha' : ''}`;
-  return `${ex.sets} × ${min === max ? max : `${min}–${max}`}${ex.perSide ? ' por lado' : ''}${ex.weight ? ` · ${formatNumber(ex.weight)} kg` : ''}${ex.lockWeight ? ' (travada)' : ''}${warm}${rest}`;
-}
-
-interface RowProps {
-  ex: PlanExercise; open: boolean; first: boolean; last: boolean; swipe: boolean;
-  superset: { pos: number; size: number } | null; linkedToNext: boolean; onToggleSuperset: () => void;
-  onSwipeRemove: () => void; onDuplicate: () => void;
-  onToggle: () => void; onChange: (patch: Partial<PlanExercise>) => void; onMove: (delta: -1 | 1) => void; onRemove: () => void;
-  /** Descanso do exercício: `undefined` = o padrão do app, 0 = sem cronômetro. */
-  onRest: (seconds: number | undefined) => void;
-  onAddAlt: (name: string) => void; onRemoveAlt: (index: number) => void;
-}
-
-/** Exercício recolhido; ao tocar abre os campos (O25). */
-function ExerciseRow({ ex, open, first, last, swipe, superset, linkedToNext, onToggleSuperset, onSwipeRemove, onDuplicate, onToggle, onChange, onMove, onRemove, onRest, onAddAlt, onRemoveAlt }: RowProps) {
-  const [alt, setAlt] = useState('');
-  const [restOpen, setRestOpen] = useState(false);
-  const defaultRest = useAppStore(s => s.data?.settings.restSeconds ?? 90);
-  // faixa de reps (M10): cada campo grava o seu número a cada tecla; inversão só se acerta ao sair do campo
-  const settle = (side: 'min' | 'max') => { const patch = settleRange(ex, side); if (patch) onChange(patch); };
-  const listId = useId();
-  const field = (label: string, value: number, set: (n: number) => void, decimal = false, commit?: () => void) => (
-    <label className="text-xs font-semibold text-muted">{label}
-      <NumberField label={`${label} de ${ex.name}`} decimal={decimal} value={value} onChange={set} onCommit={commit} className="mt-1" />
-    </label>
-  );
-  return (
-    <SwipeRow enabled={swipe} onDelete={onSwipeRemove} onCopy={onDuplicate} className="py-1">
-      <button type="button" onClick={onToggle} aria-expanded={open} className="flex min-h-12 w-full items-center gap-2 text-left">
-        <span className="min-w-0 flex-1">
-          <span className="block truncate font-semibold">{ex.name}</span>
-          <span className="block text-sm text-muted">{summary(ex, defaultRest)}{superset ? ` · superset ${superset.pos}/${superset.size}` : ''}</span>
-        </span>
-        <Icon name={open ? 'subir' : 'descer'} className="size-5 shrink-0 text-faint" />
-      </button>
-      {open && (
-        <div className="pb-3">
-          <div className="grid grid-cols-3 gap-2">
-            {ex.mode === 'cardio' ? (
-              <>{field('Minutos', ex.minutes, minutes => onChange({ minutes }))}{field('Km', ex.km, km => onChange({ km }), true)}</>
-            ) : (
-              <>
-                {field('Séries', ex.sets, sets => onChange({ sets: Math.max(1, Math.round(sets)) }))}
-                {ex.mode === 'time'
-                  ? field('Segundos', ex.seconds ?? 30, seconds => onChange({ seconds }))
-                  : <>
-                    {field('Reps mín.', rangeFields(ex).min, n => onChange(editRange(ex, 'min', n)), false, () => settle('min'))}
-                    {field('Reps máx.', rangeFields(ex).max, n => onChange(editRange(ex, 'max', n)), false, () => settle('max'))}
-                  </>}
-                {ex.mode === 'time' && field('Carga (kg)', ex.weight, weight => onChange({ weight }), true)}
-              </>
-            )}
-          </div>
-          <div className="mt-2 grid grid-cols-3 gap-2">
-            {ex.mode === 'reps' && (
-              <>
-                {field('Carga (kg)', ex.weight, weight => onChange({ weight }), true)}
-                <label className="text-xs font-semibold text-muted">Subir (kg)
-                  <select value={ex.increment || ''} onChange={e => onChange(e.target.value ? { increment: Number(e.target.value) } : { increment: 0 })} aria-label={`Quanto subir a carga de ${ex.name}`}
-                    className="mt-1 h-11 w-full rounded-xl border border-line bg-surface-2 px-2 text-base text-ink">
-                    {/* Auto: 1 kg abaixo de 20 kg e 2,5 kg a partir daí (incrementFor) */}
-                    <option value="">Auto</option>
-                    {INCREMENTS.map(n => <option key={n} value={n}>{formatNumber(n)}</option>)}
-                  </select>
-                </label>
-              </>
-            )}
-            <div className="text-xs font-semibold text-muted">Descanso
-              <button type="button" onClick={() => setRestOpen(true)} aria-label={`Descanso de ${ex.name}: ${restLabel(ex.restSeconds, defaultRest)}. Mudar`}
-                className="mt-1 flex h-11 w-full items-center justify-center gap-1 rounded-xl border border-line bg-surface-2 px-2 text-base font-normal text-ink">
-                <Icon name="relogio" className="size-4 text-muted" />{ex.restSeconds === undefined ? formatClock(defaultRest) : ex.restSeconds === 0 ? 'Sem' : formatClock(ex.restSeconds)}
-              </button>
-            </div>
-            <RestSheet open={restOpen} title={ex.name} seconds={ex.restSeconds} fallback={defaultRest} onClose={() => setRestOpen(false)} onSave={s => onRest(s)} />
-          </div>
-          <label className="mt-2 block text-xs font-semibold text-muted">Dica
-            <input value={ex.tip ?? ''} placeholder="Execução ou substituição" onChange={e => onChange({ tip: e.target.value })}
-              className="mt-1 h-11 w-full rounded-xl border border-line bg-surface-2 px-3 text-base text-ink" />
-          </label>
-          {!last && (
-            <button type="button" onClick={onToggleSuperset}
-              className="mt-3 h-11 w-full rounded-xl bg-surface-2 text-sm font-semibold">
-              {linkedToNext ? 'Separar do próximo (superset)' : 'Superset com o próximo exercício'}
-            </button>
-          )}
-          <label className="mt-3 flex min-h-11 items-center gap-3">
-            <input type="checkbox" checked={ex.optional} onChange={e => onChange({ optional: e.target.checked })} className="size-5 accent-[var(--color-primary)]" />
-            <span className="text-sm font-semibold">Exercício opcional</span>
-          </label>
-          {ex.mode !== 'cardio' && (
-            <label className="flex min-h-11 items-center gap-3">
-              <input type="checkbox" checked={!!ex.lockWeight} onChange={e => onChange(e.target.checked ? { lockWeight: true } : { lockWeight: undefined })} className="size-5 accent-[var(--color-primary)]" />
-              <span className="text-sm font-semibold">Travar a carga <span className="font-normal text-muted">(o treino abre com a carga acima e a progressão não muda)</span></span>
-            </label>
-          )}
-          {ex.mode === 'reps' && (
-            <div className="grid grid-cols-3 gap-2">
-              {field('Aquecimento (séries)', ex.warmupSets ?? 0, n => onChange({ warmupSets: Math.max(0, Math.min(5, Math.round(n))) }))}
-              <p className="col-span-2 self-end pb-1 text-xs text-faint">Séries de aquecimento no começo, com metade da carga e 10 repetições.</p>
-            </div>
-          )}
-          {ex.mode === 'reps' && (
-            <label className="flex min-h-11 items-center gap-3">
-              <input type="checkbox" checked={!!ex.perSide} onChange={e => onChange({ perSide: e.target.checked })} className="size-5 accent-[var(--color-primary)]" />
-              <span className="text-sm font-semibold">Repetições por lado <span className="font-normal text-muted">(afundo, unilateral)</span></span>
-            </label>
-          )}
-          {ex.mode === 'reps' && ex.perSide && (
-            <div className="grid grid-cols-3 gap-2">
-              {field('Entre os lados (s)', ex.sideRestSeconds ?? 0, n => onChange({ sideRestSeconds: Math.max(0, Math.round(n)) }))}
-              <p className="col-span-2 self-end pb-1 text-xs text-faint">Descanso curto entre um lado e o outro; 0 = sem. No treino vira o botão "Trocar de lado".</p>
-            </div>
-          )}
-          {ex.mode === 'reps' && <StackField ex={ex} onChange={onChange} />}
-          <div className="mt-2">
-            <p className="text-xs font-semibold text-muted">Reservas (para trocar no treino)</p>
-            {ex.alternatives.map((a, i) => (
-              <div key={`${a.name}-${i}`} className="flex items-center justify-between gap-2 text-sm">
-                <span className="min-w-0 truncate">{a.name}</span>
-                <button type="button" onClick={() => onRemoveAlt(i)} aria-label={`Remover reserva ${a.name}`} className="flex size-11 shrink-0 items-center justify-center text-muted">
-                  <Icon name="fechar" className="size-5" />
-                </button>
-              </div>
-            ))}
-            <form className="mt-1 flex gap-2" onSubmit={e => { e.preventDefault(); if (alt.trim()) { onAddAlt(alt); setAlt(''); } }}>
-              <input value={alt} onChange={e => setAlt(e.target.value)} list={listId} placeholder="Nome da reserva" aria-label={`Reserva de ${ex.name}`}
-                className="h-11 min-w-0 flex-1 rounded-xl border border-line bg-surface-2 px-3 text-base text-ink" />
-              <datalist id={listId}>{ALL_NAMES.map(n => <option key={n} value={n} />)}</datalist>
-              <button type="submit" className="h-11 shrink-0 rounded-xl bg-surface-2 px-3 font-semibold">Adicionar</button>
-            </form>
-          </div>
-          <div className="mt-2 flex gap-2">
-            <button type="button" disabled={first} onClick={() => onMove(-1)} aria-label={`Subir ${ex.name}`}
-              className="flex size-11 items-center justify-center rounded-xl bg-surface-2 disabled:opacity-40"><Icon name="subir" /></button>
-            <button type="button" disabled={last} onClick={() => onMove(1)} aria-label={`Descer ${ex.name}`}
-              className="flex size-11 items-center justify-center rounded-xl bg-surface-2 disabled:opacity-40"><Icon name="descer" /></button>
-            <button type="button" onClick={onRemove} aria-label={`Remover ${ex.name}`}
-              className="ml-auto flex h-11 items-center gap-2 rounded-xl px-3 font-semibold text-danger"><Icon name="lixo" className="size-5" /> Remover</button>
-          </div>
-        </div>
-      )}
-    </SwipeRow>
-  );
-}
-
-/**
- * Adicionar exercícios a um treino: buscar pelo nome ou escolher pelo grupo muscular. O painel fica
- * aberto para pôr vários de uma vez; os que já estão no treino aparecem marcados.
- */
-function AddExerciseSheet({ open, dayName, existing, full, onClose, onAdd }: {
-  open: boolean; dayName: string; existing: readonly string[]; full: boolean; onClose: () => void; onAdd: (name: string) => void;
-}) {
-  const [query, setQuery] = useState('');
-  const [group, setGroup] = useState<string | null>(null);
-  const [added, setAdded] = useState<string[]>([]);
-  const custom = useAppStore(s => s.data?.settings.customExercises);
-  const listId = useId();
-  const q = query.trim().toLowerCase();
-  const pool = useSearchPool();
-  const matches = q ? searchNames(q, pool.names, 8, pool.done, pool.favorites, pool.aliases) : [];
-  const inGroup = !q && group ? libraryEntries(custom ?? []).filter(e => e.group === group).map(e => e.name) : [];
-  const have = new Set(existing.map(normalizeExerciseName));
-  const close = () => { setQuery(''); setGroup(null); setAdded([]); onClose(); };
-  const add = (name: string) => {
-    if (full) return;
-    onAdd(name.trim());
-    setAdded(a => [...a, name.trim()]);
-    setQuery('');
-  };
-  const row = (name: string) => {
-    const there = have.has(normalizeExerciseName(name));
-    return (
-      <li key={name}>
-        <SheetAction onClick={() => add(name)}>
-          <ExerciseThumb name={name} />
-          <span className="min-w-0 flex-1">{name}{there && <span className="block text-xs font-normal text-success">✓ já está no treino</span>}</span>
-        </SheetAction>
-      </li>
-    );
-  };
-  return (
-    <Sheet title={`Adicionar em ${dayName}`} open={open} onClose={close}>
-      <input value={query} onChange={e => setQuery(e.target.value)} placeholder="Buscar ou digitar o nome" aria-label="Nome do exercício"
-        aria-controls={listId} className="h-12 w-full rounded-xl border border-line bg-surface-2 px-3 text-base text-ink" />
-      {!q && (
-        <>
-          <p className="mt-3 text-sm font-semibold text-muted">Ou escolha pelo grupo</p>
-          <div role="radiogroup" aria-label="Grupo muscular" className="mt-1 flex flex-wrap gap-1.5">
-            {MUSCLE_GROUPS.map(g => (
-              <button key={g} type="button" role="radio" aria-checked={group === g} onClick={() => setGroup(group === g ? null : g)}
-                className={`h-9 rounded-full border px-3 text-sm font-semibold ${group === g ? 'border-primary bg-primary/10 text-ink' : 'border-line text-muted'}`}>{g}</button>
-            ))}
-          </div>
-        </>
-      )}
-      <ul id={listId} className="mt-2">{(q ? matches : inGroup).map(row)}</ul>
-      {q && !matches.some(n => n.toLowerCase() === q) && (
-        <button type="button" onClick={() => add(query)} disabled={full} className="mt-2 h-12 w-full rounded-xl bg-surface-2 text-base font-bold disabled:opacity-50">
-          Adicionar “{query.trim()}”
-        </button>
-      )}
-      {(added.length > 0 || full) && (
-        <div className="sticky bottom-0 mt-3 space-y-2 bg-surface pb-1 pt-2">
-          <p role="status" className="text-sm text-muted">
-            {full ? `Limite de ${MAX_EXERCISES_PER_DAY} exercícios neste treino.` : `${added[added.length - 1]} adicionado. ${plural(existing.length, 'exercício', 'exercícios')} no treino.`}
-          </p>
-          <button type="button" onClick={close} className="h-12 w-full rounded-xl bg-primary text-base font-bold text-white">
-            Pronto{added.length > 1 ? ` (${added.length} adicionados)` : ''}
-          </button>
-        </div>
-      )}
-    </Sheet>
-  );
-}
-
-
-/**
- * T23: a pilha da máquina: os pesos que o pino escolhe ("5, 10, 15" ou "5-100/5"). Com ela, a
- * carga sugerida e os botões de carga andam de pino em pino.
- */
-function StackField({ ex, onChange }: { ex: PlanExercise; onChange: (patch: Partial<PlanExercise>) => void }) {
-  const [text, setText] = useState(ex.stack?.length ? ex.stack.join('; ').replace(/\./g, ',') : '');
-  const parsed = parseStack(text);
-  const saved = (ex.stack ?? []).join(';');
-  return (
-    <div className="mt-2">
-      <label className="block text-xs font-semibold text-muted">Pilha da máquina (kg)
-        <input value={text} onChange={e => setText(e.target.value)} placeholder="Ex.: 5-100/5 ou 7; 14; 21" aria-label={`Pilha da máquina de ${ex.name}`}
-          className="mt-1 h-11 w-full rounded-xl border border-line bg-surface-2 px-3 text-base text-ink" />
-      </label>
-      <p className="mt-1 text-xs text-faint">{parsed.length ? `${parsed.length} pesos: ${formatStack(parsed)}` : 'Opcional: os pesos que o pino escolhe, para a carga andar de pino em pino.'}</p>
-      {parsed.join(';') !== saved && (
-        <button type="button" onClick={() => onChange({ stack: parsed.length ? parsed : undefined })} className="mt-1 h-10 rounded-lg bg-surface-2 px-3 text-sm font-semibold">
-          {parsed.length ? 'Salvar a pilha' : 'Tirar a pilha'}
-        </button>
-      )}
-    </div>
-  );
-}

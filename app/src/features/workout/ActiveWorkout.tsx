@@ -93,7 +93,8 @@ export function ActiveWorkout({ session }: { session: ActiveSession }) {
       <header className="safe-top sticky top-0 z-20 -mx-4 border-b border-line bg-page/95 px-4 pb-3 pt-3 backdrop-blur">
         <div className="flex items-center gap-3">
           <div className="min-w-0 flex-1">
-            <h1 className="truncate text-xl font-black">{session.dayName || 'Treino'}</h1>
+            {/* até duas linhas: com o texto grande (W17) o nome cortava logo no começo ("Segun…") */}
+            <h1 className="line-clamp-2 break-words text-xl font-black leading-tight">{session.dayName || 'Treino'}</h1>
             <p className="text-sm text-muted tabular-nums">
               {session.backdated ? `Treino de ${shortDate(session.date)} · ${session.backdated.durationMin} min` : `${paused ? 'Pausado · ' : ''}${formatClock(elapsed)}`} · {progress.setsDone}/{progress.setsTotal} séries{liveVolume > 0 ? ` · ${formatNumber(liveVolume)} kg` : ''}{deload ? ' · deload' : ''}
             </p>

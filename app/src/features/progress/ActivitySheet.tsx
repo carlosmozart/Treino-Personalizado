@@ -21,7 +21,7 @@ export function ActivityButton() {
   );
 }
 
-function ActivitySheet({ onClose }: { onClose: () => void }) {
+export function ActivitySheet({ onClose }: { onClose: () => void }) {
   const run = useAppStore(s => s.run);
   const today = toDateKey(new Date());
   const [kind, setKind] = useState<ActivityKind>('corrida');

@@ -3,7 +3,7 @@
 // apelido do novo, para a busca ainda achar. T16: os apelidos em si.
 import type { ActionResult } from './actions';
 import type { AppData, Plan, Settings, Workout } from './model';
-import { key, touch } from './sync';
+import { key, touch, touchLibrary } from './sync';
 import { normalizeExerciseName } from './text';
 
 export interface MergePreview { workouts: number; sets: number; plans: number }
@@ -75,6 +75,7 @@ export function mergeExercises(data: AppData, from: string, to: string, now: Dat
     ...(customExercises && customExercises.length !== s.customExercises?.length ? { customExercises } : {})
   };
   touch(draft, key.settings, now);
+  touchLibrary(draft, s, draft.settings, now);
   return { result: { data: draft, events: [] }, undo };
 }
 
@@ -82,6 +83,7 @@ export function mergeExercises(data: AppData, from: string, to: string, now: Dat
 export function undoMerge(data: AppData, undo: MergeUndo, now: Date): ActionResult {
   const draft: AppData = { ...data, sync: cloneSync(data), settings: undo.settings };
   touch(draft, key.settings, now);
+  touchLibrary(draft, data.settings, undo.settings, now);
   const back = new Map(undo.workouts.map(w => [w.id, w]));
   draft.workouts = data.workouts.map(w => {
     const old = back.get(w.id);
@@ -104,5 +106,6 @@ export function setAliases(data: AppData, name: string, list: readonly string[],
   if (clean.length) aliases[k] = clean; else delete aliases[k];
   const draft: AppData = { ...data, sync: cloneSync(data), settings: { ...data.settings, aliases } };
   touch(draft, key.settings, now);
+  touchLibrary(draft, data.settings, draft.settings, now);
   return { data: draft, events: [] };
 }

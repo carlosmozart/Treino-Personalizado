@@ -1,8 +1,10 @@
+import { Suspense } from 'react';
 import { setActivePlan } from '../../domain/actions';
 import { useAppStore } from '../../store';
 import { Icon } from '../../ui/Icon';
 import { Sheet, SheetAction } from '../../ui/Sheet';
-import { AiPlanSheet } from './AiPlanSheet';
+import { LazyAiPlanSheet } from './lazy-sheets';
+import { useOpenedOnce } from '../../hooks/use-opened-once';
 import { TemplateSheet } from './TemplateSheet';
 import { GuidedSetup } from './GuidedSetup';
 import { PlanFileActions } from './PlanFileActions';
@@ -17,6 +19,7 @@ export function PlanChooser({ mode, setMode }: { mode: ChooserMode; setMode: (m:
   const run = useAppStore(s => s.run);
   const others = Object.values(data?.plans ?? {}).filter(p => p.id !== data?.activePlanId);
   const close = () => setMode(null);
+  const aiLoaded = useOpenedOnce(mode === 'ai' || mode === 'ai-convert');
   return (
     <>
       <Sheet title="Novo plano de treino" open={mode === 'menu'} onClose={close}>
@@ -38,8 +41,12 @@ export function PlanChooser({ mode, setMode }: { mode: ChooserMode; setMode: (m:
       <TemplateSheet open={mode === 'templates'} onClose={close} />
       <ScratchPlanSheet open={mode === 'scratch'} onClose={close} />
       <FromWorkoutSheet open={mode === 'from-workout'} onClose={close} />
-      <AiPlanSheet open={mode === 'ai'} onClose={close} />
-      <AiPlanSheet open={mode === 'ai-convert'} onClose={close} initialKind="convert" />
+      {aiLoaded && (
+        <Suspense fallback={null}>
+          <LazyAiPlanSheet open={mode === 'ai'} onClose={close} />
+          <LazyAiPlanSheet open={mode === 'ai-convert'} onClose={close} initialKind="convert" />
+        </Suspense>
+      )}
     </>
   );
 }

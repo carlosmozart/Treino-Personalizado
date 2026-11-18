@@ -44,7 +44,7 @@ test('metas: conquista do primeiro check-in e meta de peso com marcos', async ({
   await page.getByRole('button', { name: 'Início', exact: true }).click();
   await page.getByRole('button', { name: /presença/ }).click();
   await expect(page.getByText('Conquista desbloqueada: Primeiro Passo')).toBeVisible();
-  await page.getByRole('button', { name: /Registrar/ }).click();
+  await page.getByRole('button', { name: '+ Registrar', exact: true }).click();
   await page.getByRole('textbox', { name: 'Peso de hoje em kg' }).fill('90');
   await page.getByRole('button', { name: 'Salvar' }).click();
 
@@ -87,7 +87,7 @@ test('histórico: corrigir um exercício, evolução e apagar pesagem', async ({
   await expect(page.getByRole('button', { name: `Corrigir ${name}` })).toContainText('77,5kg');
 
   await page.getByRole('button', { name: 'Início', exact: true }).click();
-  await page.getByRole('button', { name: /Registrar/ }).click();
+  await page.getByRole('button', { name: '+ Registrar', exact: true }).click();
   await page.getByRole('textbox', { name: 'Peso de hoje em kg' }).fill('91');
   await page.getByRole('button', { name: 'Salvar' }).click();
   await page.getByRole('button', { name: 'Progresso', exact: true }).click();

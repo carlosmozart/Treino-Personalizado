@@ -1,3 +1,4 @@
+import { lazy, Suspense } from 'react';
 import { TabBar, TAB_LABELS } from './ui/TabBar';
 import { Toaster } from './ui/Toaster';
 import { ErrorNotice } from './ui/ErrorNotice';
@@ -10,11 +11,14 @@ import { WorkoutScreen } from './features/workout/WorkoutScreen';
 import { ForgottenWatcher } from './features/workout/WorkoutExtras';
 import { RestBar } from './features/workout/RestBar';
 import { HomeScreen } from './features/home/HomeScreen';
-import { PlanScreen } from './features/plan/PlanScreen';
-import { ProgressScreen } from './features/progress/ProgressScreen';
-import { ProfileScreen } from './features/profile/ProfileScreen';
 import { SeasonalLayer } from './features/seasonal/SeasonalLayer';
-import { RpgLevelUp } from './features/rpg/LevelUp';
+
+// X14: Início e Treino vêm no pacote principal (abrem na hora); Plano, Progresso e Perfil, e a
+// animação do modo RPG (só com ele ligado), baixam quando usados
+const PlanScreen = lazy(() => import('./features/plan/PlanScreen').then(m => ({ default: m.PlanScreen })));
+const ProgressScreen = lazy(() => import('./features/progress/ProgressScreen').then(m => ({ default: m.ProgressScreen })));
+const ProfileScreen = lazy(() => import('./features/profile/ProfileScreen').then(m => ({ default: m.ProfileScreen })));
+const RpgLevelUp = lazy(() => import('./features/rpg/LevelUp').then(m => ({ default: m.RpgLevelUp })));
 
 const SCREENS = { inicio: () => <HomeScreen />, plano: () => <PlanScreen />, treino: () => <WorkoutScreen />, progresso: () => <ProgressScreen />, perfil: () => <ProfileScreen /> };
 
@@ -25,11 +29,12 @@ export function App() {
   const status = useAppStore(s => s.status);
   const error = useAppStore(s => s.error);
   const workoutCount = useAppStore(s => s.data?.workouts.length ?? 0);
+  const rpgOn = useAppStore(s => !!s.data?.rpg?.enabled);
 
   return (
     <div className="safe-top relative min-h-dvh pb-44">
       <main data-today={today} className="mx-auto max-w-xl px-4">
-        {status === 'ready' && tab in SCREENS ? SCREENS[tab as keyof typeof SCREENS]() : (
+        {status === 'ready' && tab in SCREENS ? <Suspense fallback={<div className="pt-6" aria-busy="true" />}>{SCREENS[tab as keyof typeof SCREENS]()}</Suspense> : (
           <>
             <h1 className="pt-6 text-3xl font-black tracking-tight">{TAB_LABELS[tab]}</h1>
             <section className="mt-6 rounded-2xl border border-line bg-surface p-4">
@@ -47,7 +52,7 @@ export function App() {
         <p className="mt-6 text-center text-sm text-faint">Treino Personalizado v{__APP_VERSION__}</p>
       </main>
       {status === 'ready' && <SeasonalLayer />}
-      {status === 'ready' && <RpgLevelUp />}
+      {status === 'ready' && rpgOn && <Suspense fallback={null}><RpgLevelUp /></Suspense>}
       <RestBar />
       {status === 'ready' && <ForgottenWatcher />}
       <Toaster />

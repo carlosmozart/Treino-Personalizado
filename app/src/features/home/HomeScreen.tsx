@@ -1,3 +1,5 @@
+import { Icon } from '../../ui/Icon';
+import { ActivitySheet } from '../progress/ActivitySheet';
 import { activityLabel, durationText } from '../../domain/activities';
 import { useState } from 'react';
 import { RecapCards } from './RecapCards';
@@ -103,6 +105,8 @@ function WeekStrip() {
   const data = useAppStore(s => s.data)!;
   const days = weekStrip(data, new Date());
   const [noteDay, setNoteDay] = useState<(typeof days)[number] | null>(null);
+  // W10: atalho para registrar a atividade do dia sem ir até o Histórico
+  const [activityOpen, setActivityOpen] = useState(false);
   return (
     <section aria-label="Esta semana" className="rounded-2xl border border-line bg-surface p-3">
       <ol className="grid grid-cols-7 gap-1 text-center">
@@ -143,6 +147,10 @@ function WeekStrip() {
           {days.filter(d => d.note).map(d => `${DAY_FULL_NAMES[d.dayKey]}: ${reasonLabel(d.note!.reason).toLowerCase()}${d.note!.text ? ` (${d.note!.text})` : ''}`).join(' · ')}
         </p>
       )}
+      <button type="button" onClick={() => setActivityOpen(true)} className="mt-1 flex min-h-11 w-full items-center justify-center gap-1 rounded-xl text-sm font-semibold text-muted">
+        <Icon name="mais" className="size-4" />Registrar atividade ou recuperação
+      </button>
+      {activityOpen && <ActivitySheet onClose={() => setActivityOpen(false)} />}
       <DayNoteSheet date={noteDay?.date ?? null} title={noteDay ? `${DAY_FULL_NAMES[noteDay.dayKey]}, ${noteDay.dayOfMonth}` : ''} onClose={() => setNoteDay(null)} />
     </section>
   );
