@@ -168,6 +168,78 @@ export interface Activity {
   note?: string;
 }
 
+/**
+ * Z1: protocolo de hormônios, peptídeos ou medicamentos. Seção opcional, só de registro: o app
+ * guarda o que a pessoa informa e nunca sugere substância nem dose.
+ */
+export type ProtocolKind = 'ciclo' | 'trt' | 'emagrecimento' | 'tratamento' | 'outro';
+export type SubstanceCategory = 'hormonio' | 'peptideo' | 'medicamento' | 'suplemento';
+export type DoseRoute = 'im' | 'sc' | 'oral' | 'topico' | 'outra';
+export type DoseUnit = 'mg' | 'mcg' | 'UI' | 'ml' | 'comprimido' | 'gota';
+/** A cada N dias (contando do primeiro dia da substância) ou em dias fixos da semana. */
+export type DoseSchedule = { every: number } | { weekdays: DayKey[] };
+
+export interface ProtocolItem {
+  id: string;
+  name: string;
+  category: SubstanceCategory;
+  route: DoseRoute;
+  dose: number;
+  unit: DoseUnit;
+  schedule: DoseSchedule;
+  /** Semana do protocolo em que começa e em que termina (1 = a primeira). Ausentes = o protocolo todo. */
+  fromWeek?: number;
+  toWeek?: number;
+  /** Z2: meia-vida informada pela pessoa (horas), só para desenhar a curva estimada. */
+  halfLifeHours?: number;
+  note?: string;
+}
+
+export interface Protocol {
+  id: string;
+  name: string;
+  kind: ProtocolKind;
+  startDate: DateKey;
+  /** Duração planejada em semanas. Ausente = contínuo (reposição, tratamento). */
+  weeks?: number;
+  /** Encerrado antes (ou depois) do previsto, neste dia. */
+  endedOn?: DateKey;
+  items: ProtocolItem[];
+  note?: string;
+}
+
+/** Locais de aplicação, para alternar (e lembrar onde foi a última). */
+export type InjectionSite = 'gluteo-e' | 'gluteo-d' | 'coxa-e' | 'coxa-d' | 'deltoide-e' | 'deltoide-d' | 'abdome-e' | 'abdome-d' | 'outro';
+
+export interface DoseLog {
+  id: string;
+  date: DateKey;
+  /** Hora em que foi registrada (ISO). */
+  at: string;
+  name: string;
+  dose: number;
+  unit: DoseUnit;
+  route: DoseRoute;
+  /** De qual item de qual protocolo veio; ausentes numa dose avulsa. */
+  protocolId?: string;
+  itemId?: string;
+  site?: InjectionSite;
+  note?: string;
+}
+
+export type HealthEntryKind = 'sintomas' | 'pressao' | 'exame' | 'nota';
+
+/** Z1: diário de saúde do protocolo: sintomas, pressão, exames de sangue e notas. */
+export interface HealthEntry {
+  id: string;
+  date: DateKey;
+  kind: HealthEntryKind;
+  symptoms?: string[];
+  text?: string;
+  pressure?: { sys: number; dia: number; pulse?: number };
+  exam?: { name: string; value: number; unit: string }[];
+}
+
 export interface DayNote {
   reason: DayNoteReason;
   text?: string;
@@ -292,6 +364,8 @@ export interface Settings {
   textScale?: 'menor' | 'padrao' | 'maior' | 'grande';
   /** W10: dia com atividade registrada não quebra a sequência. Ausente = desligado. */
   activitiesKeepStreak?: boolean;
+  /** Z1: seção de protocolo (hormônios, peptídeos, medicamentos). Ausente = desligada e escondida. */
+  protocolEnabled?: boolean;
   /** W14: séries e repetições com que um exercício novo começa. Ausentes = 3 e 10. */
   newExerciseSets?: number;
   newExerciseReps?: number;
@@ -368,6 +442,10 @@ export interface AppData {
   dayNotes?: Record<DateKey, DayNote>;
   /** W10: atividades e recuperação, por id. Ausente quando não há nenhuma. */
   activities?: Record<string, Activity>;
+  /** Z1: protocolos, doses registradas e diário de saúde, por id. Ausentes quando vazios. */
+  protocols?: Record<string, Protocol>;
+  doses?: Record<string, DoseLog>;
+  healthLog?: Record<string, HealthEntry>;
   /** M19: treinos remarcados, por data. Ausente em dados antigos. */
   moves?: Record<DateKey, DayMove>;
   gamification: Gamification;

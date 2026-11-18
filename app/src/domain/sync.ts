@@ -14,6 +14,10 @@ export const key = {
   measure: (date: string): SyncKey => `measure:${date}`,
   move: (date: string): SyncKey => `move:${date}`,
   activity: (id: string): SyncKey => `activity:${id}`,
+  // Z1: protocolo, doses e diário de saúde
+  protocol: (id: string): SyncKey => `protocol:${id}`,
+  dose: (id: string): SyncKey => `dose:${id}`,
+  health: (id: string): SyncKey => `health:${id}`,
   // X15: itens da biblioteca pessoal, que moram nos ajustes mas juntam um a um
   favorite: (k: string): SyncKey => `favorite:${k}`,
   custom: (k: string): SyncKey => `custom:${k}`,
@@ -70,6 +74,9 @@ export function stampAll(data: AppData, now: Date): AppData {
   Object.keys(data.measurements ?? {}).forEach(d => add(key.measure(d)));
   Object.keys(data.moves ?? {}).forEach(d => add(key.move(d)));
   Object.keys(data.activities ?? {}).forEach(id => add(key.activity(id)));
+  Object.keys(data.protocols ?? {}).forEach(id => add(key.protocol(id)));
+  Object.keys(data.doses ?? {}).forEach(id => add(key.dose(id)));
+  Object.keys(data.healthLog ?? {}).forEach(id => add(key.health(id)));
   Object.keys(favoriteRecords(data.settings)).forEach(k => add(key.favorite(k)));
   Object.keys(customRecords(data.settings)).forEach(k => add(key.custom(k)));
   Object.keys(aliasRecords(data.settings)).forEach(k => add(key.alias(k)));
@@ -159,6 +166,9 @@ export function mergeAppData(local: AppData, remote: AppData): AppData {
   const measurements = mergeRecords(key.measure, local.measurements ?? {}, remote.measurements ?? {}, a, b, deleted);
   const moves = mergeRecords(key.move, local.moves ?? {}, remote.moves ?? {}, a, b, deleted);
   const activities = mergeRecords(key.activity, local.activities ?? {}, remote.activities ?? {}, a, b, deleted);
+  const protocols = mergeRecords(key.protocol, local.protocols ?? {}, remote.protocols ?? {}, a, b, deleted);
+  const doses = mergeRecords(key.dose, local.doses ?? {}, remote.doses ?? {}, a, b, deleted);
+  const healthLog = mergeRecords(key.health, local.healthLog ?? {}, remote.healthLog ?? {}, a, b, deleted);
 
   const rpg = !local.rpg ? remote.rpg : !remote.rpg ? local.rpg : newer(a.stamp(key.rpg), b.stamp(key.rpg)) ? local.rpg : remote.rpg;
   const whole = <K extends 'profile' | 'settings'>(k: SyncKey, field: K): AppData[K] =>
@@ -194,6 +204,9 @@ export function mergeAppData(local: AppData, remote: AppData): AppData {
     ...(Object.keys(measurements).length ? { measurements } : {}),
     ...(Object.keys(moves).length ? { moves } : {}),
     ...(Object.keys(activities).length ? { activities } : {}),
+    ...(Object.keys(protocols).length ? { protocols } : {}),
+    ...(Object.keys(doses).length ? { doses } : {}),
+    ...(Object.keys(healthLog).length ? { healthLog } : {}),
     gamification: mergeGamification(local.gamification, remote.gamification, new Set(Object.keys(checkins))),
     ...(rpg ? { rpg } : {}),
     settings,

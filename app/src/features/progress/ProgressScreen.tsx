@@ -29,6 +29,7 @@ import { CopyTextButton } from './CopyTextButton';
 import { ShareImageButton } from './ShareImageButton';
 import { WorkoutMoreActions } from './WorkoutMoreActions';
 import { formatNumber, plural, shortDate } from '../../ui/format';
+import { ProtocolView } from '../protocol/ProtocolView';
 
 const MONTH_NAMES = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
 const monthTitle = (ym: string) => `${MONTH_NAMES[Number(ym.slice(5, 7)) - 1]} de ${ym.slice(0, 4)}`;
@@ -36,24 +37,29 @@ const WEEKDAYS = ['dom', 'seg', 'ter', 'qua', 'qui', 'sex', 'sáb'];
 
 const NO_WORKOUTS: Workout[] = [];
 
-type View = 'stats' | 'goals' | 'history';
-const VIEW_LABEL: Record<View, string> = { stats: 'Estatísticas', goals: 'Metas', history: 'Histórico' };
+type View = 'stats' | 'goals' | 'history' | 'protocol';
+const VIEW_LABEL: Record<View, string> = { stats: 'Estatísticas', goals: 'Metas', history: 'Histórico', protocol: 'Protocolo' };
 
 /** Estatísticas (N9, M16, M28) e histórico dos treinos. */
 export function ProgressScreen() {
-  const [view, setView] = useState<View>('stats');
+  const [chosen, setView] = useState<View>('stats');
+  // Z1: a aba Protocolo só existe com a seção ligada no Perfil
+  const protocol = useAppStore(s => !!s.data?.settings.protocolEnabled);
+  const views: View[] = protocol ? ['stats', 'goals', 'history', 'protocol'] : ['stats', 'goals', 'history'];
+  const view = views.includes(chosen) ? chosen : 'stats';
   return (
     <>
       <h1 className="pt-6 text-3xl font-black tracking-tight">Progresso</h1>
-      <div role="tablist" className="mt-4 grid grid-cols-3 gap-1 rounded-xl bg-surface-2 p-1">
-        {(['stats', 'goals', 'history'] as const).map(v => (
-          <button key={v} type="button" role="tab" aria-selected={view === v} onClick={() => setView(v)}
-            className={`h-10 rounded-lg font-semibold ${view === v ? 'bg-surface text-ink' : 'text-muted'}`}>
-            {VIEW_LABEL[v]}
+      <div role="tablist" className={`mt-4 grid gap-1 rounded-xl bg-surface-2 p-1 ${protocol ? 'grid-cols-4' : 'grid-cols-3'}`}>
+        {views.map(v => (
+          <button key={v} type="button" role="tab" aria-selected={view === v} aria-label={VIEW_LABEL[v]} onClick={() => setView(v)}
+            className={`min-h-10 min-w-0 rounded-lg font-semibold leading-tight ${protocol ? 'px-0.5 text-sm' : ''} ${view === v ? 'bg-surface text-ink' : 'text-muted'}`}>
+            {/* com quatro abas e texto grande, "Estatísticas" quebra com hífen ("Estatís-ticas") */}
+            {protocol && v === 'stats' ? 'Estatís­ticas' : VIEW_LABEL[v]}
           </button>
         ))}
       </div>
-      {view === 'stats' ? <Stats /> : view === 'goals' ? <GoalsView /> : <History />}
+      {view === 'stats' ? <Stats /> : view === 'goals' ? <GoalsView /> : view === 'protocol' ? <ProtocolView /> : <History />}
     </>
   );
 }

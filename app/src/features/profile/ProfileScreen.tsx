@@ -1,6 +1,6 @@
 import { Card, INPUT } from './profile-ui';
 import { useState, type ReactNode } from 'react';
-import { updateProfile } from '../../domain/actions';
+import { updateProfile, updateSettings } from '../../domain/actions';
 import { levelInfo } from '../../domain/gamification';
 import { TMB_FORMULAS, type ActivityLevel, type Sex, type TmbFormulaId } from '../../domain/health';
 import { healthSummary } from '../../domain/profile-view';
@@ -95,6 +95,15 @@ export function ProfileScreen() {
           <p className="mt-2">{TMB_FORMULAS[p.tmbFormula]?.explain}</p>
           <p className="mt-2">O IMC não separa gordura de músculo; use junto com o espelho, as medidas e o % de gordura.</p>
         </More>
+        {/* Z1: seção opcional de protocolo */}
+        <label className="flex min-h-12 items-center justify-between gap-3 border-t border-line pt-3">
+          <span>
+            <span className="block font-semibold">Protocolo: hormônios, peptídeos e medicamentos</span>
+            <span className="block text-sm text-muted">Mostra a aba Protocolo no Progresso, para anotar o que usa, as doses, sintomas, pressão e exames. Só registro: o app não indica doses.</span>
+          </span>
+          <input type="checkbox" role="switch" checked={!!data.settings.protocolEnabled} aria-label="Protocolo: hormônios, peptídeos e medicamentos"
+            onChange={e => run((d, t) => updateSettings(d, { protocolEnabled: e.target.checked }, t))} className="size-6 shrink-0 accent-[var(--color-primary)]" />
+        </label>
       </Card>
 
       <SettingsSection />

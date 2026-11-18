@@ -49,6 +49,16 @@ export function isAppData(v: unknown): v is AppData {
   // W10: atividades (ausentes em backups antigos)
   const { activities } = v;
   if (activities !== undefined && !(isObj(activities) && Object.values(activities).every(a => isObj(a) && isStr(a.id) && isDate(a.date) && isStr(a.kind) && isNum(a.minutes)))) return false;
+  // Z1: protocolo, doses e diário de saúde (ausentes em backups antigos)
+  const { protocols, doses, healthLog } = v;
+  if (protocols !== undefined && !(isObj(protocols) && Object.values(protocols).every(p => isObj(p) && isStr(p.id) && isStr(p.name) && isDate(p.startDate)
+    && Array.isArray(p.items) && p.items.every(i => isObj(i) && isStr(i.id) && isStr(i.name) && isNum(i.dose) && isStr(i.unit) && isObj(i.schedule)
+      && (isNum(i.schedule.every) || (Array.isArray(i.schedule.weekdays) && i.schedule.weekdays.every(isStr))))))) return false;
+  if (doses !== undefined && !(isObj(doses) && Object.values(doses).every(d => isObj(d) && isStr(d.id) && isDate(d.date) && isStr(d.name) && isNum(d.dose) && isStr(d.unit)))) return false;
+  if (healthLog !== undefined && !(isObj(healthLog) && Object.values(healthLog).every(e => isObj(e) && isStr(e.id) && isDate(e.date) && isStr(e.kind)
+    && (e.exam === undefined || (Array.isArray(e.exam) && e.exam.every(x => isObj(x) && isStr(x.name) && isNum(x.value))))
+    && (e.pressure === undefined || (isObj(e.pressure) && isNum(e.pressure.sys) && isNum(e.pressure.dia)))
+    && (e.symptoms === undefined || (Array.isArray(e.symptoms) && e.symptoms.every(isStr)))))) return false;
   if (!isObj(settings) || !isNum(settings.restSeconds)) return false;
   // carimbos de sincronização: ausentes em backups antigos da 3.0 (completados ao ler)
   const { sync } = v;

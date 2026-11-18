@@ -1,5 +1,6 @@
 import { Icon } from '../../ui/Icon';
 import { ActivitySheet } from '../progress/ActivitySheet';
+import { HomeDoses } from '../protocol/HomeDoses';
 import { activityLabel, durationText } from '../../domain/activities';
 import { useState } from 'react';
 import { RecapCards } from './RecapCards';
@@ -55,6 +56,7 @@ export function HomeScreen() {
       <HomeNotices />
       <WeekStrip />
       {!planFirst && today}
+      <HomeDoses />
       <YearReviewCard />
       <AdventSlot />
       <DeloadSuggestionCard />
