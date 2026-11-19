@@ -108,7 +108,21 @@ export function scheduleText(s: DoseSchedule, times = 1): string {
 
 /** Z3: doses no dia previsto (1 quando não informado). */
 export const timesOf = (i: Pick<ProtocolItem, 'timesPerDay'>): number => (i.timesPerDay && i.timesPerDay > 1 ? Math.min(MAX_TIMES_PER_DAY, i.timesPerDay) : 1);
-export const itemSchedule = (i: ProtocolItem): string => scheduleText(i.schedule, timesOf(i));
+/** Z4: horário da dose `slot` do dia ("08:00"), se informado. */
+export function doseTime(i: Pick<ProtocolItem, 'times'>, slot: number): { hour: number; minute: number; text: string } | null {
+  const m = /^(\d{2}):(\d{2})$/.exec(i.times?.[slot] ?? '');
+  if (!m) return null;
+  const hour = Number(m[1]), minute = Number(m[2]);
+  return hour <= 23 && minute <= 59 ? { hour, minute, text: `${m[1]}:${m[2]}` } : null;
+}
+
+/** "às 08:00", "às 08:00 e 20:00" (só os horários informados). */
+export function timesText(i: ProtocolItem): string {
+  const list = Array.from({ length: timesOf(i) }, (_, k) => doseTime(i, k)?.text).filter((t): t is string => !!t);
+  return list.length ? `às ${list.length === 1 ? list[0] : `${list.slice(0, -1).join(', ')} e ${list.at(-1)}`}` : '';
+}
+
+export const itemSchedule = (i: ProtocolItem): string => [scheduleText(i.schedule, timesOf(i)), timesText(i)].filter(Boolean).join(' ');
 /** "1ª de 2". */
 export const slotLabel = (slot: number, of: number) => `${slot + 1}ª de ${of}`;
 
@@ -266,8 +280,9 @@ function validItem(i: ProtocolItem): boolean {
   const half = i.halfLifeHours === undefined || (i.halfLifeHours >= 0.5 && i.halfLifeHours <= 90 * 24);
   const times = i.timesPerDay === undefined || (Number.isInteger(i.timesPerDay) && i.timesPerDay >= 1 && i.timesPerDay <= MAX_TIMES_PER_DAY);
   const conc = i.perMl === undefined || (i.perMl > 0 && i.perMl <= MAX_DOSE && CONCENTRATION_UNITS.includes(i.unit));
+  const clock = i.times === undefined || (i.times.length <= MAX_TIMES_PER_DAY && i.times.every(t => t === '' || /^([01]\d|2[0-3]):[0-5]\d$/.test(t)));
   return !!i.name.trim() && i.dose > 0 && i.dose <= MAX_DOSE && UNITS.includes(i.unit) && ROUTES.some(r => r.id === i.route)
-    && CATEGORIES.some(c => c.id === i.category) && schedule && weeks && half && times && conc;
+    && CATEGORIES.some(c => c.id === i.category) && schedule && weeks && half && times && conc && clock;
 }
 
 /** Cria ou atualiza um protocolo. Sem nome, sem substância ou com algum campo fora do lugar: nada muda. */
@@ -278,8 +293,10 @@ export function saveProtocol(data: AppData, p: Protocol, now: Date): ActionResul
   const note = clean(p.note, MAX_NOTE);
   const items = p.items.map(i => {
     const itemNote = clean(i.note, MAX_NOTE);
-    const { note: _n, ...rest } = i;
-    return { ...rest, name: i.name.trim().slice(0, MAX_NAME), ...(itemNote ? { note: itemNote } : {}) };
+    const { note: _n, times: _t, ...rest } = i;
+    // Z4: um horário por dose do dia; sem nenhum, o campo some
+    const times = (i.times ?? []).slice(0, timesOf(i));
+    return { ...rest, name: i.name.trim().slice(0, MAX_NAME), ...(itemNote ? { note: itemNote } : {}), ...(times.some(Boolean) ? { times } : {}) };
   });
   const { note: _note, ...base } = p;
   const draft: AppData = { ...data, sync: cloneSync(data) };

@@ -4,7 +4,7 @@
 // anteriores soma. Mostra a quantidade estimada ainda ativa, na unidade da dose, não nível no sangue.
 import { addDays, fromDateKey, toDateKey, type DateKey } from './dates';
 import type { AppData, Protocol, ProtocolItem } from './model';
-import { isDue, protocolEnd, timesOf } from './protocol';
+import { doseTime, isDue, protocolEnd, timesOf } from './protocol';
 
 export type CurveMode = 'plan' | 'logged';
 
@@ -54,7 +54,8 @@ function doseTimes(data: Pick<AppData, 'doses'>, p: Protocol, item: ProtocolItem
     : [];
   // Z3: com várias doses no dia, ficam espalhadas a partir das 8h (2×: 8h e 20h; 3×: 8h, 16h e 0h)
   const n = timesOf(item);
-  const slotHour = (slot: number) => DOSE_HOUR + (slot * 24) / n;
+  // Z4: com o horário informado, a dose entra nele
+  const slotHour = (slot: number) => { const t = doseTime(item, slot); return t ? t.hour + t.minute / 60 : DOSE_HOUR + (slot * 24) / n; };
   const loggedSlots = new Set(logged.map(d => `${d.date}:${d.slot ?? 0}`));
   for (const d of logged) {
     const when = new Date(d.at);

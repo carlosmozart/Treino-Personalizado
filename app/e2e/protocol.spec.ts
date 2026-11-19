@@ -235,3 +235,43 @@ test('duas doses por dia e concentração pela diluição: cada dose mostra os m
   await today.screenshot({ path: 'test-results/protocolo-duas-por-dia.png' });
   expect(errors).toEqual([]);
 });
+
+test('horário de cada dose: aparece no protocolo e em Hoje; no navegador, o aviso explica que o lembrete é no APK (Z4)', async ({ page }) => {
+  const errors: string[] = [];
+  page.on('console', msg => { if (msg.type() === 'error') errors.push(msg.text()); });
+  await page.clock.setFixedTime(new Date(2026, 10, 18, 9));
+  await page.goto('/');
+  await page.getByRole('button', { name: 'Perfil', exact: true }).click();
+  await page.getByRole('switch', { name: 'Protocolo: hormônios, peptídeos e medicamentos' }).check();
+  await page.getByRole('button', { name: 'Progresso', exact: true }).click();
+  await page.getByRole('tab', { name: 'Protocolo' }).click();
+
+  await page.getByRole('button', { name: '+ Novo' }).click();
+  const editor = page.getByRole('dialog', { name: 'Novo protocolo' });
+  await editor.getByRole('textbox', { name: 'Nome' }).first().fill('Com horário');
+  const first = editor.getByRole('group', { name: 'Substância 1' });
+  await first.getByRole('combobox', { name: 'Nome' }).fill('Substância H');
+  await first.getByRole('textbox', { name: 'Dose da substância 1' }).fill('1');
+  await first.getByRole('combobox', { name: 'Unidade da dose da substância 1' }).selectOption('comprimido');
+  await first.getByRole('combobox', { name: 'Via da substância 1' }).selectOption('oral');
+  await first.getByRole('textbox', { name: 'Intervalo em dias da substância 1' }).fill('1');
+  await first.getByRole('radio', { name: '2 por dia' }).click();
+  await first.getByLabel('Horário 1 de 2 da substância 1').fill('08:00');
+  await first.getByLabel('Horário 2 de 2 da substância 1').fill('20:00');
+  await editor.getByRole('button', { name: 'Salvar protocolo' }).click();
+
+  await expect(page.getByRole('article', { name: 'Com horário' })).toContainText('Substância H · 1 comprimido 2 vezes por dia às 08:00 e 20:00 · oral');
+  const today = page.getByRole('region', { name: 'Doses de hoje' });
+  await expect(today).toContainText('1ª de 2 · às 08:00');
+  await expect(today).toContainText('2ª de 2 · às 20:00');
+  const reminders = page.getByRole('region', { name: 'Lembretes de dose' });
+  await expect(reminders).toContainText('Os lembretes tocam no app do celular (APK).');
+  await expect(reminders).not.toContainText('Só avisa as doses com horário');
+  await reminders.scrollIntoViewIfNeeded();
+  await page.screenshot({ path: 'test-results/protocolo-horarios.png' });
+
+  // o horário fica guardado ao editar
+  await page.getByRole('button', { name: 'Editar Com horário' }).click();
+  await expect(page.getByRole('dialog', { name: 'Editar protocolo' }).getByLabel('Horário 2 de 2 da substância 1')).toHaveValue('20:00');
+  expect(errors).toEqual([]);
+});

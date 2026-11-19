@@ -1,7 +1,7 @@
 // Z1: as doses previstas para hoje. Arquivo pequeno de propósito: o Início usa este cartão, e o
 // resto da seção (editor, curva, diário) baixa só quando a aba Protocolo abre.
 import { toDateKey } from '../../domain/dates';
-import { doseText, dosesDue, doseVolume, routeShort, siteLabel, slotLabel, volumeText, type DueDose } from '../../domain/protocol';
+import { doseText, doseTime, dosesDue, doseVolume, routeShort, siteLabel, slotLabel, volumeText, type DueDose } from '../../domain/protocol';
 import { useAppStore } from '../../store';
 import { useNow } from '../../hooks/use-now';
 import { Icon } from '../../ui/Icon';
@@ -30,7 +30,9 @@ function DueRow({ d, onRegister }: { d: DueDose; onRegister: (t: DoseTarget) => 
   // Z3: os ml da dose (com a concentração do frasco) e qual das doses do dia
   const ml = doseVolume(d.item.dose, d.item.unit, d.item.perMl);
   const label = `${d.item.name} · ${doseText(d.item.dose, d.item.unit)}${ml !== null ? ` (${volumeText(ml)})` : ''} · ${routeShort(d.item.route)}`;
-  const which = d.of > 1 ? slotLabel(d.slot, d.of) : '';
+  // Z4: o horário, quando informado
+  const time = doseTime(d.item, d.slot)?.text;
+  const which = [d.of > 1 ? slotLabel(d.slot, d.of) : '', time ? `às ${time}` : ''].filter(Boolean).join(' · ');
   return (
     <li className="flex min-h-12 items-center gap-2">
       <span className="min-w-0 flex-1">

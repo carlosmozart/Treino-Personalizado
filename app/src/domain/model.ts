@@ -194,6 +194,8 @@ export interface ProtocolItem {
   halfLifeHours?: number;
   /** Z3: quantas doses no dia previsto (1 a 6). Ausente = 1. */
   timesPerDay?: number;
+  /** Z4: horário de cada dose do dia ("08:00"; vazio = sem horário), para o lembrete e a curva. */
+  times?: string[];
   /** Z3: concentração do frasco, na unidade da dose por ml (mg/ml, mcg/ml, UI/ml), do rótulo ou da diluição. */
   perMl?: number;
   note?: string;
@@ -372,6 +374,10 @@ export interface Settings {
   activitiesKeepStreak?: boolean;
   /** Z1: seção de protocolo (hormônios, peptídeos, medicamentos). Ausente = desligada e escondida. */
   protocolEnabled?: boolean;
+  /** Z4: aviso na hora de cada dose com horário. Ausente = desligado. */
+  doseReminders?: boolean;
+  /** Z4: o aviso mostra o nome e a dose (senão, só "Hora de registrar sua dose"). Ausente = não. */
+  doseReminderDetails?: boolean;
   /** W14: séries e repetições com que um exercício novo começa. Ausentes = 3 e 10. */
   newExerciseSets?: number;
   newExerciseReps?: number;

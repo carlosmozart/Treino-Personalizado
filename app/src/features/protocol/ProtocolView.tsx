@@ -11,6 +11,7 @@ import { useNow } from '../../hooks/use-now';
 import { Icon } from '../../ui/Icon';
 import { formatNumber, plural, relativeDate, shortDate } from '../../ui/format';
 import { CurveCard } from './CurveCard';
+import { DoseRemindersCard } from './DoseRemindersCard';
 import { DoseSheet, type DoseTarget } from './DoseSheet';
 import { TodayDoses } from './TodayDoses';
 import { HealthSheet } from './HealthSheet';
@@ -80,6 +81,8 @@ export function ProtocolView() {
           </details>
         )}
       </section>
+
+      {current.length > 0 && <DoseRemindersCard protocols={current} />}
 
       {protocols.length > 0 && <CurveCard protocols={[...current, ...past]} />}
 

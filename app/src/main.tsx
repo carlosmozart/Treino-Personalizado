@@ -10,6 +10,7 @@ import { startAutoBackup } from './platform/auto-backup';
 import { keepFocusedFieldVisible } from './platform/keyboard';
 import { useUpdate } from './platform/app-update';
 import { startRemindersSync } from './features/plan/reminders-sync';
+import { startDoseRemindersSync } from './features/protocol/dose-reminders-start';
 import { startDayWatcher, useToday } from './hooks/use-today';
 import { dailyCheck } from './domain/actions';
 import { autoSaveBackupFile, canAutoBackup } from './platform/backup-file';
@@ -48,6 +49,7 @@ useToday.subscribe(applyLook);
 void useAppStore.getState().init().then(() => {
   syncController.start();
   startRemindersSync();
+  startDoseRemindersSync();
   startDayWatcher(() => useAppStore.getState().run(dailyCheck));
   void useUpdate.getState().check(false);
   // o Android mantém o app na memória: voltar a ele não reinicia, então consulta também aqui

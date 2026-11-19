@@ -168,6 +168,20 @@ function ItemFields({ item: i, index, weeks, onChange, onRemove }: {
           })}
         </div>
       </div>
+      {/* Z4: horário de cada dose (opcional), para o lembrete */}
+      <div>
+        <p className="text-sm font-semibold text-muted">Horário (opcional, para o lembrete)</p>
+        <div className="mt-1 grid grid-cols-2 gap-2">
+          {Array.from({ length: timesOf(i) }, (_, k) => (
+            <input key={k} type="time" aria-label={timesOf(i) > 1 ? `Horário ${k + 1} de ${timesOf(i)} da ${label.toLowerCase()}` : `Horário da ${label.toLowerCase()}`}
+              value={i.times?.[k] ?? ''} onChange={e => {
+                const times = Array.from({ length: timesOf(i) }, (_, n) => (n === k ? e.target.value : i.times?.[n] ?? ''));
+                const { times: _t, ...rest } = i;
+                onChange(times.some(Boolean) ? { ...rest, times } : rest);
+              }} className={INPUT} />
+          ))}
+        </div>
+      </div>
       {weekly > 0 && <p className="text-sm text-muted">Dá {doseText(weekly, i.unit)} por semana.</p>}
       {CONCENTRATION_UNITS.includes(i.unit) && <ConcentrationField item={i} label={label} onChange={onChange} />}
       <label className="flex min-h-11 items-center gap-3">

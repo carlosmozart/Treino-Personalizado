@@ -81,6 +81,37 @@ export async function cancelRestAlarm(): Promise<void> {
   await p.cancel({ notifications: [{ id: REST_NOTIFICATION_ID }] }).catch(() => undefined);
 }
 
+// ---------- lembretes de dose (Z4) ----------
+
+/**
+ * Canal próprio, com o conteúdo escondido na tela bloqueada (visibility 0 = privado): o aviso de dose
+ * é coisa de saúde e não deve aparecer para quem pega o celular.
+ */
+const DOSE_CHANNEL = 'protocolo-doses-v1';
+
+export interface DoseReminderNotification { id: number; at: Date; title: string; body: string }
+
+/** Refaz os lembretes de dose: cancela todos os ids e agenda os de agora. Desligado ou sem permissão, só cancela. */
+export async function syncDoseReminders(ids: number[], reminders: DoseReminderNotification[], enabled: boolean): Promise<boolean> {
+  const p = plugin();
+  if (!p) return false;
+  await p.cancel({ notifications: ids.map(id => ({ id })) }).catch(() => undefined);
+  if (!enabled || !reminders.length || !(await ensureNotificationPermission(false))) return false;
+  await p.createChannel?.({
+    id: DOSE_CHANNEL, name: 'Lembretes de dose', description: 'Hora das doses do Protocolo',
+    importance: 4, visibility: 0, sound: 'default', vibration: true, lights: true
+  });
+  await p.schedule({
+    notifications: reminders.map(r => ({
+      id: r.id, title: r.title, body: r.body, channelId: DOSE_CHANNEL,
+      extra: { type: 'dose-reminder' },
+      schedule: { at: r.at, allowWhileIdle: true },
+      isExactNotification: false
+    }))
+  });
+  return true;
+}
+
 // ---------- lembretes de treino (por data, M47) ----------
 
 /** Canal dos lembretes (o mesmo do app atual; versionado porque o Android congela o canal criado). */
