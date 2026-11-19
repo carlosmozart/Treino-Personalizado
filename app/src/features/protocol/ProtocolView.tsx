@@ -3,8 +3,8 @@ import { useState } from 'react';
 import { toDateKey } from '../../domain/dates';
 import type { DoseLog, HealthEntry, HealthEntryKind, Protocol } from '../../domain/model';
 import {
-  adherence, clearProtocolData, deleteDose, deleteHealthEntry, deleteProtocol, doctorSummary, doseList, doseText, dosesDue, endProtocol, examMarkers,
-  healthList, itemLine, lastExamDate, missedDoses, pressureHigh, protocolKindLabel, protocolStatus, routeShort, scheduleText, siteLabel, upcomingDoses, type DueDose
+  adherence, canReopen, clearProtocolData, deleteDose, deleteHealthEntry, deleteProtocol, doctorSummary, doseList, doseText, endProtocol, examMarkers,
+  healthList, itemLine, lastExamDate, missedDoses, pressureHigh, protocolKindLabel, protocolStatus, reopenProtocol, routeShort, scheduleText, siteLabel, upcomingDoses
 } from '../../domain/protocol';
 import { useAppStore } from '../../store';
 import { useNow } from '../../hooks/use-now';
@@ -12,6 +12,7 @@ import { Icon } from '../../ui/Icon';
 import { formatNumber, plural, relativeDate, shortDate } from '../../ui/format';
 import { CurveCard } from './CurveCard';
 import { DoseSheet, type DoseTarget } from './DoseSheet';
+import { TodayDoses } from './TodayDoses';
 import { HealthSheet } from './HealthSheet';
 import { ProtocolEditor } from './ProtocolEditor';
 
@@ -47,7 +48,7 @@ export function ProtocolView() {
   return (
     <div className="mt-4 space-y-4">
       <p className="rounded-2xl bg-surface-2 px-4 py-3 text-sm text-muted">
-        Um diário do que você usa. O app não indica substâncias nem doses: use com acompanhamento médico e exames em dia.
+        Histórico e controle para quem já faz uso. O app não incentiva o uso nem indica substâncias ou doses: o acompanhamento é com o seu médico, com exames em dia.
       </p>
 
       <TodayDoses onRegister={setDose} />
@@ -70,7 +71,7 @@ export function ProtocolView() {
           <h2 className="text-lg font-bold">Protocolos</h2>
           <button type="button" onClick={() => setEditing('new')} className="h-11 rounded-xl bg-primary px-4 font-bold text-white">+ Novo</button>
         </div>
-        {!protocols.length && <p className={`${CARD} text-muted`}>Nenhum protocolo ainda. Monte o seu com as substâncias, a dose e a frequência; o app avisa o que é de hoje e guarda o histórico.</p>}
+        {!protocols.length && <p className={`${CARD} text-muted`}>Nenhum protocolo ainda. Cadastre o que você já usa, com a dose e a frequência; o app mostra o que é de hoje e guarda o histórico.</p>}
         {current.map(p => <ProtocolCard key={p.id} p={p} today={today} onEdit={() => setEditing(p)} />)}
         {past.length > 0 && (
           <details className={CARD}>
@@ -158,37 +159,6 @@ export function ProtocolView() {
   );
 }
 
-/** As doses previstas para hoje, com o registro de cada uma. Também aparece no Início. */
-export function TodayDoses({ onRegister, compact = false }: { onRegister: (t: DoseTarget) => void; compact?: boolean }) {
-  const data = useAppStore(s => s.data);
-  const today = toDateKey(new Date(useNow(60_000)));
-  if (!data) return null;
-  const due = dosesDue(data, today);
-  if (!due.length) return compact ? null : <p className={`${CARD} text-sm text-muted`}>Nenhuma dose prevista para hoje.</p>;
-  const left = due.filter(d => !d.taken).length;
-  return (
-    <section aria-label="Doses de hoje" className={`rounded-2xl border bg-surface p-4 ${left ? 'border-primary' : 'border-success/60'}`}>
-      <h2 className="font-bold">{left ? `Hoje: ${plural(left, 'dose', 'doses')} para registrar` : 'Doses de hoje registradas'}</h2>
-      <ul className="mt-2 space-y-1">{due.map(d => <DueRow key={`${d.protocol.id}-${d.item.id}`} d={d} onRegister={onRegister} />)}</ul>
-    </section>
-  );
-}
-
-function DueRow({ d, onRegister }: { d: DueDose; onRegister: (t: DoseTarget) => void }) {
-  const label = `${d.item.name} · ${doseText(d.item.dose, d.item.unit)} · ${routeShort(d.item.route)}`;
-  return (
-    <li className="flex min-h-12 items-center gap-2">
-      <span className="min-w-0 flex-1">
-        <span className="block font-semibold">{label}</span>
-        {d.taken && <span className="block text-sm text-success">Registrada{d.taken.site ? ` · ${siteLabel(d.taken.site).toLowerCase()}` : ''}</span>}
-      </span>
-      {d.taken ? <Icon name="check" className="size-6 shrink-0 text-success" />
-        : <button type="button" aria-label={`Registrar ${d.item.name}`} onClick={() => onRegister({ protocolId: d.protocol.id, item: d.item, date: d.date })}
-          className="h-11 shrink-0 rounded-xl bg-primary px-4 font-bold text-white">Registrar</button>}
-    </li>
-  );
-}
-
 function ProtocolCard({ p, today, onEdit }: { p: Protocol; today: string; onEdit: () => void }) {
   const run = useAppStore(s => s.run);
   const doses = useAppStore(s => s.data?.doses);
@@ -217,7 +187,9 @@ function ProtocolCard({ p, today, onEdit }: { p: Protocol; today: string; onEdit
       {a.due > 0 && <p className="mt-2 text-sm text-muted">{a.taken} de {plural(a.due, 'dose registrada', 'doses registradas')} até hoje</p>}
       {p.note && <p className="mt-1 text-sm italic text-muted">{p.note}</p>}
       <div className="mt-2 flex flex-wrap gap-2">
-        {!s.ended && <button type="button" onClick={() => { if (confirm(`Encerrar ${p.name} hoje?`)) run((d, now) => endProtocol(d, p.id, today, now)); }} className="h-10 rounded-xl bg-surface-2 px-3 text-sm font-semibold">Encerrar hoje</button>}
+        {/* protocolo que ainda não começou não se encerra: apaga ou muda a data */}
+        {!s.ended && !s.future && !p.endedOn && <button type="button" onClick={() => { if (confirm(`Encerrar ${p.name} hoje?`)) run((d, now) => endProtocol(d, p.id, today, now)); }} className="h-10 rounded-xl bg-surface-2 px-3 text-sm font-semibold">Encerrar hoje</button>}
+        {canReopen(p, today) && <button type="button" onClick={() => run((d, now) => reopenProtocol(d, p.id, today, now))} className="h-10 rounded-xl bg-surface-2 px-3 text-sm font-semibold">Reabrir</button>}
         <button type="button" onClick={() => { if (confirm(`Apagar ${p.name}? As doses registradas continuam no diário.`)) run((d, now) => deleteProtocol(d, p.id, now)); }} className="h-10 rounded-xl px-3 text-sm font-semibold text-danger">Apagar</button>
       </div>
     </article>

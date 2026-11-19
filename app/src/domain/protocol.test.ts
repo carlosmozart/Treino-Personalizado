@@ -1,8 +1,8 @@
 // Z1: protocolo de hormônios, peptídeos e medicamentos (só registro).
 import { describe, expect, it } from 'vitest';
 import {
-  addHealthEntry, adherence, clearProtocolData, deleteDose, deleteProtocol, doctorSummary, doseText, dosesDue, endProtocol, examMarkers,
-  isDue, logDose, missedDoses, nextSite, pressureHigh, protocolStatus, recentSymptoms, saveProtocol, scheduleText, upcomingDoses, weeklyAmount
+  addHealthEntry, adherence, backfillDoses, canReopen, clearProtocolData, deleteDose, deleteProtocol, doctorSummary, doseText, dosesDue, endProtocol, examMarkers,
+  isDue, logDose, missedDoses, nextSite, pressureHigh, protocolStatus, pendingBefore, recentSymptoms, reopenProtocol, saveProtocol, scheduleText, upcomingDoses, weeklyAmount
 } from './protocol';
 import { isAppData } from './backup';
 import { mergeAppData } from './sync';
@@ -170,5 +170,48 @@ describe('Z1: dados entre aparelhos e no backup', () => {
     expect(isAppData(JSON.parse(JSON.stringify(d)))).toBe(true);
     expect(isAppData({ ...d, doses: { a: { id: 'a', date: 'ontem', name: 'A', dose: 1, unit: 'ml' } } })).toBe(false);
     expect(isAppData({ ...d, protocols: { p1: { ...d.protocols!.p1!, items: [{ ...item(), schedule: {} }] } } })).toBe(false);
+  });
+});
+
+describe('Z1: acertos de encerrar, reabrir e doses anteriores', () => {
+  it('protocolo que ainda não começou não se encerra', () => {
+    const d = withProtocol(protocol({ startDate: '2026-12-01' }));
+    expect(endProtocol(d, 'p1', '2026-11-17', NOW).data).toBe(d);
+  });
+
+  it('encerrar e reabrir; depois do fim previsto não dá para reabrir', () => {
+    let d = endProtocol(withProtocol(), 'p1', '2026-11-17', NOW).data;
+    expect(d.protocols!.p1!.endedOn).toBe('2026-11-17');
+    expect(canReopen(d.protocols!.p1!, '2026-11-20')).toBe(true);
+    d = reopenProtocol(d, 'p1', '2026-11-20', NOW).data;
+    expect(d.protocols!.p1!.endedOn).toBeUndefined();
+    expect(dosesDue(d, '2026-11-23')).toHaveLength(1);
+    // as 4 semanas acabam em 29 nov: encerrado, em dezembro já não reabre
+    const ended = endProtocol(withProtocol(), 'p1', '2026-11-17', NOW).data;
+    expect(canReopen(ended.protocols!.p1!, '2026-12-05')).toBe(false);
+    expect(reopenProtocol(ended, 'p1', '2026-12-05', NOW).data).toBe(ended);
+  });
+
+  it('quem já está no protocolo marca as doses de antes de hoje de uma vez (hoje fica para registrar)', () => {
+    let d = withProtocol(protocol({ items: [item(), item({ id: 'i2', name: 'B', route: 'oral', schedule: { weekdays: ['SEG', 'QUI'] } })] }));
+    // a de 9 nov já registrada à mão
+    d = logDose(d, { id: 'm', date: '2026-11-09', name: 'Substância A', dose: 120, unit: 'mg', route: 'im', protocolId: 'p1', itemId: 'i1' }, NOW, '2026-11-17').data;
+    const p = d.protocols!.p1!;
+    // A: 2 nov e 16 nov (9 nov já tem); B: 2, 5, 9, 12, 16 nov (antes do dia 17)
+    expect(pendingBefore(d, p, '2026-11-17')).toBe(7);
+    const filled = backfillDoses(d, 'p1', '2026-11-17', NOW).data;
+    expect(adherence(filled, p, '2026-11-17')).toEqual({ due: 8, taken: 8 });
+    expect(filled.doses!.m!.dose).toBe(120);
+    expect(pendingBefore(filled, p, '2026-11-17')).toBe(0);
+    expect(backfillDoses(filled, 'p1', '2026-11-17', NOW).data).toBe(filled);
+    // o mesmo id nos dois aparelhos: juntar não duplica
+    const merged = mergeAppData(filled, backfillDoses(d, 'p1', '2026-11-17', new Date(2026, 10, 17, 11)).data);
+    expect(Object.keys(merged.doses!)).toHaveLength(8);
+  });
+
+  it('backup com dose sem a hora é recusado', () => {
+    const d = logDose(withProtocol(), { id: 'a', date: '2026-11-16', name: 'A', dose: 1, unit: 'ml', route: 'im' }, NOW, '2026-11-17').data;
+    const { at: _at, ...noTime } = d.doses!.a!;
+    expect(isAppData({ ...d, doses: { a: noTime } })).toBe(false);
   });
 });

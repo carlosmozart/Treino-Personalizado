@@ -1,8 +1,7 @@
 import { Icon } from '../../ui/Icon';
 import { ActivitySheet } from '../progress/ActivitySheet';
-import { HomeDoses } from '../protocol/HomeDoses';
 import { activityLabel, durationText } from '../../domain/activities';
-import { useState } from 'react';
+import { lazy, Suspense, useState } from 'react';
 import { RecapCards } from './RecapCards';
 import { WeeklySetsHomeLine } from '../progress/WeeklySetsCard';
 import { YearReviewCard } from '../year-review/YearReview';
@@ -24,6 +23,9 @@ import { toDateKey } from '../../domain/dates';
 import { PlanChooser, type ChooserMode } from '../plan/PlanChooser';
 import { formatNumber, plural, shortDate } from '../../ui/format';
 import { DAY_FULL_NAMES, trainingDaysPerWeek } from '../../domain/model';
+
+// Z1: o cartão das doses (e a lógica do protocolo) só baixa com a seção ligada
+const HomeDoses = lazy(() => import('../protocol/HomeDoses').then(m => ({ default: m.HomeDoses })));
 
 function greeting(now: Date): string {
   const h = now.getHours();
@@ -56,7 +58,7 @@ export function HomeScreen() {
       <HomeNotices />
       <WeekStrip />
       {!planFirst && today}
-      <HomeDoses />
+      {data.settings.protocolEnabled && <Suspense fallback={null}><HomeDoses /></Suspense>}
       <YearReviewCard />
       <AdventSlot />
       <DeloadSuggestionCard />

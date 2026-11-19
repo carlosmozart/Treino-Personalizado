@@ -99,7 +99,7 @@ export function ProfileScreen() {
         <label className="flex min-h-12 items-center justify-between gap-3 border-t border-line pt-3">
           <span>
             <span className="block font-semibold">Protocolo: hormônios, peptídeos e medicamentos</span>
-            <span className="block text-sm text-muted">Mostra a aba Protocolo no Progresso, para anotar o que usa, as doses, sintomas, pressão e exames. Só registro: o app não indica doses.</span>
+            <span className="block text-sm text-muted">Para quem já faz uso: mostra a aba Protocolo no Progresso, com o histórico de doses, sintomas, pressão e exames. O app não incentiva o uso nem indica doses.</span>
           </span>
           <input type="checkbox" role="switch" checked={!!data.settings.protocolEnabled} aria-label="Protocolo: hormônios, peptídeos e medicamentos"
             onChange={e => run((d, t) => updateSettings(d, { protocolEnabled: e.target.checked }, t))} className="size-6 shrink-0 accent-[var(--color-primary)]" />

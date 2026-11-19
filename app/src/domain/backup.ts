@@ -54,7 +54,7 @@ export function isAppData(v: unknown): v is AppData {
   if (protocols !== undefined && !(isObj(protocols) && Object.values(protocols).every(p => isObj(p) && isStr(p.id) && isStr(p.name) && isDate(p.startDate)
     && Array.isArray(p.items) && p.items.every(i => isObj(i) && isStr(i.id) && isStr(i.name) && isNum(i.dose) && isStr(i.unit) && isObj(i.schedule)
       && (isNum(i.schedule.every) || (Array.isArray(i.schedule.weekdays) && i.schedule.weekdays.every(isStr))))))) return false;
-  if (doses !== undefined && !(isObj(doses) && Object.values(doses).every(d => isObj(d) && isStr(d.id) && isDate(d.date) && isStr(d.name) && isNum(d.dose) && isStr(d.unit)))) return false;
+  if (doses !== undefined && !(isObj(doses) && Object.values(doses).every(d => isObj(d) && isStr(d.id) && isDate(d.date) && isStr(d.at) && isStr(d.name) && isNum(d.dose) && isStr(d.unit)))) return false;
   if (healthLog !== undefined && !(isObj(healthLog) && Object.values(healthLog).every(e => isObj(e) && isStr(e.id) && isDate(e.date) && isStr(e.kind)
     && (e.exam === undefined || (Array.isArray(e.exam) && e.exam.every(x => isObj(x) && isStr(x.name) && isNum(x.value))))
     && (e.pressure === undefined || (isObj(e.pressure) && isNum(e.pressure.sys) && isNum(e.pressure.dia)))

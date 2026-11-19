@@ -250,11 +250,72 @@ export function saveProtocol(data: AppData, p: Protocol, now: Date): ActionResul
   return { data: draft, events: [] };
 }
 
-/** Encerra hoje (as doses registradas ficam). */
+/**
+ * Encerra hoje (as doses registradas ficam). Protocolo que ainda não começou não se encerra (o
+ * certo é apagar ou mudar a data): encerrar no dia do início deixaria um dia de dose sobrando.
+ */
 export function endProtocol(data: AppData, id: string, today: DateKey, now: Date): ActionResult {
   const p = data.protocols?.[id];
-  if (!p || (protocolEnd(p) && protocolEnd(p)! < today)) return { data, events: [] };
-  return saveProtocol(data, { ...p, endedOn: today < p.startDate ? p.startDate : today }, now);
+  if (!p || p.startDate > today || (protocolEnd(p) && protocolEnd(p)! < today)) return { data, events: [] };
+  return saveProtocol(data, { ...p, endedOn: today }, now);
+}
+
+/** Dá para reabrir: foi encerrado à mão e, sem o encerramento, ainda estaria em andamento. */
+export function canReopen(p: Protocol, today: DateKey): boolean {
+  if (!p.endedOn) return false;
+  const { endedOn: _e, ...open } = p;
+  return isActive(open, today);
+}
+
+/** Desfaz o "Encerrar hoje". */
+export function reopenProtocol(data: AppData, id: string, today: DateKey, now: Date): ActionResult {
+  const p = data.protocols?.[id];
+  if (!p || !canReopen(p, today)) return { data, events: [] };
+  const { endedOn: _e, ...open } = p;
+  return saveProtocol(data, open, now);
+}
+
+/** Id fixo da dose marcada de uma vez: a mesma em qualquer aparelho, então a junção não duplica. */
+export const backfillId = (protocolId: string, itemId: string, date: DateKey) => `prev-${protocolId}-${itemId}-${date}`;
+/** Até onde "marcar as anteriores" volta (2 anos). */
+const MAX_BACKFILL_DAYS = 730;
+
+/** Quantas doses previstas antes de hoje ainda não têm registro (para a pergunta do editor). */
+export function pendingBefore(data: Pick<AppData, 'doses'>, p: Protocol, today: DateKey): number {
+  let n = 0;
+  const end = protocolEnd(p);
+  const from = p.startDate < addDays(today, -MAX_BACKFILL_DAYS) ? addDays(today, -MAX_BACKFILL_DAYS) : p.startDate;
+  for (let d = from; d < today && !(end && d > end); d = addDays(d, 1)) {
+    for (const item of p.items) if (isDue(p, item, d) && !takenOn(data, p.id, item.id, d)) n++;
+  }
+  return n;
+}
+
+/**
+ * Para quem cadastra um protocolo que já está fazendo: marca como feitas as doses previstas antes
+ * de hoje que ainda não têm registro, com a dose do plano. Hoje fica para registrar na hora.
+ */
+export function backfillDoses(data: AppData, id: string, today: DateKey, now: Date): ActionResult {
+  const p = data.protocols?.[id];
+  if (!p) return { data, events: [] };
+  const end = protocolEnd(p);
+  const from = p.startDate < addDays(today, -MAX_BACKFILL_DAYS) ? addDays(today, -MAX_BACKFILL_DAYS) : p.startDate;
+  const doses = { ...(data.doses ?? {}) };
+  const draft: AppData = { ...data, sync: cloneSync(data) };
+  let added = 0;
+  for (let d = from; d < today && !(end && d > end); d = addDays(d, 1)) {
+    for (const item of p.items) {
+      if (!isDue(p, item, d) || takenOn({ doses }, p.id, item.id, d)) continue;
+      const doseId = backfillId(p.id, item.id, d);
+      const when = fromDateKey(d);
+      doses[doseId] = { id: doseId, date: d, at: when.toISOString(), name: item.name, dose: item.dose, unit: item.unit, route: item.route, protocolId: p.id, itemId: item.id, note: 'marcada ao cadastrar o protocolo' };
+      touch(draft, key.dose(doseId), now);
+      added++;
+    }
+  }
+  if (!added) return { data, events: [] };
+  draft.doses = doses;
+  return { data: draft, events: [] };
 }
 
 /** Apaga o protocolo; as doses já registradas continuam no diário, como avulsas. */

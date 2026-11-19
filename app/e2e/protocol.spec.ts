@@ -133,3 +133,52 @@ test('com a aba Protocolo e o texto bem maior, as quatro abas cabem na largura (
   expect(scroll).toBeLessThanOrEqual(width);
   await page.getByRole('tablist').screenshot({ path: 'test-results/protocolo-abas-texto-grande.png' });
 });
+
+test('protocolo que já estava em andamento: doses anteriores marcadas, encerrar e reabrir; o que não começou não encerra (Z1)', async ({ page }) => {
+  const errors: string[] = [];
+  page.on('console', msg => { if (msg.type() === 'error') errors.push(msg.text()); });
+  await page.clock.setFixedTime(new Date(2026, 10, 18, 9)); // quarta
+  await page.goto('/');
+  await page.getByRole('button', { name: 'Perfil', exact: true }).click();
+  await page.getByRole('switch', { name: 'Protocolo: hormônios, peptídeos e medicamentos' }).check();
+  await page.getByRole('button', { name: 'Progresso', exact: true }).click();
+  await page.getByRole('tab', { name: 'Protocolo' }).click();
+
+  // começou há duas semanas (4 nov, quarta), dose a cada 7 dias: 4 e 11 nov antes de hoje
+  await page.getByRole('button', { name: '+ Novo' }).click();
+  const editor = page.getByRole('dialog', { name: 'Novo protocolo' });
+  await editor.getByRole('textbox', { name: 'Nome' }).first().fill('Em andamento');
+  await editor.getByLabel('Começa em').fill('2026-11-04');
+  const first = editor.getByRole('group', { name: 'Substância 1' });
+  await first.getByRole('combobox', { name: 'Nome' }).fill('Substância X');
+  await first.getByRole('textbox', { name: 'Dose da substância 1' }).fill('50');
+  const backfill = editor.getByRole('checkbox', { name: /marcar as 2 doses de antes de hoje como feitas/ });
+  await expect(backfill).toBeChecked();
+  await editor.getByRole('button', { name: 'Salvar protocolo' }).click();
+
+  const card = page.getByRole('article', { name: 'Em andamento' });
+  // hoje (18 nov) é dia de dose e ainda não foi registrada
+  await expect(card).toContainText('2 de 3 doses registradas até hoje');
+  await expect(page.getByRole('region', { name: 'Doses sem registro' })).toHaveCount(0);
+  await expect(page.getByRole('list', { name: 'Registros do diário' })).toContainText('marcada ao cadastrar o protocolo');
+
+  // encerrar e reabrir
+  page.on('dialog', d => void d.accept());
+  await card.getByRole('button', { name: 'Encerrar hoje' }).click();
+  await expect(card.getByRole('button', { name: 'Encerrar hoje' })).toHaveCount(0);
+  await card.getByRole('button', { name: 'Reabrir' }).click();
+  await expect(card.getByRole('button', { name: 'Encerrar hoje' })).toBeVisible();
+
+  // um que ainda não começou não tem "Encerrar hoje"
+  await page.getByRole('button', { name: '+ Novo' }).click();
+  await editor.getByRole('textbox', { name: 'Nome' }).first().fill('Depois');
+  await editor.getByLabel('Começa em').fill('2026-12-07');
+  await editor.getByRole('group', { name: 'Substância 1' }).getByRole('combobox', { name: 'Nome' }).fill('Substância Y');
+  await editor.getByRole('textbox', { name: 'Dose da substância 1' }).fill('10');
+  await expect(editor.getByRole('checkbox', { name: /doses de antes de hoje/ })).toHaveCount(0);
+  await editor.getByRole('button', { name: 'Salvar protocolo' }).click();
+  const later = page.getByRole('article', { name: 'Depois' });
+  await expect(later).toContainText('Começa em 7 dez');
+  await expect(later.getByRole('button', { name: 'Encerrar hoje' })).toHaveCount(0);
+  expect(errors).toEqual([]);
+});

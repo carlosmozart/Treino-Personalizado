@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { toDateKey } from '../../domain/dates';
 import type { DayKey } from '../../domain/ai-plan';
 import { DAY_FULL_NAMES, type DoseRoute, type DoseUnit, type Protocol, type ProtocolItem, type ProtocolKind, type SubstanceCategory } from '../../domain/model';
-import { CATEGORIES, COMMON_SUBSTANCES, doseText, MAX_DOSE, MAX_ITEMS, MAX_NAME, MAX_NOTE, PROTOCOL_KINDS, ROUTES, saveProtocol, UNITS, weeklyAmount } from '../../domain/protocol';
+import { CATEGORIES, COMMON_SUBSTANCES, doseText, MAX_DOSE, MAX_ITEMS, MAX_NAME, MAX_NOTE, pendingBefore, PROTOCOL_KINDS, ROUTES, backfillDoses, saveProtocol, UNITS, weeklyAmount } from '../../domain/protocol';
 import { MAX_HALF_LIFE_HOURS, MIN_HALF_LIFE_HOURS } from '../../domain/protocol-curve';
 import { useAppStore } from '../../store';
 import { Icon } from '../../ui/Icon';
@@ -22,12 +22,22 @@ export function ProtocolEditor({ initial, onClose }: { initial?: Protocol; onClo
     id: crypto.randomUUID(), name: '', kind: 'ciclo', startDate: toDateKey(new Date()), weeks: 12, items: [newItem()]
   });
   const continuous = p.weeks === undefined;
-  const setItem = (next: ProtocolItem) => setP({ ...p, items: p.items.map(i => (i.id === next.id ? next : i)) });
+  const today = toDateKey(new Date());
+  const doses = useAppStore(s => s.data?.doses);
+  // começou antes de hoje: oferece marcar as doses anteriores (já marcado num protocolo novo)
+  const [backfill, setBackfill] = useState(!initial);
+  const ready = p.startDate && p.items.every(i => i.dose > 0 && ('every' in i.schedule || i.schedule.weekdays.length > 0));
+  const pending = ready && p.startDate < today ? pendingBefore({ ...(doses ? { doses } : {}) }, p, today) : 0;
+  const setItem =(next: ProtocolItem) => setP({ ...p, items: p.items.map(i => (i.id === next.id ? next : i)) });
   const save = () => {
     const before = useAppStore.getState().data;
     // "até a semana" vazio (0) = até o fim
     const items = p.items.map(i => { if (i.toWeek) return i; const { toWeek: _t, ...rest } = i; return rest; });
-    run((d, now) => saveProtocol(d, { ...p, items }, now));
+    run((d, now) => {
+      const saved = saveProtocol(d, { ...p, items }, now);
+      // quem já está no protocolo: as doses de antes de hoje entram como feitas
+      return saved.data !== d && backfill && pending > 0 ? backfillDoses(saved.data, p.id, today, now) : saved;
+    });
     if (useAppStore.getState().data !== before) onClose();
   };
   const itemOk = (i: ProtocolItem) => i.name.trim() && i.dose > 0 && ('every' in i.schedule || i.schedule.weekdays.length > 0) && (!i.toWeek || i.toWeek >= (i.fromWeek ?? 1));
@@ -73,6 +83,15 @@ export function ProtocolEditor({ initial, onClose }: { initial?: Protocol; onClo
           <textarea value={p.note ?? ''} maxLength={MAX_NOTE} rows={2} onChange={e => setP({ ...p, note: e.target.value })}
             placeholder="Ex.: quem prescreveu, objetivo, exames combinados" className="mt-1 w-full rounded-xl border border-line bg-surface-2 p-3 text-base text-ink" />
         </label>
+        {pending > 0 && (
+          <label className="flex min-h-11 items-start gap-3 rounded-xl bg-surface-2 p-3">
+            <input type="checkbox" checked={backfill} onChange={e => setBackfill(e.target.checked)} className="mt-0.5 size-6 shrink-0 accent-[var(--color-primary)]" />
+            <span>
+              <span className="block font-semibold">Já estou fazendo: marcar as {pending} doses de antes de hoje como feitas</span>
+              <span className="block text-sm text-muted">Com a dose do plano. Dá para apagar uma por uma no diário se alguma não foi feita.</span>
+            </span>
+          </label>
+        )}
         <p className="text-xs text-faint">O app só guarda o que você informa. Ele não indica substâncias nem doses e não substitui o acompanhamento médico.</p>
         <button type="button" disabled={!valid} onClick={save} className="h-12 w-full rounded-xl bg-primary text-base font-bold text-white disabled:opacity-50">Salvar protocolo</button>
       </div>
