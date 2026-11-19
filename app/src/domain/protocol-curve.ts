@@ -4,7 +4,7 @@
 // anteriores soma. Mostra a quantidade estimada ainda ativa, na unidade da dose, não nível no sangue.
 import { addDays, fromDateKey, toDateKey, type DateKey } from './dates';
 import type { AppData, Protocol, ProtocolItem } from './model';
-import { isDue, protocolEnd } from './protocol';
+import { isDue, protocolEnd, timesOf } from './protocol';
 
 export type CurveMode = 'plan' | 'logged';
 
@@ -41,8 +41,9 @@ export const MAX_HALF_LIFE_HOURS = 90 * 24;
 /** Um dia à `hour` hora local (fromDateKey devolve o meio-dia; aqui parte da meia-noite). */
 function at(date: DateKey, hour = DOSE_HOUR): number {
   const d = fromDateKey(date);
-  d.setHours(hour, 0, 0, 0);
-  return d.getTime();
+  d.setHours(0, 0, 0, 0);
+  // hora pode ser fracionada (5 doses no dia: a cada 4,8 h)
+  return d.getTime() + hour * HOUR;
 }
 
 /** Doses que alimentam a curva: as previstas ou, até hoje, as registradas (e o resto previsto). */
@@ -51,16 +52,21 @@ function doseTimes(data: Pick<AppData, 'doses'>, p: Protocol, item: ProtocolItem
   const logged = mode === 'logged'
     ? Object.values(data.doses ?? {}).filter(d => d.protocolId === p.id && d.itemId === item.id && d.date <= today)
     : [];
-  const loggedDays = new Set(logged.map(d => d.date));
+  // Z3: com várias doses no dia, ficam espalhadas a partir das 8h (2×: 8h e 20h; 3×: 8h, 16h e 0h)
+  const n = timesOf(item);
+  const slotHour = (slot: number) => DOSE_HOUR + (slot * 24) / n;
+  const loggedSlots = new Set(logged.map(d => `${d.date}:${d.slot ?? 0}`));
   for (const d of logged) {
     const when = new Date(d.at);
-    // a hora do registro, se for do mesmo dia; senão 8h do dia informado
-    out.push({ t: toDateKey(when) === d.date ? when.getTime() : at(d.date), amount: d.dose });
+    // a hora do registro, se for do mesmo dia; senão a hora prevista daquela dose
+    out.push({ t: toDateKey(when) === d.date ? when.getTime() : at(d.date, slotHour(d.slot ?? 0)), amount: d.dose });
   }
   for (let d = p.startDate; d <= until; d = addDays(d, 1)) {
     if (!isDue(p, item, d)) continue;
-    if (mode === 'logged' && (d < today || loggedDays.has(d))) continue;
-    out.push({ t: at(d), amount: item.dose });
+    for (let slot = 0; slot < n; slot++) {
+      if (mode === 'logged' && (d < today || loggedSlots.has(`${d}:${slot}`))) continue;
+      out.push({ t: at(d, slotHour(slot)), amount: item.dose });
+    }
   }
   return out.sort((a, b) => a.t - b.t);
 }

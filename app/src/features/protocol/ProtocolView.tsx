@@ -4,7 +4,7 @@ import { toDateKey } from '../../domain/dates';
 import type { DoseLog, HealthEntry, HealthEntryKind, Protocol } from '../../domain/model';
 import {
   adherence, canReopen, clearProtocolData, deleteDose, deleteHealthEntry, deleteProtocol, doctorSummary, doseList, doseText, endProtocol, examMarkers,
-  healthList, itemLine, lastExamDate, missedDoses, pressureHigh, protocolKindLabel, protocolStatus, reopenProtocol, routeShort, scheduleText, siteLabel, upcomingDoses
+  healthList, itemLine, lastExamDate, missedDoses, pressureHigh, protocolKindLabel, itemSchedule, protocolStatus, reopenProtocol, routeShort, siteLabel, slotLabel, doseVolume, volumeText, upcomingDoses
 } from '../../domain/protocol';
 import { useAppStore } from '../../store';
 import { useNow } from '../../hooks/use-now';
@@ -57,9 +57,9 @@ export function ProtocolView() {
           <h2 className="font-bold">Sem registro nos últimos dias</h2>
           <ul className="mt-2 space-y-1">
             {missed.map(m => (
-              <li key={`${m.protocol.id}-${m.item.id}-${m.date}`} className="flex min-h-11 items-center justify-between gap-2 text-sm">
-                <span className="min-w-0"><span className="font-semibold">{m.item.name}</span> · {WEEKDAYS[new Date(`${m.date}T12:00`).getDay()]}, {shortDate(m.date)}</span>
-                <button type="button" onClick={() => setDose({ protocolId: m.protocol.id, item: m.item, date: m.date })} className="h-10 shrink-0 rounded-xl bg-surface-2 px-3 font-semibold">Registrar</button>
+              <li key={`${m.protocol.id}-${m.item.id}-${m.date}-${m.slot}`} className="flex min-h-11 items-center justify-between gap-2 text-sm">
+                <span className="min-w-0"><span className="font-semibold">{m.item.name}</span>{m.of > 1 ? ` (${slotLabel(m.slot, m.of)})` : ''} · {WEEKDAYS[new Date(`${m.date}T12:00`).getDay()]}, {shortDate(m.date)}</span>
+                <button type="button" onClick={() => setDose({ protocolId: m.protocol.id, item: m.item, date: m.date, slot: m.slot, of: m.of })} className="h-10 shrink-0 rounded-xl bg-surface-2 px-3 font-semibold">Registrar</button>
               </li>
             ))}
           </ul>
@@ -90,7 +90,7 @@ export function ProtocolView() {
             {upcoming.map(u => (
               <li key={u.date} className="flex gap-2">
                 <span className="w-24 shrink-0 font-semibold">{WEEKDAYS[new Date(`${u.date}T12:00`).getDay()]} {Number(u.date.slice(8))}</span>
-                <span className="min-w-0 text-muted">{u.doses.map(d => `${d.item.name} ${doseText(d.item.dose, d.item.unit)}`).join(' · ')}</span>
+                <span className="min-w-0 text-muted">{u.doses.filter(d => d.slot === 0).map(d => `${d.item.name} ${doseText(d.item.dose, d.item.unit)}${d.of > 1 ? ` ${d.of}×` : ''}`).join(' · ')}</span>
               </li>
             ))}
           </ul>
@@ -182,7 +182,7 @@ function ProtocolCard({ p, today, onEdit }: { p: Protocol; today: string; onEdit
         </div>
       )}
       <ul className="mt-3 space-y-1 text-sm">
-        {p.items.map(i => <li key={i.id} title={itemLine(i)}><span className="font-semibold">{i.name}</span> · {doseText(i.dose, i.unit)} {scheduleText(i.schedule)} · {routeShort(i.route)}{i.fromWeek || i.toWeek ? ` · semanas ${i.fromWeek ?? 1}${i.toWeek ? `–${i.toWeek}` : '+'}` : ''}</li>)}
+        {p.items.map(i => <li key={i.id} title={itemLine(i)}><span className="font-semibold">{i.name}</span> · {doseText(i.dose, i.unit)}{doseVolume(i.dose, i.unit, i.perMl) !== null ? ` (${volumeText(doseVolume(i.dose, i.unit, i.perMl)!)})` : ''} {itemSchedule(i)} · {routeShort(i.route)}{i.fromWeek || i.toWeek ? ` · semanas ${i.fromWeek ?? 1}${i.toWeek ? `–${i.toWeek}` : '+'}` : ''}</li>)}
       </ul>
       {a.due > 0 && <p className="mt-2 text-sm text-muted">{a.taken} de {plural(a.due, 'dose registrada', 'doses registradas')} até hoje</p>}
       {p.note && <p className="mt-1 text-sm italic text-muted">{p.note}</p>}
@@ -201,7 +201,7 @@ function DoseItem({ d, onDelete }: { d: DoseLog; onDelete: () => void }) {
     <li className="flex min-h-12 items-center gap-2 py-1">
       <div className="min-w-0 flex-1">
         <p className="font-semibold">{d.name} · {doseText(d.dose, d.unit)}</p>
-        <p className="text-sm text-muted">{shortDate(d.date)} · {routeShort(d.route)}{d.site ? ` · ${siteLabel(d.site).toLowerCase()}` : ''}{d.protocolId ? '' : ' · avulsa'}{d.note ? ` · ${d.note}` : ''}</p>
+        <p className="text-sm text-muted">{shortDate(d.date)} · {routeShort(d.route)}{d.site ? ` · ${siteLabel(d.site).toLowerCase()}` : ''}{d.slot ? ` · ${d.slot + 1}ª do dia` : ''}{d.protocolId ? '' : ' · avulsa'}{d.note ? ` · ${d.note}` : ''}</p>
       </div>
       <button type="button" aria-label={`Apagar dose de ${d.name} de ${shortDate(d.date)}`} onClick={onDelete} className="flex size-11 shrink-0 items-center justify-center rounded-full text-muted"><Icon name="lixo" className="size-5" /></button>
     </li>

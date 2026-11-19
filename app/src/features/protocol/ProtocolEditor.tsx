@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { toDateKey } from '../../domain/dates';
 import type { DayKey } from '../../domain/ai-plan';
 import { DAY_FULL_NAMES, type DoseRoute, type DoseUnit, type Protocol, type ProtocolItem, type ProtocolKind, type SubstanceCategory } from '../../domain/model';
-import { CATEGORIES, COMMON_SUBSTANCES, doseText, MAX_DOSE, MAX_ITEMS, MAX_NAME, MAX_NOTE, pendingBefore, PROTOCOL_KINDS, ROUTES, backfillDoses, saveProtocol, UNITS, weeklyAmount } from '../../domain/protocol';
+import { CATEGORIES, COMMON_SUBSTANCES, concentrationFrom, CONCENTRATION_UNITS, doseText, doseVolume, MAX_DOSE, MAX_TIMES_PER_DAY, syringeUnits, timesOf, volumeText, MAX_ITEMS, MAX_NAME, MAX_NOTE, pendingBefore, PROTOCOL_KINDS, ROUTES, backfillDoses, saveProtocol, UNITS, weeklyAmount } from '../../domain/protocol';
 import { MAX_HALF_LIFE_HOURS, MIN_HALF_LIFE_HOURS } from '../../domain/protocol-curve';
 import { useAppStore } from '../../store';
 import { Icon } from '../../ui/Icon';
@@ -106,7 +106,7 @@ function ItemFields({ item: i, index, weeks, onChange, onRemove }: {
   const fixedDays = 'weekdays' in i.schedule;
   const [partial, setPartial] = useState(i.fromWeek !== undefined || i.toWeek !== undefined);
   const label = `Substância ${index + 1}`;
-  const weekly = i.dose > 0 && !('every' in i.schedule && i.schedule.every === 7) ? weeklyAmount(i) : 0;
+  const weekly = i.dose > 0 && (!('every' in i.schedule && i.schedule.every === 7) || timesOf(i) > 1) ? weeklyAmount(i) : 0;
   return (
     <fieldset aria-label={label} className="space-y-2 rounded-2xl border border-line p-3">
       <div className="flex items-center gap-2">
@@ -124,13 +124,13 @@ function ItemFields({ item: i, index, weeks, onChange, onRemove }: {
           <div className="mt-1"><NumberField decimal label={`Dose da ${label.toLowerCase()}`} value={i.dose} onChange={n => set({ dose: Math.min(MAX_DOSE, Math.max(0, n)) })} /></div>
         </div>
         <label className="block text-sm font-semibold text-muted">Unidade
-          <select value={i.unit} onChange={e => set({ unit: e.target.value as DoseUnit })} className={INPUT}>
+          <select aria-label={`Unidade da dose da ${label.toLowerCase()}`} value={i.unit} onChange={e => { const unit = e.target.value as DoseUnit; const { perMl: _c, ...rest } = i; onChange(CONCENTRATION_UNITS.includes(unit) ? { ...i, unit } : { ...rest, unit }); }} className={INPUT}>
             {UNITS.map(u => <option key={u} value={u}>{u}</option>)}
           </select>
         </label>
       </div>
       <label className="block text-sm font-semibold text-muted">Via
-        <select value={i.route} onChange={e => set({ route: e.target.value as DoseRoute })} className={INPUT}>
+        <select aria-label={`Via da ${label.toLowerCase()}`} value={i.route} onChange={e => set({ route: e.target.value as DoseRoute })} className={INPUT}>
           {ROUTES.map(r => <option key={r.id} value={r.id}>{r.label}</option>)}
         </select>
       </label>
@@ -156,7 +156,20 @@ function ItemFields({ item: i, index, weeks, onChange, onRemove }: {
           })}
         </div>
       )}
+      {/* Z3: mais de uma dose no mesmo dia */}
+      <div>
+        <p className="text-sm font-semibold text-muted">Doses no dia</p>
+        <div role="radiogroup" aria-label={`Doses no dia da ${label.toLowerCase()}`} className="mt-1 flex flex-wrap gap-1.5">
+          {Array.from({ length: MAX_TIMES_PER_DAY }, (_, k) => k + 1).map(n => {
+            const on = timesOf(i) === n;
+            return <button key={n} type="button" role="radio" aria-checked={on} aria-label={n === 1 ? '1 por dia' : `${n} por dia`}
+              onClick={() => { const { timesPerDay: _t, ...rest } = i; onChange(n === 1 ? rest : { ...rest, timesPerDay: n }); }}
+              className={`size-10 rounded-full text-sm font-semibold ${on ? 'bg-primary text-white' : 'bg-surface-2 text-muted'}`}>{n}×</button>;
+          })}
+        </div>
+      </div>
       {weekly > 0 && <p className="text-sm text-muted">Dá {doseText(weekly, i.unit)} por semana.</p>}
+      {CONCENTRATION_UNITS.includes(i.unit) && <ConcentrationField item={i} label={label} onChange={onChange} />}
       <label className="flex min-h-11 items-center gap-3">
         <input type="checkbox" role="switch" checked={partial} onChange={e => { setPartial(e.target.checked); const { fromWeek: _f, toWeek: _t, ...rest } = i; onChange(e.target.checked ? { ...rest, fromWeek: 1, ...(weeks ? { toWeek: weeks } : {}) } : rest); }}
           className="size-6 accent-[var(--color-primary)]" />
@@ -174,6 +187,53 @@ function ItemFields({ item: i, index, weeks, onChange, onRemove }: {
       )}
       <HalfLifeField item={i} label={label} onChange={onChange} />
     </fieldset>
+  );
+}
+
+/**
+ * Z3: concentração do frasco (opcional), digitada do rótulo ou calculada pela diluição (quanto tem no
+ * frasco ÷ ml de diluente). Com ela, cada dose mostra quantos ml são.
+ */
+function ConcentrationField({ item: i, label, onChange }: { item: ProtocolItem; label: string; onChange: (next: ProtocolItem) => void }) {
+  const [dilution, setDilution] = useState(false);
+  const [amount, setAmount] = useState(0);
+  const [ml, setMl] = useState(0);
+  const put = (perMl: number | null) => {
+    const { perMl: _c, ...rest } = i;
+    onChange(perMl && perMl > 0 ? { ...rest, perMl: Math.min(MAX_DOSE, Math.round(perMl * 1000) / 1000) } : rest);
+  };
+  const volume = doseVolume(i.dose, i.unit, i.perMl);
+  return (
+    <div className="border-t border-line pt-2">
+      <div className="flex items-end gap-2">
+        <div className="min-w-0 flex-1 text-sm font-semibold text-muted">Concentração do frasco (opcional)
+          <div className="mt-1"><NumberField decimal label={`Concentração da ${label.toLowerCase()} em ${i.unit} por ml`} value={i.perMl ?? 0} onChange={n => put(n)} /></div>
+        </div>
+        <span className="pb-3 text-sm font-semibold text-muted">{i.unit}/ml</span>
+      </div>
+      <label className="mt-1 flex min-h-11 items-center gap-3">
+        <input type="checkbox" role="switch" checked={dilution} onChange={e => setDilution(e.target.checked)} className="size-6 accent-[var(--color-primary)]" />
+        <span className="text-sm font-semibold">Calcular pela diluição</span>
+      </label>
+      {dilution && (
+        <div className="grid grid-cols-2 gap-2">
+          <div className="text-sm font-semibold text-muted">No frasco ({i.unit})
+            <div className="mt-1"><NumberField decimal label={`Quantidade no frasco da ${label.toLowerCase()}`} value={amount} onChange={n => { setAmount(n); put(concentrationFrom(n, ml)); }} /></div>
+          </div>
+          <div className="text-sm font-semibold text-muted">Diluente (ml)
+            <div className="mt-1"><NumberField decimal label={`Mililitros de diluente da ${label.toLowerCase()}`} value={ml} onChange={n => { setMl(n); put(concentrationFrom(amount, n)); }} /></div>
+          </div>
+          {i.unit === 'mcg' && <p className="col-span-2 text-xs text-faint">Frasco em mg: 1 mg = 1000 mcg (5 mg = 5000 mcg).</p>}
+        </div>
+      )}
+      {volume !== null && i.dose > 0 && (
+        <p className="mt-1 text-sm text-muted" data-testid="volume-da-dose">
+          Cada dose: <strong className="text-ink">{volumeText(volume)}</strong>
+          {i.route === 'sc' ? ` (${String(syringeUnits(volume)).replace('.', ',')} unidades na seringa de insulina de 100)` : ''}
+        </p>
+      )}
+      <p className="mt-1 text-xs text-faint">Do rótulo do frasco ou da sua diluição. Confira sempre com a seringa e com quem acompanha você.</p>
+    </div>
   );
 }
 

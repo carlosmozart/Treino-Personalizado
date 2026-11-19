@@ -2,7 +2,7 @@
 import { useState } from 'react';
 import { toDateKey } from '../../domain/dates';
 import type { DoseRoute, DoseUnit, InjectionSite, ProtocolItem } from '../../domain/model';
-import { COMMON_SUBSTANCES, isInjection, lastSite, logDose, MAX_DOSE, MAX_NAME, MAX_NOTE, nextSite, ROUTES, siteLabel, SITES, UNITS } from '../../domain/protocol';
+import { COMMON_SUBSTANCES, doseVolume, isInjection, lastSite, logDose, MAX_DOSE, MAX_NAME, MAX_NOTE, nextSite, ROUTES, siteLabel, SITES, slotLabel, syringeUnits, UNITS, volumeText } from '../../domain/protocol';
 import { useAppStore } from '../../store';
 import { NumberField } from '../../ui/NumberField';
 import { Sheet } from '../../ui/Sheet';
@@ -10,7 +10,8 @@ import { shortDate } from '../../ui/format';
 
 const INPUT = 'mt-1 h-12 w-full rounded-xl border border-line bg-surface-2 px-3 text-base text-ink';
 
-export interface DoseTarget { protocolId: string; item: ProtocolItem; date: string }
+/** Dose prevista a registrar; `slot` é qual das `of` doses do dia (Z3). */
+export interface DoseTarget { protocolId: string; item: ProtocolItem; date: string; slot?: number; of?: number }
 
 export function DoseSheet({ target, onClose }: { target?: DoseTarget; onClose: () => void }) {
   const run = useAppStore(s => s.run);
@@ -24,6 +25,7 @@ export function DoseSheet({ target, onClose }: { target?: DoseTarget; onClose: (
   const [site, setSite] = useState<InjectionSite | undefined>(() => nextSite({ ...(doses ? { doses } : {}) }, target?.item.route ?? 'im'));
   const [note, setNote] = useState('');
   const injection = isInjection(route);
+  const volume = target && unit === target.item.unit ? doseVolume(dose, unit, target.item.perMl) : null;
   const last = lastSite({ ...(doses ? { doses } : {}) }, route);
   const valid = !!name.trim() && dose > 0 && !!date && date <= today;
   const changeRoute = (r: DoseRoute) => { setRoute(r); setSite(nextSite({ ...(doses ? { doses } : {}) }, r)); };
@@ -31,13 +33,13 @@ export function DoseSheet({ target, onClose }: { target?: DoseTarget; onClose: (
     if (!valid) return;
     run((d, now) => logDose(d, {
       id: crypto.randomUUID(), date, name, dose, unit, route,
-      ...(target ? { protocolId: target.protocolId, itemId: target.item.id } : {}),
+      ...(target ? { protocolId: target.protocolId, itemId: target.item.id, ...(target.slot ? { slot: target.slot } : {}) } : {}),
       ...(injection && site ? { site } : {}), ...(note.trim() ? { note } : {})
     }, now, today));
     onClose();
   };
   return (
-    <Sheet title={target ? `Registrar ${target.item.name}` : 'Registrar dose'} open onClose={onClose}>
+    <Sheet title={target ? `Registrar ${target.item.name}${target.of && target.of > 1 ? ` (${slotLabel(target.slot ?? 0, target.of)})` : ''}` : 'Registrar dose'} open onClose={onClose}>
       <div className="space-y-3 pb-2">
         {!target && (
           <label className="block text-sm font-semibold text-muted">O quê
@@ -50,12 +52,19 @@ export function DoseSheet({ target, onClose }: { target?: DoseTarget; onClose: (
             <div className="mt-1"><NumberField decimal label="Dose" value={dose} onChange={n => setDose(Math.min(MAX_DOSE, Math.max(0, n)))} /></div>
           </div>
           <label className="block text-sm font-semibold text-muted">Unidade
-            <select value={unit} onChange={e => setUnit(e.target.value as DoseUnit)} className={INPUT}>{UNITS.map(u => <option key={u} value={u}>{u}</option>)}</select>
+            <select aria-label="Unidade da dose" value={unit} onChange={e => setUnit(e.target.value as DoseUnit)} className={INPUT}>{UNITS.map(u => <option key={u} value={u}>{u}</option>)}</select>
           </label>
         </div>
+        {/* Z3: com a concentração do frasco, quantos ml são */}
+        {volume !== null && dose > 0 && (
+          <p className="text-sm text-muted" data-testid="volume-da-dose">
+            = <strong className="text-ink">{volumeText(volume)}</strong>
+            {route === 'sc' ? ` (${String(syringeUnits(volume)).replace('.', ',')} unidades na seringa de insulina de 100)` : ''}
+          </p>
+        )}
         <div className="grid grid-cols-2 gap-2">
           <label className="block text-sm font-semibold text-muted">Via
-            <select value={route} onChange={e => changeRoute(e.target.value as DoseRoute)} className={INPUT}>{ROUTES.map(r => <option key={r.id} value={r.id}>{r.label}</option>)}</select>
+            <select aria-label="Via" value={route} onChange={e => changeRoute(e.target.value as DoseRoute)} className={INPUT}>{ROUTES.map(r => <option key={r.id} value={r.id}>{r.label}</option>)}</select>
           </label>
           <label className="block text-sm font-semibold text-muted">Dia
             <input type="date" value={date} max={today} onChange={e => setDate(e.target.value)} className={INPUT} />

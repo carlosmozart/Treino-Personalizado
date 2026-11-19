@@ -192,6 +192,10 @@ export interface ProtocolItem {
   toWeek?: number;
   /** Z2: meia-vida informada pela pessoa (horas), só para desenhar a curva estimada. */
   halfLifeHours?: number;
+  /** Z3: quantas doses no dia previsto (1 a 6). Ausente = 1. */
+  timesPerDay?: number;
+  /** Z3: concentração do frasco, na unidade da dose por ml (mg/ml, mcg/ml, UI/ml), do rótulo ou da diluição. */
+  perMl?: number;
   note?: string;
 }
 
@@ -225,6 +229,8 @@ export interface DoseLog {
   itemId?: string;
   site?: InjectionSite;
   note?: string;
+  /** Z3: qual das doses do dia (0 = a primeira), quando a substância tem mais de uma. Ausente = 0. */
+  slot?: number;
 }
 
 export type HealthEntryKind = 'sintomas' | 'pressao' | 'exame' | 'nota';

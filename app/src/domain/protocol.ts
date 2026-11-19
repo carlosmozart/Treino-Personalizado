@@ -73,6 +73,10 @@ export const MAX_NAME = 60;
 export const MAX_NOTE = 300;
 export const MAX_ITEMS = 12;
 export const MAX_DOSE = 100_000;
+/** Z3: até 6 doses no mesmo dia. */
+export const MAX_TIMES_PER_DAY = 6;
+/** Z3: unidades em que a concentração por ml faz sentido. */
+export const CONCENTRATION_UNITS: readonly DoseUnit[] = ['mg', 'mcg', 'UI'];
 
 const cloneSync = (data: AppData) => ({ changed: { ...data.sync.changed }, deleted: { ...data.sync.deleted } });
 const daysBetween = (a: DateKey, b: DateKey) => Math.round((fromDateKey(b).getTime() - fromDateKey(a).getTime()) / 86_400_000);
@@ -93,13 +97,38 @@ export function doseText(dose: number, unit: DoseUnit): string {
   return `${n} ${unit}`;
 }
 
-/** "todo dia", "a cada 7 dias", "segunda e quinta". */
-export function scheduleText(s: DoseSchedule): string {
-  if ('every' in s) return s.every === 1 ? 'todo dia' : `a cada ${s.every} dias`;
-  const days = DAY_ORDER.filter(d => s.weekdays.includes(d)).map(d => DAY_FULL_NAMES[d].toLowerCase());
-  if (days.length === 7) return 'todo dia';
-  return days.length <= 1 ? days[0] ?? 'sem dia' : `${days.slice(0, -1).join(', ')} e ${days.at(-1)}`;
+/** "todo dia", "a cada 7 dias", "segunda e quinta"; com várias no dia, "2 vezes por dia". */
+export function scheduleText(s: DoseSchedule, times = 1): string {
+  const days = 'every' in s ? null : DAY_ORDER.filter(d => s.weekdays.includes(d)).map(d => DAY_FULL_NAMES[d].toLowerCase());
+  const base = 'every' in s ? (s.every === 1 ? 'todo dia' : `a cada ${s.every} dias`)
+    : days!.length === 7 ? 'todo dia' : days!.length <= 1 ? days![0] ?? 'sem dia' : `${days!.slice(0, -1).join(', ')} e ${days!.at(-1)}`;
+  if (times <= 1) return base;
+  return base === 'todo dia' ? `${times} vezes por dia` : `${base}, ${times} vezes no dia`;
 }
+
+/** Z3: doses no dia previsto (1 quando não informado). */
+export const timesOf = (i: Pick<ProtocolItem, 'timesPerDay'>): number => (i.timesPerDay && i.timesPerDay > 1 ? Math.min(MAX_TIMES_PER_DAY, i.timesPerDay) : 1);
+export const itemSchedule = (i: ProtocolItem): string => scheduleText(i.schedule, timesOf(i));
+/** "1ª de 2". */
+export const slotLabel = (slot: number, of: number) => `${slot + 1}ª de ${of}`;
+
+/** Z3: quantos ml dá uma dose com a concentração do frasco (null sem concentração). */
+export function doseVolume(dose: number, unit: DoseUnit, perMl: number | undefined): number | null {
+  if (!perMl || perMl <= 0 || !CONCENTRATION_UNITS.includes(unit)) return null;
+  return dose / perMl;
+}
+
+/** "0,4 ml"; abaixo de 0,1 ml, com três casas. */
+export function volumeText(ml: number): string {
+  const r = ml < 0.1 ? Math.round(ml * 1000) / 1000 : Math.round(ml * 100) / 100;
+  return `${String(r).replace('.', ',')} ml`;
+}
+
+/** Marcações na seringa de insulina de 100 unidades (1 ml = 100), de meia em meia. */
+export const syringeUnits = (ml: number): number => Math.round(ml * 200) / 2;
+
+/** Z3: concentração a partir da diluição: quanto tem no frasco ÷ ml de diluente. */
+export const concentrationFrom = (amount: number, ml: number): number | null => (amount > 0 && ml > 0 ? Math.round((amount / ml) * 1000) / 1000 : null);
 
 /** Último dia do protocolo (encerrado ou previsto). Ausente = contínuo e em andamento. */
 export function protocolEnd(p: Protocol): DateKey | undefined {
@@ -133,7 +162,7 @@ export function isDue(p: Protocol, item: ProtocolItem, date: DateKey): boolean {
 /** Quanto dá por semana, na unidade da dose ("250 mg por semana"). */
 export function weeklyAmount(item: ProtocolItem): number {
   const per = 'every' in item.schedule ? 7 / Math.max(1, item.schedule.every) : item.schedule.weekdays.length;
-  return Math.round(item.dose * per * 100) / 100;
+  return Math.round(item.dose * per * timesOf(item) * 100) / 100;
 }
 
 export interface ProtocolStatus {
@@ -162,16 +191,21 @@ export function protocolStatus(p: Protocol, today: DateKey): ProtocolStatus {
 export const doseList = (data: Pick<AppData, 'doses'>): DoseLog[] =>
   Object.values(data.doses ?? {}).sort((a, b) => (a.date !== b.date ? b.date.localeCompare(a.date) : b.at.localeCompare(a.at)));
 
-const takenOn = (data: Pick<AppData, 'doses'>, protocolId: string, itemId: string, date: DateKey) =>
-  Object.values(data.doses ?? {}).find(d => d.protocolId === protocolId && d.itemId === itemId && d.date === date);
+const takenOn = (data: Pick<AppData, 'doses'>, protocolId: string, itemId: string, date: DateKey, slot = 0) =>
+  Object.values(data.doses ?? {}).find(d => d.protocolId === protocolId && d.itemId === itemId && d.date === date && (d.slot ?? 0) === slot);
 
-export interface DueDose { protocol: Protocol; item: ProtocolItem; date: DateKey; taken: DoseLog | undefined }
+/** Uma dose prevista: `slot` é qual das `of` doses do dia (0 = a primeira). */
+export interface DueDose { protocol: Protocol; item: ProtocolItem; date: DateKey; slot: number; of: number; taken: DoseLog | undefined }
 
 /** Doses previstas num dia, de todos os protocolos, com a registrada (se houver). */
 export function dosesDue(data: Pick<AppData, 'protocols' | 'doses'>, date: DateKey): DueDose[] {
   const out: DueDose[] = [];
   for (const p of Object.values(data.protocols ?? {}).sort((a, b) => a.startDate.localeCompare(b.startDate))) {
-    for (const item of p.items) if (isDue(p, item, date)) out.push({ protocol: p, item, date, taken: takenOn(data, p.id, item.id, date) });
+    for (const item of p.items) {
+      if (!isDue(p, item, date)) continue;
+      const of = timesOf(item);
+      for (let slot = 0; slot < of; slot++) out.push({ protocol: p, item, date, slot, of, taken: takenOn(data, p.id, item.id, date, slot) });
+    }
   }
   return out;
 }
@@ -202,8 +236,10 @@ export function adherence(data: Pick<AppData, 'doses'>, p: Protocol, today: Date
   for (let d = p.startDate; d <= last; d = addDays(d, 1)) {
     for (const item of p.items) {
       if (!isDue(p, item, d)) continue;
-      due++;
-      if (takenOn(data, p.id, item.id, d)) taken++;
+      for (let slot = 0; slot < timesOf(item); slot++) {
+        due++;
+        if (takenOn(data, p.id, item.id, d, slot)) taken++;
+      }
     }
   }
   return { due, taken };
@@ -228,8 +264,10 @@ function validItem(i: ProtocolItem): boolean {
   const schedule = 'every' in i.schedule ? Number.isInteger(i.schedule.every) && i.schedule.every >= 1 && i.schedule.every <= 90 : i.schedule.weekdays.length > 0;
   const weeks = (i.fromWeek === undefined || i.fromWeek >= 1) && (i.toWeek === undefined || i.toWeek >= (i.fromWeek ?? 1));
   const half = i.halfLifeHours === undefined || (i.halfLifeHours >= 0.5 && i.halfLifeHours <= 90 * 24);
+  const times = i.timesPerDay === undefined || (Number.isInteger(i.timesPerDay) && i.timesPerDay >= 1 && i.timesPerDay <= MAX_TIMES_PER_DAY);
+  const conc = i.perMl === undefined || (i.perMl > 0 && i.perMl <= MAX_DOSE && CONCENTRATION_UNITS.includes(i.unit));
   return !!i.name.trim() && i.dose > 0 && i.dose <= MAX_DOSE && UNITS.includes(i.unit) && ROUTES.some(r => r.id === i.route)
-    && CATEGORIES.some(c => c.id === i.category) && schedule && weeks && half;
+    && CATEGORIES.some(c => c.id === i.category) && schedule && weeks && half && times && conc;
 }
 
 /** Cria ou atualiza um protocolo. Sem nome, sem substância ou com algum campo fora do lugar: nada muda. */
@@ -276,7 +314,7 @@ export function reopenProtocol(data: AppData, id: string, today: DateKey, now: D
 }
 
 /** Id fixo da dose marcada de uma vez: a mesma em qualquer aparelho, então a junção não duplica. */
-export const backfillId = (protocolId: string, itemId: string, date: DateKey) => `prev-${protocolId}-${itemId}-${date}`;
+export const backfillId = (protocolId: string, itemId: string, date: DateKey, slot = 0) => `prev-${protocolId}-${itemId}-${date}${slot ? `-${slot + 1}` : ''}`;
 /** Até onde "marcar as anteriores" volta (2 anos). */
 const MAX_BACKFILL_DAYS = 730;
 
@@ -286,7 +324,10 @@ export function pendingBefore(data: Pick<AppData, 'doses'>, p: Protocol, today: 
   const end = protocolEnd(p);
   const from = p.startDate < addDays(today, -MAX_BACKFILL_DAYS) ? addDays(today, -MAX_BACKFILL_DAYS) : p.startDate;
   for (let d = from; d < today && !(end && d > end); d = addDays(d, 1)) {
-    for (const item of p.items) if (isDue(p, item, d) && !takenOn(data, p.id, item.id, d)) n++;
+    for (const item of p.items) {
+      if (!isDue(p, item, d)) continue;
+      for (let slot = 0; slot < timesOf(item); slot++) if (!takenOn(data, p.id, item.id, d, slot)) n++;
+    }
   }
   return n;
 }
@@ -305,12 +346,18 @@ export function backfillDoses(data: AppData, id: string, today: DateKey, now: Da
   let added = 0;
   for (let d = from; d < today && !(end && d > end); d = addDays(d, 1)) {
     for (const item of p.items) {
-      if (!isDue(p, item, d) || takenOn({ doses }, p.id, item.id, d)) continue;
-      const doseId = backfillId(p.id, item.id, d);
-      const when = fromDateKey(d);
-      doses[doseId] = { id: doseId, date: d, at: when.toISOString(), name: item.name, dose: item.dose, unit: item.unit, route: item.route, protocolId: p.id, itemId: item.id, note: 'marcada ao cadastrar o protocolo' };
-      touch(draft, key.dose(doseId), now);
-      added++;
+      if (!isDue(p, item, d)) continue;
+      for (let slot = 0; slot < timesOf(item); slot++) {
+        if (takenOn({ doses }, p.id, item.id, d, slot)) continue;
+        const doseId = backfillId(p.id, item.id, d, slot);
+        const when = fromDateKey(d);
+        doses[doseId] = {
+          id: doseId, date: d, at: when.toISOString(), name: item.name, dose: item.dose, unit: item.unit, route: item.route, protocolId: p.id, itemId: item.id,
+          ...(slot ? { slot } : {}), note: 'marcada ao cadastrar o protocolo'
+        };
+        touch(draft, key.dose(doseId), now);
+        added++;
+      }
     }
   }
   if (!added) return { data, events: [] };
@@ -331,18 +378,21 @@ export function deleteProtocol(data: AppData, id: string, now: Date): ActionResu
 export interface DoseInput {
   id: string; date: DateKey; name: string; dose: number; unit: DoseUnit; route: DoseRoute;
   protocolId?: string; itemId?: string; site?: InjectionSite; note?: string;
+  /** Z3: qual das doses do dia. */
+  slot?: number;
 }
 
 /** Registra uma dose (do protocolo ou avulsa). Data futura ou dose inválida: nada muda. */
 export function logDose(data: AppData, input: DoseInput, now: Date, today: DateKey): ActionResult {
   const name = clean(input.name, MAX_NAME);
   if (!name || !(input.dose > 0 && input.dose <= MAX_DOSE) || !UNITS.includes(input.unit) || input.date > today || data.doses?.[input.id]) return { data, events: [] };
-  if (input.protocolId && input.itemId && takenOn(data, input.protocolId, input.itemId, input.date)) return { data, events: [] };
+  if (input.protocolId && input.itemId && takenOn(data, input.protocolId, input.itemId, input.date, input.slot ?? 0)) return { data, events: [] };
   const note = clean(input.note, MAX_NOTE);
   const log: DoseLog = {
     id: input.id, date: input.date, at: now.toISOString(), name, dose: input.dose, unit: input.unit, route: input.route,
     ...(input.protocolId ? { protocolId: input.protocolId } : {}), ...(input.itemId ? { itemId: input.itemId } : {}),
-    ...(input.site && isInjection(input.route) ? { site: input.site } : {}), ...(note ? { note } : {})
+    ...(input.site && isInjection(input.route) ? { site: input.site } : {}), ...(note ? { note } : {}),
+    ...(input.slot ? { slot: input.slot } : {})
   };
   const draft: AppData = { ...data, sync: cloneSync(data) };
   draft.doses = { ...(data.doses ?? {}), [input.id]: log };
@@ -442,8 +492,10 @@ const dateText = (k: DateKey) => { const d = fromDateKey(k); return `${d.getDate
 
 export function itemLine(item: ProtocolItem): string {
   const weeks = item.fromWeek || item.toWeek ? ` (semanas ${item.fromWeek ?? 1}${item.toWeek ? ` a ${item.toWeek}` : ' em diante'})` : '';
-  const weekly = 'every' in item.schedule && item.schedule.every === 7 ? '' : `, ${doseText(weeklyAmount(item), item.unit)} por semana`;
-  return `${item.name}: ${doseText(item.dose, item.unit)} ${scheduleText(item.schedule)}, ${routeLabel(item.route).toLowerCase()}${weekly}${weeks}`;
+  const weekly = 'every' in item.schedule && item.schedule.every === 7 && timesOf(item) === 1 ? '' : `, ${doseText(weeklyAmount(item), item.unit)} por semana`;
+  const ml = doseVolume(item.dose, item.unit, item.perMl);
+  const conc = ml !== null ? ` (frasco com ${doseText(item.perMl!, item.unit)}/ml: ${volumeText(ml)} por dose)` : '';
+  return `${item.name}: ${doseText(item.dose, item.unit)} ${itemSchedule(item)}, ${routeLabel(item.route).toLowerCase()}${weekly}${conc}${weeks}`;
 }
 
 /** Resumo em texto para levar à consulta (copiar e colar). */

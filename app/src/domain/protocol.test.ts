@@ -1,7 +1,7 @@
 // Z1: protocolo de hormônios, peptídeos e medicamentos (só registro).
 import { describe, expect, it } from 'vitest';
 import {
-  addHealthEntry, adherence, backfillDoses, canReopen, clearProtocolData, deleteDose, deleteProtocol, doctorSummary, doseText, dosesDue, endProtocol, examMarkers,
+  addHealthEntry, adherence, backfillDoses, concentrationFrom, doseVolume, itemLine, syringeUnits, volumeText, weeklyAmount as weekly, canReopen, clearProtocolData, deleteDose, deleteProtocol, doctorSummary, doseText, dosesDue, endProtocol, examMarkers,
   isDue, logDose, missedDoses, nextSite, pressureHigh, protocolStatus, pendingBefore, recentSymptoms, reopenProtocol, saveProtocol, scheduleText, upcomingDoses, weeklyAmount
 } from './protocol';
 import { isAppData } from './backup';
@@ -213,5 +213,55 @@ describe('Z1: acertos de encerrar, reabrir e doses anteriores', () => {
     const d = logDose(withProtocol(), { id: 'a', date: '2026-11-16', name: 'A', dose: 1, unit: 'ml', route: 'im' }, NOW, '2026-11-17').data;
     const { at: _at, ...noTime } = d.doses!.a!;
     expect(isAppData({ ...d, doses: { a: noTime } })).toBe(false);
+  });
+});
+
+describe('Z3: mais de uma dose por dia e concentração do frasco', () => {
+  const twice = (over: Partial<ProtocolItem> = {}) => item({ schedule: { every: 1 }, timesPerDay: 2, dose: 250, unit: 'mcg', route: 'sc', ...over });
+
+  it('duas doses no dia: cada uma registrada à parte, sem repetir, e a adesão conta as duas', () => {
+    let d = withProtocol(protocol({ items: [twice()] }));
+    const due = dosesDue(d, '2026-11-17');
+    expect(due.map(x => [x.slot, x.of])).toEqual([[0, 2], [1, 2]]);
+    const base = { name: 'Substância A', dose: 250, unit: 'mcg' as const, route: 'sc' as const, protocolId: 'p1', itemId: 'i1', date: '2026-11-17' };
+    d = logDose(d, { ...base, id: 'a' }, NOW, '2026-11-17').data;
+    d = logDose(d, { ...base, id: 'b', slot: 1 }, NOW, '2026-11-17').data;
+    expect(logDose(d, { ...base, id: 'c', slot: 1 }, NOW, '2026-11-17').data).toBe(d);
+    expect(dosesDue(d, '2026-11-17').every(x => x.taken)).toBe(true);
+    expect(d.doses!.b!.slot).toBe(1);
+    expect(d.doses!.a!.slot).toBeUndefined();
+    // 2 a 17 nov: 16 dias × 2
+    expect(adherence(d, d.protocols!.p1!, '2026-11-17')).toEqual({ due: 32, taken: 2 });
+    expect(weekly(twice())).toBe(3500);
+  });
+
+  it('textos e doses de antes de hoje com várias por dia', () => {
+    expect(scheduleText({ every: 1 }, 2)).toBe('2 vezes por dia');
+    expect(scheduleText({ weekdays: ['SEG', 'QUI'] }, 3)).toBe('segunda e quinta, 3 vezes no dia');
+    const d = withProtocol(protocol({ startDate: '2026-11-15', items: [twice()] }));
+    expect(pendingBefore(d, d.protocols!.p1!, '2026-11-17')).toBe(4);
+    const filled = backfillDoses(d, 'p1', '2026-11-17', NOW).data;
+    expect(Object.keys(filled.doses!).sort()).toEqual(['prev-p1-i1-2026-11-15', 'prev-p1-i1-2026-11-15-2', 'prev-p1-i1-2026-11-16', 'prev-p1-i1-2026-11-16-2']);
+  });
+
+  it('concentração: ml por dose, seringa de insulina e diluição', () => {
+    expect(doseVolume(100, 'mg', 250)).toBeCloseTo(0.4);
+    expect(doseVolume(1, 'comprimido', 250)).toBeNull();
+    expect(doseVolume(100, 'mg', undefined)).toBeNull();
+    expect(volumeText(0.4)).toBe('0,4 ml');
+    expect(volumeText(0.05)).toBe('0,05 ml');
+    expect(volumeText(1.256)).toBe('1,26 ml');
+    // 5 mg (5000 mcg) em 2 ml: 2500 mcg/ml; 250 mcg = 0,1 ml = 10 unidades na seringa de 100
+    expect(concentrationFrom(5000, 2)).toBe(2500);
+    expect(concentrationFrom(5000, 0)).toBeNull();
+    expect(syringeUnits(doseVolume(250, 'mcg', 2500)!)).toBe(10);
+    expect(itemLine(twice({ perMl: 2500 }))).toContain('250 mcg 2 vezes por dia, subcutânea, 3500 mcg por semana (frasco com 2500 mcg/ml: 0,1 ml por dose)');
+  });
+
+  it('valores fora do lugar não são salvos', () => {
+    const base = sampleData();
+    expect(saveProtocol(base, protocol({ items: [item({ timesPerDay: 7 })] }), NOW).data).toBe(base);
+    expect(saveProtocol(base, protocol({ items: [item({ unit: 'comprimido', perMl: 10 })] }), NOW).data).toBe(base);
+    expect(saveProtocol(base, protocol({ items: [item({ perMl: 0 })] }), NOW).data).toBe(base);
   });
 });

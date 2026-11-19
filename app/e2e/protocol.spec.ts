@@ -36,7 +36,7 @@ test('protocolo: ligar no Perfil, montar, registrar a dose do dia, diário e res
   await second.getByRole('combobox', { name: 'Nome' }).fill('Anastrozol');
   await second.getByRole('radio', { name: 'Medicamento' }).click();
   await second.getByRole('textbox', { name: 'Dose da substância 2' }).fill('0,5');
-  await second.getByRole('combobox', { name: 'Via' }).selectOption('oral');
+  await second.getByRole('combobox', { name: 'Via da substância 2' }).selectOption('oral');
   await second.getByRole('radio', { name: 'Dias da semana' }).click();
   await expect(second.getByText('Dá 1 mg por semana.')).toBeVisible();
   await page.screenshot({ path: 'test-results/protocolo-editor.png' });
@@ -180,5 +180,58 @@ test('protocolo que já estava em andamento: doses anteriores marcadas, encerrar
   const later = page.getByRole('article', { name: 'Depois' });
   await expect(later).toContainText('Começa em 7 dez');
   await expect(later.getByRole('button', { name: 'Encerrar hoje' })).toHaveCount(0);
+  expect(errors).toEqual([]);
+});
+
+test('duas doses por dia e concentração pela diluição: cada dose mostra os ml (Z3)', async ({ page }) => {
+  const errors: string[] = [];
+  page.on('console', msg => { if (msg.type() === 'error') errors.push(msg.text()); });
+  await page.clock.setFixedTime(new Date(2026, 10, 18, 9));
+  await page.goto('/');
+  await page.getByRole('button', { name: 'Perfil', exact: true }).click();
+  await page.getByRole('switch', { name: 'Protocolo: hormônios, peptídeos e medicamentos' }).check();
+  await page.getByRole('button', { name: 'Progresso', exact: true }).click();
+  await page.getByRole('tab', { name: 'Protocolo' }).click();
+
+  await page.getByRole('button', { name: '+ Novo' }).click();
+  const editor = page.getByRole('dialog', { name: 'Novo protocolo' });
+  await editor.getByRole('textbox', { name: 'Nome' }).first().fill('Peptídeo');
+  const first = editor.getByRole('group', { name: 'Substância 1' });
+  await first.getByRole('combobox', { name: 'Nome' }).fill('Substância P');
+  await first.getByRole('radio', { name: 'Peptídeo' }).click();
+  await first.getByRole('textbox', { name: 'Dose da substância 1' }).fill('250');
+  await first.getByRole('combobox', { name: 'Unidade da dose da substância 1' }).selectOption('mcg');
+  await first.getByRole('combobox', { name: 'Via da substância 1' }).selectOption('sc');
+  await first.getByRole('textbox', { name: 'Intervalo em dias da substância 1' }).fill('1');
+  await first.getByRole('radio', { name: '2 por dia' }).click();
+  await expect(first.getByText('Dá 3500 mcg por semana.')).toBeVisible();
+  // 5 mg (5000 mcg) em 2 ml de diluente
+  await first.getByRole('switch', { name: 'Calcular pela diluição' }).check();
+  await first.getByRole('textbox', { name: 'Quantidade no frasco da substância 1' }).fill('5000');
+  await first.getByRole('textbox', { name: 'Mililitros de diluente da substância 1' }).fill('2');
+  await expect(first.getByRole('textbox', { name: 'Concentração da substância 1 em mcg por ml' })).toHaveValue('2500');
+  await expect(first.getByTestId('volume-da-dose')).toHaveText('Cada dose: 0,1 ml (10 unidades na seringa de insulina de 100)');
+  await first.scrollIntoViewIfNeeded();
+  await page.screenshot({ path: 'test-results/protocolo-concentracao.png' });
+  await editor.getByRole('button', { name: 'Salvar protocolo' }).click();
+
+  await expect(page.getByRole('article', { name: 'Peptídeo' })).toContainText('Substância P · 250 mcg (0,1 ml) 2 vezes por dia · SC');
+  const today = page.getByRole('region', { name: 'Doses de hoje' });
+  await expect(today.getByRole('heading')).toHaveText('Hoje: 2 doses para registrar');
+  await today.getByRole('button', { name: 'Registrar Substância P (1ª de 2)' }).click();
+  const sheet = page.getByRole('dialog', { name: 'Registrar Substância P (1ª de 2)' });
+  await expect(sheet.getByTestId('volume-da-dose')).toHaveText('= 0,1 ml (10 unidades na seringa de insulina de 100)');
+  await sheet.getByRole('radio', { name: 'Abdome, lado esquerdo' }).click();
+  await sheet.getByRole('button', { name: 'Salvar dose' }).click();
+  await expect(today.getByRole('heading')).toHaveText('Hoje: 1 dose para registrar');
+  await expect(today).toContainText('Registrada (1ª de 2) · abdome, lado esquerdo');
+  await today.getByRole('button', { name: 'Registrar Substância P (2ª de 2)' }).click();
+  // a segunda alterna o lado
+  const second = page.getByRole('dialog', { name: 'Registrar Substância P (2ª de 2)' });
+  await expect(second.getByRole('radio', { name: 'Abdome, lado direito' })).toHaveAttribute('aria-checked', 'true');
+  await second.getByRole('button', { name: 'Salvar dose' }).click();
+  await expect(today.getByRole('heading')).toHaveText('Doses de hoje registradas');
+  await expect(page.getByRole('list', { name: 'Registros do diário' })).toContainText('2ª do dia');
+  await today.screenshot({ path: 'test-results/protocolo-duas-por-dia.png' });
   expect(errors).toEqual([]);
 });

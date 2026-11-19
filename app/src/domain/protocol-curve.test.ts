@@ -75,4 +75,14 @@ describe('Z2: curva estimada', () => {
     expect(halfLifeText(36)).toBe('36 h');
     expect(halfLifeText(108)).toBe('4,5 dias');
   });
+
+  it('Z3: duas doses no dia entram às 8h e às 20h', () => {
+    const p = protocol({ startDate: '2026-11-16', weeks: 1, items: [item({ schedule: { every: 1 }, timesPerDay: 2, halfLifeHours: 12 })] });
+    const curve = estimateCurve({}, p, p.items[0]!, 'plan', new Date(2026, 10, 16, 7))!;
+    expect(curve.doses).toBe(14);
+    const at = (h: number) => curve.points.find(pt => pt.t === new Date(2026, 10, 16, h).getTime())!.value;
+    expect(at(8)).toBeCloseTo(100);
+    // às 20h: a dose da manhã pela metade + a nova
+    expect(at(20)).toBeCloseTo(150);
+  });
 });
