@@ -275,3 +275,72 @@ test('horário de cada dose: aparece no protocolo e em Hoje; no navegador, o avi
   await expect(page.getByRole('dialog', { name: 'Editar protocolo' }).getByLabel('Horário 2 de 2 da substância 1')).toHaveValue('20:00');
   expect(errors).toEqual([]);
 });
+
+test('editar protocolo, dose avulsa, sintomas e anotação; curva no tema escuro (Z1)', async ({ page }) => {
+  const errors: string[] = [];
+  page.on('console', msg => { if (msg.type() === 'error') errors.push(msg.text()); });
+  await page.emulateMedia({ colorScheme: 'dark' });
+  await page.clock.setFixedTime(new Date(2026, 10, 18, 9));
+  await page.goto('/');
+  await page.getByRole('button', { name: 'Perfil', exact: true }).click();
+  await page.getByRole('switch', { name: 'Protocolo: hormônios, peptídeos e medicamentos' }).check();
+  await page.getByRole('button', { name: 'Progresso', exact: true }).click();
+  await page.getByRole('tab', { name: 'Protocolo' }).click();
+
+  await page.getByRole('button', { name: '+ Novo' }).click();
+  let editor = page.getByRole('dialog', { name: 'Novo protocolo' });
+  await editor.getByRole('textbox', { name: 'Nome' }).first().fill('Para editar');
+  const first = editor.getByRole('group', { name: 'Substância 1' });
+  await first.getByRole('combobox', { name: 'Nome' }).fill('Substância E');
+  await first.getByRole('textbox', { name: 'Dose da substância 1' }).fill('100');
+  await first.getByRole('textbox', { name: 'Meia-vida da substância 1' }).fill('5');
+  await editor.getByRole('button', { name: 'Salvar protocolo' }).click();
+
+  // editar: nome, dose e frequência
+  const card = page.getByRole('article', { name: 'Para editar' });
+  await card.getByRole('button', { name: 'Editar Para editar' }).click();
+  editor = page.getByRole('dialog', { name: 'Editar protocolo' });
+  await expect(editor.getByRole('textbox', { name: 'Nome' }).first()).toHaveValue('Para editar');
+  await editor.getByRole('textbox', { name: 'Nome' }).first().fill('Editado');
+  await editor.getByRole('textbox', { name: 'Dose da substância 1' }).fill('120');
+  await editor.getByRole('textbox', { name: 'Intervalo em dias da substância 1' }).fill('3');
+  await editor.getByRole('button', { name: 'Salvar protocolo' }).click();
+  await expect(page.getByRole('article', { name: 'Editado' })).toContainText('Substância E · 120 mg a cada 3 dias · IM');
+  await expect(page.getByRole('article', { name: 'Para editar' })).toHaveCount(0);
+
+  // dose avulsa
+  await page.getByRole('button', { name: '+ Dose avulsa' }).click();
+  const loose = page.getByRole('dialog', { name: 'Registrar dose' });
+  await loose.getByRole('combobox', { name: 'O quê' }).fill('Substância Z');
+  await loose.getByRole('textbox', { name: 'Dose' }).fill('2');
+  await loose.getByRole('combobox', { name: 'Unidade da dose' }).selectOption('comprimido');
+  await loose.getByRole('combobox', { name: 'Via' }).selectOption('oral');
+  await loose.getByRole('button', { name: 'Salvar dose' }).click();
+
+  // sintomas e anotação
+  await page.getByRole('button', { name: '+ Sintomas' }).click();
+  const feel = page.getByRole('dialog', { name: 'Como você está' });
+  await feel.getByRole('button', { name: 'Insônia' }).click();
+  await feel.getByRole('button', { name: 'Dor de cabeça' }).click();
+  await feel.getByRole('button', { name: 'Salvar' }).click();
+  await page.getByRole('button', { name: '+ Anotação' }).click();
+  const note = page.getByRole('dialog', { name: 'Anotação' });
+  await expect(note.getByRole('button', { name: 'Salvar' })).toBeDisabled();
+  await note.getByRole('textbox', { name: 'Anotação' }).fill('Consulta marcada para dezembro');
+  await note.getByRole('button', { name: 'Salvar' }).click();
+
+  const journal = page.getByRole('list', { name: 'Registros do diário' });
+  await expect(journal).toContainText('Substância Z · 2 comprimidos');
+  await expect(journal).toContainText('oral · avulsa');
+  await expect(journal).toContainText('Insônia, Dor de cabeça');
+  await expect(journal).toContainText('Consulta marcada para dezembro');
+
+  // a curva no tema escuro: a linha usa a cor de destaque e o fundo do cartão é escuro
+  const curve = page.getByRole('region', { name: 'Curva estimada' });
+  await curve.scrollIntoViewIfNeeded();
+  const bg = await curve.evaluate(el => getComputedStyle(el).backgroundColor);
+  const [r, g, b] = bg.match(/\d+/g)!.map(Number);
+  expect(r! + g! + b!).toBeLessThan(200);
+  await curve.screenshot({ path: 'test-results/protocolo-curva-escuro.png' });
+  expect(errors).toEqual([]);
+});
