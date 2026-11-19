@@ -6,6 +6,18 @@ Todas as mudanças relevantes do app ficam registradas aqui. Ao lançar uma nova
    atualizar o app instalado
 3. Adicione uma entrada aqui, nesse formato
 
+## [3.34.0] - 2026-11-18
+
+- Protocolo (hormônios, peptídeos e medicamentos): seção opcional, desligada por padrão (Perfil → Saúde), para quem já faz uso ter histórico e controle. O app não incentiva o uso nem indica substâncias, doses ou meias-vidas: tudo vem da pessoa, e o acompanhamento é com o médico. Com ela ligada, o Progresso ganha a aba Protocolo:
+  - Protocolos com cada substância, dose, via, frequência (a cada N dias ou em dias da semana), de 1 a 6 doses no dia, horário de cada dose, semanas em que vale e duração (ou contínuo). Mostra a semana atual, quanto falta e quantas doses foram registradas. Dá para encerrar e reabrir, e quem cadastra um protocolo já em andamento pode marcar as doses anteriores como feitas.
+  - Doses de hoje na aba e no Início, com o local de aplicação alternado e as doses sem registro dos últimos dias. Dose avulsa também.
+  - Concentração do frasco (do rótulo ou pela diluição): cada dose mostra quantos ml são e, na subcutânea, as unidades na seringa de insulina de 100.
+  - Lembretes de dose no app do celular, desligados por padrão, com texto discreto ("Hora de registrar sua dose") e conteúdo escondido na tela bloqueada; o nome e a dose no aviso só com o ajuste ligado.
+  - Diário de sintomas, pressão (destaca a partir de 14 por 9), exames de sangue (com o valor anterior de cada um) e anotações.
+  - Curva estimada de cada substância pela meia-vida que a pessoa informa, com as doses previstas ou as registradas, a marca de hoje e uma tabela por semana. Mostra a quantidade ainda ativa, não o nível no sangue.
+  - "Copiar resumo" para levar à consulta, e "Apagar todos os dados do protocolo".
+  - Os dados vão no backup e na junção entre aparelhos. Quem usa o app em dois aparelhos deve atualizar os dois.
+
 ## [3.33.0] - 2026-11-17
 
 - "Registrar atividade ou recuperação" também na semana do Início, sem precisar ir ao Histórico.

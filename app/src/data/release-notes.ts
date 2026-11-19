@@ -3,6 +3,15 @@ export interface ReleaseNote { version: string; date: string; items: string[] }
 
 export const RELEASE_NOTES: readonly ReleaseNote[] = [
   {
+    version: '3.34.0',
+    date: '2026-11',
+    items: [
+      'Nova seção opcional Protocolo, para quem já usa hormônios, peptídeos ou medicamentos ter histórico e controle. Liga em Perfil → Saúde.',
+      'Doses de hoje, lembrete na hora (discreto), ml de cada dose, diário de sintomas, pressão e exames, e resumo para a consulta.',
+      'O app não incentiva o uso nem indica doses: tudo vem de você, e o acompanhamento é com o seu médico.'
+    ]
+  },
+  {
     version: '3.33.0',
     date: '2026-11',
     items: [
