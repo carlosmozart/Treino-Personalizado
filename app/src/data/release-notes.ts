@@ -3,6 +3,15 @@ export interface ReleaseNote { version: string; date: string; items: string[] }
 
 export const RELEASE_NOTES: readonly ReleaseNote[] = [
   {
+    version: '3.35.0',
+    date: '2026-11',
+    items: [
+      'Protocolo: corrija uma dose ou um registro do diário pelo lápis.',
+      'Protocolo: lembrete para refazer os exames de sangue, no cartão Exames.',
+      'App do celular mais leve.'
+    ]
+  },
+  {
     version: '3.34.0',
     date: '2026-11',
     items: [

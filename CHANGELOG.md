@@ -6,6 +6,12 @@ Todas as mudanças relevantes do app ficam registradas aqui. Ao lançar uma nova
    atualizar o app instalado
 3. Adicione uma entrada aqui, nesse formato
 
+## [3.35.0] - 2026-11-19
+
+- Protocolo: dá para corrigir uma dose registrada (dia, dose, local, observação) e um registro do diário (sintomas, pressão, exame, anotação) pelo lápis, sem apagar e refazer. Se o dia novo já tem essa dose registrada, o app avisa.
+- Protocolo: lembrete para refazer os exames de sangue (no cartão Exames, a cada 4 a 24 semanas). Mostra a data do próximo, avisa no Início quando passou da hora e, com os lembretes ligados no app do celular, manda um aviso discreto no dia.
+- O APK ficou cerca de um terço menor: não leva mais os mapas de código, que só servem para depurar. A versão web continua igual.
+
 ## [3.34.0] - 2026-11-18
 
 - Protocolo (hormônios, peptídeos e medicamentos): seção opcional, desligada por padrão (Perfil → Saúde), para quem já faz uso ter histórico e controle. O app não incentiva o uso nem indica substâncias, doses ou meias-vidas: tudo vem da pessoa, e o acompanhamento é com o médico. Com ela ligada, o Progresso ganha a aba Protocolo:
