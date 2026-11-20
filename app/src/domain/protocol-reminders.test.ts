@@ -98,11 +98,11 @@ describe('Z4: sincronização com o Android', () => {
     expect(sent).toHaveLength(13);
     expect(sent[0]).toMatchObject({ id: 4300, channelId: 'protocolo-doses-v1', body: DISCREET_BODY });
     expect(plugin.createChannel).toHaveBeenCalledWith(expect.objectContaining({ id: 'protocolo-doses-v1', visibility: 0 }));
-    // desligar: cancela os 64 ids e não agenda de novo
+    // desligar: cancela os 64 ids das doses e o do exame (Z5), e não agenda de novo
     useAppStore.setState({ data: updateSettings(useAppStore.getState().data!, { doseReminders: false }, NOW).data });
     syncDoseRemindersNow();
     await vi.waitFor(() => expect(plugin.cancel).toHaveBeenCalledTimes(2));
-    expect((plugin.cancel.mock.calls[1] as unknown as [{ notifications: { id: number }[] }])[0].notifications).toHaveLength(64);
+    expect((plugin.cancel.mock.calls[1] as unknown as [{ notifications: { id: number }[] }])[0].notifications).toHaveLength(65);
     expect(plugin.schedule).toHaveBeenCalledTimes(1);
   });
 });

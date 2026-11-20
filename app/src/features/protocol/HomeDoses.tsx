@@ -3,7 +3,7 @@
 import { lazy, Suspense, useState } from 'react';
 import { useAppStore } from '../../store';
 import type { DoseTarget } from './DoseSheet';
-import { TodayDoses } from './TodayDoses';
+import { ExamOverdue, TodayDoses } from './TodayDoses';
 
 const DoseSheet = lazy(() => import('./DoseSheet').then(m => ({ default: m.DoseSheet })));
 
@@ -14,6 +14,7 @@ export function HomeDoses() {
   return (
     <>
       <TodayDoses compact onRegister={setTarget} />
+      <ExamOverdue />
       {target && <Suspense fallback={null}><DoseSheet target={target} onClose={() => setTarget(null)} /></Suspense>}
     </>
   );

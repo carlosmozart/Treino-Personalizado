@@ -1,8 +1,8 @@
-// Z1: diário de saúde: sintomas, pressão, exame de sangue ou uma nota.
+// Z1: diário de saúde: sintomas, pressão, exame de sangue ou uma nota. Z6: corrigir um registro.
 import { useState } from 'react';
 import { toDateKey } from '../../domain/dates';
-import type { HealthEntryKind } from '../../domain/model';
-import { addHealthEntry, EXAM_MARKERS, markerUnit, MAX_NOTE, SYMPTOMS } from '../../domain/protocol';
+import type { HealthEntry, HealthEntryKind } from '../../domain/model';
+import { addHealthEntry, EXAM_MARKERS, markerUnit, MAX_NOTE, SYMPTOMS, updateHealthEntry } from '../../domain/protocol';
 import { useAppStore } from '../../store';
 import { Icon } from '../../ui/Icon';
 import { NumberField } from '../../ui/NumberField';
@@ -14,24 +14,26 @@ const TITLE: Record<HealthEntryKind, string> = { sintomas: 'Como você está', p
 interface Row { key: string; name: string; value: number; unit: string }
 const emptyRow = (): Row => ({ key: crypto.randomUUID(), name: '', value: 0, unit: '' });
 
-export function HealthSheet({ kind, onClose }: { kind: HealthEntryKind; onClose: () => void }) {
+export function HealthSheet({ kind, editing, onClose }: { kind: HealthEntryKind; editing?: HealthEntry; onClose: () => void }) {
   const run = useAppStore(s => s.run);
   const today = toDateKey(new Date());
-  const [date, setDate] = useState(today);
-  const [symptoms, setSymptoms] = useState<string[]>([]);
-  const [text, setText] = useState('');
-  const [sys, setSys] = useState(0);
-  const [dia, setDia] = useState(0);
-  const [pulse, setPulse] = useState(0);
-  const [rows, setRows] = useState<Row[]>([emptyRow()]);
+  // Z6: corrigindo, tudo começa com o que estava registrado
+  const [date, setDate] = useState(editing?.date ?? today);
+  const [symptoms, setSymptoms] = useState<string[]>(editing?.symptoms ?? []);
+  const [text, setText] = useState(editing?.text ?? '');
+  const [sys, setSys] = useState(editing?.pressure?.sys ?? 0);
+  const [dia, setDia] = useState(editing?.pressure?.dia ?? 0);
+  const [pulse, setPulse] = useState(editing?.pressure?.pulse ?? 0);
+  const [rows, setRows] = useState<Row[]>(() => (editing?.exam?.length ? editing.exam.map(x => ({ key: crypto.randomUUID(), name: x.name, value: x.value, unit: x.unit })) : [emptyRow()]));
   const filled = rows.filter(r => r.name.trim());
   const valid = !!date && date <= today && (kind === 'sintomas' ? symptoms.length > 0 || !!text.trim()
     : kind === 'pressao' ? sys >= 50 && dia >= 30 && dia < sys
       : kind === 'exame' ? filled.length > 0 : !!text.trim());
   const save = () => {
     if (!valid) return;
-    run((d, now) => addHealthEntry(d, {
-      id: crypto.randomUUID(), date, kind, ...(text.trim() ? { text } : {}),
+    const act = editing ? updateHealthEntry : addHealthEntry;
+    run((d, now) => act(d, {
+      id: editing?.id ?? crypto.randomUUID(), date, kind, ...(text.trim() ? { text } : {}),
       ...(kind === 'sintomas' ? { symptoms } : {}),
       ...(kind === 'pressao' ? { pressure: { sys, dia, ...(pulse ? { pulse } : {}) } } : {}),
       ...(kind === 'exame' ? { exam: filled.map(r => ({ name: r.name, value: r.value, unit: r.unit })) } : {})
@@ -40,7 +42,7 @@ export function HealthSheet({ kind, onClose }: { kind: HealthEntryKind; onClose:
   };
   const setRow = (key: string, patch: Partial<Row>) => setRows(rows.map(r => (r.key === key ? { ...r, ...patch } : r)));
   return (
-    <Sheet title={TITLE[kind]} open onClose={onClose}>
+    <Sheet title={editing ? `Corrigir: ${TITLE[kind].toLowerCase()}` : TITLE[kind]} open onClose={onClose}>
       <div className="space-y-3 pb-2">
         <label className="block text-sm font-semibold text-muted">Dia
           <input type="date" value={date} max={today} onChange={e => setDate(e.target.value)} className={INPUT} />

@@ -3,7 +3,7 @@
 // lembretes de treino, M47). Por padrão o texto é discreto; o nome e a dose só com o ajuste ligado.
 import { addDays, fromDateKey, toDateKey } from './dates';
 import type { AppData } from './model';
-import { doseText, doseTime, doseVolume, dosesDue, slotLabel, volumeText } from './protocol';
+import { doseText, doseTime, doseVolume, dosesDue, examSchedule, slotLabel, volumeText } from './protocol';
 
 /** Ids reservados para os lembretes de dose (os de treino usam 4100–4113; o descanso, 4199). */
 export const DOSE_REMINDER_BASE_ID = 4300;
@@ -11,7 +11,12 @@ export const DOSE_REMINDER_BASE_ID = 4300;
 export const DOSE_REMINDER_MAX = 64;
 /** Quantos dias à frente ficam agendados (o app refaz a cada abertura). */
 export const DOSE_REMINDER_DAYS = 7;
-export const DOSE_REMINDER_IDS = Array.from({ length: DOSE_REMINDER_MAX }, (_, i) => DOSE_REMINDER_BASE_ID + i);
+/** Z5: o lembrete de exame usa o id logo depois dos de dose. */
+export const EXAM_REMINDER_ID = DOSE_REMINDER_BASE_ID + DOSE_REMINDER_MAX;
+export const DOSE_REMINDER_IDS = [...Array.from({ length: DOSE_REMINDER_MAX }, (_, i) => DOSE_REMINDER_BASE_ID + i), EXAM_REMINDER_ID];
+export const DISCREET_EXAM_BODY = 'Hora de marcar seus exames. Toque para abrir o app.';
+/** Hora do aviso de exame, no dia de refazer. */
+const EXAM_REMINDER_HOUR = 9;
 
 export const DISCREET_TITLE = 'Lembrete';
 export const DISCREET_BODY = 'Hora de registrar sua dose. Toque para abrir o app.';
@@ -20,7 +25,7 @@ export interface DoseReminder { id: number; at: Date; title: string; body: strin
 
 export const doseRemindersOn = (data: Pick<AppData, 'settings'>) => !!(data.settings.protocolEnabled && data.settings.doseReminders);
 
-export function doseRemindersFor(data: Pick<AppData, 'protocols' | 'doses' | 'settings'>, now: Date): DoseReminder[] {
+export function doseRemindersFor(data: Pick<AppData, 'protocols' | 'doses' | 'settings' | 'healthLog'>, now: Date): DoseReminder[] {
   if (!doseRemindersOn(data)) return [];
   const details = !!data.settings.doseReminderDetails;
   const today = toDateKey(now);
@@ -39,7 +44,19 @@ export function doseRemindersFor(data: Pick<AppData, 'protocols' | 'doses' | 'se
         : { at, title: DISCREET_TITLE, body: DISCREET_BODY });
     }
   }
-  return list.sort((a, b) => a.at.getTime() - b.at.getTime()).slice(0, DOSE_REMINDER_MAX).map((r, i) => ({ ...r, id: DOSE_REMINDER_BASE_ID + i }));
+  const out: DoseReminder[] = list.sort((a, b) => a.at.getTime() - b.at.getTime()).slice(0, DOSE_REMINDER_MAX).map((r, i) => ({ ...r, id: DOSE_REMINDER_BASE_ID + i }));
+  // Z5: um aviso no dia de refazer os exames (se ainda não passou)
+  const exam = examSchedule(data, today);
+  if (exam.due) {
+    const at = fromDateKey(exam.due);
+    at.setHours(EXAM_REMINDER_HOUR, 0, 0, 0);
+    if (at.getTime() > now.getTime()) {
+      out.push(details
+        ? { id: EXAM_REMINDER_ID, at, title: 'Exames de sangue', body: `Faz ${data.settings.examEveryWeeks} semanas do último exame. Hora de refazer.` }
+        : { id: EXAM_REMINDER_ID, at, title: DISCREET_TITLE, body: DISCREET_EXAM_BODY });
+    }
+  }
+  return out;
 }
 
 /** Assinatura para saber se os lembretes precisam ser refeitos. */

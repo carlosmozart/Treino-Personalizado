@@ -50,7 +50,7 @@ export function DoseRemindersCard({ protocols }: { protocols: Protocol[] }) {
         </>
       )}
       {!withTime && <p className="mt-1 text-sm text-muted">Só avisa as doses com horário: coloque o horário em Editar protocolo.</p>}
-      {native && on && <p className="mt-1 text-xs text-faint">Avisa os próximos 7 dias e para de avisar a dose que já foi registrada. Na tela bloqueada o aviso fica escondido.</p>}
+      {native && on && <p className="mt-1 text-xs text-faint">Avisa os próximos 7 dias e para de avisar a dose que já foi registrada. Com o intervalo dos exames escolhido (cartão Exames), também avisa no dia de refazer. Na tela bloqueada o aviso fica escondido.</p>}
     </section>
   );
 }

@@ -1,11 +1,11 @@
 // Z1: as doses previstas para hoje. Arquivo pequeno de propósito: o Início usa este cartão, e o
 // resto da seção (editor, curva, diário) baixa só quando a aba Protocolo abre.
 import { toDateKey } from '../../domain/dates';
-import { doseText, doseTime, dosesDue, doseVolume, routeShort, siteLabel, slotLabel, volumeText, type DueDose } from '../../domain/protocol';
+import { doseText, doseTime, dosesDue, examSchedule, doseVolume, routeShort, siteLabel, slotLabel, volumeText, type DueDose } from '../../domain/protocol';
 import { useAppStore } from '../../store';
 import { useNow } from '../../hooks/use-now';
 import { Icon } from '../../ui/Icon';
-import { plural } from '../../ui/format';
+import { plural, shortDate } from '../../ui/format';
 import type { DoseTarget } from './DoseSheet';
 
 const CARD = 'rounded-2xl border border-line bg-surface p-4';
@@ -46,3 +46,19 @@ function DueRow({ d, onRegister }: { d: DueDose; onRegister: (t: DoseTarget) => 
     </li>
   );
 }
+
+/** Z5: no Início, aviso quando passou da hora de refazer os exames (com o intervalo escolhido). */
+export function ExamOverdue() {
+  const data = useAppStore(s => s.data);
+  const today = toDateKey(new Date(useNow(60_000)));
+  if (!data) return null;
+  const plan = examSchedule(data, today);
+  if (!plan.overdue) return null;
+  return (
+    <section aria-label="Exames de sangue" className="rounded-2xl border border-warning/60 bg-surface p-4">
+      <h2 className="font-bold">Hora de refazer os exames</h2>
+      <p className="mt-1 text-sm text-muted">O último foi em {shortDate(plan.last!)}. Ao registrar o resultado em Progresso → Protocolo, o aviso some.</p>
+    </section>
+  );
+}
+

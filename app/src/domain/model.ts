@@ -376,6 +376,8 @@ export interface Settings {
   protocolEnabled?: boolean;
   /** Z4: aviso na hora de cada dose com horário. Ausente = desligado. */
   doseReminders?: boolean;
+  /** Z5: refazer os exames de sangue a cada N semanas (lembrete). Ausente ou 0 = sem lembrete. */
+  examEveryWeeks?: number;
   /** Z4: o aviso mostra o nome e a dose (senão, só "Hora de registrar sua dose"). Ausente = não. */
   doseReminderDetails?: boolean;
   /** W14: séries e repetições com que um exercício novo começa. Ausentes = 3 e 10. */

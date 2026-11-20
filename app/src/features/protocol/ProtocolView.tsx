@@ -3,9 +3,10 @@ import { useState } from 'react';
 import { toDateKey } from '../../domain/dates';
 import type { DoseLog, HealthEntry, HealthEntryKind, Protocol } from '../../domain/model';
 import {
-  adherence, canReopen, clearProtocolData, deleteDose, deleteHealthEntry, deleteProtocol, doctorSummary, doseList, doseText, endProtocol, examMarkers,
+  adherence, canReopen, clearProtocolData, EXAM_INTERVALS, examSchedule, deleteDose, deleteHealthEntry, deleteProtocol, doctorSummary, doseList, doseText, endProtocol, examMarkers,
   healthList, itemLine, lastExamDate, missedDoses, pressureHigh, protocolKindLabel, itemSchedule, protocolStatus, reopenProtocol, routeShort, siteLabel, slotLabel, doseVolume, volumeText, upcomingDoses
 } from '../../domain/protocol';
+import { updateSettings } from '../../domain/actions';
 import { useAppStore } from '../../store';
 import { useNow } from '../../hooks/use-now';
 import { Icon } from '../../ui/Icon';
@@ -27,6 +28,9 @@ export function ProtocolView() {
   const [editing, setEditing] = useState<Protocol | 'new' | null>(null);
   const [dose, setDose] = useState<DoseTarget | 'avulsa' | null>(null);
   const [health, setHealth] = useState<HealthEntryKind | null>(null);
+  // Z6: corrigir uma dose ou um registro do diário
+  const [fixDose, setFixDose] = useState<DoseLog | null>(null);
+  const [fixHealth, setFixHealth] = useState<HealthEntry | null>(null);
   const [copied, setCopied] = useState(false);
   const [showAll, setShowAll] = useState(false);
   if (!data) return null;
@@ -112,8 +116,8 @@ export function ProtocolView() {
         {journal.length === 0 ? <p className="mt-3 text-sm text-muted">As doses registradas, os sintomas, a pressão e os exames aparecem aqui.</p> : (
           <ul aria-label="Registros do diário" className="mt-3 divide-y divide-line">
             {(showAll ? journal : journal.slice(0, 12)).map(j => j.dose
-              ? <DoseItem key={`d-${j.dose.id}`} d={j.dose} onDelete={() => { if (confirm(`Apagar a dose de ${j.dose!.name} de ${shortDate(j.dose!.date)}?`)) run((x, now) => deleteDose(x, j.dose!.id, now)); }} />
-              : <HealthItem key={`h-${j.health!.id}`} e={j.health!} onDelete={() => { if (confirm(`Apagar o registro de ${shortDate(j.health!.date)}?`)) run((x, now) => deleteHealthEntry(x, j.health!.id, now)); }} />)}
+              ? <DoseItem key={`d-${j.dose.id}`} d={j.dose} onEdit={() => setFixDose(j.dose!)} onDelete={() => { if (confirm(`Apagar a dose de ${j.dose!.name} de ${shortDate(j.dose!.date)}?`)) run((x, now) => deleteDose(x, j.dose!.id, now)); }} />
+              : <HealthItem key={`h-${j.health!.id}`} e={j.health!} onEdit={() => setFixHealth(j.health!)} onDelete={() => { if (confirm(`Apagar o registro de ${shortDate(j.health!.date)}?`)) run((x, now) => deleteHealthEntry(x, j.health!.id, now)); }} />)}
           </ul>
         )}
         {journal.length > 12 && <button type="button" onClick={() => setShowAll(!showAll)} className="mt-2 h-11 font-semibold text-primary">{showAll ? 'Mostrar menos' : `Ver tudo (${journal.length})`}</button>}
@@ -137,6 +141,7 @@ export function ProtocolView() {
             </ul>
           </>
         )}
+        <ExamInterval today={today} />
       </section>
 
       {(protocols.length > 0 || journal.length > 0) && (
@@ -158,6 +163,8 @@ export function ProtocolView() {
       {editing && <ProtocolEditor {...(editing !== 'new' ? { initial: editing } : {})} onClose={() => setEditing(null)} />}
       {dose && <DoseSheet {...(dose !== 'avulsa' ? { target: dose } : {})} onClose={() => setDose(null)} />}
       {health && <HealthSheet kind={health} onClose={() => setHealth(null)} />}
+      {fixDose && <DoseSheet editing={fixDose} onClose={() => setFixDose(null)} />}
+      {fixHealth && <HealthSheet kind={fixHealth.kind} editing={fixHealth} onClose={() => setFixHealth(null)} />}
     </div>
   );
 }
@@ -199,19 +206,20 @@ function ProtocolCard({ p, today, onEdit }: { p: Protocol; today: string; onEdit
   );
 }
 
-function DoseItem({ d, onDelete }: { d: DoseLog; onDelete: () => void }) {
+function DoseItem({ d, onEdit, onDelete }: { d: DoseLog; onEdit: () => void; onDelete: () => void }) {
   return (
     <li className="flex min-h-12 items-center gap-2 py-1">
       <div className="min-w-0 flex-1">
         <p className="font-semibold">{d.name} · {doseText(d.dose, d.unit)}</p>
         <p className="text-sm text-muted">{shortDate(d.date)} · {routeShort(d.route)}{d.site ? ` · ${siteLabel(d.site).toLowerCase()}` : ''}{d.slot ? ` · ${d.slot + 1}ª do dia` : ''}{d.protocolId ? '' : ' · avulsa'}{d.note ? ` · ${d.note}` : ''}</p>
       </div>
+      <button type="button" aria-label={`Corrigir dose de ${d.name} de ${shortDate(d.date)}`} onClick={onEdit} className="flex size-11 shrink-0 items-center justify-center rounded-full text-muted"><Icon name="editar" className="size-5" /></button>
       <button type="button" aria-label={`Apagar dose de ${d.name} de ${shortDate(d.date)}`} onClick={onDelete} className="flex size-11 shrink-0 items-center justify-center rounded-full text-muted"><Icon name="lixo" className="size-5" /></button>
     </li>
   );
 }
 
-function HealthItem({ e, onDelete }: { e: HealthEntry; onDelete: () => void }) {
+function HealthItem({ e, onEdit, onDelete }: { e: HealthEntry; onEdit: () => void; onDelete: () => void }) {
   const title = e.kind === 'pressao' && e.pressure ? `Pressão ${e.pressure.sys}/${e.pressure.dia}${e.pressure.pulse ? ` · pulso ${e.pressure.pulse}` : ''}`
     : e.kind === 'exame' ? `Exame: ${(e.exam ?? []).map(x => `${x.name} ${formatNumber(x.value)} ${x.unit}`.trim()).join(', ')}`
       : e.kind === 'sintomas' ? (e.symptoms?.length ? e.symptoms.join(', ') : 'Sintomas') : 'Anotação';
@@ -222,7 +230,37 @@ function HealthItem({ e, onDelete }: { e: HealthEntry; onDelete: () => void }) {
         <p className={`font-semibold ${high ? 'text-warning' : ''}`}>{title}{high ? ' · acima de 14 por 9' : ''}</p>
         <p className="text-sm text-muted">{shortDate(e.date)}{e.text ? ` · ${e.text}` : ''}</p>
       </div>
+      <button type="button" aria-label={`Corrigir registro de ${shortDate(e.date)}`} onClick={onEdit} className="flex size-11 shrink-0 items-center justify-center rounded-full text-muted"><Icon name="editar" className="size-5" /></button>
       <button type="button" aria-label={`Apagar registro de ${shortDate(e.date)}`} onClick={onDelete} className="flex size-11 shrink-0 items-center justify-center rounded-full text-muted"><Icon name="lixo" className="size-5" /></button>
     </li>
   );
 }
+
+/** Z5: de quanto em quanto tempo refazer os exames, e quando é o próximo. */
+function ExamInterval({ today }: { today: string }) {
+  const data = useAppStore(s => s.data);
+  const run = useAppStore(s => s.run);
+  if (!data) return null;
+  const weeks = data.settings.examEveryWeeks ?? 0;
+  const plan = examSchedule(data, today);
+  return (
+    <div className="mt-3 border-t border-line pt-3">
+      <label className="flex min-h-11 items-center justify-between gap-3 text-sm font-semibold">
+        <span>Lembrar de refazer os exames</span>
+        <select aria-label="Refazer os exames a cada" value={weeks} onChange={e => run((d, t) => updateSettings(d, { examEveryWeeks: Number(e.target.value) }, t))}
+          className="h-11 rounded-xl border border-line bg-surface-2 px-3 text-base text-ink">
+          <option value={0}>Não lembrar</option>
+          {EXAM_INTERVALS.map(w => <option key={w} value={w}>a cada {w} semanas</option>)}
+        </select>
+      </label>
+      {weeks > 0 && (
+        <p data-testid="proximo-exame" className={`mt-1 text-sm ${plan.overdue ? 'font-semibold text-warning' : 'text-muted'}`}>
+          {!plan.due ? 'Registre o primeiro exame para o app saber quando lembrar.'
+            : plan.overdue ? `Passou da hora: o último foi em ${shortDate(plan.last!)}, há mais de ${weeks} semanas.`
+              : `Próximo: até ${shortDate(plan.due)} (${plan.daysLeft === 1 ? 'amanhã' : `em ${plan.daysLeft} dias`}).`}
+        </p>
+      )}
+    </div>
+  );
+}
+

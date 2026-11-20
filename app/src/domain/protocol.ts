@@ -399,18 +399,24 @@ export interface DoseInput {
   slot?: number;
 }
 
-/** Registra uma dose (do protocolo ou avulsa). Data futura ou dose inválida: nada muda. */
-export function logDose(data: AppData, input: DoseInput, now: Date, today: DateKey): ActionResult {
+/** Monta a dose já limpa; null se algum campo está fora do lugar (ou a data é futura). */
+function buildDose(input: DoseInput, at: string, today: DateKey): DoseLog | null {
   const name = clean(input.name, MAX_NAME);
-  if (!name || !(input.dose > 0 && input.dose <= MAX_DOSE) || !UNITS.includes(input.unit) || input.date > today || data.doses?.[input.id]) return { data, events: [] };
-  if (input.protocolId && input.itemId && takenOn(data, input.protocolId, input.itemId, input.date, input.slot ?? 0)) return { data, events: [] };
+  if (!name || !(input.dose > 0 && input.dose <= MAX_DOSE) || !UNITS.includes(input.unit) || !/^\d{4}-\d{2}-\d{2}$/.test(input.date) || input.date > today) return null;
   const note = clean(input.note, MAX_NOTE);
-  const log: DoseLog = {
-    id: input.id, date: input.date, at: now.toISOString(), name, dose: input.dose, unit: input.unit, route: input.route,
+  return {
+    id: input.id, date: input.date, at, name, dose: input.dose, unit: input.unit, route: input.route,
     ...(input.protocolId ? { protocolId: input.protocolId } : {}), ...(input.itemId ? { itemId: input.itemId } : {}),
     ...(input.site && isInjection(input.route) ? { site: input.site } : {}), ...(note ? { note } : {}),
     ...(input.slot ? { slot: input.slot } : {})
   };
+}
+
+/** Registra uma dose (do protocolo ou avulsa). Data futura ou dose inválida: nada muda. */
+export function logDose(data: AppData, input: DoseInput, now: Date, today: DateKey): ActionResult {
+  const log = buildDose(input, now.toISOString(), today);
+  if (!log || data.doses?.[input.id]) return { data, events: [] };
+  if (input.protocolId && input.itemId && takenOn(data, input.protocolId, input.itemId, input.date, input.slot ?? 0)) return { data, events: [] };
   const draft: AppData = { ...data, sync: cloneSync(data) };
   draft.doses = { ...(data.doses ?? {}), [input.id]: log };
   touch(draft, key.dose(input.id), now);
@@ -426,9 +432,31 @@ export function deleteDose(data: AppData, id: string, now: Date): ActionResult {
   return { data: draft, events: [] };
 }
 
-/** Registra sintomas, pressão, exame ou nota. Registro vazio ou fora do lugar: nada muda. */
-export function addHealthEntry(data: AppData, e: HealthEntry, now: Date, today: DateKey): ActionResult {
-  if (e.date > today || data.healthLog?.[e.id]) return { data, events: [] };
+/**
+ * Z6: corrige uma dose registrada (dia, dose, unidade, via, local, nota; o nome só na avulsa). Continua
+ * ligada ao mesmo item e à mesma dose do dia; se o dia novo já tem essa dose registrada, nada muda.
+ */
+export function updateDose(data: AppData, id: string, patch: Pick<DoseInput, 'date' | 'dose' | 'unit' | 'route' | 'name'> & { site?: InjectionSite; note?: string }, now: Date, today: DateKey): ActionResult {
+  const old = data.doses?.[id];
+  if (!old) return { data, events: [] };
+  const log = buildDose({
+    id, ...patch, name: old.protocolId ? old.name : patch.name,
+    ...(old.protocolId ? { protocolId: old.protocolId } : {}), ...(old.itemId ? { itemId: old.itemId } : {}), ...(old.slot ? { slot: old.slot } : {})
+  }, old.at, today);
+  if (!log) return { data, events: [] };
+  if (old.protocolId && old.itemId) {
+    const other = takenOn(data, old.protocolId, old.itemId, log.date, old.slot ?? 0);
+    if (other && other.id !== id) return { data, events: [] };
+  }
+  const draft: AppData = { ...data, sync: cloneSync(data) };
+  draft.doses = { ...data.doses, [id]: log };
+  touch(draft, key.dose(id), now);
+  return { data: draft, events: [] };
+}
+
+/** Limpa um registro do diário; null se estiver vazio ou fora do lugar. */
+function normalizeHealth(e: HealthEntry, today: DateKey): HealthEntry | null {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(e.date) || e.date > today) return null;
   const text = clean(e.text, MAX_NOTE);
   const symptoms = (e.symptoms ?? []).map(s => s.trim().slice(0, MAX_NAME)).filter(Boolean);
   const exam = (e.exam ?? []).map(x => ({ name: x.name.trim().slice(0, MAX_NAME), value: x.value, unit: x.unit.trim().slice(0, 12) }))
@@ -437,15 +465,32 @@ export function addHealthEntry(data: AppData, e: HealthEntry, now: Date, today: 
   const pressure = p && p.sys >= 50 && p.sys <= 300 && p.dia >= 30 && p.dia <= 200 && p.dia < p.sys
     ? { sys: Math.round(p.sys), dia: Math.round(p.dia), ...(p.pulse && p.pulse >= 20 && p.pulse <= 250 ? { pulse: Math.round(p.pulse) } : {}) } : undefined;
   const ok = e.kind === 'sintomas' ? symptoms.length > 0 || !!text : e.kind === 'pressao' ? !!pressure : e.kind === 'exame' ? exam.length > 0 : !!text;
-  if (!ok) return { data, events: [] };
-  const entry: HealthEntry = {
+  if (!ok) return null;
+  return {
     id: e.id, date: e.date, kind: e.kind, ...(text ? { text } : {}),
     ...(e.kind === 'sintomas' && symptoms.length ? { symptoms } : {}),
     ...(e.kind === 'pressao' && pressure ? { pressure } : {}),
     ...(e.kind === 'exame' ? { exam } : {})
   };
+}
+
+/** Registra sintomas, pressão, exame ou nota. Registro vazio ou fora do lugar: nada muda. */
+export function addHealthEntry(data: AppData, e: HealthEntry, now: Date, today: DateKey): ActionResult {
+  const entry = data.healthLog?.[e.id] ? null : normalizeHealth(e, today);
+  if (!entry) return { data, events: [] };
   const draft: AppData = { ...data, sync: cloneSync(data) };
   draft.healthLog = { ...(data.healthLog ?? {}), [e.id]: entry };
+  touch(draft, key.health(e.id), now);
+  return { data: draft, events: [] };
+}
+
+/** Z6: corrige um registro do diário (o tipo não muda). Vazio ou fora do lugar: nada muda. */
+export function updateHealthEntry(data: AppData, e: HealthEntry, now: Date, today: DateKey): ActionResult {
+  const old = data.healthLog?.[e.id];
+  const entry = old && old.kind === e.kind ? normalizeHealth(e, today) : null;
+  if (!entry) return { data, events: [] };
+  const draft: AppData = { ...data, sync: cloneSync(data) };
+  draft.healthLog = { ...data.healthLog, [e.id]: entry };
   touch(draft, key.health(e.id), now);
   return { data: draft, events: [] };
 }
@@ -490,6 +535,20 @@ export function examMarkers(data: Pick<AppData, 'healthLog'>): { name: string; u
 }
 
 export const lastExamDate = (data: Pick<AppData, 'healthLog'>): DateKey | undefined => healthList(data).find(e => e.kind === 'exame')?.date;
+
+/** Z5: intervalos oferecidos para refazer os exames, em semanas. */
+export const EXAM_INTERVALS: readonly number[] = [4, 6, 8, 12, 16, 24];
+
+export interface ExamSchedule { last: DateKey | undefined; due: DateKey | undefined; overdue: boolean; daysLeft: number | null }
+
+/** Z5: quando refazer os exames, pelo último registrado e o intervalo escolhido. Sem intervalo ou sem exame: sem data. */
+export function examSchedule(data: Pick<AppData, 'healthLog' | 'settings'>, today: DateKey): ExamSchedule {
+  const last = lastExamDate(data);
+  const weeks = data.settings.examEveryWeeks ?? 0;
+  if (!last || weeks <= 0) return { last, due: undefined, overdue: false, daysLeft: null };
+  const due = addDays(last, weeks * 7);
+  return { last, due, overdue: due <= today, daysLeft: daysBetween(today, due) };
+}
 export const lastPressure = (data: Pick<AppData, 'healthLog'>): HealthEntry | undefined => healthList(data).find(e => e.kind === 'pressao');
 
 /** Pressão a partir de 14 por 9 (140/90 mmHg): o app só destaca, sem diagnosticar. */

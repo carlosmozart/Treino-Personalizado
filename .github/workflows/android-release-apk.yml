@@ -96,6 +96,10 @@ jobs:
         run: |
           rm -rf www
           cp -r app/dist www
+          # o APK não leva os mapas de código (.map): só servem para depurar, ocupam um terço do
+          # conteúdo e expõem o código inteiro à análise do Play Protect; a versão web continua com eles
+          find www -name '*.map' -delete
+          find www -name '*.js' -exec sed -i -E '/^\/\/# sourceMappingURL=/d' {} +
           npx cap sync android
 
       - name: Build signed release APK
