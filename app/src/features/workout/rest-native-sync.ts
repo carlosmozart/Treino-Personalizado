@@ -26,7 +26,8 @@ export function startRestNativeSync(): void {
   if (!plugin) return;
   const report = (e: unknown) => useErrorLog.getState().report(e, 'Descanso na notificação');
   const check = () => { plugin.getState().then(s => applyNativeRest(s), report); };
-  plugin.addListener('restChanged', s => applyNativeRest(s)).catch(report);
+  // o addListener do Capacitor devolve um "thenable" sem .catch (3.36.0 quebrava aqui): Promise.resolve embrulha
+  Promise.resolve().then(() => plugin.addListener('restChanged', s => applyNativeRest(s))).catch(report);
   document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') check(); });
   check();
 }

@@ -54,7 +54,12 @@ describe('M21: ponte com o Android', () => {
       show: vi.fn(async (o: { endsAt: number; total: number }) => { state = { ...state, endsAt: o.endsAt, total: o.total }; return { exact: true }; }),
       hide: vi.fn(async () => { state = { ...state, endsAt: null }; }),
       getState: vi.fn(async () => state),
-      addListener: vi.fn(async (_e: string, cb: (s: NativeRest) => void) => { listeners.push(cb); return { remove: () => undefined }; })
+      // como o Capacitor: devolve um "thenable" com remove, sem .catch (a 3.36.0 quebrou aqui)
+      addListener: vi.fn((_e: string, cb: (s: NativeRest) => void) => {
+        listeners.push(cb);
+        const handle = { remove: () => undefined };
+        return { ...handle, then: (ok: (h: typeof handle) => unknown) => Promise.resolve(ok(handle)) };
+      })
     };
     (globalThis as { Capacitor?: unknown }).Capacitor = {
       isNativePlatform: () => true, getPlatform: () => 'android',

@@ -48,14 +48,21 @@ const applyLook = () => {
 useAppStore.subscribe((s, p) => { if (s.data?.settings !== p.data?.settings) applyLook(); });
 useToday.subscribe(applyLook);
 void useAppStore.getState().init().then(() => {
-  syncController.start();
-  startRemindersSync();
-  startDoseRemindersSync();
-  startRestNativeSync();
-  startDayWatcher(() => useAppStore.getState().run(dailyCheck));
+  // a busca de atualização vem primeiro e cada início fica isolado: um erro num deles (como o da
+  // 3.36.0) não pode impedir os outros, muito menos a atualização que traz a correção
   void useUpdate.getState().check(false);
   // o Android mantém o app na memória: voltar a ele não reinicia, então consulta também aqui
   document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') void useUpdate.getState().check(false); });
+  const starts: [string, () => void][] = [
+    ['Sincronização', () => syncController.start()],
+    ['Lembretes de treino', startRemindersSync],
+    ['Lembretes de dose', startDoseRemindersSync],
+    ['Descanso na notificação', startRestNativeSync],
+    ['Virada do dia', () => startDayWatcher(() => useAppStore.getState().run(dailyCheck))]
+  ];
+  for (const [where, start] of starts) {
+    try { start(); } catch (e) { useErrorLog.getState().report(e, where); }
+  }
 });
 flushOnHide();
 listenBack();
