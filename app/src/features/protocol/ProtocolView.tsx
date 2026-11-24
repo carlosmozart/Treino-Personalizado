@@ -13,6 +13,7 @@ import { Icon } from '../../ui/Icon';
 import { formatNumber, plural, relativeDate, shortDate } from '../../ui/format';
 import { CurveCard } from './CurveCard';
 import { DoseRemindersCard } from './DoseRemindersCard';
+import { StockCard } from './StockCard';
 import { DoseSheet, type DoseTarget } from './DoseSheet';
 import { TodayDoses } from './TodayDoses';
 import { HealthSheet } from './HealthSheet';
@@ -87,6 +88,8 @@ export function ProtocolView() {
       </section>
 
       {current.length > 0 && <DoseRemindersCard protocols={current} />}
+
+      {current.length > 0 && <StockCard protocols={current} today={today} />}
 
       {protocols.length > 0 && <CurveCard protocols={[...current, ...past]} />}
 

@@ -281,8 +281,10 @@ function validItem(i: ProtocolItem): boolean {
   const times = i.timesPerDay === undefined || (Number.isInteger(i.timesPerDay) && i.timesPerDay >= 1 && i.timesPerDay <= MAX_TIMES_PER_DAY);
   const conc = i.perMl === undefined || (i.perMl > 0 && i.perMl <= MAX_DOSE && CONCENTRATION_UNITS.includes(i.unit));
   const clock = i.times === undefined || (i.times.length <= MAX_TIMES_PER_DAY && i.times.every(t => t === '' || /^([01]\d|2[0-3]):[0-5]\d$/.test(t)));
+  // Z7: frasco em uso
+  const stock = i.stock === undefined || (i.stock.amount > 0 && i.stock.amount <= MAX_DOSE && UNITS.includes(i.stock.unit) && /^\d{4}-\d{2}-\d{2}$/.test(i.stock.since) && (i.stock.openedAt === undefined || typeof i.stock.openedAt === 'string'));
   return !!i.name.trim() && i.dose > 0 && i.dose <= MAX_DOSE && UNITS.includes(i.unit) && ROUTES.some(r => r.id === i.route)
-    && CATEGORIES.some(c => c.id === i.category) && schedule && weeks && half && times && conc && clock;
+    && CATEGORIES.some(c => c.id === i.category) && schedule && weeks && half && times && conc && clock && stock;
 }
 
 /** Cria ou atualiza um protocolo. Sem nome, sem substância ou com algum campo fora do lugar: nada muda. */

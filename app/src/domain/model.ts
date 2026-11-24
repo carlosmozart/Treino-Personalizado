@@ -198,7 +198,21 @@ export interface ProtocolItem {
   times?: string[];
   /** Z3: concentração do frasco, na unidade da dose por ml (mg/ml, mcg/ml, UI/ml), do rótulo ou da diluição. */
   perMl?: number;
+  /** Z7: o frasco (ou a caixa) em uso: quanto tinha ao abrir e desde que dia. */
+  stock?: ItemStock;
   note?: string;
+}
+
+/**
+ * Z7: estoque. `unit` é ml quando a substância tem concentração (frasco de 10 ml); sem ela, a
+ * unidade da dose (caixa com 30 comprimidos, frasco com 5 mg).
+ */
+export interface ItemStock {
+  amount: number;
+  unit: DoseUnit;
+  since: DateKey;
+  /** Quando foi informado, se foi no próprio dia de abrir: as doses daquele dia registradas antes saíram do frasco anterior. */
+  openedAt?: string;
 }
 
 export interface Protocol {

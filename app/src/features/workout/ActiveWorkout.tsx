@@ -7,6 +7,7 @@ import { workoutVolume } from '../../domain/workouts';
 import { useVolumeOptions } from '../../hooks/use-volume-options';
 import { updateMeta, updateSettings } from '../../domain/actions';
 import { Icon } from '../../ui/Icon';
+import { SwipeNav } from '../../ui/SwipeNav';
 import { useNow } from '../../hooks/use-now';
 import { useWakeLock } from '../../hooks/use-wake-lock';
 import { useAppStore } from '../../store';
@@ -178,7 +179,10 @@ export function ActiveWorkout({ session }: { session: ActiveSession }) {
               <Icon name="subir" className="size-6 rotate-90" />
             </button>
           </nav>
-          <ExerciseCard key={`${session.exercises[at]!.slotId}-${at}`} session={session} index={at} alwaysOpen onGoTo={setCurrent} />
+          {/* N15: deslizar o cartão troca de exercício (esquerda: o próximo, como o botão; direita: o anterior) */}
+          <SwipeNav onPrev={at > 0 ? () => setCurrent(at - 1) : undefined} onNext={nextTarget !== null ? () => setCurrent(nextTarget) : undefined}>
+            <ExerciseCard key={`${session.exercises[at]!.slotId}-${at}`} session={session} index={at} alwaysOpen onGoTo={setCurrent} />
+          </SwipeNav>
         </div>
       ) : (
         <div className="mt-4 space-y-3">

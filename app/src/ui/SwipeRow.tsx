@@ -29,7 +29,7 @@ export function SwipeRow({ enabled, onDelete, onCopy, className = '', children }
   const reset = () => { setSettling(true); setDx(0); start.current = null; dragging.current = false; };
 
   return (
-    <li className="relative overflow-hidden rounded-xl" style={{ touchAction: 'pan-y' }}
+    <li data-swipe-row className="relative overflow-hidden rounded-xl" style={{ touchAction: 'pan-y' }}
       onPointerDown={e => { if (e.button === 0) start.current = { x: e.clientX, y: e.clientY, id: e.pointerId }; setSettling(false); }}
       onPointerMove={e => {
         const s = start.current;
