@@ -3,6 +3,15 @@ export interface ReleaseNote { version: string; date: string; items: string[] }
 
 export const RELEASE_NOTES: readonly ReleaseNote[] = [
   {
+    version: '3.36.0',
+    date: '2026-11',
+    items: [
+      'Descanso na barra de notificações, com −15s, +15s e Pular sem abrir o app.',
+      'Protocolo: cartão Estoque, com quanto resta no frasco e até quando dá.',
+      'Modo foco: deslize o cartão para ir ao próximo exercício ou voltar.'
+    ]
+  },
+  {
     version: '3.35.0',
     date: '2026-11',
     items: [

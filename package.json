@@ -1,6 +1,6 @@
 {
   "name": "treino-personalizado",
-  "version": "3.35.0",
+  "version": "3.36.0",
   "private": true,
   "description": "Aplicativo local de treino, preparado para PWA e Android com Capacitor.",
   "scripts": {

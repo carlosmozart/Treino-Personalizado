@@ -6,6 +6,12 @@ Todas as mudanças relevantes do app ficam registradas aqui. Ao lançar uma nova
    atualizar o app instalado
 3. Adicione uma entrada aqui, nesse formato
 
+## [3.36.0] - 2026-11-23
+
+- Descanso na barra de notificações (app do celular): durante o descanso aparece um aviso fixo com a contagem regressiva e os botões −15s, +15s e Pular, que funcionam com a tela bloqueada e com o app fechado. Ao voltar ao app, o cronômetro da tela já está acertado; se o Android tiver fechado o app no meio do descanso, a contagem continua. Dá para desligar em Perfil → Descanso ("Contagem na barra de notificações"). Não pede permissão nova.
+- Protocolo: cartão Estoque. Informe quanto tinha o frasco (ou a caixa) ao abrir; o app desconta as doses registradas e mostra quanto resta, quantas aplicações ainda dá e até quando, pela agenda do protocolo. Com a concentração, a conta é em ml. Fica em destaque com 3 aplicações ou menos, ou acabando em até 7 dias. Só conta: não sugere comprar nem mudar dose.
+- Modo foco (um exercício por vez): deslizar o cartão para a esquerda vai ao próximo exercício e para a direita volta ao anterior. Nas séries, o gesto continua sendo apagar e copiar.
+
 ## [3.35.0] - 2026-11-19
 
 - Protocolo: dá para corrigir uma dose registrada (dia, dose, local, observação) e um registro do diário (sintomas, pressão, exame, anotação) pelo lápis, sem apagar e refazer. Se o dia novo já tem essa dose registrada, o app avisa.
