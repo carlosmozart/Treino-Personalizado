@@ -4,6 +4,7 @@
 // alarme criado no MainActivity (volume de "Alarmes", não o de mídia) com o app aberto, em
 // segundo plano ou com a tela bloqueada. No navegador nada disso existe e fica o bipe da página.
 import { isNative } from './platform';
+import { restTimerPlugin } from './rest-timer';
 
 interface Permission { display: 'granted' | 'denied' | 'prompt' | 'prompt-with-rationale' }
 
@@ -51,22 +52,46 @@ export async function exactAlarmAllowed(openSettings: boolean): Promise<boolean>
   return s.exact_alarm === 'granted';
 }
 
+export interface RestAlarmOptions {
+  sound: boolean;
+  vibrate: boolean;
+  /** W15: o aviso diz a próxima série. */
+  body: string;
+  /** Duração do descanso em segundos (para o aviso da contagem). */
+  total: number;
+  /** M21: contagem na barra de notificações, com −15s, +15s e Pular (só no APK com o plugin). */
+  countdown: boolean;
+  /** Aviso de fim do descanso (som ou vibração ligados). */
+  alert: boolean;
+}
+
 /**
- * Agenda (ou reagenda) o aviso de fim do descanso. 'exact' toca na hora; 'inexact' (sem a
- * permissão de alarme exato do Android 12+) pode atrasar; null não agendou.
+ * Agenda (ou reagenda) o fim do descanso. 'exact' toca na hora; 'inexact' (sem a permissão de
+ * alarme exato do Android 12+) pode atrasar; null não agendou o aviso de fim.
  */
-export async function scheduleRestAlarm(at: Date, sound: boolean, vibrate: boolean, body = 'Bora para a próxima série!'): Promise<'exact' | 'inexact' | null> {
+export async function scheduleRestAlarm(at: Date, o: RestAlarmOptions): Promise<'exact' | 'inexact' | null> {
   const p = plugin();
   if (!p || at.getTime() <= Date.now()) return null;
   if (!(await ensureNotificationPermission(false))) return null;
+  const native = restTimerPlugin();
+  if (native) {
+    // M21: o próprio app mostra a contagem e agenda o fim, para os botões do aviso poderem mudar o horário
+    const r = await native.show({
+      endsAt: at.getTime(), total: Math.max(1, Math.round(o.total)), countdown: o.countdown, alert: o.alert,
+      title: 'Descanso', body: o.body.startsWith('Próxima') ? o.body : '',
+      alertTitle: 'Descanso concluído', alertBody: o.body, alertChannel: restChannelId(o.sound, o.vibrate),
+      sound: o.sound, vibrate: o.vibrate
+    });
+    return o.alert ? (r.exact ? 'exact' : 'inexact') : null;
+  }
+  if (!o.alert) return null;
   await p.cancel({ notifications: [{ id: REST_NOTIFICATION_ID }] }).catch(() => undefined);
   await p.schedule({
     notifications: [{
       id: REST_NOTIFICATION_ID,
       title: 'Descanso concluído',
-      // W15: o aviso diz a próxima série
-      body,
-      channelId: restChannelId(sound, vibrate),
+      body: o.body,
+      channelId: restChannelId(o.sound, o.vibrate),
       extra: { type: 'rest-finished' },
       schedule: { at, allowWhileIdle: true },
       isExactNotification: true
@@ -76,6 +101,8 @@ export async function scheduleRestAlarm(at: Date, sound: boolean, vibrate: boole
 }
 
 export async function cancelRestAlarm(): Promise<void> {
+  const native = restTimerPlugin();
+  if (native) { await native.hide().catch(() => undefined); return; }
   const p = plugin();
   if (!p) return;
   await p.cancel({ notifications: [{ id: REST_NOTIFICATION_ID }] }).catch(() => undefined);

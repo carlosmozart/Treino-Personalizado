@@ -15,6 +15,7 @@ public class MainActivity extends BridgeActivity {
         registerPlugin(AppUpdatePlugin.class);
         registerPlugin(BackupFilePlugin.class);
         registerPlugin(ShareImagePlugin.class);
+        registerPlugin(RestTimerPlugin.class);
         super.onCreate(savedInstanceState);
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) return;
 

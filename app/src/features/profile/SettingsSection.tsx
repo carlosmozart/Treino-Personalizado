@@ -170,6 +170,11 @@ export function WorkoutSettingsFields({ openFirst = false }: { openFirst?: boole
         {toggle('restAutoStart', 'Iniciar o descanso ao marcar a série')}
         {toggle('restSound', 'Som no fim do descanso')}
         {toggle('restVibrate', 'Vibrar no fim do descanso')}
+        {/* M21: só o APK tem a barra de notificações */}
+        {notificationsAvailable() && (
+          <Toggle label="Contagem na barra de notificações (−15s, +15s e Pular sem abrir o app)" checked={settings.restCountdown !== false}
+            onChange={v => { set({ restCountdown: v }); if (v) void ensureNotificationPermission(true).catch(() => undefined); }} />
+        )}
       </SettingsGroup>
 
       <SettingsGroup id="carga" title="Carga e progressão"

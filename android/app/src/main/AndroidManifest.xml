@@ -30,6 +30,11 @@
             android:grantUriPermissions="true">
             <meta-data android:name="android.support.FILE_PROVIDER_PATHS" android:resource="@xml/file_paths" />
         </provider>
+
+        <!-- M21: botões do aviso do descanso (−15s, +15s, Pular) e alarme do fim; só o próprio app chama. -->
+        <receiver
+            android:name=".RestTimerReceiver"
+            android:exported="false" />
     </application>
 
     <!-- Permissions -->

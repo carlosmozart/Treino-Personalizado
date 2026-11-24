@@ -132,7 +132,7 @@ M19	✅ (21–22/10/2026: remarcar na semana fixa, para um dia livre dos próxim
 M20	✅ (10/10/2026, menu ⋯ do exercício) Histórico do exercício acessível de dentro do treino (últimas sessões + linha de evolução)	Média
 
 Fase 5 — descanso, conforto e extras
-M21	Descanso no APK como serviço em primeiro plano: contagem na barra de notificações com −15s/+15s/pausar/pular, sem desbloquear o celular (código nativo; validar no aparelho)	Média
+M21	✅ (23/11/2026, conferido no celular: aviso fixo com a contagem do próprio Android e os botões −15s, +15s e Pular, que mudam o descanso com o app fechado; sem serviço em primeiro plano e sem permissão nova; "pausar" ficou de fora porque o aviso só tem 3 botões) Descanso no APK como serviço em primeiro plano: contagem na barra de notificações com −15s/+15s/pausar/pular, sem desbloquear o celular (código nativo; validar no aparelho)	Média
 M22	Esforço por série opcional (RIR ou RPE), sem afetar progressão	Baixa
 M23	🟡 (arquivo do plano para compartilhar e importar, 12/10/2026; faltam importar mesclando e imprimir em PDF) Compartilhar plano (arquivo só com rotinas, sem dados pessoais) e importar mesclando; imprimir plano em PDF	Baixa
 M24	Importar histórico de Strong/Hevy/FitNotes (CSV), casando nomes com a biblioteca (depende de M5)	Baixa

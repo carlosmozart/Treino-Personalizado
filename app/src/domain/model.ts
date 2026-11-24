@@ -312,6 +312,8 @@ export interface Settings {
   trainingReminders: boolean;
   restBackgroundNotification: boolean;
   restBackgroundHintShown: boolean;
+  /** M21: contagem do descanso na barra de notificações do APK, com −15s, +15s e Pular. Ausente = ligada. */
+  restCountdown?: boolean;
   /** Tela ligada durante o treino (M2). Ausente em dados antigos = ligado. */
   keepScreenOn?: boolean;
   /** Ilustrações dos exercícios no treino (Q2). Ausente = ligado. */
