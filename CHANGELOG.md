@@ -6,6 +6,10 @@ Todas as mudanças relevantes do app ficam registradas aqui. Ao lançar uma nova
    atualizar o app instalado
 3. Adicione uma entrada aqui, nesse formato
 
+## [3.36.1] - 2026-11-23
+
+- Correção: no app do celular, a 3.36.0 mostrava "Algo deu errado. Seus dados continuam salvos" ao abrir. Um erro na ligação com o descanso da barra de notificações também impedia o app de procurar atualizações sozinho e de acertar a virada do dia. Agora cada parte da abertura começa separada das outras, e a busca de atualização vem primeiro.
+
 ## [3.36.0] - 2026-11-23
 
 - Descanso na barra de notificações (app do celular): durante o descanso aparece um aviso fixo com a contagem regressiva e os botões −15s, +15s e Pular, que funcionam com a tela bloqueada e com o app fechado. Ao voltar ao app, o cronômetro da tela já está acertado; se o Android tiver fechado o app no meio do descanso, a contagem continua. Dá para desligar em Perfil → Descanso ("Contagem na barra de notificações"). Não pede permissão nova.

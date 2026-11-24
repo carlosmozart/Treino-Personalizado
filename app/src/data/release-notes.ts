@@ -3,6 +3,13 @@ export interface ReleaseNote { version: string; date: string; items: string[] }
 
 export const RELEASE_NOTES: readonly ReleaseNote[] = [
   {
+    version: '3.36.1',
+    date: '2026-11',
+    items: [
+      'Correção: some o aviso "Algo deu errado" que aparecia ao abrir a 3.36.0.'
+    ]
+  },
+  {
     version: '3.36.0',
     date: '2026-11',
     items: [
