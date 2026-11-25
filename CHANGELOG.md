@@ -6,6 +6,15 @@ Todas as mudanças relevantes do app ficam registradas aqui. Ao lançar uma nova
    atualizar o app instalado
 3. Adicione uma entrada aqui, nesse formato
 
+## [3.37.0] - 2026-11-24
+
+- Carga travada com cadeado: aparece ao lado do nome do exercício no treino (aberto e recolhido), junto dos botões de carga, no Plano e na prévia antes de começar.
+- Calculadora de anilhas: cada exercício usa a sua barra (olímpica, feminina, W/EZ ou hexagonal; a W e a hexagonal pelo nome), com o peso de cada tipo, atalhos para marcar as anilhas da academia e a anilha de 1,5 kg. O aquecimento automático e o treino mais leve também usam a barra do exercício.
+- Drop-set e rest-pause: no menu da série (toque no número). Antes do drop-set não há descanso; antes do rest-pause, 15 s. Contam no volume, mas ficam fora dos recordes, do 1RM e da progressão.
+- Esforço por série em RIR ou RPE, opcional (Perfil → Durante o treino). Fica embaixo do número da série e vai para o histórico e a planilha. Não muda a progressão.
+- Exercícios assistidos: barra fixa e paralela no gravitron. A carga é a ajuda: a progressão tira ajuda, a seta sobe quando a ajuda cai e o volume conta o peso do corpo menos a ajuda.
+- Deslizar para apagar também nas pesagens e nos treinos do histórico, com Desfazer.
+
 ## [3.36.1] - 2026-11-23
 
 - Correção: no app do celular, a 3.36.0 mostrava "Algo deu errado. Seus dados continuam salvos" ao abrir. Um erro na ligação com o descanso da barra de notificações também impedia o app de procurar atualizações sozinho e de acertar a virada do dia. Agora cada parte da abertura começa separada das outras, e a busca de atualização vem primeiro.

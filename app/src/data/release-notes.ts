@@ -3,6 +3,17 @@ export interface ReleaseNote { version: string; date: string; items: string[] }
 
 export const RELEASE_NOTES: readonly ReleaseNote[] = [
   {
+    version: '3.37.0',
+    date: '2026-11',
+    items: [
+      'Cadeado no exercício com a carga travada.',
+      'Anilhas: cada exercício com a sua barra (olímpica, feminina, W ou hexagonal).',
+      'Drop-set, rest-pause e esforço em RIR ou RPE, no menu da série.',
+      'Barra fixa e paralela assistidas: menos ajuda é progresso.',
+      'Deslize para apagar pesagens e treinos do histórico.'
+    ]
+  },
+  {
     version: '3.36.1',
     date: '2026-11',
     items: [
