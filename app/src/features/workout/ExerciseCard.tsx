@@ -1,13 +1,14 @@
 import { useEffect, useMemo, useState } from 'react';
 import { groupOf } from '../../data/exercise-library';
 import {
-  addSet, afterSet, restAfterSet, resumeSession, setExerciseLock, setExerciseRest, setSetNote, setSetRest, SET_NOTE_MAX, supersetBlock, toggleSupersetWithNext, addWarmupSet, adjustWeights, removeWarmupSet, completeExercise, isExerciseDone, duplicateSet, insertSet, removeExerciseFromSession, removeSet, setNote, toggleFailure, toggleTechnique, toggleSet, updateCardio, updateSet,
+  addSet, afterSet, restAfterSet, resumeSession, setExerciseLock, setExerciseRest, setSetNote, setSetRest, SET_NOTE_MAX, supersetBlock, toggleSupersetWithNext, addWarmupSet, adjustWeights, removeWarmupSet, completeExercise, isExerciseDone, duplicateSet, insertSet, removeExerciseFromSession, removeSet, setNote, setSetEffort, effortLabel, RPE_VALUES, RIR_VALUES, toggleFailure, toggleTechnique, toggleSet, updateCardio, updateSet,
   type ActiveSession, type SessionExercise, type SessionSet
 } from '../../domain/session';
 import { bestSet, hasCardioLevel, lastSessionBefore, sessionsOf, suspiciousWeight, workSets } from '../../domain/workouts';
 import { useAppStore } from '../../store';
 import { Icon } from '../../ui/Icon';
 import { LockMark } from '../../ui/LockMark';
+import { isAssisted } from '../../domain/assisted';
 import { NumberField } from '../../ui/NumberField';
 import { ExerciseIllustration, hasIllustration } from '../../ui/ExerciseIllustration';
 import { markBigWeightJump, toggleFavorite, updateSettings } from '../../domain/actions';
@@ -81,7 +82,8 @@ export function ExerciseCard({ session, index, alwaysOpen = false, onGoTo }: Pro
   const compare = data?.settings.compareSets ?? true;
   const prevSets = useMemo(() => (compare && data ? previousWorkSets(data.workouts, ex.key, { date: session.date, id: session.id, startedAt: session.startedAt }) : null),
     [compare, data, ex.key, session.date, session.id, session.startedAt]);
-  const trends = setTrends(prevSets, ex.sets, ex.mode);
+  const assisted = isAssisted(ex.name);
+  const trends = setTrends(prevSets, ex.sets, ex.mode, assisted);
   // W8: troféu na série que bate um recorde, e quanto falta na próxima
   const showTrophies = data?.settings.recordTrophies ?? true;
   const showHints = data?.settings.recordHints ?? true;
@@ -148,6 +150,7 @@ export function ExerciseCard({ session, index, alwaysOpen = false, onGoTo }: Pro
   // R2: série apagada fica alguns segundos para desfazer
   const [removed, setRemoved] = useState<{ at: number; set: SessionSet; timer: number } | null>(null);
   const swipe = data?.settings.swipeSets ?? true;
+  const effortScale = data?.settings.effortScale;
   const removeWithUndo = (i: number) => {
     const set = ex.sets[i];
     if (!set || ex.sets.length <= 1) return;
@@ -251,6 +254,8 @@ export function ExerciseCard({ session, index, alwaysOpen = false, onGoTo }: Pro
             {ex.optional && <span className="rounded-full bg-surface-2 px-2 py-0.5 text-muted">Opcional</span>}
             {favorite && <span className="rounded-full bg-warning/15 px-2 py-0.5 text-warning">★ Favorito</span>}
             {!!ex.stack?.length && <span className="rounded-full bg-surface-2 px-2 py-0.5 text-muted">Pilha da máquina</span>}
+            {/* T11: a carga é a ajuda; menos é mais forte */}
+            {assisted && <span className="rounded-full bg-surface-2 px-2 py-0.5 text-muted">Assistido: menos ajuda = mais forte</span>}
             {ex.lockWeight && <span className="flex items-center gap-1 rounded-full bg-primary/15 px-2 py-0.5 text-info"><Icon name="cadeado" className="size-3.5" />Carga travada</span>}
             {block && (
               <span className="rounded-full bg-primary/15 px-2 py-0.5 text-info">
@@ -304,7 +309,7 @@ export function ExerciseCard({ session, index, alwaysOpen = false, onGoTo }: Pro
         <div className="mt-3">
           {/* N1: cabeçalho de colunas, carga antes das repetições */}
           <div className="grid grid-cols-[2rem_1fr_1fr_2.75rem] gap-2 px-0.5 text-xs font-semibold text-faint">
-            <span>Série</span><span className="text-center">Carga (kg)</span><span className="text-center">{unit}</span><span className="sr-only">Feita</span>
+            <span>Série</span><span className="text-center">{assisted ? 'Ajuda (kg)' : 'Carga (kg)'}</span><span className="text-center">{unit}</span><span className="sr-only">Feita</span>
           </div>
           <ol className="mt-1 space-y-2">
             {ex.sets.map((set, i) => {
@@ -317,10 +322,18 @@ export function ExerciseCard({ session, index, alwaysOpen = false, onGoTo }: Pro
                   {/* V2: o número abre o menu da série (até a falha e nota); V1: a seta contra a última vez */}
                   <div className="relative">
                     <button type="button" onClick={() => setMenuSet(i)} title={set.kind === 'warmup' ? 'Aquecimento' : undefined}
-                      aria-label={`Série ${i + 1}${set.kind === 'warmup' ? ' (aquecimento)' : ''}: opções${set.technique ? `, ${TECHNIQUE_NAME[set.technique]}` : ''}${set.failure ? ', até a falha' : ''}${set.note ? ', com nota' : ''}`}
+                      aria-label={`Série ${i + 1}${set.kind === 'warmup' ? ' (aquecimento)' : ''}: opções${set.technique ? `, ${TECHNIQUE_NAME[set.technique]}` : ''}${set.failure ? ', até a falha' : ''}${set.rpe && effortScale ? `, ${effortLabel(set.rpe, effortScale)}` : ''}${set.note ? ', com nota' : ''}`}
                       className={`flex h-11 w-full items-center justify-center rounded-lg text-base font-bold ${
                         set.kind === 'warmup' ? 'text-warning' : set.technique ? 'bg-primary/15 text-sm text-info' : set.failure ? 'bg-danger/15 text-danger' : 'text-muted'}`}>
-                      {set.kind === 'warmup' ? 'A' : set.technique ? TECHNIQUE_MARK[set.technique] : set.failure ? 'F' : i + 1 - ex.sets.slice(0, i).filter(s => s.kind === 'warmup').length}
+                      <span className="flex flex-col items-center leading-none">
+                        {set.kind === 'warmup' ? 'A' : set.technique ? TECHNIQUE_MARK[set.technique] : set.failure ? 'F' : i + 1 - ex.sets.slice(0, i).filter(s => s.kind === 'warmup').length}
+                        {/* M22: o esforço anotado, embaixo do número */}
+                        {set.rpe && effortScale && (
+                          <span aria-hidden="true" className="mt-0.5 text-[0.65rem] font-bold text-info">
+                            {effortScale === 'rpe' ? `@${String(set.rpe).replace('.', ',')}` : effortLabel(set.rpe, 'rir').replace('RIR ', 'R')}
+                          </span>
+                        )}
+                      </span>
                     </button>
                     {trend && prev && (
                       <span role="img" aria-label={`Série ${i + 1}: ${trendLabel(trend, prev, ex.mode)}`}
@@ -378,7 +391,7 @@ export function ExerciseCard({ session, index, alwaysOpen = false, onGoTo }: Pro
           {/* T5: peso do corpo sem carga não tem o que ajustar */}
           {(data?.settings.weightButtons ?? true) && ex.sets.some(set => !set.done) && !(isBodyweight(ex.name) && ex.sets.every(set => set.weight === 0)) && (
             <div className="mt-2 flex items-center gap-1" role="group" aria-label={`Ajustar a carga das séries não feitas de ${ex.name}`}>
-              <span className="mr-1 flex items-center gap-1 text-xs font-semibold text-faint">Carga{ex.lockWeight && <LockMark />}</span>
+              <span className="mr-1 flex items-center gap-1 text-xs font-semibold text-faint">{assisted ? 'Ajuda' : 'Carga'}{ex.lockWeight && <LockMark />}</span>
               {/* T23: com a pilha da máquina, um pino para baixo ou para cima */}
               {ex.stack?.length ? ([-1, 1] as const).map(d => (
                 <button key={d} type="button" onClick={() => update(s => adjustWeights(s, index, d))} aria-label={d > 0 ? 'Um pino a mais' : 'Um pino a menos'}
@@ -409,6 +422,8 @@ export function ExerciseCard({ session, index, alwaysOpen = false, onGoTo }: Pro
         unit={unit} onClose={() => setMenuSet(null)}
         onFailure={() => { if (menuSet !== null) update(s => toggleFailure(s, index, menuSet)); }}
         canTechnique={menuSet !== null && menuSet > 0 && ex.sets[menuSet - 1]?.kind === 'work'}
+        effortScale={effortScale}
+        onEffort={rpe => { if (menuSet !== null) update(s => setSetEffort(s, index, menuSet, rpe)); }}
         onTechnique={t => { if (menuSet !== null) update(s => toggleTechnique(s, index, menuSet, t)); }}
         onNote={note => { if (menuSet !== null) update(s => setSetNote(s, index, menuSet, note)); }}
         restText={menuSet !== null && ex.mode !== 'cardio' ? restLabel(ex.sets[menuSet]?.rest, setFallback(menuSet)) : null}
@@ -574,13 +589,15 @@ const TECHNIQUE_MARK: Record<SetTechnique, string> = { drop: 'D', restpause: 'RP
 const TECHNIQUE_NAME: Record<SetTechnique, string> = { drop: 'drop-set', restpause: 'rest-pause' };
 const TECHNIQUE_HINT: Record<SetTechnique, string> = { drop: 'carga menor logo depois da anterior, sem descanso', restpause: 'a mesma carga depois de 15 s' };
 
-function SetMenu({ open, exName, index, set, prev, unit, restText, onClose, onFailure, onNote, onRest, canTechnique, onTechnique }: {
+function SetMenu({ open, exName, index, set, prev, unit, restText, onClose, onFailure, onNote, onRest, canTechnique, onTechnique, effortScale, onEffort }: {
   open: boolean; exName: string; index: number; set: SessionSet | undefined; prev: { reps: number; weight: number } | undefined; unit: string;
   /** T17: o descanso depois desta série, para o botão (null = sem descanso aqui, como no cardio). */
   restText: string | null;
   onClose: () => void; onFailure: () => void; onNote: (note: string) => void; onRest: () => void;
   /** M49: drop-set e rest-pause só depois de uma série de trabalho. */
   canTechnique: boolean; onTechnique: (t: SetTechnique) => void;
+  /** M22: escala do esforço (ausente = não anotar). */
+  effortScale: 'rir' | 'rpe' | undefined; onEffort: (rpe: number | null) => void;
 }) {
   const [note, setNote] = useState('');
   useEffect(() => { if (open) setNote(set?.note ?? ''); }, [open, set?.note]);
@@ -596,6 +613,19 @@ function SetMenu({ open, exName, index, set, prev, unit, restText, onClose, onFa
             <span className="flex size-7 items-center justify-center rounded-md bg-danger/15 text-sm font-black text-danger">F</span>
             {set.failure ? 'Desmarcar "até a falha"' : 'Marcar como até a falha'}
           </button>
+        )}
+        {work && effortScale && (
+          <div>
+            <p className="text-sm font-semibold text-muted">{effortScale === 'rir' ? 'Repetições na reserva (RIR): quantas ainda daria' : 'Esforço (RPE): 10 = não daria mais nenhuma'}</p>
+            <div role="group" aria-label={`Esforço da série ${index + 1}`} className="mt-1 flex flex-wrap gap-1.5">
+              {(effortScale === 'rir' ? RIR_VALUES.map(r => 10 - Math.min(r, 4)) : RPE_VALUES).map(rpe => (
+                <button key={rpe} type="button" aria-pressed={set.rpe === rpe} onClick={() => onEffort(set.rpe === rpe ? null : rpe)}
+                  className={`h-11 min-w-11 rounded-xl px-2 font-bold tabular-nums ${set.rpe === rpe ? 'bg-primary text-white' : 'bg-surface-2 text-muted'}`}>
+                  {effortScale === 'rir' ? effortLabel(rpe, 'rir').replace('RIR ', '') : String(rpe).replace('.', ',')}
+                </button>
+              ))}
+            </div>
+          </div>
         )}
         {work && canTechnique && (['drop', 'restpause'] as const).map(t => (
           <button key={t} type="button" onClick={() => { onTechnique(t); onClose(); }} aria-pressed={set.technique === t}

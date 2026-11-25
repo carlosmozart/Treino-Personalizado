@@ -1,6 +1,7 @@
 // Leituras derivadas dos treinos. Nada daqui é gravado: corrigir um treino corrige tudo.
 import { cardioMet, kcal, strengthMet, type LoggedSet } from './calories';
 import type { AppData, Workout, WorkoutEntry, WorkoutSet } from './model';
+import { isAssisted } from './assisted';
 import type { DateKey } from './dates';
 import { normalizeExerciseName } from './text';
 
@@ -74,6 +75,11 @@ export function volumeOptions(data: { settings?: Pick<AppData['settings'], 'volu
 /** Volume em kg; por lado (M31) conta os dois lados. `date` é a do treino (para o peso do corpo). */
 export function entryVolume(entry: WorkoutEntry, opts?: VolumeOptions, date?: DateKey): number {
   const sets = opts?.warmup ? entry.sets : workSets(entry);
+  // T11: no assistido a carga é a ajuda: conta o peso do corpo menos ela (sem o peso do corpo, nada)
+  if (entry.mode === 'reps' && isAssisted(entry.name)) {
+    const body = opts?.bodyAt && date ? opts.bodyAt(date) ?? 0 : 0;
+    return sets.reduce((total, s) => total + s.reps * Math.max(0, body - s.weight), 0) * (entry.perSide ? 2 : 1);
+  }
   const body = opts?.bodyAt && date && entry.mode === 'reps' && liftsBodyweight(entry.name) ? opts.bodyAt(date) ?? 0 : 0;
   return sets.reduce((total, s) => total + s.reps * (s.weight + body), 0) * (entry.perSide ? 2 : 1);
 }

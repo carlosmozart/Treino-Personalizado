@@ -1,6 +1,7 @@
 // Progressão automática de carga (M10–M12). Regras em docs/dev/progressao.md.
 // Função pura: a sugestão sai do histórico a cada treino, nada é gravado.
 import type { PlanExercise, Workout, WorkoutEntry } from './model';
+import { isAssisted } from './assisted';
 import { sessionsOf, straightSets, workSets } from './workouts';
 import { normalizeExerciseName } from './text';
 
@@ -129,6 +130,23 @@ function weightSince(sessions: { date: string; entry: WorkoutEntry }[], weight: 
 }
 
 /**
+ * T11: no assistido, chegar ao topo da faixa tira ajuda (o incremento, no máximo uma vez por semana);
+ * sem ajuda, o exercício vira peso do corpo e a progressão segue nas repetições.
+ */
+function assistedProgression(sessions: { date: string; entry: WorkoutEntry }[], ref: ReturnType<typeof reference>, target: Target, min: number, max: number, date: string): Progression {
+  const planned = Math.max(1, target.sets);
+  const inc = incrementFor(target, ref.weight);
+  const help = (n: number) => `${kg(n)} de ajuda`;
+  if (ref.atWeight.length >= planned && ref.atWeight.every(s => s.reps >= max) && !ref.atWeight.some(s => s.failure)) {
+    const days = daysBetween(weightSince(sessions, ref.weight), date);
+    if (days < MIN_DAYS_BETWEEN_UPS) return { kind: 'keep', weight: ref.weight, reps: min, reason: `Mantém ${help(ref.weight)}: ${max} reps em todas, mas essa ajuda é recente (no máximo uma mudança por semana).` };
+    const weight = roundKg(Math.max(0, ref.weight - inc));
+    return { kind: 'up', weight, reps: min, reason: weight > 0 ? `−${kg(inc)} de ajuda: ${max} reps nas ${planned} séries.` : `Sem ajuda: ${max} reps nas ${planned} séries. Agora é o peso do corpo.` };
+  }
+  return { kind: 'keep', weight: ref.weight, reps: min, reason: `Mantém ${help(ref.weight)}: busque ${max} reps em todas (última: ${ref.atWeight.map(s => s.reps).join(' · ')}).` };
+}
+
+/**
  * Sugestão para o próximo treino do exercício, a partir das sessões anteriores a `date`.
  * `null` quando não há o que sugerir (cardio, tempo, peso do corpo).
  */
@@ -147,6 +165,7 @@ export function suggestProgression(workouts: readonly Workout[], key: string, ta
 
   const ref = reference(last);
   if (ref.weight <= 0) return bodyweightProgression(key, ref, max, Math.max(1, target.sets));
+  if (isAssisted(key)) return assistedProgression(sessions, ref, target, min, max, date);
   const inc = incrementFor(target, ref.weight);
   const planned = Math.max(1, target.sets);
   // linear: as reps do plano são fixas; na dupla, o treino abre no começo da faixa

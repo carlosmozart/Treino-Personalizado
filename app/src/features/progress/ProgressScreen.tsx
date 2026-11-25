@@ -9,6 +9,7 @@ import { previousWorkSets, setTrends, TREND_ARROW } from '../../domain/set-compa
 import { YearReviewLinks } from '../year-review/YearReview';
 import { deleteWorkout, restoreWorkout } from '../../domain/actions';
 import { SwipeRow } from '../../ui/SwipeRow';
+import { isAssisted } from '../../domain/assisted';
 import { fromDateKey } from '../../domain/dates';
 import type { Workout, WorkoutEntry } from '../../domain/model';
 import { heatmap, historyByMonth, muscleBalance, statsSummary, untrainedGroups, weeklyVolume, type HeatLevel } from '../../domain/stats';
@@ -271,7 +272,7 @@ function SetDetails({ w, entry }: { w: Workout; entry: WorkoutEntry }) {
   const workouts = useAppStore(s => s.data?.workouts);
   const compare = useAppStore(s => s.data?.settings.compareSets ?? true);
   if (entry.mode === 'cardio' || !workouts) return null;
-  const trends = compare ? setTrends(previousWorkSets(workouts, entry.key, w), entry.sets, entry.mode) : [];
+  const trends = compare ? setTrends(previousWorkSets(workouts, entry.key, w), entry.sets, entry.mode, isAssisted(entry.name)) : [];
   // W8: o troféu de cada série, como apareceu no treino
   const trophies = trophiesFor(entry.sets.map(s => ({ ...s, done: true })), bestsBefore(workouts, entry.key, { id: w.id, date: w.date, ...(w.startedAt ? { startedAt: w.startedAt } : {}) }), entry.mode).kinds;
   const notes = entry.sets.map((s, i) => ({ i, note: s.note })).filter(n => n.note);

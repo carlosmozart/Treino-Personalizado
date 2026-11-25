@@ -14,6 +14,8 @@ export interface SessionSet {
   failure?: true;
   /** M49: drop-set ou rest-pause. */
   technique?: SetTechnique;
+  /** M22: esforço em RPE. */
+  rpe?: number;
   /** V2: nota curta da série. */
   note?: string;
   /** T17: descanso depois desta série, só neste treino (0 = sem cronômetro). Ausente = o do exercício. */

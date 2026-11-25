@@ -43,3 +43,17 @@ describe('M49: drop-set e rest-pause', () => {
     expect(setRecords({ weight: 100, reps: 10, kind: 'work', technique: 'drop' }, fresh, 'reps')).toEqual([]);
   });
 });
+
+describe('M22: esforço por série', () => {
+  it('anota em RPE, tira com o mesmo valor; RIR é 10 − RPE, com 4+ no 6', async () => {
+    const { setSetEffort, effortLabel } = await import('./session');
+    const s = session(ex([set(30, 10), set(30, 8)]));
+    const marked = setSetEffort(s, 0, 1, 8.5);
+    expect(marked.exercises[0]!.sets[1]!.rpe).toBe(8.5);
+    expect(setSetEffort(marked, 0, 1, 8.5).exercises[0]!.sets[1]!.rpe).toBeUndefined();
+    expect(setSetEffort(s, 0, 1, 11).exercises[0]!.sets[1]!.rpe).toBeUndefined();
+    expect(effortLabel(8.5, 'rpe')).toBe('RPE 8,5');
+    expect(effortLabel(8, 'rir')).toBe('RIR 2');
+    expect(effortLabel(6, 'rir')).toBe('RIR 4+');
+  });
+});

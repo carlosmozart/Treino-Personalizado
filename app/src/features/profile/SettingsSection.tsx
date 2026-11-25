@@ -219,6 +219,15 @@ export function WorkoutSettingsFields({ openFirst = false }: { openFirst?: boole
             {[[30, '30 min'], [45, '45 min'], [60, '60 min'], [90, '90 min'], [0, 'Nunca']].map(([v, l]) => <option key={v} value={v}>{l}</option>)}
           </select>
         </label>
+        {/* M22: esforço de cada série, no menu da série (toque no número) */}
+        <label className="flex min-h-12 items-center justify-between gap-3">
+          <span><span className="block font-semibold">Anotar o esforço de cada série</span>
+            <span className="block text-sm text-muted">No menu da série; não muda a progressão</span></span>
+          <select value={settings.effortScale ?? ''} onChange={e => set({ effortScale: (e.target.value || undefined) as Settings['effortScale'] })} aria-label="Anotar o esforço de cada série"
+            className="h-11 shrink-0 rounded-xl border border-line bg-surface-2 px-2 text-base text-ink">
+            <option value="">Não</option><option value="rir">RIR</option><option value="rpe">RPE</option>
+          </select>
+        </label>
         <Toggle label="Manter a tela ligada no treino" checked={settings.keepScreenOn ?? true} onChange={v => set({ keepScreenOn: v })} />
         <Toggle label="Pedir o peso do dia ao começar o treino" checked={settings.weighBeforeWorkout ?? false} onChange={v => set({ weighBeforeWorkout: v })} />
         {/* W2: sono, energia, dor e estresse; num dia puxado, oferece ir mais leve */}

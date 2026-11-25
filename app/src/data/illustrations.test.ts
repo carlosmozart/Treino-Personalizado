@@ -34,7 +34,7 @@ test('toda entrada da tabela tem os dois arquivos, e cobre a maior parte da bibl
 test('biblioteca sem nomes repetidos, e os exercícios do Q9 (fim de cada grupo) todos com ilustração', () => {
   const all = Object.values(EXERCISE_LIBRARY).flat();
   expect(new Set(all.map(n => n.toLowerCase())).size).toBe(all.length);
-  expect(all.length).toBe(153);
+  expect(all.length).toBe(155); // T11: barra fixa e paralela assistidas
   for (const n of ['Supino Declinado (Barra)', 'Remada Alta (Halteres)', 'Rosca Zottman', 'Agachamento Frontal (Barra)', 'Prancha Lateral']) {
     expect(ILLUSTRATION_BY_NAME[n]).toMatch(/^\d{4}$/);
   }

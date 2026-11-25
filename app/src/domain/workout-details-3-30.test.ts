@@ -19,7 +19,7 @@ describe('V14: tempo por exercício', () => {
     expect(entryMinutes(w.entries[0]!)).toBe(7); // 2 → 8 min, mais uma série
     expect(entryMinutes({ ...w.entries[0]!, sets: w.entries[0]!.sets.slice(0, 1) })).toBeNull();
     const line = historyCsv([w]).split('\r\n')[1]!;
-    expect(line.endsWith(`;;${String(at(2).getHours()).padStart(2, '0')}:02`)).toBe(true);
+    expect(line.endsWith(`;;${String(at(2).getHours()).padStart(2, '0')}:02;;`)).toBe(true);
   });
 });
 

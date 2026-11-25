@@ -71,7 +71,7 @@ export function sessionToWorkout(s: ActiveSession, now: Date): Workout | null {
       entries.push({ key: ex.key, name: ex.name, mode: 'cardio', sets: [], cardio: { minutes: ex.cardio.minutes, ...(ex.cardio.km ? { km: ex.cardio.km } : {}), ...(ex.cardio.level ? { level: ex.cardio.level } : {}) }, ...(note ? { note } : {}) });
       continue;
     }
-    const sets = ex.sets.filter(set => set.done).map(({ reps, weight, kind, failure, technique, note, at }) => ({ reps, weight, kind, ...(failure ? { failure } : {}), ...(technique ? { technique } : {}), ...(note ? { note } : {}), ...(at ? { at } : {}) }));
+    const sets = ex.sets.filter(set => set.done).map(({ reps, weight, kind, failure, technique, rpe, note, at }) => ({ reps, weight, kind, ...(failure ? { failure } : {}), ...(technique ? { technique } : {}), ...(rpe ? { rpe } : {}), ...(note ? { note } : {}), ...(at ? { at } : {}) }));
     if (sets.length) entries.push({ key: ex.key, name: ex.name, mode: ex.mode, sets, ...(note ? { note } : {}), ...(ex.perSide ? { perSide: true as const } : {}), ...(added(ex) ? { added: true as const } : {}) });
   }
   if (!entries.length) return null;

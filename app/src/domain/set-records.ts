@@ -2,6 +2,7 @@
 // exercício antes deste treino mais as séries já feitas nele (a mesma série duas vezes não vale
 // dois troféus). Como nos recordes do histórico (M4), o primeiro treino de um exercício não conta.
 import type { ExerciseMode, Workout } from './model';
+import { isAssisted } from './assisted';
 import { e1rm } from './strength';
 import { sessionsOf, straightSets } from './workouts';
 
@@ -32,6 +33,8 @@ type SetLike = { reps: number; weight: number; kind: 'work' | 'warmup'; done?: b
  * recorde.
  */
 export function bestsBefore(workouts: readonly Workout[], key: string, session: { id: string; date: string; startedAt?: string }, doneHere: readonly SetLike[] = []): Bests | null {
+  // T11: no assistido, mais carga é mais ajuda: não há recorde de carga nem de 1RM
+  if (isAssisted(key)) return null;
   const before = sessionsOf(workouts, key).filter(({ workout: w }) => w.id !== session.id
     && (w.date < session.date || (w.date === session.date && !!w.startedAt && !!session.startedAt && w.startedAt < session.startedAt)));
   if (!before.length) return null;

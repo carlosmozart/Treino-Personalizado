@@ -1,6 +1,7 @@
 // Força: 1RM estimado (M3) e recordes por 1RM, carga e volume (M4).
 // O recorde antigo era "maior carga": 100 kg × 1 vencia 95 kg × 8, que é uma série mais forte.
 import type { Workout, WorkoutEntry, WorkoutSet } from './model';
+import { isAssisted } from './assisted';
 import { entryVolume, sessionsOf, straightSets, workSets } from './workouts';
 
 /** Acima disso a estimativa fica pouco confiável e não é usada. */
@@ -20,6 +21,8 @@ export function weightForReps(oneRm: number, reps: number): number {
 }
 
 export function bestE1rm(entry: WorkoutEntry): { value: number; set: WorkoutSet } | null {
+  // T11: com ajuda, a carga não é força
+  if (isAssisted(entry.name)) return null;
   let best: { value: number; set: WorkoutSet } | null = null;
   for (const set of straightSets(entry)) {
     const v = e1rm(set.weight, set.reps);

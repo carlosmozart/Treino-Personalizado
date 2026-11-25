@@ -44,6 +44,8 @@ export const EXERCISE_LIBRARY: Record<string, readonly string[]> = {
     'Pullover',
     'Barra Fixa Pegada Aberta',
     'Barra Fixa Pegada Neutra',
+    // T11: a carga é a ajuda; progride diminuindo
+    'Barra Fixa Assistida (Gravitron)',
     'Puxada Supinada (Polia)',
     'Remada Invertida (Peso do Corpo)',
     'Levantamento Terra (Halteres)',
@@ -109,6 +111,7 @@ export const EXERCISE_LIBRARY: Record<string, readonly string[]> = {
     'Supino JM (Barra)',
     'Tríceps na Máquina',
     'Mergulho na Máquina',
+    'Paralela Assistida (Gravitron)',
     'Flexão de Braço Fechada (Diamante)',
     'Supino Fechado (Smith)'
   ],
@@ -234,7 +237,7 @@ export function equipmentTag(name: string, group = groupOf(name)): Equipment {
   if (/smith/.test(n)) return 'Smith';
   if (/halter/.test(n)) return 'Halteres';
   if (/polia|corda|crossover|pulley|pulldown|cabo/.test(n)) return 'Polia';
-  if (/maquina|cadeira|mesa|leg press|hack|peck deck|voador|articulado|flexora|cavalinho/.test(n)) return 'Máquina';
+  if (/gravitron|maquina|cadeira|mesa|leg press|hack|peck deck|voador|articulado|flexora|cavalinho/.test(n)) return 'Máquina';
   if (/barra fixa|flexao|paralela|mergulho no banco|prancha|abdominal|super-?homem|ponte|peso do corpo|elevacao de pernas|roda/.test(n)) return 'Peso do corpo';
   if (/barra|terra|stiff|agachamento livre|bom dia|supino fechado|rosca 21|encolhimento \(trapezio\)/.test(n)) return 'Barra';
   return 'Outros';

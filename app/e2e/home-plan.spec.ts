@@ -105,7 +105,7 @@ test('biblioteca: filtrar, adicionar a um dia do plano e criar exercício própr
   await page.getByRole('button', { name: 'Escolher um modelo' }).click();
   await page.getByRole('button', { name: 'Usar Corpo inteiro 3×' }).click();
   await page.getByRole('button', { name: 'Biblioteca' }).click();
-  await expect(page.getByText('153 exercícios')).toBeVisible();
+  await expect(page.getByText('155 exercícios')).toBeVisible();
 
   await page.getByRole('group', { name: 'Grupo muscular' }).getByRole('button', { name: 'Ombro' }).click();
   await page.getByRole('group', { name: 'Equipamento' }).getByRole('button', { name: 'Halteres' }).click();

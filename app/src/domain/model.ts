@@ -24,6 +24,8 @@ export interface WorkoutSet {
   failure?: true;
   /** M49: drop-set (carga menor logo em seguida) ou rest-pause (a mesma carga depois de uns segundos). Conta no volume, não em recordes nem na progressão. */
   technique?: SetTechnique;
+  /** M22: esforço da série em RPE (6 a 10; RIR = 10 − RPE). Só anotação: não muda a progressão. */
+  rpe?: number;
   /** V2: nota curta da série ("pegada escorregou", "senti o ombro"). */
   note?: string;
   /** V14: hora em que a série foi marcada (ISO). Ausente em séries antigas. */
@@ -350,6 +352,8 @@ export interface Settings {
   /** Calculadora de anilhas (M14): peso da barra e anilhas disponíveis. Ausentes = 20 kg e o jogo comum. */
   barWeight?: number;
   plates?: number[];
+  /** M22: anotar o esforço de cada série em RIR ou RPE. Ausente = não anotar. */
+  effortScale?: 'rir' | 'rpe' | undefined;
   /** T7: peso das outras barras (feminina, W/EZ, hexagonal). Ausentes = 15, 10 e 25 kg. A olímpica é o `barWeight`. */
   barWeights?: Partial<Record<'feminina' | 'w' | 'hex', number>>;
   /** T7: a barra de cada exercício (chave: nome normalizado). Ausente = adivinhada pelo nome. */

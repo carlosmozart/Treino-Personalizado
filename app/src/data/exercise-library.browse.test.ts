@@ -8,7 +8,7 @@ const NOW = new Date(2026, 9, 21, 12);
 
 test('M46: todo exercício da biblioteca tem um equipamento conhecido, sem cair em "Outros"', () => {
   const entries = libraryEntries();
-  expect(entries).toHaveLength(153);
+  expect(entries).toHaveLength(155); // T11: barra fixa e paralela assistidas
   expect(entries.filter(e => e.equipment === 'Outros').map(e => e.name)).toEqual([]);
   expect(equipmentTag('Rosca Scott (Halteres)')).toBe('Halteres');
   expect(equipmentTag('Supino Reto (Smith)')).toBe('Smith');

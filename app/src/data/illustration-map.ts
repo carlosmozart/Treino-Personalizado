@@ -18,6 +18,7 @@ export const ILLUSTRATION_BY_NAME: Record<string, string> = {
   'Crossover Polia Alta (de cima p/ baixo)': '0048',
   'Flexão de Braço (Solo)': '0077',
   'Paralelas / Mergulho (Dips)': '0054',
+  'Paralela Assistida (Gravitron)': '0054',
   'Crucifixo com Halteres': '0056',
   'Peck Deck (Voador)': '0047',
   'Supino Declinado (Barra)': '0051',
@@ -34,6 +35,8 @@ export const ILLUSTRATION_BY_NAME: Record<string, string> = {
   // Costas
   'Puxada Triângulo': '0096',
   'Barra Fixa (Pull-up)': '0087',
+  // T11: no gravitron o movimento é o mesmo; a ajuda vem da máquina
+  'Barra Fixa Assistida (Gravitron)': '0087',
   'Remada Baixa (Polia)': '0025',
   'Remada Curvada (Barra)': '0026',
   'Remada Cavalinho': '0029',

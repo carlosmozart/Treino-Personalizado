@@ -139,6 +139,26 @@ export function toggleTechnique(s: ActiveSession, exIndex: number, setIndex: num
   });
 }
 
+/** M22: valores de RPE que dá para escolher; RIR 4+ vira RPE 6. */
+export const RPE_VALUES: readonly number[] = [6, 7, 7.5, 8, 8.5, 9, 9.5, 10];
+export const RIR_VALUES: readonly number[] = [4, 3, 2, 1, 0];
+
+/** M22: anota (ou tira, com o mesmo valor ou null) o esforço da série, em RPE. */
+export function setSetEffort(s: ActiveSession, exIndex: number, setIndex: number, rpe: number | null): ActiveSession {
+  return mapSet(s, exIndex, setIndex, set => {
+    const { rpe: current, ...rest } = set;
+    if (rpe === null || rpe === current || !RPE_VALUES.includes(rpe)) return rest;
+    return { ...rest, rpe };
+  });
+}
+
+/** "RPE 8" ou "RIR 2" (RIR 4+ no RPE 6). */
+export function effortLabel(rpe: number, scale: 'rir' | 'rpe'): string {
+  if (scale === 'rpe') return `RPE ${String(rpe).replace('.', ',')}`;
+  const rir = 10 - rpe;
+  return rir >= 4 ? 'RIR 4+' : `RIR ${String(Math.round(rir * 2) / 2).replace('.', ',')}`;
+}
+
 /** Nota de uma série deixando no máximo 200 caracteres. */
 export const SET_NOTE_MAX = 200;
 

@@ -11,8 +11,16 @@ type SetLike = { reps: number; weight: number };
 const sign = (n: number): SetTrend => (n > 1e-9 ? 'up' : n < -1e-9 ? 'down' : 'same');
 const strength = (s: SetLike) => e1rm(s.weight, s.reps) ?? s.weight * s.reps;
 
-export function compareSet(prev: SetLike | undefined, cur: SetLike, mode: ExerciseMode): SetTrend | null {
+export function compareSet(prev: SetLike | undefined, cur: SetLike, mode: ExerciseMode, assisted = false): SetTrend | null {
   if (!prev || mode === 'cardio') return null;
+  // T11: no assistido, menos ajuda é subir; ajuda e reps em sentidos opostos: as reps decidem
+  if (assisted && mode === 'reps') {
+    const less = prev.weight - cur.weight, dr = cur.reps - prev.reps;
+    if (Math.abs(less) < 1e-9) return sign(dr);
+    if (less > 0 && dr >= 0) return 'up';
+    if (less < 0 && dr <= 0) return 'down';
+    return sign(dr);
+  }
   // por tempo: os segundos (no campo reps) decidem; a carga só desempata
   if (mode === 'time') return prev.reps !== cur.reps ? sign(cur.reps - prev.reps) : sign(cur.weight - prev.weight);
   const dw = cur.weight - prev.weight, dr = cur.reps - prev.reps;
@@ -35,9 +43,9 @@ export function previousWorkSets(workouts: readonly Workout[], key: string, w: P
 }
 
 /** A seta de cada série (null nas de aquecimento e nas sem par na última vez). */
-export function setTrends(prev: readonly WorkoutSet[] | null, sets: readonly (SetLike & { kind: SetKind })[], mode: ExerciseMode): (SetTrend | null)[] {
+export function setTrends(prev: readonly WorkoutSet[] | null, sets: readonly (SetLike & { kind: SetKind })[], mode: ExerciseMode, assisted = false): (SetTrend | null)[] {
   let n = 0;
-  return sets.map(s => (s.kind === 'work' ? compareSet(prev?.[n++], s, mode) : null));
+  return sets.map(s => (s.kind === 'work' ? compareSet(prev?.[n++], s, mode, assisted) : null));
 }
 
 export const TREND_ARROW: Record<SetTrend, string> = { up: '↑', same: '=', down: '↓' };
