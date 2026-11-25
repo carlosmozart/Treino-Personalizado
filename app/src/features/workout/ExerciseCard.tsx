@@ -1,12 +1,13 @@
 import { useEffect, useMemo, useState } from 'react';
 import { groupOf } from '../../data/exercise-library';
 import {
-  addSet, afterSet, restAfterSet, resumeSession, setExerciseLock, setExerciseRest, setSetNote, setSetRest, SET_NOTE_MAX, supersetBlock, toggleSupersetWithNext, addWarmupSet, adjustWeights, removeWarmupSet, completeExercise, isExerciseDone, duplicateSet, insertSet, removeExerciseFromSession, removeSet, setNote, toggleFailure, toggleSet, updateCardio, updateSet,
+  addSet, afterSet, restAfterSet, resumeSession, setExerciseLock, setExerciseRest, setSetNote, setSetRest, SET_NOTE_MAX, supersetBlock, toggleSupersetWithNext, addWarmupSet, adjustWeights, removeWarmupSet, completeExercise, isExerciseDone, duplicateSet, insertSet, removeExerciseFromSession, removeSet, setNote, toggleFailure, toggleTechnique, toggleSet, updateCardio, updateSet,
   type ActiveSession, type SessionExercise, type SessionSet
 } from '../../domain/session';
 import { bestSet, hasCardioLevel, lastSessionBefore, sessionsOf, suspiciousWeight, workSets } from '../../domain/workouts';
 import { useAppStore } from '../../store';
 import { Icon } from '../../ui/Icon';
+import { LockMark } from '../../ui/LockMark';
 import { NumberField } from '../../ui/NumberField';
 import { ExerciseIllustration, hasIllustration } from '../../ui/ExerciseIllustration';
 import { markBigWeightJump, toggleFavorite, updateSettings } from '../../domain/actions';
@@ -15,7 +16,7 @@ import { RestSheet, restLabel } from '../../ui/RestSheet';
 import { previousWorkSets, setTrends, TREND_ARROW, trendLabel, type SetTrend } from '../../domain/set-compare';
 import { bestsBefore, recordHint, recordLabel, trophiesFor } from '../../domain/set-records';
 import { editPlan, lockPatch, removePlanExercise, repsPatch, setPlanExerciseRest, setsPatch, updateExercise, warmupPatch } from '../../domain/plan-edit';
-import type { PlanExercise } from '../../domain/model';
+import type { PlanExercise, SetTechnique } from '../../domain/model';
 import { formatClock, formatNumber, relativeDate, shortDate } from '../../ui/format';
 import { useRestStore } from './rest-store';
 import { startHold } from './HoldTimer';
@@ -216,7 +217,7 @@ export function ExerciseCard({ session, index, alwaysOpen = false, onGoTo }: Pro
           className="flex min-h-14 w-full items-center gap-3 px-4 py-2 text-left">
           <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-success text-white"><Icon name="check" className="size-5" /></span>
           <span className="min-w-0 flex-1">
-            <span className="block truncate font-bold">{ex.name}</span>
+            <span className="flex items-center gap-1.5 font-bold"><span className="truncate">{ex.name}</span>{ex.lockWeight && <LockMark className="size-4" />}</span>
             <span className="block truncate text-sm text-muted">{summary}</span>
           </span>
           <Icon name="descer" className="size-5 shrink-0 text-faint" />
@@ -232,6 +233,8 @@ export function ExerciseCard({ session, index, alwaysOpen = false, onGoTo }: Pro
         <div className="min-w-0 flex-1">
           <h3 className="text-lg font-bold leading-snug">
             <span className="mr-2 text-faint">{index + 1}</span>{ex.name}
+            {/* cadeado ao lado do nome: dá para ver de longe que a carga não sobe sozinha */}
+            {ex.lockWeight && <> <LockMark className="size-4" /></>}
           </h3>
           {ex.swappedFrom && <p className="text-sm text-muted">no lugar de {ex.swappedFrom}</p>}
         </div>
@@ -248,7 +251,7 @@ export function ExerciseCard({ session, index, alwaysOpen = false, onGoTo }: Pro
             {ex.optional && <span className="rounded-full bg-surface-2 px-2 py-0.5 text-muted">Opcional</span>}
             {favorite && <span className="rounded-full bg-warning/15 px-2 py-0.5 text-warning">★ Favorito</span>}
             {!!ex.stack?.length && <span className="rounded-full bg-surface-2 px-2 py-0.5 text-muted">Pilha da máquina</span>}
-            {ex.lockWeight && <span className="flex items-center gap-1 rounded-full bg-surface-2 px-2 py-0.5 text-muted"><Icon name="cadeado" className="size-3.5" />Carga travada</span>}
+            {ex.lockWeight && <span className="flex items-center gap-1 rounded-full bg-primary/15 px-2 py-0.5 text-info"><Icon name="cadeado" className="size-3.5" />Carga travada</span>}
             {block && (
               <span className="rounded-full bg-primary/15 px-2 py-0.5 text-info">
                 Superset {index - block.start + 1}/{block.end - block.start + 1} · com {session.exercises.slice(block.start, block.end + 1).filter((_, i) => i + block.start !== index).map(e => e.name).join(', ')}
@@ -314,10 +317,10 @@ export function ExerciseCard({ session, index, alwaysOpen = false, onGoTo }: Pro
                   {/* V2: o número abre o menu da série (até a falha e nota); V1: a seta contra a última vez */}
                   <div className="relative">
                     <button type="button" onClick={() => setMenuSet(i)} title={set.kind === 'warmup' ? 'Aquecimento' : undefined}
-                      aria-label={`Série ${i + 1}${set.kind === 'warmup' ? ' (aquecimento)' : ''}: opções${set.failure ? ', até a falha' : ''}${set.note ? ', com nota' : ''}`}
+                      aria-label={`Série ${i + 1}${set.kind === 'warmup' ? ' (aquecimento)' : ''}: opções${set.technique ? `, ${TECHNIQUE_NAME[set.technique]}` : ''}${set.failure ? ', até a falha' : ''}${set.note ? ', com nota' : ''}`}
                       className={`flex h-11 w-full items-center justify-center rounded-lg text-base font-bold ${
-                        set.kind === 'warmup' ? 'text-warning' : set.failure ? 'bg-danger/15 text-danger' : 'text-muted'}`}>
-                      {set.kind === 'warmup' ? 'A' : set.failure ? 'F' : i + 1 - ex.sets.slice(0, i).filter(s => s.kind === 'warmup').length}
+                        set.kind === 'warmup' ? 'text-warning' : set.technique ? 'bg-primary/15 text-sm text-info' : set.failure ? 'bg-danger/15 text-danger' : 'text-muted'}`}>
+                      {set.kind === 'warmup' ? 'A' : set.technique ? TECHNIQUE_MARK[set.technique] : set.failure ? 'F' : i + 1 - ex.sets.slice(0, i).filter(s => s.kind === 'warmup').length}
                     </button>
                     {trend && prev && (
                       <span role="img" aria-label={`Série ${i + 1}: ${trendLabel(trend, prev, ex.mode)}`}
@@ -375,7 +378,7 @@ export function ExerciseCard({ session, index, alwaysOpen = false, onGoTo }: Pro
           {/* T5: peso do corpo sem carga não tem o que ajustar */}
           {(data?.settings.weightButtons ?? true) && ex.sets.some(set => !set.done) && !(isBodyweight(ex.name) && ex.sets.every(set => set.weight === 0)) && (
             <div className="mt-2 flex items-center gap-1" role="group" aria-label={`Ajustar a carga das séries não feitas de ${ex.name}`}>
-              <span className="mr-1 text-xs font-semibold text-faint">Carga</span>
+              <span className="mr-1 flex items-center gap-1 text-xs font-semibold text-faint">Carga{ex.lockWeight && <LockMark />}</span>
               {/* T23: com a pilha da máquina, um pino para baixo ou para cima */}
               {ex.stack?.length ? ([-1, 1] as const).map(d => (
                 <button key={d} type="button" onClick={() => update(s => adjustWeights(s, index, d))} aria-label={d > 0 ? 'Um pino a mais' : 'Um pino a menos'}
@@ -405,6 +408,8 @@ export function ExerciseCard({ session, index, alwaysOpen = false, onGoTo }: Pro
         prev={menuSet !== null && ex.sets[menuSet]?.kind === 'work' ? prevSets?.[ex.sets.slice(0, menuSet).filter(s => s.kind === 'work').length] : undefined}
         unit={unit} onClose={() => setMenuSet(null)}
         onFailure={() => { if (menuSet !== null) update(s => toggleFailure(s, index, menuSet)); }}
+        canTechnique={menuSet !== null && menuSet > 0 && ex.sets[menuSet - 1]?.kind === 'work'}
+        onTechnique={t => { if (menuSet !== null) update(s => toggleTechnique(s, index, menuSet, t)); }}
         onNote={note => { if (menuSet !== null) update(s => setSetNote(s, index, menuSet, note)); }}
         restText={menuSet !== null && ex.mode !== 'cardio' ? restLabel(ex.sets[menuSet]?.rest, setFallback(menuSet)) : null}
         onRest={() => setRestSet(menuSet)} />
@@ -489,7 +494,7 @@ export function ExerciseCard({ session, index, alwaysOpen = false, onGoTo }: Pro
       </Sheet>
 
       {platesOpen && (
-        <PlateSheet open onClose={() => setPlatesOpen(false)}
+        <PlateSheet open onClose={() => setPlatesOpen(false)} exercise={ex.name}
           weight={(ex.sets.find(x => !x.done && x.kind === 'work') ?? ex.sets.find(x => x.kind === 'work') ?? ex.sets[0])?.weight ?? 0} />
       )}
 
@@ -564,11 +569,18 @@ const TREND_TONE: Record<SetTrend, string> = { up: 'text-success', same: 'text-f
  * V2: menu da série, aberto pelo número: até a falha (S5, só nas de trabalho) e uma nota curta, com a
  * mesma série da última vez para lembrar.
  */
-function SetMenu({ open, exName, index, set, prev, unit, restText, onClose, onFailure, onNote, onRest }: {
+/** M49: marca da série e o nome. */
+const TECHNIQUE_MARK: Record<SetTechnique, string> = { drop: 'D', restpause: 'RP' };
+const TECHNIQUE_NAME: Record<SetTechnique, string> = { drop: 'drop-set', restpause: 'rest-pause' };
+const TECHNIQUE_HINT: Record<SetTechnique, string> = { drop: 'carga menor logo depois da anterior, sem descanso', restpause: 'a mesma carga depois de 15 s' };
+
+function SetMenu({ open, exName, index, set, prev, unit, restText, onClose, onFailure, onNote, onRest, canTechnique, onTechnique }: {
   open: boolean; exName: string; index: number; set: SessionSet | undefined; prev: { reps: number; weight: number } | undefined; unit: string;
   /** T17: o descanso depois desta série, para o botão (null = sem descanso aqui, como no cardio). */
   restText: string | null;
   onClose: () => void; onFailure: () => void; onNote: (note: string) => void; onRest: () => void;
+  /** M49: drop-set e rest-pause só depois de uma série de trabalho. */
+  canTechnique: boolean; onTechnique: (t: SetTechnique) => void;
 }) {
   const [note, setNote] = useState('');
   useEffect(() => { if (open) setNote(set?.note ?? ''); }, [open, set?.note]);
@@ -585,6 +597,14 @@ function SetMenu({ open, exName, index, set, prev, unit, restText, onClose, onFa
             {set.failure ? 'Desmarcar "até a falha"' : 'Marcar como até a falha'}
           </button>
         )}
+        {work && canTechnique && (['drop', 'restpause'] as const).map(t => (
+          <button key={t} type="button" onClick={() => { onTechnique(t); onClose(); }} aria-pressed={set.technique === t}
+            className={`flex min-h-12 w-full items-center gap-3 rounded-xl px-3 text-left font-semibold ${set.technique === t ? 'bg-primary/15 text-info' : 'bg-surface-2'}`}>
+            <span className="flex size-7 shrink-0 items-center justify-center rounded-md bg-primary/15 text-xs font-black text-info">{TECHNIQUE_MARK[t]}</span>
+            <span className="min-w-0 flex-1">{set.technique === t ? `Desmarcar ${TECHNIQUE_NAME[t]}` : `Marcar como ${TECHNIQUE_NAME[t]}`}
+              <span className="block text-sm font-normal text-muted">{TECHNIQUE_HINT[t]}; fora dos recordes e da progressão</span></span>
+          </button>
+        ))}
         {restText !== null && (
           <button type="button" onClick={() => { onClose(); onRest(); }}
             className="flex min-h-12 w-full items-center gap-3 rounded-xl bg-surface-2 px-3 text-left font-semibold">

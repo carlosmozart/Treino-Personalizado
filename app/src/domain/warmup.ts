@@ -2,7 +2,7 @@
 // Rampa a partir da carga de trabalho: barra × 10 (só na barra livre), 40% × 8, 60% × 5 e 80% × 3,
 // arredondada ao que dá para montar (anilhas aos pares na barra; 2,5 kg nas máquinas e halteres).
 import type { Settings } from './model';
-import { DEFAULT_BAR, DEFAULT_PLATES, isBarbell } from './plates';
+import { barFor, DEFAULT_PLATES, isBarbell } from './plates';
 import { normalizeExerciseName } from './text';
 
 /** Como arredondar a rampa de um exercício: barra (kg) quando é barra livre e o passo de carga. */
@@ -23,11 +23,12 @@ export function isCompound(name: string): boolean {
 /** Carga abaixo disso não pede rampa (fora da barra livre). */
 const MIN_TOP = 20;
 
-export function warmupConfig(name: string, settings: Pick<Settings, 'barWeight' | 'plates'>): WarmupConfig {
+export function warmupConfig(name: string, settings: Pick<Settings, 'barWeight' | 'plates' | 'barWeights' | 'exerciseBars'>): WarmupConfig {
   if (!isBarbell(name)) return { bar: null, step: 2.5 };
   const plates = (settings.plates?.length ? settings.plates : DEFAULT_PLATES).filter(p => p > 0);
   const smallest = plates.length ? Math.min(...plates) : 1.25;
-  return { bar: settings.barWeight ?? DEFAULT_BAR, step: Math.round(smallest * 2 * 100) / 100 };
+  // T7: a barra do exercício (W, hexagonal…)
+  return { bar: barFor(name, settings), step: Math.round(smallest * 2 * 100) / 100 };
 }
 
 const RAMP: readonly [number, number][] = [[0.4, 8], [0.6, 5], [0.8, 3]];

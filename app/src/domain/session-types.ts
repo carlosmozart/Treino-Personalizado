@@ -1,7 +1,7 @@
 // Sessão de treino: os tipos (ver session.ts).
 import type { DayKey } from './ai-plan';
 import type { DateKey } from './dates';
-import { type DailyForm, type ExerciseMode, type LightKind, type SetKind } from './model';
+import { type DailyForm, type ExerciseMode, type LightKind, type SetKind, type SetTechnique } from './model';
 import { type Progression } from './progression';
 import { type WarmupConfig } from './warmup';
 
@@ -12,6 +12,8 @@ export interface SessionSet {
   done: boolean;
   /** Até a falha (S5). */
   failure?: true;
+  /** M49: drop-set ou rest-pause. */
+  technique?: SetTechnique;
   /** V2: nota curta da série. */
   note?: string;
   /** T17: descanso depois desta série, só neste treino (0 = sem cronômetro). Ausente = o do exercício. */

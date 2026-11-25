@@ -205,7 +205,7 @@ export function WorkoutSettingsFields({ openFirst = false }: { openFirst?: boole
 
       <SettingsGroup id="durante" title="Durante o treino"
         summary={`${during.filter(Boolean).length} de ${during.length} ligados · "Ainda treinando?" ${settings.forgottenMinutes === 0 ? 'nunca' : `em ${settings.forgottenMinutes ?? 45} min`}`}>
-        <Toggle label="Deslizar para apagar (esquerda) ou copiar (direita) séries e exercícios do plano" checked={settings.swipeSets ?? true} onChange={v => set({ swipeSets: v })} />
+        <Toggle label="Deslizar para apagar (esquerda) ou copiar (direita): séries, exercícios do plano, pesagens e treinos do histórico" checked={settings.swipeSets ?? true} onChange={v => set({ swipeSets: v })} />
         <Toggle label="Comparar cada série com a última vez (↑ = ↓)" checked={settings.compareSets ?? true} onChange={v => set({ compareSets: v })} />
         <Toggle label="Abrir o treino numa prévia, com Começar embaixo" checked={settings.previewBeforeStart ?? false} onChange={v => set({ previewBeforeStart: v })} />
         <Toggle label="Prancha e isometrias começam sozinhas (3, 2, 1) depois do descanso" checked={settings.autoHold ?? true} onChange={v => set({ autoHold: v })} />

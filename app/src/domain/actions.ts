@@ -208,6 +208,16 @@ export function deleteWorkout(data: AppData, id: string, now: Date): ActionResul
   return { data: draft, events: [] };
 }
 
+/** N15: desfaz o "apagar treino": o mesmo treino volta, com o mesmo id. */
+export function restoreWorkout(data: AppData, workout: Workout, now: Date): ActionResult {
+  if (data.workouts.some(w => w.id === workout.id)) return unchanged(data);
+  const draft = structuredClone(data);
+  draft.workouts.push(structuredClone(workout));
+  draft.workouts.sort((a, b) => (a.date !== b.date ? (a.date < b.date ? -1 : 1) : (a.startedAt ?? '').localeCompare(b.startedAt ?? '')));
+  touch(draft, key.workout(workout.id), now);
+  return { data: draft, events: [] };
+}
+
 /**
  * M15: muda a data de um treino salvo (nunca para o futuro). O horário fica o mesmo. A presença
  * e o XP daquele dia vão junto quando nenhum outro treino ficou na data antiga e a nova ainda não

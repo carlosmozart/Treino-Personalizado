@@ -18,7 +18,7 @@ export function reopenSession(data: AppData, w: Workout, now: Date): ActiveSessi
     const planEx = planExercises.find(p => normalizeExerciseName(p.name) === entry.key);
     const ex: SessionExercise = {
       slotId: planEx?.id ?? `reaberto-${i}`, name: entry.name, key: entry.key, mode: entry.mode, optional: false,
-      sets: entry.sets.map(({ reps, weight, kind, failure, note }) => ({ reps, weight, kind, done: true, ...(failure ? { failure } : {}), ...(note ? { note } : {}) })),
+      sets: entry.sets.map(({ reps, weight, kind, failure, technique, note }) => ({ reps, weight, kind, done: true, ...(failure ? { failure } : {}), ...(technique ? { technique } : {}), ...(note ? { note } : {}) })),
       note: entry.note ?? '', alternatives: planEx?.alternatives ?? []
     };
     if (entry.mode === 'cardio') ex.cardio = { minutes: entry.cardio?.minutes ?? 20, km: entry.cardio?.km ?? 0, done: true };

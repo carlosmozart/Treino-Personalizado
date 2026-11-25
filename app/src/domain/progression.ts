@@ -1,7 +1,7 @@
 // Progressão automática de carga (M10–M12). Regras em docs/dev/progressao.md.
 // Função pura: a sugestão sai do histórico a cada treino, nada é gravado.
 import type { PlanExercise, Workout, WorkoutEntry } from './model';
-import { sessionsOf, workSets } from './workouts';
+import { sessionsOf, straightSets, workSets } from './workouts';
 import { normalizeExerciseName } from './text';
 
 export const DEFAULT_INCREMENT = 2.5;
@@ -97,7 +97,8 @@ const kg = (n: number) => `${String(roundKg(n)).replace('.', ',')} kg`;
 
 /** Carga de referência da sessão (última série de trabalho) e as séries feitas com ela. */
 function reference(entry: WorkoutEntry) {
-  const sets = workSets(entry);
+  // M49: drop-set e rest-pause não entram na referência
+  const sets = straightSets(entry).length ? straightSets(entry) : workSets(entry);
   const weight = sets.length ? sets[sets.length - 1]!.weight : 0;
   return { weight, sets, atWeight: sets.filter(s => s.weight === weight) };
 }

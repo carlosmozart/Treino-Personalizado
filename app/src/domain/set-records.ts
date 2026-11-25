@@ -3,7 +3,7 @@
 // dois troféus). Como nos recordes do histórico (M4), o primeiro treino de um exercício não conta.
 import type { ExerciseMode, Workout } from './model';
 import { e1rm } from './strength';
-import { sessionsOf, workSets } from './workouts';
+import { sessionsOf, straightSets } from './workouts';
 
 export interface Bests {
   /** Maior carga já feita. */
@@ -24,7 +24,7 @@ const RECORD_LABEL: Record<RecordKind, string> = {
 
 export const recordLabel = (kinds: readonly RecordKind[]) => kinds.map(k => RECORD_LABEL[k]).join(', ');
 
-type SetLike = { reps: number; weight: number; kind: 'work' | 'warmup'; done?: boolean };
+type SetLike = { reps: number; weight: number; kind: 'work' | 'warmup'; done?: boolean; technique?: 'drop' | 'restpause' | undefined };
 
 /**
  * Os melhores números do exercício antes desta sessão (por data, e no mesmo dia, antes do início)
@@ -41,14 +41,14 @@ export function bestsBefore(workouts: readonly Workout[], key: string, session: 
     b.repsAt.set(s.weight, Math.max(b.repsAt.get(s.weight) ?? 0, s.reps));
     b.e1rm = Math.max(b.e1rm, e1rm(s.weight, s.reps) ?? 0);
   };
-  for (const { entry } of before) for (const s of workSets(entry)) add(s);
-  for (const s of doneHere) if (s.kind === 'work' && s.done) add(s);
+  for (const { entry } of before) for (const s of straightSets(entry)) add(s);
+  for (const s of doneHere) if (s.kind === 'work' && s.done && !s.technique) add(s);
   return b;
 }
 
 /** Os recordes que uma série bate (só séries de trabalho por repetições, com carga ou sem). */
 export function setRecords(set: SetLike, bests: Bests | null, mode: ExerciseMode): RecordKind[] {
-  if (!bests || set.kind !== 'work' || mode !== 'reps' || !(set.reps > 0)) return [];
+  if (!bests || set.kind !== 'work' || set.technique || mode !== 'reps' || !(set.reps > 0)) return [];
   const out: RecordKind[] = [];
   if (set.weight > 0 && set.weight > bests.weight) out.push('carga');
   const prevReps = bests.repsAt.get(set.weight);

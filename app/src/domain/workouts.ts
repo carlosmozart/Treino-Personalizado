@@ -25,6 +25,11 @@ export function workSets(entry: WorkoutEntry): WorkoutSet[] {
   return entry.sets.filter(s => s.kind === 'work');
 }
 
+/** M49: as séries de trabalho sem drop-set nem rest-pause (recordes, 1RM e progressão). */
+export function straightSets(entry: WorkoutEntry): WorkoutSet[] {
+  return entry.sets.filter(s => s.kind === 'work' && !s.technique);
+}
+
 /**
  * Como contar o volume que aparece na tela (Perfil → Treino). Recordes, progressão, conquistas e o
  * modo RPG continuam só com as séries de trabalho e a carga anotada.
@@ -103,7 +108,9 @@ export function describeEntry(entry: WorkoutEntry): string {
   const kg = (n: number) => String(n).replace('.', ',');
   const weightPart = sameWeight ? `${kg(weights[0]!)}kg` : `${kg(Math.max(...weights))}-${kg(Math.min(...weights))}kg`;
   const failure = sets.some(x => x.failure) ? ' · até a falha' : '';
-  return `${repsPart} · ${weightPart}${failure}${entry.aggregated ? ' (registro antigo)' : ''}`;
+  // M49
+  const technique = `${sets.some(x => x.technique === 'drop') ? ' · drop-set' : ''}${sets.some(x => x.technique === 'restpause') ? ' · rest-pause' : ''}`;
+  return `${repsPart} · ${weightPart}${failure}${technique}${entry.aggregated ? ' (registro antigo)' : ''}`;
 }
 
 /** Sessões de um exercício (pela identidade do nome), em ordem de data. */

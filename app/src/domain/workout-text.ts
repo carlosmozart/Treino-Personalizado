@@ -11,7 +11,7 @@ export function workoutAsText(w: Workout): string {
   const head = [w.dayName?.trim() || 'Treino', date, w.durationMin ? `${w.durationMin} min` : ''].filter(Boolean).join(' · ');
   const lines = w.entries.map(e => {
     if (e.mode === 'cardio') return `${e.name}: ${e.cardio?.minutes ?? 0} min${e.cardio?.km ? ` · ${n(e.cardio.km)} km` : ''}`;
-    const sets = workSets(e).map(s => (e.mode === 'time' ? `${s.reps}s` : s.weight > 0 ? `${n(s.weight)}×${s.reps}` : `${s.reps}`) + (s.failure ? ' (falha)' : ''));
+    const sets = workSets(e).map(s => (e.mode === 'time' ? `${s.reps}s` : s.weight > 0 ? `${n(s.weight)}×${s.reps}` : `${s.reps}`) + (s.failure ? ' (falha)' : '') + (s.technique === 'drop' ? ' (drop)' : s.technique === 'restpause' ? ' (rest-pause)' : ''));
     return `${e.name}: ${sets.join(', ')}`;
   });
   return [head, ...lines].join('\n');

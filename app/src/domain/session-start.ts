@@ -127,7 +127,7 @@ export function setSessionForm(s: ActiveSession, form: DailyForm): ActiveSession
  * arredondado para baixo ao passo da carga (anilhas aos pares na barra); 'series': uma série de
  * trabalho a menos por exercício (a última ainda não feita, se sobrar pelo menos uma).
  */
-export function lightenSession(s: ActiveSession, kind: LightKind, settings: Pick<Settings, 'barWeight' | 'plates'>): ActiveSession {
+export function lightenSession(s: ActiveSession, kind: LightKind, settings: Pick<Settings, 'barWeight' | 'plates' | 'barWeights' | 'exerciseBars'>): ActiveSession {
   if (s.light) return s;
   const exercises = s.exercises.map(ex => {
     if (ex.mode === 'cardio') return ex;
@@ -167,7 +167,7 @@ export const topWork = (sets: readonly SessionSet[]) => Math.max(0, ...sets.filt
  * V8: põe a rampa de aquecimento automático antes das séries de trabalho, quando ligada em Perfil
  * e o exercício é composto, por repetições e com carga.
  */
-export function withAutoWarmup(ex: SessionExercise, settings: Pick<Settings, 'autoWarmup' | 'barWeight' | 'plates'>): SessionExercise {
+export function withAutoWarmup(ex: SessionExercise, settings: Pick<Settings, 'autoWarmup' | 'barWeight' | 'plates' | 'barWeights' | 'exerciseBars'>): SessionExercise {
   if (!settings.autoWarmup || ex.mode !== 'reps' || ex.perSide || !isCompound(ex.name) || ex.sets.some(x => x.kind === 'warmup')) return ex;
   const config = warmupConfig(ex.name, settings);
   const ramp = warmupRamp(topWork(ex.sets), config);

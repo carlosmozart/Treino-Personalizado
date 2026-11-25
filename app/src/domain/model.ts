@@ -13,12 +13,17 @@ export const SCHEMA_VERSION = 1;
 export type ExerciseMode = 'reps' | 'time' | 'cardio';
 export type SetKind = 'work' | 'warmup';
 
+/** M49: técnicas de série. */
+export type SetTechnique = 'drop' | 'restpause';
+
 export interface WorkoutSet {
   reps: number;
   weight: number;
   kind: SetKind;
   /** Série levada até a falha (S5). Conta como série de trabalho normal em volume e recordes. */
   failure?: true;
+  /** M49: drop-set (carga menor logo em seguida) ou rest-pause (a mesma carga depois de uns segundos). Conta no volume, não em recordes nem na progressão. */
+  technique?: SetTechnique;
   /** V2: nota curta da série ("pegada escorregou", "senti o ombro"). */
   note?: string;
   /** V14: hora em que a série foi marcada (ISO). Ausente em séries antigas. */
@@ -345,6 +350,10 @@ export interface Settings {
   /** Calculadora de anilhas (M14): peso da barra e anilhas disponíveis. Ausentes = 20 kg e o jogo comum. */
   barWeight?: number;
   plates?: number[];
+  /** T7: peso das outras barras (feminina, W/EZ, hexagonal). Ausentes = 15, 10 e 25 kg. A olímpica é o `barWeight`. */
+  barWeights?: Partial<Record<'feminina' | 'w' | 'hex', number>>;
+  /** T7: a barra de cada exercício (chave: nome normalizado). Ausente = adivinhada pelo nome. */
+  exerciseBars?: Record<string, 'olimpica' | 'feminina' | 'w' | 'hex'>;
   /** Progressão automática de carga (M10–M12). Ausente = ligada. */
   autoProgression?: boolean;
   /** De onde vêm carga e reps ao abrir o treino (M13): sugestão da progressão, última vez ou o plano. Ausente = pela autoProgression. */

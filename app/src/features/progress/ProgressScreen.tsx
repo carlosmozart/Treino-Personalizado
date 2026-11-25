@@ -7,7 +7,8 @@ import { bestsBefore, recordLabel, trophiesFor } from '../../domain/set-records'
 import { ChallengesCard } from './ChallengesCard';
 import { previousWorkSets, setTrends, TREND_ARROW } from '../../domain/set-compare';
 import { YearReviewLinks } from '../year-review/YearReview';
-import { deleteWorkout } from '../../domain/actions';
+import { deleteWorkout, restoreWorkout } from '../../domain/actions';
+import { SwipeRow } from '../../ui/SwipeRow';
 import { fromDateKey } from '../../domain/dates';
 import type { Workout, WorkoutEntry } from '../../domain/model';
 import { heatmap, historyByMonth, muscleBalance, statsSummary, untrainedGroups, weeklyVolume, type HeatLevel } from '../../domain/stats';
@@ -191,7 +192,27 @@ function History() {
   const workouts = useAppStore(s => s.data?.workouts) ?? NO_WORKOUTS;
   const allActivities = useAppStore(s => s.data?.activities);
   const run = useAppStore(s => s.run);
+  const swipe = useAppStore(s => s.data?.settings.swipeSets ?? true);
   const [open, setOpen] = useState<string | null>(null);
+  // N15: deslizar para a esquerda apaga na hora, com alguns segundos para desfazer
+  const [removed, setRemoved] = useState<{ w: Workout; timer: number } | null>(null);
+  const removeWithUndo = (w: Workout) => {
+    if (removed) clearTimeout(removed.timer);
+    run((d, now) => deleteWorkout(d, w.id, now));
+    setRemoved({ w, timer: window.setTimeout(() => setRemoved(null), 6000) });
+  };
+  const undo = () => {
+    if (!removed) return;
+    clearTimeout(removed.timer);
+    run((d, now) => restoreWorkout(d, removed.w, now));
+    setRemoved(null);
+  };
+  const undoBar = removed && (
+    <div role="status" className="fixed inset-x-3 bottom-[calc(4.75rem+env(safe-area-inset-bottom))] z-30 mx-auto flex max-w-xl items-center justify-between gap-2 rounded-xl bg-ink px-4 py-1 text-sm text-page shadow-xl">
+      <span>Treino de {shortDate(removed.w.date)} apagado.</span>
+      <button type="button" onClick={undo} className="h-10 px-2 font-bold">Desfazer</button>
+    </div>
+  );
   // W10: as atividades entram no mês delas, depois dos treinos (um mês pode ter só atividades)
   const activities = activitiesByMonth({ ...(allActivities ? { activities: allActivities } : {}) });
   const byMonth = new Map(historyByMonth(workouts).map(g => [g.month, g.workouts]));
@@ -200,6 +221,7 @@ function History() {
     return (
       <div className="mt-6 space-y-3">
         <p className="rounded-2xl border border-line bg-surface p-4 text-muted">Nenhum treino registrado ainda. Os treinos concluídos aparecem aqui.</p>
+        {undoBar}
         <PastWorkoutButton />
         <ActivityButton />
       </div>
@@ -207,6 +229,7 @@ function History() {
   }
   return (
     <div className="mt-4 space-y-5">
+      {undoBar}
       <div className="space-y-2">
         <PastWorkoutButton />
         <ActivityButton />
@@ -222,7 +245,8 @@ function History() {
             {ws.length > 0 && (
               <ul className="mt-2 space-y-2">
                 {ws.map(w => (
-                  <WorkoutItem key={w.id} w={w} open={open === w.id} onToggle={() => setOpen(open === w.id ? null : w.id)}
+                  <WorkoutItem key={w.id} w={w} open={open === w.id} onToggle={() => setOpen(open === w.id ? null : w.id)} swipe={swipe}
+                    onSwipeDelete={() => removeWithUndo(w)}
                     onDelete={() => { if (confirm(`Apagar o treino de ${shortDate(w.date)}?`)) run((d, now) => deleteWorkout(d, w.id, now)); }} />
                 ))}
               </ul>
@@ -271,12 +295,13 @@ function SetDetails({ w, entry }: { w: Workout; entry: WorkoutEntry }) {
   );
 }
 
-function WorkoutItem({ w, open, onToggle, onDelete }: { w: Workout; open: boolean; onToggle: () => void; onDelete: () => void }) {
+function WorkoutItem({ w, open, onToggle, onDelete, swipe, onSwipeDelete }: { w: Workout; open: boolean; onToggle: () => void; onDelete: () => void; swipe: boolean; onSwipeDelete: () => void }) {
   const [editing, setEditing] = useState<number | null>(null);
   const volume = workoutVolume(w, useVolumeOptions());
   const meta = [plural(w.entries.length, 'exercício', 'exercícios'), w.durationMin ? `${w.durationMin} min` : '', volume ? `${formatNumber(volume)} kg` : '', w.deload ? 'deload' : '', w.light ? 'mais leve' : ''].filter(Boolean).join(' · ');
   return (
-    <li className="rounded-2xl border border-line bg-surface">
+    // N15: deslizar o treino para a esquerda apaga (com Desfazer); aberto, o gesto fica com o conteúdo
+    <SwipeRow enabled={swipe && !open} onDelete={onSwipeDelete} outerClassName="rounded-2xl" className="rounded-2xl border border-line bg-surface">
       <button type="button" onClick={onToggle} aria-expanded={open} className="flex min-h-14 w-full items-center gap-3 px-4 py-2 text-left">
         <span className="w-10 shrink-0 text-center">
           <span className="block text-xl font-black leading-none">{Number(w.date.slice(8, 10))}</span>
@@ -315,7 +340,7 @@ function WorkoutItem({ w, open, onToggle, onDelete }: { w: Workout; open: boolea
           {editing !== null && w.entries[editing] && <EntryEditor workout={w} index={editing} onClose={() => setEditing(null)} />}
         </div>
       )}
-    </li>
+    </SwipeRow>
   );
 }
 

@@ -57,6 +57,9 @@ test('no treino: salvar no plano (séries, reps fora da faixa, aquecimento), tra
   await supino.getByRole('button', { name: 'Opções de Supino Reto (Barra)' }).click();
   await page.getByRole('button', { name: 'Travar a carga em 60 kg' }).click();
   await expect(supino.getByText('Carga travada')).toBeVisible();
+  // cadeado ao lado do nome e no rótulo da carga
+  await expect(supino.getByRole('heading').getByRole('img', { name: 'carga travada' })).toBeVisible();
+  await expect(supino.getByRole('group', { name: /^Ajustar a carga/ }).getByRole('img', { name: 'carga travada' })).toBeVisible();
 
   // tirar a rosca do treino e do plano
   const rosca = page.getByRole('article', { name: 'Rosca Direta (Barra)' });
@@ -69,7 +72,10 @@ test('no treino: salvar no plano (séries, reps fora da faixa, aquecimento), tra
   // o plano ficou com 4 séries, 10 reps, a carga travada e 1 aquecimento; sem a rosca
   await page.getByRole('button', { name: 'Plano', exact: true }).click();
   const monday = page.getByRole('article', { name: 'Segunda' });
-  await expect(monday.getByText('4 × 10 · 60 kg (travada) · 1 aquec.')).toBeVisible();
+  await expect(monday.getByText('4 × 10 · 60 kg · 1 aquec.')).toBeVisible();
+  // o cadeado no exercício do plano, só no supino
+  await expect(monday.getByRole('img', { name: 'carga travada' })).toHaveCount(1);
+  await monday.screenshot({ path: 'test-results/plano-cadeado.png' });
   await expect(monday.getByText('Rosca Direta (Barra)')).toHaveCount(0);
   expect(errors).toEqual([]);
 });

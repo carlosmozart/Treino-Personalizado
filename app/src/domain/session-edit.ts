@@ -1,6 +1,6 @@
 // Sessão de treino: mexer nas séries e nos exercícios durante o treino (ver session.ts).
 import { normalizeExerciseName } from './text';
-import { type AppData } from './model';
+import { type AppData, type SetTechnique } from './model';
 import { isCardioName } from '../data/exercise-library';
 import { snapStack } from './stack';
 import { type SessionSet, type SessionExercise, type ActiveSession } from './session-types';
@@ -122,6 +122,20 @@ export function toggleFailure(s: ActiveSession, exIndex: number, setIndex: numbe
     if (set.kind !== 'work') return set;
     if (set.failure) { const { failure: _f, ...rest } = set; return rest; }
     return { ...set, failure: true };
+  });
+}
+
+/**
+ * M49: marca ou desmarca a série como drop-set ou rest-pause. Só séries de trabalho que vêm depois
+ * de outra de trabalho (a técnica continua a série anterior).
+ */
+export function toggleTechnique(s: ActiveSession, exIndex: number, setIndex: number, technique: SetTechnique): ActiveSession {
+  const ex = s.exercises[exIndex];
+  if (!ex || setIndex < 1 || ex.sets[setIndex - 1]?.kind !== 'work') return s;
+  return mapSet(s, exIndex, setIndex, set => {
+    if (set.kind !== 'work') return set;
+    const { technique: current, ...rest } = set;
+    return current === technique ? rest : { ...rest, technique };
   });
 }
 

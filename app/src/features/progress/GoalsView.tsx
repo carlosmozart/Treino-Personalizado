@@ -5,6 +5,7 @@ import { toDateKey } from '../../domain/dates';
 import { MeasurementsCard } from './MeasurementsCard';
 import { achievementList, startWeightGoal } from '../../domain/achievements';
 import { logWeight, removeWeighIn } from '../../domain/actions';
+import { SwipeRow } from '../../ui/SwipeRow';
 import { LineChart } from '../../ui/LineChart';
 import { goalProgress } from '../../domain/body-goal';
 import { useAppStore } from '../../store';
@@ -116,6 +117,7 @@ function WeighInsCard() {
   const profile = useAppStore(s => s.data?.profile);
   const weekStart = useAppStore(s => s.data?.settings.weekStart ?? 'seg');
   const run = useAppStore(s => s.run);
+  const swipe = useAppStore(s => s.data?.settings.swipeSets ?? true);
   const [all, setAll] = useState(false);
   // T18: apaga na hora e dá alguns segundos para desfazer (a pesagem volta igual)
   const [removed, setRemoved] = useState<{ date: string; weight: number; timer: number } | null>(null);
@@ -153,7 +155,8 @@ function WeighInsCard() {
       </div>
       <ul className="mt-2 divide-y divide-line text-sm">
         {shown.map(w => (
-          <li key={w.date} className="flex items-center justify-between gap-3">
+          // N15: deslizar para a esquerda também apaga, com o mesmo Desfazer
+          <SwipeRow key={w.date} enabled={swipe} onDelete={() => removeWithUndo(w)} outerClassName="rounded-none" className="flex items-center justify-between gap-3 pl-1">
             <span className="text-muted">{shortDate(w.date)}</span>
             <span className="flex items-center gap-1 font-semibold">{formatNumber(w.weight)} kg
               <button type="button" aria-label={`Apagar pesagem de ${shortDate(w.date)}`} className="flex size-11 items-center justify-center text-muted"
@@ -161,7 +164,7 @@ function WeighInsCard() {
                 <Icon name="lixo" className="size-5" />
               </button>
             </span>
-          </li>
+          </SwipeRow>
         ))}
       </ul>
       {undoBar}

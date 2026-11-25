@@ -10,6 +10,7 @@ import { useWorkoutUi } from './workout-ui';
 import { Sheet } from '../../ui/Sheet';
 import { formatNumber, plural, shortDate } from '../../ui/format';
 import { useRestStore } from './rest-store';
+import { LockMark } from '../../ui/LockMark';
 
 /** W11: o treino aberto na prévia: exercícios, séries e cargas, com "Começar" embaixo. */
 export function WorkoutPreview({ session }: { session: ActiveSession }) {
@@ -31,7 +32,7 @@ export function WorkoutPreview({ session }: { session: ActiveSession }) {
             : `${work.length} × ${reps.join('/')}${ex.mode === 'time' ? ' s' : ''}${kg.some(k => k > 0) ? ` · ${kg.map(formatNumber).join('/')} kg` : ''}${warm ? ` · ${warm} aquec.` : ''}`;
           return (
             <li key={`${ex.slotId}-${i}`} className="rounded-2xl border border-line bg-surface p-3">
-              <p className="font-semibold"><span className="mr-2 text-faint">{i + 1}</span>{ex.name}</p>
+              <p className="flex items-center gap-1.5 font-semibold"><span><span className="mr-2 text-faint">{i + 1}</span>{ex.name}</span>{ex.lockWeight && <LockMark className="size-4" />}</p>
               <p className="text-sm text-muted">{detail}</p>
               {ex.progression?.reason && <p className="text-xs text-muted">{ex.progression.reason}</p>}
             </li>

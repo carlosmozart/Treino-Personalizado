@@ -10,14 +10,16 @@ interface Props {
   enabled: boolean;
   /** Apagar: arrastar para a esquerda. Sem `onDelete`, a linha resiste e volta. */
   onDelete?: () => void;
-  /** Copiar: arrastar para a direita. */
-  onCopy: () => void;
+  /** Copiar: arrastar para a direita. Sem `onCopy`, a direita resiste e volta (N15: pesagens e histórico só apagam). */
+  onCopy?: (() => void) | undefined;
   className?: string;
+  /** Classes da linha por fora (o arredondado tem que bater com o do cartão). */
+  outerClassName?: string;
   children: ReactNode;
 }
 
 /** Linha que desliza (R2): esquerda apaga, direita copia. Toques nos campos seguem normais. */
-export function SwipeRow({ enabled, onDelete, onCopy, className = '', children }: Props) {
+export function SwipeRow({ enabled, onDelete, onCopy, className = '', outerClassName = 'rounded-xl', children }: Props) {
   const [dx, setDx] = useState(0);
   const [settling, setSettling] = useState(false);
   const start = useRef<{ x: number; y: number; id: number } | null>(null);
@@ -29,7 +31,7 @@ export function SwipeRow({ enabled, onDelete, onCopy, className = '', children }
   const reset = () => { setSettling(true); setDx(0); start.current = null; dragging.current = false; };
 
   return (
-    <li data-swipe-row className="relative overflow-hidden rounded-xl" style={{ touchAction: 'pan-y' }}
+    <li data-swipe-row className={`relative overflow-hidden ${outerClassName}`} style={{ touchAction: 'pan-y' }}
       onPointerDown={e => { if (e.button === 0) start.current = { x: e.clientX, y: e.clientY, id: e.pointerId }; setSettling(false); }}
       onPointerMove={e => {
         const s = start.current;
@@ -42,7 +44,7 @@ export function SwipeRow({ enabled, onDelete, onCopy, className = '', children }
           try { e.currentTarget.setPointerCapture(e.pointerId); } catch { /* sem captura */ }
         }
         // sem apagar (última série), a esquerda só cede um pouco
-        const x = mx < 0 && !onDelete ? mx * 0.25 : mx;
+        const x = (mx < 0 && !onDelete) || (mx > 0 && !onCopy) ? mx * 0.25 : mx;
         setDx(Math.max(-MAX, Math.min(MAX, x)));
       }}
       onPointerUp={e => {
@@ -52,17 +54,17 @@ export function SwipeRow({ enabled, onDelete, onCopy, className = '', children }
         justDragged.current = true;
         setTimeout(() => { justDragged.current = false; }, 0);
         if (final <= -THRESHOLD && onDelete) onDelete();
-        else if (final >= THRESHOLD) onCopy();
+        else if (final >= THRESHOLD && onCopy) onCopy();
         reset();
       }}
       onPointerCancel={reset}
       onClickCapture={e => { if (justDragged.current) { e.preventDefault(); e.stopPropagation(); } }}>
       <div aria-hidden="true" className={`absolute inset-0 flex items-center px-4 text-sm font-bold text-white ${dx >= 0 ? 'justify-start bg-primary' : 'justify-end bg-danger'}`}
         style={{ opacity: Math.min(1, Math.abs(dx) / THRESHOLD) }}>
-        {dx >= 0 ? 'Copiar' : onDelete ? 'Apagar' : 'Fica pelo menos uma'}
+        {dx >= 0 ? (onCopy ? 'Copiar' : '') : onDelete ? 'Apagar' : 'Fica pelo menos uma'}
       </div>
       {/* fundo do cartão por baixo: a cor de "feita" (translúcida) não deixa o aviso aparecer */}
-      <div className="relative rounded-xl bg-surface"
+      <div className={`relative bg-surface ${outerClassName}`}
         style={{ transform: `translateX(${dx}px)`, transition: settling ? 'transform 160ms ease-out' : 'none' }}>
         <div className={className}>{children}</div>
       </div>

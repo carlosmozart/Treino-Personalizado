@@ -1,5 +1,5 @@
 // Sessão de treino: progresso, descanso, supersets e virar histórico (ver session.ts).
-import { type Settings, type Workout, type WorkoutEntry } from './model';
+import { type Settings, type SetTechnique, type Workout, type WorkoutEntry } from './model';
 import { type SessionExercise, type ActiveSession } from './session-types';
 import { activeMs } from './session-flow';
 import { EXTRA_PREFIX } from './session-start';
@@ -20,10 +20,16 @@ export function nextOpenExercise(exercises: readonly SessionExercise[], from: nu
  * Descanso depois de marcar uma série: o desta série (T17), senão o do exercício (ou o padrão);
  * depois de aquecimento, o do ajuste T6 quando definido (0 = sem descanso).
  */
+/** M49: descanso antes de um drop-set (nenhum) e de um rest-pause (uns segundos). */
+export const TECHNIQUE_REST: Record<SetTechnique, number> = { drop: 0, restpause: 15 };
+
 export function restAfterSet(ex: SessionExercise, setIndex: number, settings: Pick<Settings, 'restSeconds' | 'warmupRest'>): number {
   // T17: o descanso escolhido só para esta série vale acima de tudo
   const own = ex.sets[setIndex]?.rest;
   if (own !== undefined) return own;
+  // M49: a próxima é drop-set (sem descanso) ou rest-pause (uns segundos)
+  const next = ex.sets[setIndex + 1]?.technique;
+  if (next) return TECHNIQUE_REST[next];
   const normal = ex.restSeconds ?? settings.restSeconds;
   return ex.sets[setIndex]?.kind === 'warmup' && settings.warmupRest !== undefined ? settings.warmupRest : normal;
 }
@@ -65,7 +71,7 @@ export function sessionToWorkout(s: ActiveSession, now: Date): Workout | null {
       entries.push({ key: ex.key, name: ex.name, mode: 'cardio', sets: [], cardio: { minutes: ex.cardio.minutes, ...(ex.cardio.km ? { km: ex.cardio.km } : {}), ...(ex.cardio.level ? { level: ex.cardio.level } : {}) }, ...(note ? { note } : {}) });
       continue;
     }
-    const sets = ex.sets.filter(set => set.done).map(({ reps, weight, kind, failure, note, at }) => ({ reps, weight, kind, ...(failure ? { failure } : {}), ...(note ? { note } : {}), ...(at ? { at } : {}) }));
+    const sets = ex.sets.filter(set => set.done).map(({ reps, weight, kind, failure, technique, note, at }) => ({ reps, weight, kind, ...(failure ? { failure } : {}), ...(technique ? { technique } : {}), ...(note ? { note } : {}), ...(at ? { at } : {}) }));
     if (sets.length) entries.push({ key: ex.key, name: ex.name, mode: ex.mode, sets, ...(note ? { note } : {}), ...(ex.perSide ? { perSide: true as const } : {}), ...(added(ex) ? { added: true as const } : {}) });
   }
   if (!entries.length) return null;

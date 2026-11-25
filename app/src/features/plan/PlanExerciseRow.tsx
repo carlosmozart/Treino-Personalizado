@@ -4,6 +4,7 @@ import { type PlanExercise } from '../../domain/model';
 import { EXERCISE_LIBRARY } from '../../data/exercise-library';
 import { useAppStore } from '../../store';
 import { Icon } from '../../ui/Icon';
+import { LockMark } from '../../ui/LockMark';
 import { NumberField } from '../../ui/NumberField';
 import { INCREMENTS, editRange, rangeFields, repRange, settleRange } from '../../domain/progression';
 import { SwipeRow } from '../../ui/SwipeRow';
@@ -21,7 +22,7 @@ export function summary(ex: PlanExercise, defaultRest: number): string {
   if (ex.mode === 'time') return `${ex.sets} × ${ex.seconds ?? 30} s${rest}`;
   const { min, max } = repRange(ex);
   const warm = `${ex.warmupSets ? ` · ${ex.warmupSets} aquec.` : ''}${ex.stack?.length ? ' · pilha' : ''}`;
-  return `${ex.sets} × ${min === max ? max : `${min}–${max}`}${ex.perSide ? ' por lado' : ''}${ex.weight ? ` · ${formatNumber(ex.weight)} kg` : ''}${ex.lockWeight ? ' (travada)' : ''}${warm}${rest}`;
+  return `${ex.sets} × ${min === max ? max : `${min}–${max}`}${ex.perSide ? ' por lado' : ''}${ex.weight ? ` · ${formatNumber(ex.weight)} kg` : ''}${warm}${rest}`;
 }
 
 export interface RowProps {
@@ -51,7 +52,7 @@ export function ExerciseRow({ ex, open, first, last, swipe, superset, linkedToNe
     <SwipeRow enabled={swipe} onDelete={onSwipeRemove} onCopy={onDuplicate} className="py-1">
       <button type="button" onClick={onToggle} aria-expanded={open} className="flex min-h-12 w-full items-center gap-2 text-left">
         <span className="min-w-0 flex-1">
-          <span className="block truncate font-semibold">{ex.name}</span>
+          <span className="flex items-center gap-1.5 font-semibold"><span className="truncate">{ex.name}</span>{ex.lockWeight && ex.mode !== 'cardio' && <LockMark className="size-4" />}</span>
           <span className="block text-sm text-muted">{summary(ex, defaultRest)}{superset ? ` · superset ${superset.pos}/${superset.size}` : ''}</span>
         </span>
         <Icon name={open ? 'subir' : 'descer'} className="size-5 shrink-0 text-faint" />
