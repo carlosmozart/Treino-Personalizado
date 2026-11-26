@@ -6,6 +6,12 @@ Todas as mudanças relevantes do app ficam registradas aqui. Ao lançar uma nova
    atualizar o app instalado
 3. Adicione uma entrada aqui, nesse formato
 
+## [3.38.0] - 2026-11-25
+
+- Pesagem fora da curva: um peso mais de 15% diferente da pesagem anterior pede confirmação antes de salvar (evita 18 no lugar de 81). Corrigir o número tira a pergunta; "Salvar assim" confirma.
+- Biblioteca: "Em vários dias…" adiciona o mesmo exercício em vários dias do plano de uma vez.
+- Perfil: "Relatar um problema" abre no navegador o formulário do GitHub com a versão, o aparelho e os últimos erros já preenchidos. Nada é enviado pelo app.
+
 ## [3.37.0] - 2026-11-24
 
 - Carga travada com cadeado: aparece ao lado do nome do exercício no treino (aberto e recolhido), junto dos botões de carga, no Plano e na prévia antes de começar.

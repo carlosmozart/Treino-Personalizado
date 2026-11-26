@@ -3,6 +3,15 @@ export interface ReleaseNote { version: string; date: string; items: string[] }
 
 export const RELEASE_NOTES: readonly ReleaseNote[] = [
   {
+    version: '3.38.0',
+    date: '2026-11',
+    items: [
+      'Pesagem muito diferente da anterior pede confirmação antes de salvar.',
+      'Biblioteca: adicione um exercício em vários dias de uma vez.',
+      'Perfil: "Relatar um problema" com a versão e o aparelho preenchidos.'
+    ]
+  },
+  {
     version: '3.37.0',
     date: '2026-11',
     items: [
