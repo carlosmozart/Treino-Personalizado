@@ -7,6 +7,7 @@ import { canAutoBackup, saveBackupFile } from '../../platform/backup-file';
 import { isNative } from '../../platform/platform';
 import { dataStatus } from '../../domain/data-status';
 import { errorReport, useErrorLog } from '../../platform/error-log';
+import { problemReportUrl } from '../../platform/problem-report';
 import { toDateKey } from '../../domain/dates';
 import { loadSourceOf, type AppData, type LoadSource, type Settings, type ThemePref } from '../../domain/model';
 import { mergeBackup, restoreBackup } from '../../domain/profile-view';
@@ -98,6 +99,7 @@ export function SettingsSection() {
           <WhatsNewButton />
           <CreditsButton />
           <ErrorLogButton />
+          <ReportProblemLink />
         </div>
       </Card>
     </>
@@ -415,6 +417,15 @@ function ErrorLogButton() {
     }}>
       {copied ? 'Registro copiado' : `Copiar registro de erros (${entries.length})`}
     </button>
+  );
+}
+
+/** Y6: abre o formulário de problema do GitHub no navegador, já com a versão, o aparelho e os últimos erros. */
+function ReportProblemLink() {
+  const entries = useErrorLog(s => s.entries);
+  return (
+    <a href={problemReportUrl(__APP_VERSION__, navigator.userAgent, entries)} target="_blank" rel="noreferrer"
+      className="flex h-11 items-center font-semibold text-primary">Relatar um problema</a>
   );
 }
 

@@ -5,6 +5,8 @@ import { useAppStore } from '../../store';
 import { formatNumber, shortDate } from '../../ui/format';
 import { NumberField } from '../../ui/NumberField';
 import { Sheet } from '../../ui/Sheet';
+import { weighInJump } from '../../domain/weigh-in-check';
+import { WeighInJumpNotice } from './WeighInJumpNotice';
 
 /** Pesagem (entra no histórico); de hoje ou de um dia anterior (T2). Usado no Início e no Perfil. */
 export function WeightLogSheet({ open, onClose, initial }: { open: boolean; onClose: () => void; initial: number | null }) {
@@ -13,22 +15,27 @@ export function WeightLogSheet({ open, onClose, initial }: { open: boolean; onCl
   const today = toDateKey(new Date());
   const [value, setValue] = useState(initial ?? 70);
   const [date, setDate] = useState(today);
-  useEffect(() => { if (open) { setValue(initial ?? 70); setDate(toDateKey(new Date())); } }, [open, initial]);
+  // Y1: pesagem fora da curva espera a confirmação
+  const [asking, setAsking] = useState(false);
+  useEffect(() => { if (open) { setValue(initial ?? 70); setDate(toDateKey(new Date())); setAsking(false); } }, [open, initial]);
   const day = date && date <= today ? date : today;
   const label = day === today ? 'Peso de hoje' : `Peso de ${shortDate(day)}`;
   const existing = weighIns?.find(w => w.date === day);
-  const save = () => { run((d, now) => logWeight(d, value, day, now)); onClose(); };
+  const jump = weighInJump(weighIns ?? [], day, value);
+  const commit = () => { run((d, now) => logWeight(d, value, day, now)); onClose(); };
+  const save = () => { if (jump && !asking) setAsking(true); else commit(); };
   return (
     <Sheet title="Registrar peso" open={open} onClose={onClose}>
       <label className="block text-sm font-semibold text-muted">{label} (kg)
-        <NumberField label={`${label} em kg`} decimal value={value} onChange={setValue} className="mt-1" />
+        <NumberField label={`${label} em kg`} decimal value={value} onChange={v => { setValue(v); setAsking(false); }} className="mt-1" />
       </label>
       <label className="mt-3 block text-sm font-semibold text-muted">Data
-        <input type="date" value={date} max={today} onChange={e => setDate(e.target.value)} aria-label="Data da pesagem"
+        <input type="date" value={date} max={today} onChange={e => { setDate(e.target.value); setAsking(false); }} aria-label="Data da pesagem"
           className="mt-1 h-12 w-full rounded-xl border border-line bg-surface-2 px-3 text-base text-ink" />
       </label>
       {existing && <p className="mt-2 text-xs text-faint">Já há {formatNumber(existing.weight)} kg nesse dia: a nova pesagem substitui.</p>}
-      <button type="button" onClick={save} className="mt-4 h-12 w-full rounded-xl bg-primary text-base font-bold text-white">Salvar</button>
+      {asking && jump && <WeighInJumpNotice jump={jump} kg={value} onConfirm={commit} />}
+      {!asking && <button type="button" onClick={save} className="mt-4 h-12 w-full rounded-xl bg-primary text-base font-bold text-white">Salvar</button>}
     </Sheet>
   );
 }

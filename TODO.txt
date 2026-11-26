@@ -384,6 +384,25 @@ X14	✅ (17/11/2026: Plano, Progresso, Perfil, painéis de IA e animação do RP
 X15	✅ (17/11/2026: continuam dentro dos ajustes, para os backups seguirem compatíveis, mas cada item tem carimbo próprio de junção (favorite:, custom:, alias:) e a junção decide item a item; dados antigos sem carimbo juntam os dois lados) Apelidos, favoritos e exercícios próprios ficam dentro dos ajustes (na junção de dois aparelhos vence o último a gravar): separar antes da nuvem	Baixa
 X16	✅ (16/11/2026, revisão do tema de Natal antes de dezembro: o presente do treino ficava meio coberto pela barra do descanso, agora sai enquanto ela está na tela (vale também para a abóbora do Halloween); o gatinho branco sumia no tema claro, ganhou contorno e sombra; o azevinho rola com a página em vez de cobrir o canto dos cartões; a marca de "porta esperando" do calendário ficou branca; cartão "Feliz Natal" no dia 25 e "Adeus, <ano>" no dia 31, com os números do ano; o teste e2e do Natal ganhou mais tempo; depois: balão do presente e do gatinho quebra linha em vez de sair da tela, o enfeite do treino só espia por trás da barra de abas, e Perfil avisa que a cor de destaque está trocada pela do tema) Revisão do tema de Natal	Média
 
+Y. Ideias do openGym 1.4.6, ainda em preparação (25/11/2026, ramo release-1.4.6, commit fda9f493f)
+Só a ideia; o código do openGym é AGPL: nada é copiado. A 1.4.6 não saiu (a última é a 1.4.5, de 14/11). O ramo tem 386 commits, a maioria de relógio (Apple Watch, Garmin), Coach com IA, servidor, integrações e importações; aqui ficam só as ideias de celular que ainda não temos.
+#	Sugestão	Prioridade
+Y1	✅ (25/11/2026: no Registrar peso e no "Peso de hoje" do treino; compara com a pesagem anterior (sem ela, a seguinte); mais de 15% mostra "Está certo?" com "Salvar assim"; mudar o número tira a pergunta) Pesagem fora da curva: antes de salvar uma pesagem mais de 15% diferente da anterior, perguntar se está certa (evita 18 no lugar de 81)	Média
+Y2	Registrar treino passado digitando: um exercício por linha ("Supino reto 3x10 60"), com prévia do que o app entendeu antes de salvar	Média
+Y3	✅ (25/11/2026: na Biblioteca, "Em vários dias…" marca os dias e adiciona numa mudança só; dia cheio fica de fora e é dito) Adicionar um exercício a vários dias do plano de uma vez (escolher os dias na Biblioteca)	Média
+Y4	Acender a tela no fim do descanso (ajuste, só no APK), junto do aviso da barra de notificações (M21)	Média
+Y5	Início personalizável: mostrar, recolher, esconder e reordenar os cartões, como já dá no Progresso	Média
+Y6	✅ (25/11/2026: link no Perfil, ao lado do registro de erros; abre o formulário .github/ISSUE_TEMPLATE/problema.yml com versão, aparelho e os últimos 5 erros) Relatar um problema: botão no Perfil que abre o formulário de problema do GitHub no navegador, com a versão e o aparelho preenchidos (junto do registro de erros)	Média
+Y7	Rampa de aquecimento própria: escolher os percentuais e as repetições do aquecimento automático (V8), no lugar da rampa fixa	Baixa
+Y8	Tela pode apagar depois de 15 minutos sem mexer no treino (economia de bateria), mesmo com "Manter a tela ligada"	Baixa
+Y9	Ir ao próximo exercício quando o descanso da última série acaba: avaliar deixar ligado por padrão (o openGym passou a ligar; hoje o nosso vem desligado)	Baixa
+Y10	Biblioteca: escolher vários equipamentos de uma vez no filtro (ex.: halteres e polia)	Baixa
+Y11	Semana começando no sábado, como terceira opção	Baixa
+Y12	"Salvar no plano" leva o drop-set, o rest-pause e o "por lado" da série feita (complementa M49 e M33)	Baixa
+Y13	Início: cada treino feito hoje com a sua linha; tocar abre o treino	Baixa
+Y14	Importar outros apps além do M24: JEFIT e FitNotes (treinos) e corridas e pedaladas do Strava como atividades (W10)	Baixa
+Y15	Natal: sacudir o celular vira um globo de neve (tema de Natal)	Baixa
+
 Z. Protocolo: hormônios, peptídeos e medicamentos (17 e 18/11/2026)
 Pedido depois de ler o steroidplotter.com. Decisão dos sócios (18/11/2026): a seção fica, como histórico e controle para quem já usa; o app não incentiva o uso nem indica substância, dose ou meia-vida (tudo vem da pessoa).
 #	Item	Prioridade

@@ -57,6 +57,8 @@ export function LibrarySheet({ open, onClose, group: initialGroup }: { open: boo
   const [mine, setMine] = useState(false);
   const [equipment, setEquipment] = useState<Equipment | null>(null);
   const [picked, setPicked] = useState<LibraryEntry | null>(null);
+  // Y3: vários dias de uma vez (null = um toque por dia, como antes)
+  const [days, setDays] = useState<DayKey[] | null>(null);
   const [creating, setCreating] = useState(false);
   const [message, setMessage] = useState('');
   useEffect(() => {
@@ -69,13 +71,28 @@ export function LibrarySheet({ open, onClose, group: initialGroup }: { open: boo
   if (!data) return null;
   const plan = data.activePlanId ? data.plans[data.activePlanId] : undefined;
 
-  const close = () => { setPicked(null); setCreating(false); setMessage(''); onClose(); };
+  const close = () => { setPicked(null); setDays(null); setCreating(false); setMessage(''); onClose(); };
   const addTo = (entry: LibraryEntry, slot: { key: DayKey; label: string }) => {
     if (!plan) return;
     if (plan.days[slot.key].exercises.length >= MAX_EXERCISES_PER_DAY) { setMessage(`${slot.label} já tem ${MAX_EXERCISES_PER_DAY} exercícios.`); return; }
     run((d, now) => editPlan(d, plan.id, p => addExercise(p, slot.key, newPlanExercise(entry.name, undefined, { sets: d.settings.newExerciseSets, reps: d.settings.newExerciseReps })), now));
     setMessage(`${entry.name} adicionado em ${slot.label.split(' · ')[0]}.`);
     setPicked(null);
+  };
+  /** Y3: o mesmo exercício em vários dias, numa mudança só; dia cheio fica de fora (e é dito). */
+  const addToMany = (entry: LibraryEntry, keys: DayKey[]) => {
+    if (!plan || !keys.length) return;
+    const slots = planSlots(plan).filter(s => keys.includes(s.key));
+    const fits = slots.filter(s => plan.days[s.key].exercises.length < MAX_EXERCISES_PER_DAY);
+    const full = slots.filter(s => !fits.includes(s));
+    if (fits.length) {
+      run((d, now) => editPlan(d, plan.id, p => fits.reduce((acc, s) => addExercise(acc, s.key,
+        newPlanExercise(entry.name, undefined, { sets: d.settings.newExerciseSets, reps: d.settings.newExerciseReps })), p), now));
+    }
+    const names = (list: typeof slots) => list.map(s => s.label.split(' · ')[0]).join(', ');
+    setMessage([fits.length ? `${entry.name} adicionado em ${names(fits)}.` : '', full.length ? `${names(full)} já ${full.length > 1 ? 'têm' : 'tem'} ${MAX_EXERCISES_PER_DAY} exercícios.` : ''].filter(Boolean).join(' '));
+    setPicked(null);
+    setDays(null);
   };
 
   return (
@@ -119,7 +136,7 @@ export function LibrarySheet({ open, onClose, group: initialGroup }: { open: boo
       </Sheet>
 
       {picked && (
-        <Sheet title={picked.name} open={open} onClose={() => setPicked(null)}>
+        <Sheet title={picked.name} open={open} onClose={() => { setPicked(null); setDays(null); }}>
           <div className="flex items-center gap-3">
             <ExerciseIllustration name={picked.name} size="large" />
             <p className="text-muted">{picked.group} · {picked.equipment}{picked.custom ? ' · criado por você' : ''}</p>
@@ -136,9 +153,30 @@ export function LibrarySheet({ open, onClose, group: initialGroup }: { open: boo
             }}><Icon name="lixo" />Apagar da biblioteca</SheetAction>
           )}
           <h3 className="mt-3 px-3 text-sm font-semibold text-muted">{plan ? `Adicionar em “${plan.name}”` : 'Crie um plano para adicionar exercícios'}</h3>
-          {plan && planSlots(plan).map(slot => (
+          {plan && days === null && planSlots(plan).map(slot => (
             <SheetAction key={slot.key} onClick={() => addTo(picked, slot)}><Icon name="mais" />{slot.label}</SheetAction>
           ))}
+          {plan && days === null && planSlots(plan).length > 1 && (
+            <SheetAction onClick={() => setDays([])}><Icon name="plano" />Em vários dias…</SheetAction>
+          )}
+          {plan && days !== null && (
+            <div role="group" aria-label="Dias para adicionar" className="px-1">
+              {planSlots(plan).map(slot => (
+                <label key={slot.key} className="flex min-h-12 items-center gap-3 px-2 font-semibold">
+                  <input type="checkbox" checked={days.includes(slot.key)} className="size-5 accent-[var(--color-primary)]"
+                    onChange={e => setDays(e.target.checked ? [...days, slot.key] : days.filter(k => k !== slot.key))} />
+                  {slot.label}
+                </label>
+              ))}
+              <div className="mt-2 flex gap-2">
+                <button type="button" onClick={() => setDays(null)} className="h-12 flex-1 rounded-xl bg-surface-2 font-semibold">Voltar</button>
+                <button type="button" disabled={!days.length} onClick={() => addToMany(picked, days)}
+                  className="h-12 flex-[2] rounded-xl bg-primary font-bold text-white disabled:opacity-50">
+                  {days.length > 1 ? `Adicionar em ${days.length} dias` : 'Adicionar'}
+                </button>
+              </div>
+            </div>
+          )}
           {message && <p role="status" className="px-3 text-sm text-warning">{message}</p>}
         </Sheet>
       )}
