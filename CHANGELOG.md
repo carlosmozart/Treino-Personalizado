@@ -6,6 +6,12 @@ Todas as mudanças relevantes do app ficam registradas aqui. Ao lançar uma nova
    atualizar o app instalado
 3. Adicione uma entrada aqui, nesse formato
 
+## [3.39.0] - 2026-11-26
+
+- Ajuda: o "?" ao lado do título de cada tela abre a Ajuda já na área daquela aba. Cada função diz onde fica e o que faz, a busca não liga para acento, e "Ir até lá" abre a tela certa e destaca o lugar. Se a função estiver desligada (como o Protocolo), a Ajuda leva até onde se liga.
+- Tour guiado: um convite no Início mostra, em 7 passos, o que tem em cada aba. Dá para sair quando quiser e refazer pela Ajuda.
+- Ligar o Protocolo agora diz onde ele fica (Progresso › Protocolo, e as doses do dia no Início), com um botão que leva até lá.
+
 ## [3.38.0] - 2026-11-25
 
 - Pesagem fora da curva: um peso mais de 15% diferente da pesagem anterior pede confirmação antes de salvar (evita 18 no lugar de 81). Corrigir o número tira a pergunta; "Salvar assim" confirma.

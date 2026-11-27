@@ -3,6 +3,15 @@ export interface ReleaseNote { version: string; date: string; items: string[] }
 
 export const RELEASE_NOTES: readonly ReleaseNote[] = [
   {
+    version: '3.39.0',
+    date: '2026-11',
+    items: [
+      'Ajuda: toque no ? ao lado do título de qualquer tela para ver onde fica e o que faz cada função.',
+      'Tour guiado de 1 minuto pelas abas (convite no Início, e refaça pela Ajuda).',
+      'Ao ligar o Protocolo, o app mostra onde ele fica e leva até lá.'
+    ]
+  },
+  {
     version: '3.38.0',
     date: '2026-11',
     items: [
