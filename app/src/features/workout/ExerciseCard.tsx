@@ -16,6 +16,8 @@ import { Sheet, SheetAction } from '../../ui/Sheet';
 import { RestSheet, restLabel } from '../../ui/RestSheet';
 import { previousWorkSets, setTrends, TREND_ARROW, trendLabel, type SetTrend } from '../../domain/set-compare';
 import { bestsBefore, recordHint, recordLabel, trophiesFor } from '../../domain/set-records';
+import { swapInPlan } from '../../domain/plan-swap';
+import { normalizeExerciseName } from '../../domain/text';
 import { editPlan, lockPatch, removePlanExercise, repsPatch, setPlanExerciseRest, setsPatch, updateExercise, warmupPatch } from '../../domain/plan-edit';
 import type { PlanExercise, SetTechnique } from '../../domain/model';
 import { formatClock, formatNumber, relativeDate, shortDate } from '../../ui/format';
@@ -104,7 +106,7 @@ export function ExerciseCard({ session, index, alwaysOpen = false, onGoTo }: Pro
   const planSlot = data?.plans[session.planId]?.days[session.dayKey]?.exercises.find(p => p.id === ex.slotId);
   const canSavePlan = !!planSlot && !ex.swappedFrom;
   // pergunta "Salvar no plano?" depois de mudar séries, aquecimento ou reps fora da faixa
-  const [ask, setAsk] = useState<{ text: string; patch: Partial<PlanExercise> } | null>(null);
+  const [ask, setAsk] = useState<{ text: string; save: () => void } | null>(null);
   const [removing, setRemoving] = useState(false);
   const savePlan = (patch: Partial<PlanExercise>) => {
     if (planSlot) run((d, now) => editPlan(d, session.planId, p => updateExercise(p, session.dayKey, planSlot.id, patch), now));
@@ -118,12 +120,29 @@ export function ExerciseCard({ session, index, alwaysOpen = false, onGoTo }: Pro
     if (what === 'series') {
       const n = next.sets.filter(x => x.kind === 'work').length;
       const patch = setsPatch(planSlot, n);
-      setAsk(patch ? { text: `Salvar ${plural(n, 'série', 'séries')} no plano (hoje o plano tem ${planSlot.sets})?`, patch } : null);
+      setAsk(patch ? { text: `Salvar ${plural(n, 'série', 'séries')} no plano (hoje o plano tem ${planSlot.sets})?`, save: () => savePlan(patch) } : null);
     } else {
       const n = next.sets.filter(x => x.kind === 'warmup' && !x.auto).length;
       const patch = warmupPatch(planSlot, n);
-      setAsk(patch ? { text: n ? `Começar ${ex.name} sempre com ${plural(n, 'série', 'séries')} de aquecimento?` : 'Tirar o aquecimento do plano também?', patch } : null);
+      setAsk(patch ? { text: n ? `Começar ${ex.name} sempre com ${plural(n, 'série', 'séries')} de aquecimento?` : 'Tirar o aquecimento do plano também?', save: () => savePlan(patch) } : null);
     }
+  };
+  /** Trocou o exercício do plano no treino: pergunta se a troca vale para o plano também. */
+  const askSwapInPlan = (name: string) => {
+    if (!planSlot || normalizeExerciseName(name) === normalizeExerciseName(planSlot.name)) { setAsk(null); return; }
+    const slot = planSlot;
+    setAsk({
+      text: `Trocar ${slot.name} por ${name.trim()} no plano também?`,
+      save: () => {
+        run((d, now) => editPlan(d, session.planId, p => swapInPlan(p, session.dayKey, slot.id, name, d), now));
+        // agora o exercício é o do plano: as próximas mudanças voltam a perguntar se vão para o plano
+        update(s => ({ ...s, exercises: s.exercises.map((e, k) => {
+          if (k !== index) return e;
+          const { swappedFrom: _from, ...rest } = e;
+          return rest;
+        }) }));
+      }
+    });
   };
   const commitReps = (setIndex: number) => {
     const set = ex.sets[setIndex];
@@ -131,7 +150,7 @@ export function ExerciseCard({ session, index, alwaysOpen = false, onGoTo }: Pro
     const patch = repsPatch(planSlot, set.reps);
     if (!patch) return;
     const text = patch.repMin !== undefined ? `Salvar a faixa de ${patch.repMin} a ${patch.repMax} repetições no plano?` : `Salvar ${patch.reps} repetições no plano?`;
-    setAsk({ text, patch });
+    setAsk({ text, save: () => savePlan(patch) });
   };
   const topWeight = Math.max(0, ...ex.sets.filter(x => x.kind === 'work').map(x => x.weight));
   const toggleLock = () => {
@@ -365,7 +384,7 @@ export function ExerciseCard({ session, index, alwaysOpen = false, onGoTo }: Pro
             <div role="group" aria-label="Salvar no plano" className="mt-2 rounded-xl border border-primary/50 bg-primary/5 p-3 text-sm">
               <p className="font-semibold">{ask.text}</p>
               <div className="mt-2 flex gap-2">
-                <button type="button" onClick={() => { savePlan(ask.patch); setAsk(null); }} className="h-10 flex-1 rounded-lg bg-primary font-bold text-white">Salvar no plano</button>
+                <button type="button" onClick={() => { ask.save(); setAsk(null); }} className="h-10 flex-1 rounded-lg bg-primary font-bold text-white">Salvar no plano</button>
                 <button type="button" onClick={() => setAsk(null)} className="h-10 flex-1 rounded-lg bg-surface-2 font-semibold">Só hoje</button>
               </div>
             </div>
@@ -518,7 +537,7 @@ export function ExerciseCard({ session, index, alwaysOpen = false, onGoTo }: Pro
         {historyOpen && <ExerciseProgressCard initialKey={ex.key} />}
       </Sheet>
 
-      <SwapSheet session={session} index={index} open={swapOpen} onClose={() => setSwapOpen(false)} />
+      <SwapSheet session={session} index={index} open={swapOpen} onClose={() => setSwapOpen(false)} onSwapped={askSwapInPlan} />
 
       <Sheet title="Conferir a carga" open={check !== null} onClose={() => setCheck(null)}>
         {check && (

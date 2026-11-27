@@ -33,10 +33,12 @@ export interface RowProps {
   /** Descanso do exercício: `undefined` = o padrão do app, 0 = sem cronômetro. */
   onRest: (seconds: number | undefined) => void;
   onAddAlt: (name: string) => void; onRemoveAlt: (index: number) => void;
+  /** Abre a troca por outro exercício (fica o lugar, as séries e as repetições). */
+  onSwap: () => void;
 }
 
 /** Exercício recolhido; ao tocar abre os campos (O25). */
-export function ExerciseRow({ ex, open, first, last, swipe, superset, linkedToNext, onToggleSuperset, onSwipeRemove, onDuplicate, onToggle, onChange, onMove, onRemove, onRest, onAddAlt, onRemoveAlt }: RowProps) {
+export function ExerciseRow({ ex, open, first, last, swipe, superset, linkedToNext, onToggleSuperset, onSwipeRemove, onDuplicate, onToggle, onChange, onMove, onRemove, onRest, onAddAlt, onRemoveAlt, onSwap }: RowProps) {
   const [alt, setAlt] = useState('');
   const [restOpen, setRestOpen] = useState(false);
   const defaultRest = useAppStore(s => s.data?.settings.restSeconds ?? 90);
@@ -59,6 +61,11 @@ export function ExerciseRow({ ex, open, first, last, swipe, superset, linkedToNe
       </button>
       {open && (
         <div className="pb-3">
+          {/* trocar sem apagar e montar de novo: era difícil achar como fazer isso no Plano */}
+          <button type="button" onClick={onSwap} aria-label={`Trocar ${ex.name} por outro exercício`}
+            className="mb-3 flex h-11 w-full items-center justify-center gap-2 rounded-xl bg-surface-2 font-semibold">
+            <Icon name="trocar" className="size-5" /> Trocar exercício
+          </button>
           <div className="grid grid-cols-3 gap-2">
             {ex.mode === 'cardio' ? (
               <>{field('Minutos', ex.minutes, minutes => onChange({ minutes }))}{field('Km', ex.km, km => onChange({ km }), true)}</>

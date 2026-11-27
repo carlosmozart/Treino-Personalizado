@@ -14,6 +14,8 @@ import { dayTitle, plural } from '../../ui/format';
 import { type Edit } from './PlanRotation';
 import { ExerciseRow } from './PlanExerciseRow';
 import { AddExerciseSheet } from './AddExerciseSheet';
+import { PlanSwapSheet } from './PlanSwapSheet';
+import { swapInPlan } from '../../domain/plan-swap';
 
 export function DayCard({ plan, dayKey, today, edit, rotation, collapsed }: { plan: Plan; dayKey: DayKey; today: boolean; edit: Edit; rotation?: { letter: string; next?: string }; collapsed: CollapsedDays }) {
   const day = plan.days[dayKey];
@@ -30,6 +32,24 @@ export function DayCard({ plan, dayKey, today, edit, rotation, collapsed }: { pl
   const startSets = useAppStore(s => s.data?.settings.newExerciseSets);
   const startReps = useAppStore(s => s.data?.settings.newExerciseReps);
   const [removed, setRemoved] = useState<{ at: number; ex: PlanExercise; timer: number } | null>(null);
+  // troca no plano, com Desfazer
+  const workouts = useAppStore(s => s.data?.workouts);
+  const [swapping, setSwapping] = useState<PlanExercise | null>(null);
+  const [swapped, setSwapped] = useState<{ before: PlanExercise; to: string; timer: number } | null>(null);
+  const swapTo = (name: string) => {
+    if (!swapping) return;
+    const before = swapping;
+    edit(p => swapInPlan(p, dayKey, before.id, name, { workouts: workouts ?? [] }));
+    if (swapped) clearTimeout(swapped.timer);
+    setSwapped({ before, to: name.trim(), timer: window.setTimeout(() => setSwapped(null), 6000) });
+  };
+  const undoSwap = () => {
+    if (!swapped) return;
+    clearTimeout(swapped.timer);
+    const { before } = swapped;
+    edit(p => ({ ...p, days: { ...p.days, [dayKey]: { ...p.days[dayKey], exercises: p.days[dayKey].exercises.map(e => (e.id === before.id ? before : e)) } } }));
+    setSwapped(null);
+  };
   const removeWithUndo = (i: number) => {
     const ex = day.exercises[i];
     if (!ex) return;
@@ -101,10 +121,18 @@ export function DayCard({ plan, dayKey, today, edit, rotation, collapsed }: { pl
               onMove={delta => edit(p => moveExercise(p, dayKey, ex.id, delta))}
               onRemove={() => { setOpenId(null); edit(p => removeExercise(p, dayKey, ex.id)); }}
               onAddAlt={name => edit(p => addAlternative(p, dayKey, ex.id, name))}
-              onRemoveAlt={i => edit(p => removeAlternative(p, dayKey, ex.id, i))} />
+              onRemoveAlt={i => edit(p => removeAlternative(p, dayKey, ex.id, i))}
+              onSwap={() => setSwapping(ex)} />
           ))}
         </ul>
       )}
+      {swapped && (
+        <div role="status" className="mt-2 flex items-center justify-between gap-2 rounded-xl bg-surface-2 px-3 py-1 text-sm">
+          <span className="min-w-0">{swapped.before.name} trocado por {swapped.to}.</span>
+          <button type="button" onClick={undoSwap} className="h-10 shrink-0 px-2 font-bold text-info">Desfazer</button>
+        </div>
+      )}
+      <PlanSwapSheet ex={swapping} dayNames={day.exercises.map(e => e.name)} open={!!swapping} onClose={() => setSwapping(null)} onPick={swapTo} />
       {removed && (
         <div role="status" className="mt-2 flex items-center justify-between gap-2 rounded-xl bg-surface-2 px-3 py-1 text-sm">
           <span className="min-w-0 truncate">{removed.ex.name} removido.</span>

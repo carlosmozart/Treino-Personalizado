@@ -14,7 +14,11 @@ import { Sheet, SheetAction } from '../../ui/Sheet';
  * (S3), a busca tolerante (S6) e o filtro pelo equipamento que a pessoa tem (M36).
  * Saiu do ExerciseCard em 16/11/2026 (X13), sem mudar o comportamento.
  */
-export function SwapSheet({ session, index, open, onClose }: { session: ActiveSession; index: number; open: boolean; onClose: () => void }) {
+export function SwapSheet({ session, index, open, onClose, onSwapped }: {
+  session: ActiveSession; index: number; open: boolean; onClose: () => void;
+  /** Depois de trocar (o card pergunta se a troca vale para o plano também). */
+  onSwapped?: (name: string) => void;
+}) {
   const update = useAppStore(s => s.updateSession);
   const data = useAppStore(s => s.data);
   const run = useAppStore(s => s.run);
@@ -28,7 +32,7 @@ export function SwapSheet({ session, index, open, onClose }: { session: ActiveSe
       {[...(ex.swappedFrom ? [{ name: ex.swappedFrom, mode: 'reps' as const }] : []), ...ex.alternatives]
         .filter(a => a.name !== ex.name)
         .map(a => (
-          <SheetAction key={a.name} onClick={() => { if (data) update(s => swapExercise(s, data, index, a.name)); onClose(); }}>
+          <SheetAction key={a.name} onClick={() => { if (data) update(s => swapExercise(s, data, index, a.name)); onClose(); onSwapped?.(a.name); }}>
             <ExerciseThumb name={a.name} />{a.name}{a.name === ex.swappedFrom ? ' (original)' : ''}
           </SheetAction>
         ))}
@@ -56,7 +60,7 @@ export function SwapSheet({ session, index, open, onClose }: { session: ActiveSe
       {(() => {
         const q = query.trim().toLowerCase();
         const fits = (n: string) => fitsEquipment(n, available, data?.settings.customExercises);
-        const pick = (name: string) => { if (data) update(s => swapExercise(s, data, index, name)); onClose(); setQuery(''); };
+        const pick = (name: string) => { if (data) update(s => swapExercise(s, data, index, name)); onClose(); setQuery(''); onSwapped?.(name); };
         // S3: sem busca, o que faz sentido no treino de hoje: mesmo grupo, sem repetir exercício do
         // treino, o mesmo movimento primeiro
         const base = ex.swappedFrom ?? ex.name;
@@ -85,7 +89,7 @@ export function SwapSheet({ session, index, open, onClose }: { session: ActiveSe
           </>
         );
       })()}
-      <p className="mt-2 px-3 text-sm text-faint">A troca vale só para este treino; o plano continua igual.</p>
+      <p className="mt-2 px-3 text-sm text-faint">Depois de trocar, você escolhe se vale só para hoje ou para o plano também.</p>
     </Sheet>
   );
 }

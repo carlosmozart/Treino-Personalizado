@@ -102,6 +102,12 @@ export const HELP_TOPICS: readonly HelpTopic[] = [
     keywords: 'aumentar carga sugestão automática dupla linear', go: { tab: 'plano', anchor: 'planos' }
   },
   {
+    id: 'trocar', area: 'plano', title: 'Trocar um exercício por outro',
+    where: 'Plano › toque no exercício › Trocar exercício (ou no treino: ⋯ do exercício › Trocar exercício)',
+    what: 'Troca, por exemplo, a Remada Cavalinho pela Remada Curvada sem apagar e montar de novo: ficam as séries, as repetições e o descanso, e o antigo vira reserva. Trocou durante o treino? O app pergunta se vale só para hoje ou para o plano também.',
+    keywords: 'substituir mudar exercício trocar reserva', go: { tab: 'plano', anchor: 'dias' }
+  },
+  {
     id: 'travar', area: 'plano', title: 'Travar a carga',
     where: 'Plano › toque no exercício › Travar a carga (ou no treino, nos ⋯ do exercício)',
     what: 'O exercício abre sempre com a mesma carga, sem a progressão mexer. O cadeado aparece no cartão.',
