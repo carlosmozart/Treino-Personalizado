@@ -15,6 +15,7 @@ import { LazyAiPlanSheet, LazyAiReviewSheet } from './lazy-sheets';
 import { useOpenedOnce } from '../../hooks/use-opened-once';
 import { TemplateSheet } from './TemplateSheet';
 import { PlanFileActions } from './PlanFileActions';
+import { HelpButton, ScreenTitle } from '../help/HelpButton';
 import { Sheet, SheetAction } from '../../ui/Sheet';
 import { disableRotation, enableRotation } from '../../domain/rotation';
 import { plural } from '../../ui/format';
@@ -43,7 +44,7 @@ export function PlanScreen() {
   if (!plan) {
     return (
       <>
-        <h1 className="pt-6 text-3xl font-black tracking-tight">Plano</h1>
+        <ScreenTitle>Plano</ScreenTitle>
         <section className="mt-6 rounded-2xl border border-line bg-surface p-4">
           <h2 className="text-lg font-bold">Você ainda não tem um plano</h2>
           <p className="mt-1 text-muted">Comece por um modelo pronto (corpo inteiro, ABC, superior/inferior, em casa…) e ajuste os dias aqui.</p>
@@ -85,21 +86,24 @@ export function PlanScreen() {
     <>
       <div className="flex items-end justify-between gap-3 pt-6">
         <div className="min-w-0">
-          <h1 className="text-3xl font-black tracking-tight">Plano</h1>
+          <div className="flex items-center gap-2">
+            <h1 className="text-3xl font-black tracking-tight">Plano</h1>
+            <HelpButton />
+          </div>
           <p className="truncate text-muted">{plan.name}</p>
         </div>
         <div className="flex shrink-0 gap-2">
-          <button type="button" onClick={() => setLibraryOpen(true)} className="h-11 rounded-xl bg-surface-2 px-4 font-semibold">
+          <button type="button" data-help="biblioteca" onClick={() => setLibraryOpen(true)} className="h-11 rounded-xl bg-surface-2 px-4 font-semibold">
             Biblioteca
           </button>
-          <button type="button" onClick={() => setPlansOpen(true)} className="h-11 rounded-xl bg-surface-2 px-4 font-semibold">
+          <button type="button" data-help="planos" onClick={() => setPlansOpen(true)} className="h-11 rounded-xl bg-surface-2 px-4 font-semibold">
             Planos
           </button>
         </div>
       </div>
       <LibrarySheet open={libraryOpen} onClose={() => setLibraryOpen(false)} />
       {reviewLoaded && <Suspense fallback={null}><LazyAiReviewSheet open={reviewOpen} onClose={() => setReviewOpen(false)} /></Suspense>}
-      <div role="radiogroup" aria-label="Como o plano anda" className="mt-3 grid grid-cols-2 gap-1 rounded-xl bg-surface-2 p-1">
+      <div role="radiogroup" aria-label="Como o plano anda" data-help="como-anda" className="mt-3 grid grid-cols-2 gap-1 rounded-xl bg-surface-2 p-1">
         {([['week', 'Semana fixa'], ['rotation', 'Rotação A/B/C']] as const).map(([mode, label]) => {
           const on = (mode === 'rotation') === !!plan.rotation;
           return (
@@ -138,7 +142,7 @@ export function PlanScreen() {
           </button>
         );
       })()}
-      <div className="mt-2 space-y-3">
+      <div data-help="dias" className="mt-2 space-y-3">
         {plan.rotation
           ? rotationCards(plan).map(({ key, letter, ...rest }) => (
               <DayCard key={key} plan={plan} dayKey={key} today={false} edit={edit} collapsed={collapsed} rotation={{ letter, next: 'next' in rest ? rest.next : '' }} />

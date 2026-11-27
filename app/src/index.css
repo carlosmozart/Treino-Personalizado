@@ -100,3 +100,15 @@ body {
   transition-duration: 0.001ms !important; scroll-behavior: auto !important;
 }
 [data-motion='reduce'] .nt-snow, [data-motion='reduce'] .nt-flake { display: none !important; }
+
+/* Ajuda: o lugar da função ("Ir até lá") ganha um contorno que pisca por alguns segundos.
+   O contorno fica mesmo sem animação (menos movimento). */
+.help-flash {
+  outline: 3px solid var(--color-primary);
+  outline-offset: 3px;
+  border-radius: 1rem;
+  animation: help-pulse 0.9s ease-in-out 3;
+}
+@keyframes help-pulse {
+  50% { outline-color: transparent; }
+}

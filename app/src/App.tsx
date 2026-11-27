@@ -12,6 +12,8 @@ import { ForgottenWatcher } from './features/workout/WorkoutExtras';
 import { RestBar } from './features/workout/RestBar';
 import { HomeScreen } from './features/home/HomeScreen';
 import { SeasonalLayer } from './features/seasonal/SeasonalLayer';
+import { HelpSheet } from './features/help/HelpSheet';
+import { Tour } from './features/help/Tour';
 
 // X14: Início e Treino vêm no pacote principal (abrem na hora); Plano, Progresso e Perfil, e a
 // animação do modo RPG (só com ele ligado), baixam quando usados
@@ -61,6 +63,8 @@ export function App() {
       <UpdateBanner />
       <WhatsNew />
       <TabBar />
+      {status === 'ready' && <HelpSheet />}
+      {status === 'ready' && <Tour />}
     </div>
   );
 }

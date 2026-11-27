@@ -3,6 +3,7 @@ import { ActiveWorkout } from './ActiveWorkout';
 import { DayPicker } from './DayPicker';
 import { WorkoutSummary } from './WorkoutSummary';
 import { useWorkoutUi } from './workout-ui';
+import { ScreenTitle } from '../help/HelpButton';
 
 export function WorkoutScreen() {
   const session = useAppStore(s => s.session);
@@ -11,7 +12,7 @@ export function WorkoutScreen() {
   if (summaryId) return <WorkoutSummary id={summaryId} />;
   return (
     <>
-      <h1 className="pt-6 text-3xl font-black tracking-tight">Treino</h1>
+      <ScreenTitle>Treino</ScreenTitle>
       <DayPicker />
     </>
   );

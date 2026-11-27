@@ -29,7 +29,7 @@ export function TabBar() {
           const central = key === 'treino';
           return (
             <li key={key} className="flex justify-center">
-              <button type="button" onClick={() => (active ? toTop() : setTab(key))}
+              <button type="button" data-help={`aba-${key}`} onClick={() => (active ? toTop() : setTab(key))}
                 aria-current={active ? 'page' : undefined}
                 className={`flex min-h-16 w-full flex-col items-center justify-center gap-1 text-xs font-semibold ${
                   active ? 'text-ink' : 'text-faint'}`}>

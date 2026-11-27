@@ -32,7 +32,7 @@ export function RpgCard() {
 
   if (!view.state.enabled) {
     return (
-      <section className="mt-4 rounded-2xl border border-line bg-surface p-4">
+      <section data-help="rpg" className="mt-4 rounded-2xl border border-line bg-surface p-4">
         <div className="flex items-center gap-3">
           <Portrait look={view.look} sex={view.sex} cls={RPG_CLASS_BY_ID.aprendiz!} theme={view.theme} mode="bust" size={64} label="Seu personagem" />
           <div>
@@ -55,7 +55,7 @@ export function RpgCard() {
   const name = className(current.cls, view.theme, view.sex);
   return (
     <>
-      <button type="button" onClick={() => setOpen(true)} aria-label={`Personagem: ${name}, nível de classe ${current.level.level}. Abrir ficha`}
+      <button type="button" data-help="rpg" onClick={() => setOpen(true)} aria-label={`Personagem: ${name}, nível de classe ${current.level.level}. Abrir ficha`}
         className="mt-4 block w-full rounded-2xl border border-line bg-surface p-4 text-left">
         <div className="flex items-center gap-3">
           <span className="relative shrink-0">

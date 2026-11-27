@@ -12,6 +12,8 @@ import { useAppStore } from '../../store';
 import { useUiStore } from '../../store/ui-store';
 import { askRestAlarmPermission } from '../workout/rest-alarm-instance';
 import { HomeNotices } from './HomeNotices';
+import { HelpButton } from '../help/HelpButton';
+import { TourInvite } from '../help/Tour';
 import { IosInstallNotice } from './IosInstallNotice';
 import { WeightLogSheet } from './WeightLogSheet';
 import { DayNoteSheet, reasonLabel } from './DayNoteSheet';
@@ -43,19 +45,23 @@ export function HomeScreen() {
   const card = todayCard(data, now, session);
   // sem plano (primeira abertura), montar o plano vem antes de qualquer aviso
   const planFirst = card.kind === 'no-plan';
-  const today = <TodayCard card={card} onChoose={setChooser} />;
+  const today = <div data-help="hoje"><TodayCard card={card} onChoose={setChooser} /></div>;
 
   return (
     <div className="space-y-4 pt-6">
       <header>
         <p className="text-muted">{greeting(now)}{name ? `, ${name}` : ''}</p>
-        <h1 className="text-3xl font-black tracking-tight">Início</h1>
+        <div className="flex items-center gap-2">
+          <h1 className="text-3xl font-black tracking-tight">Início</h1>
+          <HelpButton />
+        </div>
       </header>
       {/* no dia da festa, o cartão vem antes de tudo */}
       <HolidaySlot />
       {planFirst && today}
       <IosInstallNotice />
       <HomeNotices />
+      <TourInvite />
       <WeekStrip />
       {!planFirst && today}
       {data.settings.protocolEnabled && <Suspense fallback={null}><HomeDoses /></Suspense>}
@@ -82,7 +88,7 @@ function PlanSection({ onChoose }: { onChoose: (m: ChooserMode) => void }) {
   if (!plan) return null;
   const deload = isDeloadDate(data, toDateKey(new Date()));
   return (
-    <section aria-label="Plano de treino" className="rounded-2xl border border-line bg-surface p-4">
+    <section aria-label="Plano de treino" data-help="plano-inicio" className="rounded-2xl border border-line bg-surface p-4">
       <p className="text-xs font-semibold text-muted">Plano de treino</p>
       <h2 className="truncate text-lg font-bold">{plan.name}</h2>
       <p className="text-sm text-muted">{plural(trainingDaysPerWeek(plan), 'dia', 'dias')} por semana</p>
@@ -112,7 +118,7 @@ function WeekStrip() {
   // W10: atalho para registrar a atividade do dia sem ir até o Histórico
   const [activityOpen, setActivityOpen] = useState(false);
   return (
-    <section aria-label="Esta semana" className="rounded-2xl border border-line bg-surface p-3">
+    <section aria-label="Esta semana" data-help="semana" className="rounded-2xl border border-line bg-surface p-3">
       <ol className="grid grid-cols-7 gap-1 text-center">
         {days.map(d => {
           // S8: dia passado (ou hoje) sem treino aceita uma nota com o motivo
@@ -296,7 +302,7 @@ function WeightSection({ card }: { card: WeightData | null }) {
   const deltaTone = card?.towardGoal === null || card?.towardGoal === undefined ? 'text-muted' : card.towardGoal ? 'text-success' : 'text-danger';
 
   return (
-    <section aria-label="Peso" className="rounded-2xl border border-line bg-surface p-4">
+    <section aria-label="Peso" data-help="peso" className="rounded-2xl border border-line bg-surface p-4">
       <div className="flex items-start justify-between gap-3">
         <div>
           <p className="text-xs font-semibold text-muted">Peso</p>
@@ -350,7 +356,7 @@ function WaterSection() {
   if (!card) return null;
   const add = (ml: number) => run((d, now) => addWater(d, ml, now));
   return (
-    <section aria-label="Água" className="rounded-2xl border border-line bg-surface p-4">
+    <section aria-label="Água" data-help="agua" className="rounded-2xl border border-line bg-surface p-4">
       <div className="flex items-baseline justify-between">
         <p className="text-xs font-semibold text-muted">Água hoje</p>
         <p className="text-sm text-muted tabular-nums">{formatNumber(card.ml / 1000)} de {formatNumber(card.target / 1000)} L</p>

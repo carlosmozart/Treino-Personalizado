@@ -1,4 +1,4 @@
-import { Fragment, useState, type ReactNode } from 'react';
+import { Fragment, useEffect, useState, type ReactNode } from 'react';
 import { visibleCards, type ProgressCardId } from '../../domain/progress-layout';
 import { ProgressLayoutSheet, useProgressLayout } from './ProgressLayoutSheet';
 import { WeeklySetsCard } from './WeeklySetsCard';
@@ -17,7 +17,7 @@ import { LibrarySheet } from '../plan/LibrarySheet';
 import { describeEntry, entryMinutes, volumeOptions, workoutVolume } from '../../domain/workouts';
 import { useVolumeOptions } from '../../hooks/use-volume-options';
 import { useAppStore } from '../../store';
-import { useUiStore } from '../../store/ui-store';
+import { useUiStore, type ProgressView } from '../../store/ui-store';
 import { askRestAlarmPermission } from '../workout/rest-alarm-instance';
 import { useNow } from '../../hooks/use-now';
 import { Icon } from '../../ui/Icon';
@@ -32,6 +32,7 @@ import { ShareImageButton } from './ShareImageButton';
 import { WorkoutMoreActions } from './WorkoutMoreActions';
 import { formatNumber, plural, shortDate } from '../../ui/format';
 import { ProtocolView } from '../protocol/ProtocolView';
+import { ScreenTitle } from '../help/HelpButton';
 
 const MONTH_NAMES = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
 const monthTitle = (ym: string) => `${MONTH_NAMES[Number(ym.slice(5, 7)) - 1]} de ${ym.slice(0, 4)}`;
@@ -39,20 +40,27 @@ const WEEKDAYS = ['dom', 'seg', 'ter', 'qua', 'qui', 'sex', 'sáb'];
 
 const NO_WORKOUTS: Workout[] = [];
 
-type View = 'stats' | 'goals' | 'history' | 'protocol';
+type View = ProgressView;
 const VIEW_LABEL: Record<View, string> = { stats: 'Estatísticas', goals: 'Metas', history: 'Histórico', protocol: 'Protocolo' };
 
 /** Estatísticas (N9, M16, M28) e histórico dos treinos. */
 export function ProgressScreen() {
-  const [chosen, setView] = useState<View>('stats');
+  // Ajuda: "Ir até lá" pode pedir uma vista (Protocolo, Metas…) antes de abrir a aba
+  const asked = useUiStore(s => s.progressView);
+  const [chosen, setView] = useState<View>(() => asked ?? 'stats');
+  useEffect(() => {
+    if (!asked) return;
+    setView(asked);
+    useUiStore.setState({ progressView: null });
+  }, [asked]);
   // Z1: a aba Protocolo só existe com a seção ligada no Perfil
   const protocol = useAppStore(s => !!s.data?.settings.protocolEnabled);
   const views: View[] = protocol ? ['stats', 'goals', 'history', 'protocol'] : ['stats', 'goals', 'history'];
   const view = views.includes(chosen) ? chosen : 'stats';
   return (
     <>
-      <h1 className="pt-6 text-3xl font-black tracking-tight">Progresso</h1>
-      <div role="tablist" className={`mt-4 grid gap-1 rounded-xl bg-surface-2 p-1 ${protocol ? 'grid-cols-4' : 'grid-cols-3'}`}>
+      <ScreenTitle>Progresso</ScreenTitle>
+      <div role="tablist" data-help="progresso-vistas" className={`mt-4 grid gap-1 rounded-xl bg-surface-2 p-1 ${protocol ? 'grid-cols-4' : 'grid-cols-3'}`}>
         {views.map(v => (
           <button key={v} type="button" role="tab" aria-selected={view === v} aria-label={VIEW_LABEL[v]} onClick={() => setView(v)}
             className={`min-h-10 min-w-0 rounded-lg font-semibold leading-tight ${protocol ? 'px-0.5 text-sm' : ''} ${view === v ? 'bg-surface text-ink' : 'text-muted'}`}>

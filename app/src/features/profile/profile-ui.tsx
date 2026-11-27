@@ -4,9 +4,9 @@ import type { ReactNode } from 'react';
 
 export const INPUT = 'mt-1 h-12 w-full rounded-xl border border-line bg-surface-2 px-3 text-base text-ink';
 
-export function Card({ title, children }: { title: string; children: ReactNode }) {
+export function Card({ title, help, children }: { title: string; /** Âncora da Ajuda (data-help). */ help?: string; children: ReactNode }) {
   return (
-    <section className="mt-4 space-y-3 rounded-2xl border border-line bg-surface p-4">
+    <section data-help={help} className="mt-4 space-y-3 rounded-2xl border border-line bg-surface p-4">
       <h2 className="text-lg font-bold">{title}</h2>
       {children}
     </section>

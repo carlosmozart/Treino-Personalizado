@@ -12,6 +12,8 @@ import { formatNumber } from '../../ui/format';
 import { SettingsSection } from './SettingsSection';
 import { WeightLogSheet } from '../home/WeightLogSheet';
 import { RpgCard } from '../rpg/RpgCard';
+import { ScreenTitle } from '../help/HelpButton';
+import { goToHelp } from '../help/help-nav';
 
 const ACTIVITY: Record<ActivityLevel, string> = { sedentario: 'Sedentário', moderado: 'Moderado (3–5 treinos)', intenso: 'Intenso (6–7 treinos)' };
 const TONE = { info: 'text-primary', success: 'text-success', warning: 'text-warning', danger: 'text-danger' } as const;
@@ -22,6 +24,7 @@ export function ProfileScreen() {
   const run = useAppStore(s => s.run);
   const now = new Date(useNow(60_000));
   const [weighing, setWeighing] = useState(false);
+  const [protocolJustOn, setProtocolJustOn] = useState(false);
   if (!data) return null;
   const p = data.profile;
   const set = (patch: Partial<Omit<UserProfile, 'weighIns' | 'weightKg'>>) => run((d, t) => updateProfile(d, patch, t));
@@ -30,7 +33,7 @@ export function ProfileScreen() {
 
   return (
     <>
-      <h1 className="pt-6 text-3xl font-black tracking-tight">{p.name.trim() || 'Perfil'}</h1>
+      <ScreenTitle>{p.name.trim() || 'Perfil'}</ScreenTitle>
       <p className="text-muted">{[h.age !== null ? `${h.age} anos` : '', `Nível ${level.level}`, `${data.gamification.totalXP} XP`].filter(Boolean).join(' · ')}</p>
 
       <RpgCard />
@@ -96,14 +99,16 @@ export function ProfileScreen() {
           <p className="mt-2">O IMC não separa gordura de músculo; use junto com o espelho, as medidas e o % de gordura.</p>
         </More>
         {/* Z1: seção opcional de protocolo */}
-        <label className="flex min-h-12 items-center justify-between gap-3 border-t border-line pt-3">
+        <label data-help="protocolo-ligar" className="flex min-h-12 items-center justify-between gap-3 border-t border-line pt-3">
           <span>
             <span className="block font-semibold">Protocolo: hormônios, peptídeos e medicamentos</span>
             <span className="block text-sm text-muted">Para quem já faz uso: mostra a aba Protocolo no Progresso, com o histórico de doses, sintomas, pressão e exames. O app não incentiva o uso nem indica doses.</span>
           </span>
           <input type="checkbox" role="switch" checked={!!data.settings.protocolEnabled} aria-label="Protocolo: hormônios, peptídeos e medicamentos"
-            onChange={e => run((d, t) => updateSettings(d, { protocolEnabled: e.target.checked }, t))} className="size-6 shrink-0 accent-[var(--color-primary)]" />
+            onChange={e => { const on = e.target.checked; run((d, t) => updateSettings(d, { protocolEnabled: on }, t)); setProtocolJustOn(on); }} className="size-6 shrink-0 accent-[var(--color-primary)]" />
         </label>
+        {/* ao ligar, diz onde a seção apareceu e leva até ela (antes a pessoa ficava sem saber onde estava) */}
+        {protocolJustOn && data.settings.protocolEnabled && <ProtocolFound onClose={() => setProtocolJustOn(false)} />}
       </Card>
 
       <SettingsSection />
@@ -134,6 +139,21 @@ function More({ children }: { children: ReactNode }) {
         {open ? 'Menos' : 'Saiba mais'}
       </button>
       {open && <div className="text-sm text-muted">{children}</div>}
+    </div>
+  );
+}
+
+/** Logo depois de ligar o Protocolo: onde ele fica e um atalho até lá. */
+function ProtocolFound({ onClose }: { onClose: () => void }) {
+  return (
+    <div role="status" className="rounded-xl border border-primary/50 bg-surface-2 p-3 text-sm">
+      <p className="font-semibold">Protocolo ligado.</p>
+      <p className="mt-1 text-muted">Ele fica em <b className="text-ink">Progresso › Protocolo</b>: é lá que se cadastra o protocolo e se registram as doses, o diário e os exames. As doses do dia também aparecem no Início.</p>
+      <div className="mt-3 grid grid-cols-2 gap-2">
+        <button type="button" onClick={onClose} className="h-11 rounded-xl bg-surface font-semibold">Entendi</button>
+        <button type="button" onClick={() => { onClose(); void goToHelp({ tab: 'progresso', view: 'protocol', anchor: 'progresso-vistas' }); }}
+          className="h-11 rounded-xl bg-primary font-bold text-white">Abrir o Protocolo</button>
+      </div>
     </div>
   );
 }

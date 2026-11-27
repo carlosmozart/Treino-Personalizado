@@ -38,7 +38,7 @@ export function SettingsSection() {
 
   return (
     <>
-      <Card title="Treino">
+      <Card title="Treino" help="ajustes-treino">
         <WorkoutSettingsFields />
         <SettingsGroup id="avisos" title="Avisos e semana"
           summary={`Semana começa ${(settings.weekStart ?? 'seg') === 'dom' ? 'no domingo' : 'na segunda'}${notificationsAvailable() ? ` · lembrete ${settings.trainingReminders ? 'ligado' : 'desligado'}` : ''}`}>
@@ -49,7 +49,7 @@ export function SettingsSection() {
           <Toggle label="Dia com atividade registrada (corrida, futebol…) não quebra a sequência" checked={settings.activitiesKeepStreak ?? false} onChange={v => set({ activitiesKeepStreak: v })} />
         </SettingsGroup>
       </Card>
-      <Card title="Aparência">
+      <Card title="Aparência" help="aparencia">
         <ThemeChoice value={settings.theme ?? 'system'} onChange={v => set({ theme: v })} />
         {/* W17: tamanho do texto em passos; a tela toda muda na hora, e a frase abaixo serve de prévia */}
         <p className="mt-3 text-sm font-semibold text-muted">Tamanho do texto</p>
@@ -91,7 +91,7 @@ export function SettingsSection() {
       <Card title="Conta e nuvem">
         <p className="text-sm text-muted">Seus dados ficam guardados neste aparelho. Em breve: entrar com o Google para guardar uma cópia na nuvem e usar em mais de um aparelho.</p>
       </Card>
-      <Card title="Sobre">
+      <Card title="Sobre" help="sobre">
         <p className="text-sm text-muted">Versão {__APP_VERSION__}. Ilustrações dos exercícios: Everkinetic (CC BY-SA 4.0), detalhes em Créditos e licenças.</p>
         <UpdateControls />
         {/* os atalhos lado a lado, com espaço entre eles (antes saíam grudados) */}
@@ -123,7 +123,7 @@ export function SettingsGroup({ id, title, summary, children, startOpen = false 
     saveOpen(next ? [...ids, id] : ids);
   };
   return (
-    <section className="border-t border-line first:border-t-0">
+    <section data-help={id} className="border-t border-line first:border-t-0">
       <h3>
         <button type="button" onClick={toggle} aria-expanded={open} aria-controls={`ajustes-${id}`}
           className="flex min-h-14 w-full items-center gap-3 py-2 text-left">
@@ -346,7 +346,7 @@ function BackupCard() {
   };
 
   return (
-    <Card title="Dados e backup">
+    <Card title="Dados e backup" help="backup">
       {/* N14: onde os dados estão, se há cópia automática e quando foi o último backup */}
       {(() => {
         const st = dataStatus({ native: isNative(), autoBackup: canAutoBackup() && (settings?.autoBackup ?? true), lastBackupAt, now: new Date() });
