@@ -6,6 +6,11 @@ Todas as mudanças relevantes do app ficam registradas aqui. Ao lançar uma nova
    atualizar o app instalado
 3. Adicione uma entrada aqui, nesse formato
 
+## [3.39.1] - 2026-11-27
+
+- Trocar exercício no Plano: toque no exercício e use "Trocar exercício" (reservas, o mesmo grupo sem repetir o que já está no dia, ou a busca). Ficam as séries, as repetições, o descanso e o superset; a carga vem da última vez que você fez o novo; o antigo vira reserva, para voltar a ele no treino. Dá para desfazer.
+- No treino, depois de trocar um exercício do plano, o app pergunta se a troca vale para o plano também ("Salvar no plano" ou "Só hoje"). Antes ela valia só para aquele treino.
+
 ## [3.39.0] - 2026-11-26
 
 - Ajuda: o "?" ao lado do título de cada tela abre a Ajuda já na área daquela aba. Cada função diz onde fica e o que faz, a busca não liga para acento, e "Ir até lá" abre a tela certa e destaca o lugar. Se a função estiver desligada (como o Protocolo), a Ajuda leva até onde se liga.

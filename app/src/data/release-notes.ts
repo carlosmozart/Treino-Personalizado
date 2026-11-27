@@ -3,6 +3,14 @@ export interface ReleaseNote { version: string; date: string; items: string[] }
 
 export const RELEASE_NOTES: readonly ReleaseNote[] = [
   {
+    version: '3.39.1',
+    date: '2026-11',
+    items: [
+      'Plano: "Trocar exercício" troca um exercício por outro sem apagar e montar de novo.',
+      'Trocou no treino? O app pergunta se vale para o plano também.'
+    ]
+  },
+  {
     version: '3.39.0',
     date: '2026-11',
     items: [
